@@ -1,0 +1,65 @@
+:root {
+    --size: 1rem;
+    --color-primary: #58f;
+}
+html,
+body {
+    background-color: #333;
+    color: #ccc;
+    font: var(--size)/1.2em sans-serif;
+    margin: 0;
+    padding: 0;
+}
+body {
+    padding: var(--size);
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+    margin: 0;
+    padding: 0;
+    padding-bottom: calc(var(--size) / 2);
+}
+
+h1 {
+    font-size: calc(var(--size) * 2);
+    line-height: 1.2em;
+}
+h2 {
+    font-size: calc(var(--size) * 1.75);
+    line-height: 1.2em;
+}
+h3 {
+    font-size: calc(var(--size) * 1.5);
+    line-height: 1.2em;
+}
+h4 {
+    font-size: calc(var(--size) * 1.25);
+    line-height: 1.2em;
+}
+h5 {
+    font-size: calc(var(--size) * 1.1);
+    line-height: 1.2em;
+}
+h6 {
+    font-size: var(--size);
+    line-height: 1.2em;
+}
+a {
+    color: var(--color-primary);
+}
+button {
+    background-color: var(--color-primary);
+    color: #333;
+    border: none;
+    font: var(--size)/1.2em sans-serif;
+    border-radius: calc(var(--size) * 0.25);
+    padding: calc(var(--size) * 0.25) calc(var(--size) * 0.5);
+}
+input, textarea {
+    font: var(--size)/1.2em sans-serif;
+}

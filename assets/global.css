@@ -6,8 +6,10 @@ html,
 body {
     background-color: #333;
     color: #ccc;
-    font: var(--size)/1.2em sans-serif;
+    font: var(--size) / 1.2em sans-serif;
     margin: 0;
+}
+html {
     padding: 0;
 }
 body {
@@ -56,10 +58,11 @@ button {
     background-color: var(--color-primary);
     color: #333;
     border: none;
-    font: var(--size)/1.2em sans-serif;
+    font: var(--size) / 1.2em sans-serif;
     border-radius: calc(var(--size) * 0.25);
     padding: calc(var(--size) * 0.25) calc(var(--size) * 0.5);
 }
-input, textarea {
-    font: var(--size)/1.2em sans-serif;
+input,
+textarea {
+    font: var(--size) / 1.2em sans-serif;
 }

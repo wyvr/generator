@@ -1,0 +1,15 @@
+{
+    "url": "/index.html",
+    "title": "wyvr Generator",
+    "layout_file": "Page.svelte",
+    "template_file": "Template.svelte",
+    "product": {
+        "name": "Produkt A",
+        "description": "Produktbeschreibung von A",
+        "price": 13.5
+    },
+    "cms_content": {
+        "header": "Header content",
+        "footer": "Footer content"
+    }
+}

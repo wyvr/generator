@@ -2,28 +2,21 @@ const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const hr_start = process.hrtime();
 
-const pkg = require('./package.json');
 
 const build = require('./lib/build.js');
 const bundle = require('./lib/bundle.js');
 const link = require('./lib/link.js');
 const importer = require('./lib/importer.js');
 const dir = require('./lib/dir.js');
+const output = require('./lib/output.js');
 
 const filename = './src/App.svelte';
 
 const uniq_id = uuidv4().split('-')[0];
 
 (async () => {
-    [
-        '                              __',
-        '  ___ ____ ___  ___ _______ _/ /____  ____',
-        ' / _ `/ -_) _ \\/ -_) __/ _ `/ __/ _ \\/ __/',
-        ' \\_, /\\__/_//_/\\__/_/  \\_,_/\\__/\\___/_/',
-        '/___/ v' + pkg.version,
-    ].forEach((line) => console.log(line));
-    console.log('');
-    console.log('build', uniq_id);
+    output.logo();
+    output.present('build', uniq_id);
 
     dir.create('pub');
 
@@ -59,5 +52,5 @@ const uniq_id = uuidv4().split('-')[0];
 
     var hr_end = process.hrtime(hr_start); // hr_end[0] is in seconds, hr_end[1] is in nanoseconds
     const timeInMs = (hr_end[0] * 1000000000 + hr_end[1]) / 1000000; // convert first to ns then to ms
-    console.log('execution time', timeInMs, 'ms');
+    output.present('total execution time', `${timeInMs} ms`);
 })();

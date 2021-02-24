@@ -12,6 +12,7 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "ansi-colors": "^4.1.1",
         "http-server": "^0.12.3",
         "nodemon": "^2.0.7",
         "rollup": "^2.39.0",

@@ -6,6 +6,7 @@ const build = require('./lib/build.js');
 const bundle = require('./lib/bundle.js');
 const link = require('./lib/link.js');
 const importer = require('./lib/importer.js');
+const dir = require('./lib/dir.js');
 
 const filename = './src/App.svelte';
 
@@ -13,6 +14,8 @@ const uniq_id = uuidv4().split('-')[0];
 
 (async () => {
     console.log('build', uniq_id);
+
+    dir.create('pub');
 
     importer.process('./data/sample.json', (index, data) => {
         console.log(index, data);

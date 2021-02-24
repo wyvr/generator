@@ -2,6 +2,8 @@ const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const hr_start = process.hrtime();
 
+const pkg = require('./package.json');
+
 const build = require('./lib/build.js');
 const bundle = require('./lib/bundle.js');
 const link = require('./lib/link.js');
@@ -13,6 +15,14 @@ const filename = './src/App.svelte';
 const uniq_id = uuidv4().split('-')[0];
 
 (async () => {
+    [
+        '                              __',
+        '  ___ ____ ___  ___ _______ _/ /____  ____',
+        ' / _ `/ -_) _ \\/ -_) __/ _ `/ __/ _ \\/ __/',
+        ' \\_, /\\__/_//_/\\__/_/  \\_,_/\\__/\\___/_/',
+        '/___/ v' + pkg.version,
+    ].forEach((line) => console.log(line));
+    console.log('');
     console.log('build', uniq_id);
 
     dir.create('pub');

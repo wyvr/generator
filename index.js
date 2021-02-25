@@ -23,6 +23,7 @@ const cwd = process.cwd();
     output.present('build', uniq_id);
     
     const worker_amount = worker_controller.get_worker_amount();
+    output.present('cpu cores', require('os').cpus().length);
     output.present('used workers', worker_amount);
 
     dir.create('pub');

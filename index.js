@@ -17,8 +17,9 @@ const pid = process.pid;
 const cwd = process.cwd();
 
 (async () => {
+    process.title = '[wyvr] [master] generator'
     output.logo();
-    output.present('PID', pid);
+    output.present('PID', `${pid} ${output.color.dim(`"${process.title}"`)}`);
     output.present('cwd', cwd);
     output.present('build', uniq_id);
     

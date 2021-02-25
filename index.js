@@ -2,7 +2,6 @@ const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const hr_start = process.hrtime();
 
-
 const build = require('./lib/build.js');
 const bundle = require('./lib/bundle.js');
 const link = require('./lib/link.js');
@@ -24,9 +23,15 @@ const cwd = process.cwd();
 
     dir.create('pub');
 
-    importer.process('./data/sample.json', (index, data) => {
-        console.log(index, data);
-    });
+    try {
+        const chunks = await importer.process('./data/sample.json', (index, data) => {
+            console.log(index, data);
+        });
+        output.present('chunks imported', chunks);
+    } catch (e) {
+        output.error(e);
+        return;
+    }
 
     // const component = build.compile(filename);
     // // console.log('component', component)

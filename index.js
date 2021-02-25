@@ -8,6 +8,7 @@ const link = require('./lib/link.js');
 const importer = require('./lib/importer.js');
 const dir = require('./lib/dir.js');
 const output = require('./lib/output.js');
+const worker_controller = require('./lib/worker/controller.js');
 
 const filename = './src/App.svelte';
 
@@ -20,6 +21,9 @@ const cwd = process.cwd();
     output.present('PID', pid);
     output.present('cwd', cwd);
     output.present('build', uniq_id);
+    
+    const worker_amount = worker_controller.get_worker_amount();
+    output.present('used workers', worker_amount);
 
     dir.create('pub');
 

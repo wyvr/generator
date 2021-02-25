@@ -13,9 +13,13 @@ const output = require('./lib/output.js');
 const filename = './src/App.svelte';
 
 const uniq_id = uuidv4().split('-')[0];
+const pid = process.pid;
+const cwd = process.cwd();
 
 (async () => {
     output.logo();
+    output.present('PID', pid);
+    output.present('cwd', cwd);
     output.present('build', uniq_id);
 
     dir.create('pub');

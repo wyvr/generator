@@ -30,10 +30,8 @@ const cwd = process.cwd();
     dir.create('pub');
 
     try {
-        const chunks = await importer.process('./data/sample.json', (index, data) => {
-            console.log(index, data);
-        });
-        output.present('chunks imported', chunks);
+        const datasets = await importer.import('./data/sample.json');
+        output.present('datasets imported', datasets);
     } catch (e) {
         output.error(e);
         return;

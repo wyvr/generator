@@ -5,7 +5,7 @@
     "main": "index.js",
     "scripts": {
         "postinstall": "link-module-alias",
-        "test": "echo \"Error: no test specified\" && exit 1",
+        "test": "nyc mocha './test/**/*.js'",
         "start": "node index.js",
         "watch": "nodemon ./index.js",
         "serve": "npx http-server ./pub"
@@ -14,9 +14,12 @@
     "license": "ISC",
     "dependencies": {
         "ansi-colors": "^4.1.1",
+        "glob": "^7.1.6",
         "http-server": "^0.12.3",
         "link-module-alias": "^1.2.0",
+        "mocha": "^8.3.1",
         "nodemon": "^2.0.7",
+        "nyc": "^15.1.0",
         "rollup": "^2.39.0",
         "stream-json": "^1.7.1",
         "uuid": "^8.3.2"

@@ -2,14 +2,14 @@ const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const hr_start = process.hrtime();
 
-const build = require('./lib/build');
-const bundle = require('./lib/bundle');
-const link = require('./lib/link');
-const importer = require('./lib/importer');
-const dir = require('./lib/dir');
-const output = require('./lib/output');
-const worker_controller = require('./lib/worker/controller');
-const config = require('./lib/config');
+const build = require('_lib/build');
+const bundle = require('_lib/bundle');
+const link = require('_lib/link');
+const importer = require('_lib/importer');
+const dir = require('_lib/dir');
+const output = require('_lib/output');
+const worker_controller = require('_lib/worker/controller');
+const config = require('_lib/config');
 
 const filename = './src/App.svelte';
 

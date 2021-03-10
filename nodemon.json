@@ -1,3 +1,3 @@
 {
-    "ignore": ["imported/*", "data/*"]
+    "ignore": ["imported/*", "data/*", "test/*", "pub/*"]
 }

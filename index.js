@@ -2,13 +2,14 @@ const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const hr_start = process.hrtime();
 
-const build = require('./lib/build.js');
-const bundle = require('./lib/bundle.js');
-const link = require('./lib/link.js');
-const importer = require('./lib/importer.js');
-const dir = require('./lib/dir.js');
-const output = require('./lib/output.js');
-const worker_controller = require('./lib/worker/controller.js');
+const build = require('./lib/build');
+const bundle = require('./lib/bundle');
+const link = require('./lib/link');
+const importer = require('./lib/importer');
+const dir = require('./lib/dir');
+const output = require('./lib/output');
+const worker_controller = require('./lib/worker/controller');
+const config = require('./lib/config');
 
 const filename = './src/App.svelte';
 
@@ -22,7 +23,9 @@ const cwd = process.cwd();
     output.present('PID', `${pid} ${output.color.dim(`"${process.title}"`)}`);
     output.present('cwd', cwd);
     output.present('build', uniq_id);
-    
+
+    const project_config = config.get();
+
     const worker_amount = worker_controller.get_worker_amount();
     output.present('cpu cores', require('os').cpus().length);
     output.present('used workers', worker_amount);

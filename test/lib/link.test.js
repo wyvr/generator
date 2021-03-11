@@ -1,5 +1,5 @@
 const assert = require('assert');
-const link = require('_lib/link');
+const link = require('./../../lib/link');
 
 describe('Lib/Link', () => {
     describe('is_symlink', () => {

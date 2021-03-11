@@ -1,5 +1,5 @@
 const assert = require('assert');
-const file = require('_lib/file');
+const file = require('./../../lib/file');
 
 describe('Lib/File', () => {
     describe('to_extension', () => {

@@ -27,11 +27,11 @@ const cwd = process.cwd();
     const project_config = config.get();
 
     const worker_amount = worker_controller.get_worker_amount();
-    output.present('cpu cores', require('os').cpus().length);
-    output.present('used workers', worker_amount);
+    output.present('workers', worker_amount, output.color.dim(`of ${require('os').cpus().length} cores`));
 
     dir.create('pub');
 
+    // Import the data source
     try {
         const datasets = await importer.import('./data/sample.json');
         output.present('datasets imported', datasets);
@@ -39,6 +39,8 @@ const cwd = process.cwd();
         output.error(e);
         return;
     }
+
+    // Process files in workers
 
     // const component = build.compile(filename);
     // // console.log('component', component)
@@ -68,5 +70,5 @@ const cwd = process.cwd();
 
     var hr_end = process.hrtime(hr_start); // hr_end[0] is in seconds, hr_end[1] is in nanoseconds
     const timeInMs = (hr_end[0] * 1000000000 + hr_end[1]) / 1000000; // convert first to ns then to ms
-    output.present('total execution time', `${timeInMs} ms`);
+    output.present('total execution time', timeInMs, 'ms');
 })();

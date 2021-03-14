@@ -34,7 +34,6 @@ const cwd = process.cwd();
     // Import the data source
     try {
         const datasets = await importer.import('./data/sample.json');
-        output.present('datasets imported', datasets);
     } catch (e) {
         output.error(e);
         return;
@@ -70,5 +69,5 @@ const cwd = process.cwd();
 
     var hr_end = process.hrtime(hr_start); // hr_end[0] is in seconds, hr_end[1] is in nanoseconds
     const timeInMs = (hr_end[0] * 1000000000 + hr_end[1]) / 1000000; // convert first to ns then to ms
-    output.present('total execution time', timeInMs, 'ms');
+    output.success('total execution time', timeInMs, 'ms');
 })();

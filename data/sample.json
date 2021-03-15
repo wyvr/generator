@@ -13,5 +13,16 @@
             "header": "Header content",
             "footer": "Footer content"
         }
+    },
+    {
+        "url": "/about.html",
+        "title": "wyvr Generator",
+        "layout_file": "Page.svelte",
+        "template_file": "Template.svelte",
+        "content": "The content of the about page",
+        "cms_content": {
+            "header": "Header content",
+            "footer": "Footer content"
+        }
     }
 ]

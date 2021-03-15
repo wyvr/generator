@@ -5,7 +5,7 @@
     "main": "index.js",
     "scripts": {
         "postinstall": "link-module-alias",
-        "test": "nyc mocha './test/**/*.js'",
+        "test": "nyc -x 'config/**/*' -x 'test/**/*' mocha './test/**/*.js'",
         "start": "node index.js",
         "watch": "nodemon ./index.js",
         "serve": "npx http-server ./pub"

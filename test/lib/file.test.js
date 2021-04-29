@@ -36,4 +36,41 @@ describe('Lib/File', () => {
             assert.strictEqual(file.to_extension('test/.hidden/test.js', 'txt'), 'test/.hidden/test.txt');
         });
     });
+    describe('to_index', () => {
+        it('no filename', () => {
+            assert.strictEqual(file.to_index(null), 'index.html');
+            assert.strictEqual(file.to_index(undefined), 'index.html');
+            assert.strictEqual(file.to_index(''), 'index.html');
+        });
+        it('wrong type', () => {
+            assert.strictEqual(file.to_index(false), 'index.html');
+            assert.strictEqual(file.to_index(true), 'index.html');
+            assert.strictEqual(file.to_index([]), 'index.html');
+            assert.strictEqual(file.to_index({}), 'index.html');
+        });
+        it('no appending', () => {
+            assert.strictEqual(file.to_index('/index.html'), '/index.html');
+            assert.strictEqual(file.to_index('./test/index.html'), './test/index.html');
+            assert.strictEqual(file.to_index('foo/bar/demo.txt'), 'foo/bar/demo.txt');
+            assert.strictEqual(file.to_index('foo/bar/demo.json'), 'foo/bar/demo.json');
+        });
+        it('add index.html', () => {
+            assert.strictEqual(file.to_index('/'), '/index.html');
+            assert.strictEqual(file.to_index('./test'), './test/index.html');
+            assert.strictEqual(file.to_index('foo/bar/'), 'foo/bar/index.html');
+            assert.strictEqual(file.to_index('foo/bar'), 'foo/bar/index.html');
+        });
+        it('custom extension', () => {
+            assert.strictEqual(file.to_index('/', 'json'), '/index.json');
+            assert.strictEqual(file.to_index('./test', 'json'), './test/index.json');
+            assert.strictEqual(file.to_index('foo/bar/', 'json'), 'foo/bar/index.json');
+            assert.strictEqual(file.to_index('foo/bar', 'json'), 'foo/bar/index.json');
+        });
+        it('custom extension, no appending', () => {
+            assert.strictEqual(file.to_index('/index.html', 'json'), '/index.html');
+            assert.strictEqual(file.to_index('./test/index.html', 'json'), './test/index.html');
+            assert.strictEqual(file.to_index('foo/bar/demo.txt', 'json'), 'foo/bar/demo.txt');
+            assert.strictEqual(file.to_index('foo/bar/demo.json', 'json'), 'foo/bar/demo.json');
+        });
+    });
 });

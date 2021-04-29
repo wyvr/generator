@@ -1,3 +1,0 @@
-{
-    "ignore": ["imported/*", "data/*", "test/*", "pub/*", "state/*"]
-}

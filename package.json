@@ -5,10 +5,11 @@
     "main": "index.js",
     "scripts": {
         "postinstall": "link-module-alias",
-        "test": "nyc -x 'config/**/*' -x 'test/**/*' mocha './test/**/*.js'",
         "start": "node index.js",
         "watch": "nodemon ./index.js",
-        "serve": "npx http-server ./pub"
+        "serve": "npx http-server ./pub",
+        "test": "nyc -x 'config/**/*' -x 'test/**/*' mocha './test/**/*.js'",
+        "watch-test": "nodemon --watch src --watch lib --watch test --exec 'npm run test'"
     },
     "author": "",
     "license": "ISC",

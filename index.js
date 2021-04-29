@@ -11,8 +11,6 @@ const logger = require('_lib/logger');
 const worker_controller = require('_lib/worker/controller');
 const config = require('_lib/config');
 
-const filename = './src/App.svelte';
-
 const uniq_id = uuidv4().split('-')[0];
 const pid = process.pid;
 const cwd = process.cwd();
@@ -42,12 +40,12 @@ const cwd = process.cwd();
 
     // Process files in workers
 
-    const component = build.compile(filename);
+    //const component = build.compile(filename);
     //console.log('component', component)
 
-    const rendered = build.render(component, { name: 'P@', details: true });
-    console.log('rendered');
-    console.log(rendered.result.html)
+    // const rendered = build.render(component, { name: 'P@', details: true });
+    // console.log('rendered');
+    // console.log(rendered.result.html)
 
     // await bundle.build(filename)
 

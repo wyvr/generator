@@ -39,6 +39,9 @@
             "header": "Header content",
             "footer": "Footer content"
         }
+    },
+    {
+        "title": "No Url"
     }
 ]
 

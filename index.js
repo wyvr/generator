@@ -14,6 +14,7 @@ const config = require('_lib/config');
 const uniq_id = uuidv4().split('-')[0];
 const pid = process.pid;
 const cwd = process.cwd();
+const env = process.env.WYVR_ENV || 'development';
 
 (async () => {
     process.title = '[wyvr] [master] generator';
@@ -21,12 +22,14 @@ const cwd = process.cwd();
     logger.present('PID', pid, logger.color.dim(`"${process.title}"`));
     logger.present('cwd', cwd);
     logger.present('build', uniq_id);
+    logger.present('env', env);
 
     const project_config = config.get();
-    console.log(project_config)
+    logger.debug('project_config', project_config);
 
     const worker_amount = worker_controller.get_worker_amount();
     logger.present('workers', worker_amount, logger.color.dim(`of ${require('os').cpus().length} cores`));
+    const workers = worker_controller.create_workers(worker_amount);
 
     dir.create('pub');
 

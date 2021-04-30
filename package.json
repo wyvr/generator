@@ -6,7 +6,7 @@
     "scripts": {
         "postinstall": "link-module-alias",
         "start": "node index.js",
-        "watch": "nodemon --ignore test --ignore imported --ignore data --ignore pub --ignore state ./index.js",
+        "watch": "env WYVR_ENV=debug nodemon --ignore test --ignore imported --ignore data --ignore pub --ignore state ./index.js",
         "serve": "npx http-server ./pub",
         "test": "nyc -x 'config/**/*' -x 'test/**/*' mocha './test/**/*.js'",
         "watch-test": "nodemon --watch src --watch lib --watch test --exec 'npm run test'"

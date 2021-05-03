@@ -1,5 +1,8 @@
 const assert = require('assert');
 const file = require('./../../lib/file');
+const fs = require('fs-extra');
+const { v4: uuidv4} = require('uuid');
+const path = require('path');
 
 describe('Lib/File', () => {
     describe('to_extension', () => {
@@ -73,4 +76,20 @@ describe('Lib/File', () => {
             assert.strictEqual(file.to_index('foo/bar/demo.json', 'json'), 'foo/bar/demo.json');
         });
     });
+    describe('create_dir', ()=>{
+        it('single', () => {
+            const name = path.join(uuidv4().split('-')[0], 'test.txt');
+            assert.strictEqual(fs.existsSync(path.dirname(name)), false);
+            file.create_dir(name);
+            assert.strictEqual(fs.existsSync(path.dirname(name)), true);
+            fs.removeSync(name)
+        });
+        it('deep', () => {
+            const name = path.join(...uuidv4().split('-'), 'test.txt');
+            assert.strictEqual(fs.existsSync(path.dirname(name)), false);
+            file.create_dir(name);
+            assert.strictEqual(fs.existsSync(path.dirname(name)), true);
+            fs.removeSync(name)
+        });
+    })
 });

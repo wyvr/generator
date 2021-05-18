@@ -2,47 +2,8 @@ const rollup = require('rollup');
 const svelte = require('rollup-plugin-svelte');
 const resolve = require('@rollup/plugin-node-resolve').default;
 
-// @see https://github.com/sveltejs/rollup-plugin-svelte
-const logger_options = {
-    logger: {
-        name: 'bundle',
-        file: 'pub/bundle.js',
-        format: 'iife',
-    },
-    plugins: [
-        svelte({
-            // You can restrict which files are compiled
-            // using `include` and `exclude`
-            // include: 'src/components/**/*.svelte',
-            include: 'src/**/*.svelte',
-            compilerOptions: {
-                hydratable: true,
-            },
-
-            // Optionally, preprocess components with svelte.preprocess:
-            // https://svelte.dev/docs#svelte_preprocess
-            // preprocess: {
-            //     style: ({ content }) => {
-            //         return transformStyles(content);
-            //     },
-            // },
-            // Emit CSS as "files" for other plugins to process. default is true
-            emitCss: false,
-            onwarn: (warning, handler) => {
-                // e.g. don't warn on <marquee> elements, cos they're cool
-                if (warning.code === 'a11y-distracting-elements') return;
-
-                // let Rollup handle all other warnings normally
-                handler(warning);
-            },
-        }),
-        // see NOTICE below
-        resolve({ browser: true }),
-    ],
-};
-
-module.exports = {
-    async build(filename) {
+export class Bundle {
+    static async build(filename: string) {
         if (!filename) {
             return null;
         }
@@ -112,5 +73,44 @@ module.exports = {
 
         // closes the bundle
         await bundle.close();
+    }
+}
+
+// @see https://github.com/sveltejs/rollup-plugin-svelte
+const logger_options = {
+    logger: {
+        name: 'bundle',
+        file: 'pub/bundle.js',
+        format: 'iife',
     },
+    plugins: [
+        svelte({
+            // You can restrict which files are compiled
+            // using `include` and `exclude`
+            // include: 'src/components/**/*.svelte',
+            include: 'src/**/*.svelte',
+            compilerOptions: {
+                hydratable: true,
+            },
+
+            // Optionally, preprocess components with svelte.preprocess:
+            // https://svelte.dev/docs#svelte_preprocess
+            // preprocess: {
+            //     style: ({ content }) => {
+            //         return transformStyles(content);
+            //     },
+            // },
+            // Emit CSS as "files" for other plugins to process. default is true
+            emitCss: false,
+            onwarn: (warning, handler) => {
+                // e.g. don't warn on <marquee> elements, cos they're cool
+                if (warning.code === 'a11y-distracting-elements') return;
+
+                // let Rollup handle all other warnings normally
+                handler(warning);
+            },
+        }),
+        // see NOTICE below
+        resolve({ browser: true }),
+    ],
 };

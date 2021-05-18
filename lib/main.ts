@@ -3,7 +3,7 @@ import * as fs from 'fs-extra';
 import { v4 } from 'uuid';
 
 import { Build } from '@lib/build';
-const bundle = require('@lib/bundle');
+import {Bundle} from '@lib/bundle';
 const link = require('@lib/link');
 const importer = require('@lib/importer');
 import { Dir } from '@lib/dir';

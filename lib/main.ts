@@ -1,7 +1,6 @@
 import fs from 'fs-extra';
 
-const { v4: uuidv4 } = require('uuid');
-const hr_start = process.hrtime();
+import { v4 } from 'uuid';
 
 const build = require('@lib/build');
 const bundle = require('@lib/bundle');
@@ -12,73 +11,79 @@ const logger = require('@lib/logger');
 const worker_controller = require('@lib/worker/controller');
 const config = require('@lib/config');
 const env = require('@lib/env');
-env.set(process.env.WYVR_ENV);
 
-const uniq_id = uuidv4().split('-')[0];
-const pid = process.pid;
-
-(async () => {
-    const cwd = process.cwd();
-    process.title = `wyvr main generator ${process.pid}`;
-    logger.logo();
-    logger.present('PID', pid, logger.color.dim(`"${process.title}"`));
-    logger.present('cwd', cwd);
-    logger.present('build', uniq_id);
-    logger.present('env', env.get());
-
-    const project_config = config.get();
-    logger.debug('project_config', project_config);
-
-    const worker_amount = worker_controller.get_worker_amount();
-    logger.present('workers', worker_amount, logger.color.dim(`of ${require('os').cpus().length} cores`));
-    const workers = worker_controller.create_workers(worker_amount);
-
-    dir.create('pub');
-
-    // Import the data source
-    try {
-        const datasets = await importer.import('./data/sample.json');
-    } catch (e) {
-        logger.error(e);
-        return;
+export class Main {
+    constructor() {
+        env.set(process.env.WYVR_ENV);
+        this.init();
     }
+    async init() {
+        const hr_start = process.hrtime();
+        const uniq_id = v4().split('-')[0];
+        const pid = process.pid;
+        const cwd = process.cwd();
+        process.title = `wyvr main generator ${process.pid}`;
+        logger.logo();
+        logger.present('PID', pid, logger.color.dim(`"${process.title}"`));
+        logger.present('cwd', cwd);
+        logger.present('build', uniq_id);
+        logger.present('env', env.get());
 
-    // Process files in workers
+        const project_config = config.get();
+        logger.debug('project_config', project_config);
 
-    //const component = build.compile(filename);
-    //console.log('component', component)
+        const worker_amount = worker_controller.get_worker_amount();
+        logger.present('workers', worker_amount, logger.color.dim(`of ${require('os').cpus().length} cores`));
+        const workers = worker_controller.create_workers(worker_amount);
 
-    // const rendered = build.render(component, { name: 'P@', details: true });
-    // console.log('rendered');
-    // console.log(rendered.result.html)
+        dir.create('pub');
 
-    // await bundle.build(filename)
+        // Import the data source
+        try {
+            const datasets = await importer.import('./data/sample.json');
+        } catch (e) {
+            logger.error(e);
+            return;
+        }
 
-    // const demo_file = `
-    // <!doctype html>
-    // <html>
-    //     <head>
-    //         <link href="/assets/global.css?${uniq_id}" rel="stylesheet" />
-    //     </head>
-    //     <body>
-    //         ${rendered.result.html}
-    //         <script src="/bundle.js?${uniq_id}"></script>
-    //     </body>
-    // </html>`;
+        // Process files in workers
 
-    // fs.writeFileSync('./pub/index.html', demo_file);
+        //const component = build.compile(filename);
+        //console.log('component', component)
 
-    // symlink the "static" folders to pub
-    link.to_pub('assets');
+        // const rendered = build.render(component, { name: 'P@', details: true });
+        // console.log('rendered');
+        // console.log(rendered.result.html)
 
-    var hr_end = process.hrtime(hr_start); // hr_end[0] is in seconds, hr_end[1] is in nanoseconds
-    const timeInMs = (hr_end[0] * 1000000000 + hr_end[1]) / 1000000; // convert first to ns then to ms
-    logger.success('total execution time', timeInMs, 'ms');
-    
-    if(env.is_prod()) {
-        setTimeout(() => {
-            logger.success('shutdown');
-            process.exit(0);
-        }, 500);
+        // await bundle.build(filename)
+
+        // const demo_file = `
+        // <!doctype html>
+        // <html>
+        //     <head>
+        //         <link href="/assets/global.css?${uniq_id}" rel="stylesheet" />
+        //     </head>
+        //     <body>
+        //         ${rendered.result.html}
+        //         <script src="/bundle.js?${uniq_id}"></script>
+        //     </body>
+        // </html>`;
+
+        // fs.writeFileSync('./pub/index.html', demo_file);
+
+        // symlink the "static" folders to pub
+        // link.to_pub('assets');
+
+        var hr_end = process.hrtime(hr_start); // hr_end[0] is in seconds, hr_end[1] is in nanoseconds
+        const timeInMs = (hr_end[0] * 1000000000 + hr_end[1]) / 1000000; // convert first to ns then to ms
+        logger.success('total execution time', timeInMs, 'ms');
+
+        if (env.is_prod()) {
+            setTimeout(() => {
+                logger.success('shutdown');
+                process.exit(0);
+            }, 500);
+        }
     }
-})();
+}
+(async () => {})();

@@ -1,10 +1,13 @@
 import 'module-alias/register';
-const cluster = require('cluster');
+
+import { isMaster } from 'cluster';
+import { Main } from '@lib/main';
+import { Worker } from '@lib/worker';
 
 (async () => {
-    if (cluster.isMaster) {
-        require('@lib/main');
+    if (isMaster) {
+        new Main();
     } else {
-        require('@lib/worker');
+        new Worker();
     }
 })();

@@ -5,11 +5,11 @@
     "main": "index.js",
     "scripts": {
         "start": "tsc && node ./built/index.js",
-        "watch": "tsc && env WYVR_ENV=debug nodemon ./built/index.js",
+        "watch": "tsc && env WYVR_ENV=debug nodemon --ignore test --ignore imported --ignore data --ignore pub --ignore state -e js,ts ./built/index.js",
         "dev": "tsc && env WYVR_ENV=dev node ./built/index.js",
         "serve": "npx http-server ./pub",
         "test": "nyc -x 'config/**/*' -x 'test/**/*' mocha -R dot './test/**/*.js'",
-        "watch-test": "nodemon --watch src --watch lib --watch test --exec 'npm run test'"
+        "watch-test": "nodemon --watch src --watch lib --watch test -e js,ts --exec 'npm run test'"
     },
     "author": "",
     "license": "ISC",
@@ -35,9 +35,9 @@
         "typescript": "^4.2.4"
     },
     "_moduleAliases": {
-        "_root": "./built",
-        "_lib": "./built/lib",
-        "_config": "./config",
-        "_src": "./src"
+        "@root": ".",
+        "@lib": "built",
+        "@config": "config",
+        "@src": "src"
     }
 }

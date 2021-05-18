@@ -11,9 +11,14 @@ import { Logger } from '@lib/logger';
 import { WorkerController } from '@lib/worker/controller';
 import { Config } from '@lib/config';
 import { Env } from '@lib/env';
-import { EnvModel } from './model/env';
+import { EnvModel } from '@lib/model/env';
+import { Queue } from '@lib/queue';
+import { WorkerAction } from '@lib/model/worker/action';
+import { WorkerStatus } from './model/worker/status';
 
 export class Main {
+    queue: Queue = null;
+    worker_controller = new WorkerController();
     constructor() {
         Env.set(process.env.WYVR_ENV);
         this.init();
@@ -33,11 +38,9 @@ export class Main {
         const project_config = Config.get();
         Logger.debug('project_config', project_config);
 
-        const worker_controller = new WorkerController();
-
-        const worker_amount = worker_controller.get_worker_amount();
+        const worker_amount = this.worker_controller.get_worker_amount();
         Logger.present('workers', worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));
-        const workers = worker_controller.create_workers(worker_amount);
+        const workers = this.worker_controller.create_workers(worker_amount);
 
         Dir.create('pub');
 
@@ -56,6 +59,8 @@ export class Main {
         }
 
         // Process files in workers
+        await this.build(importer.get_import_list());
+        console.log('ticks', this.ticks);
 
         //const component = build.compile(filename);
         //console.log('component', component)
@@ -93,5 +98,48 @@ export class Main {
                 process.exit(0);
             }, 500);
         }
+    }
+    async build(list: string[]) {
+        // create new queue
+        this.queue = new Queue();
+
+        // add the items from the list to the queue
+        list.forEach((item) => {
+            const queue_data = {
+                action: WorkerAction.build,
+                data: item,
+            };
+            this.queue.push(queue_data);
+        });
+
+        console.log('queue length', this.queue.length);
+        return new Promise((resolve, reject) => {
+            this.tick(this.queue, resolve, reject);
+        });
+    }
+    ticks: number = 0;
+    tick(queue: Queue, resolve: Function, reject: Function) {
+        console.log('queue.length', queue.length);
+        if (queue.length == 0) {
+            resolve(true);
+            return;
+        }
+        this.ticks++;
+        // get all idle workers
+        const workers = this.worker_controller.get_idle_workers();
+        if (workers.length > 0) {
+            workers.forEach((worker) => {
+                const queue_entry = queue.take();
+                if (queue_entry != null) {
+                    // set worker busy otherwise the same worker gets multiple actions send
+                    worker.status = WorkerStatus.busy;
+                    // send the data to the worker
+                    this.worker_controller.send_action(worker.pid, queue_entry.action, queue_entry.data);
+                }
+            });
+        }
+        setTimeout(() => {
+            this.tick(queue, resolve, reject);
+        }, 100);
     }
 }

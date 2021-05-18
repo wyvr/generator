@@ -41,12 +41,17 @@ export class Main {
 
         Dir.create('pub');
 
-        // Import the data source
+        // import the data source
+        let datasets_total = null;
         const importer = new Importer();
         try {
-            const datasets = await importer.import('./data/sample.json');
+            datasets_total = await importer.import('./data/sample.json');
         } catch (e) {
             Logger.error(e);
+            return;
+        }
+        if (!datasets_total) {
+            Logger.error('no datasets found');
             return;
         }
 

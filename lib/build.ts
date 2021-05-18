@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import * as fs from 'fs-extra';
 const compiler = require('svelte/compiler');
 
 module.exports = {

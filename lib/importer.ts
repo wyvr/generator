@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import * as fs from 'fs-extra';
 
 import { join } from 'path';
 const stream_array = require('stream-json/streamers/StreamArray');

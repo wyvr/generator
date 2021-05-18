@@ -3,8 +3,8 @@ import * as fs from 'fs-extra';
 import { v4 } from 'uuid';
 
 import { Build } from '@lib/build';
-import {Bundle} from '@lib/bundle';
-const link = require('@lib/link');
+import { Bundle } from '@lib/bundle';
+import { Link } from '@lib/link';
 const importer = require('@lib/importer');
 import { Dir } from '@lib/dir';
 const logger = require('@lib/logger');

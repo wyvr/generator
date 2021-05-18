@@ -1,9 +1,13 @@
 import * as fs from 'fs-extra';
 
-module.exports = {
-    // links the given source_dir_name to the pub folder
-    // e.g. to_pub('assets') => /assets -> /pub/assets
-    to_pub(source_dir_name) {
+export class Link {
+    /**
+     * links the given source_dir_name to the pub folder
+     * @example to_pub('assets') => /assets -> /pub/assets
+     * @param source_dir_name directory name in the root folder which gets symlinked into the pub folder
+     * @returns whether the given parameter is correct or not
+     */
+    static to_pub(source_dir_name: string): boolean {
         const cwd = process.cwd();
         if (!source_dir_name || typeof source_dir_name != 'string') {
             return false;
@@ -18,13 +22,17 @@ module.exports = {
         // symlink from destination to source
         fs.symlinkSync(source, destination);
         return true;
-    },
-    // check if the path is a symbolic link
-    is_symlink(path) {
+    }
+    /**
+     * check if the path is a symbolic link
+     * @param path absolute or relative path to check
+     * @returns whether the given path is a symlink or not
+     */
+    static is_symlink(path: string): boolean {
         if (!fs.existsSync(path)) {
             return false;
         }
         const stats = fs.lstatSync(path, { throwIfNoEntry: false });
         return stats.isSymbolicLink();
-    },
-};
+    }
+}

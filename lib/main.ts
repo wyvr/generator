@@ -8,7 +8,7 @@ import { Link } from '@lib/link';
 import { Importer } from '@lib/importer';
 import { Dir } from '@lib/dir';
 import { Logger } from '@lib/logger';
-const worker_controller = require('@lib/worker/controller');
+import { WorkerController } from '@lib/worker/controller';
 import { Config } from '@lib/config';
 import { Env } from '@lib/env';
 import { EnvModel } from './model/env';
@@ -32,6 +32,8 @@ export class Main {
 
         const project_config = Config.get();
         Logger.debug('project_config', project_config);
+
+        const worker_controller = new WorkerController();
 
         const worker_amount = worker_controller.get_worker_amount();
         Logger.present('workers', worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));

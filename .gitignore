@@ -1,8 +1,9 @@
-/node_modules/
-/pub/
-/imported/
+node_modules
+pub
+imported
 package-lock.json
 .DS_Store
-/.nyc_output/
-/coverage/
-/state/
+.nyc_output
+coverage
+state
+built

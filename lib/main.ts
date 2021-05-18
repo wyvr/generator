@@ -23,7 +23,7 @@ export class Main {
         const uniq_id = v4().split('-')[0];
         const pid = process.pid;
         const cwd = process.cwd();
-        process.title = `wyvr main generator ${process.pid}`;
+        process.title = `wyvr main ${pid}`;
         logger.logo();
         logger.present('PID', pid, logger.color.dim(`"${process.title}"`));
         logger.present('cwd', cwd);

@@ -10,7 +10,7 @@ export class Worker {
         let config = null;
         let env = null;
         let cwd = null;
-        process.title = `wyvr worker generator ${process.pid}`;
+        process.title = `wyvr worker ${process.pid}`;
 
         WorkerHelper.send_status(WorkerStatus.exists);
 

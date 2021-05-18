@@ -4,7 +4,7 @@ import { join } from 'path';
 const stream_array = require('stream-json/streamers/StreamArray');
 import { Dir } from '@lib/dir';
 const file = require('@lib/file');
-const config = require('@lib/config');
+import { Config } from '@lib/config';
 const logger = require('@lib/logger');
 
 const cwd = process.cwd();
@@ -39,7 +39,7 @@ const importer = {
             const fileStream = fs.createReadStream(import_file_path, { flags: 'r', encoding: 'utf-8' }).pipe(jsonStream.input);
             this.chunk_index = 0;
 
-            const format_processed_file = config.get('import.format_processed_file');
+            const format_processed_file = Config.get('import.format_processed_file');
 
             if (hook_before_process && typeof hook_before_process == 'function') {
                 jsonStream.on('data', (data) => {
@@ -133,7 +133,7 @@ const importer = {
             end: () => {},
         };
         // when set to false return empty functions
-        if (!config.get('import.measure_performance')) {
+        if (!Config.get('import.measure_performance')) {
             return func;
         }
         return require('./perf_measure');

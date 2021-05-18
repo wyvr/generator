@@ -1,8 +1,13 @@
-module.exports = {
+export class Config {
     // cached troughout the whole process
-    cache: null,
-
-    get(config_segment) {
+    private static cache = null;
+    /**
+     * get the config value
+     * @example get('path.to.the.config.value')
+     * @param config_segment config to get as string, when nothing is given return the whole config
+     * @returns the value or null
+     */
+    static get(config_segment: string | null = null): any | null {
         if (!this.cache) {
             const raw_config = require('@config/config');
 
@@ -21,5 +26,5 @@ module.exports = {
             shrinked_config = shrinked_config[splitted_config_segment[index]];
         }
         return shrinked_config;
-    },
-};
+    }
+}

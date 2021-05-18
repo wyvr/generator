@@ -9,7 +9,7 @@ const importer = require('@lib/importer');
 import { Dir } from '@lib/dir';
 const logger = require('@lib/logger');
 const worker_controller = require('@lib/worker/controller');
-const config = require('@lib/config');
+import { Config } from '@lib/config';
 import { Env } from '@lib/env';
 import { EnvModel } from './model/env';
 
@@ -30,7 +30,7 @@ export class Main {
         logger.present('build', uniq_id);
         logger.present('env', EnvModel[Env.get()]);
 
-        const project_config = config.get();
+        const project_config = Config.get();
         logger.debug('project_config', project_config);
 
         const worker_amount = worker_controller.get_worker_amount();

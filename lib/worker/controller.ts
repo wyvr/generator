@@ -1,7 +1,7 @@
-const config = require('@lib/config');
+import { Config } from '@lib/config';
 import { WorkerStatus } from '@lib/model/worker/status';
 import { WorkerAction } from '@lib/model/worker/action';
-const worker_ratio = config.get('worker.ratio');
+const worker_ratio = Config.get('worker.ratio');
 import { fork } from 'cluster';
 const logger = require('@lib/logger');
 const cwd = process.cwd();
@@ -121,7 +121,7 @@ module.exports = {
         if (worker.status == WorkerStatus.exists) {
             // configure the worker
             this.send_action(worker.pid, WorkerAction.configure, {
-                config: config.get(),
+                config: Config.get(),
                 env: Env.get(),
                 cwd,
             });

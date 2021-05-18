@@ -1,33 +1,33 @@
 require('module-alias/register');
 
 const assert = require('assert');
-const config = require('./../../built/config');
+const { Config } = require('@lib/config');
 
 describe('Lib/Config', () => {
     describe('get', () => {
         it('all', () => {
-            assert.strictEqual(config.get(), require('./../../config/config'));
+            assert.strictEqual(Config.get(), require('./../../config/config'));
         });
         
         it('all from cache', () => {
-            config.cache = set_cache();
-            assert.deepStrictEqual(config.get(), set_cache());
+            Config.cache = set_cache();
+            assert.deepStrictEqual(Config.get(), set_cache());
         });
         it('get key', () => {
-            config.cache = set_cache();
-            assert.strictEqual(config.get('key'), 'value');
+            Config.cache = set_cache();
+            assert.strictEqual(Config.get('key'), 'value');
         });
         it('get deep key', () => {
-            config.cache = set_cache();
-            assert.strictEqual(config.get('deep.deep.key'), 'deep value');
+            Config.cache = set_cache();
+            assert.strictEqual(Config.get('deep.deep.key'), 'deep value');
         });
         it('unknown key', () => {
-            config.cache = set_cache();
-            assert.deepStrictEqual(config.get('unknown'), null);
+            Config.cache = set_cache();
+            assert.deepStrictEqual(Config.get('unknown'), null);
         });
         it('unknown deep key', () => {
-            config.cache = set_cache();
-            assert.deepStrictEqual(config.get('unknown.unknown.key'), null);
+            Config.cache = set_cache();
+            assert.deepStrictEqual(Config.get('unknown.unknown.key'), null);
         });
     });
 });

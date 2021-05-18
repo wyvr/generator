@@ -13,7 +13,9 @@ const cwd = process.cwd();
 export class Importer {
     chunk_index = 0;
     state_file = join(cwd, 'state', 'import.json');
+    state_list_file = join(cwd, 'state', 'import_list.json');
     state = null;
+    list: string[] = [];
     perf: IPerformance_Measure;
     constructor() {
         this.perf = Config.get('import.measure_performance') ? new Performance_Measure() : new Performance_Measure_Blank();
@@ -80,7 +82,28 @@ export class Importer {
         File.create_dir(filepath);
         fs.writeFileSync(filepath, JSON.stringify(data.value, null, format_processed_file ? 4 : null));
 
+        // add to list
+        this.list.push(filepath);
+
         this.perf.end(perf_mark);
+    }
+    /**
+     * get the lsit of all imported files
+     * @returns list of all imported files
+     */
+    get_import_list(): string[] {
+        if (this.list && this.list.length > 0) {
+            return this.list;
+        }
+        // try to load the list from state
+        const content = fs.readFileSync(this.state_list_file, { encoding: 'utf-8' });
+        try {
+            const list = JSON.parse(content);
+            return list;
+        } catch (e) {
+            Logger.error('can not read', this.state_list_file, e);
+        }
+        return null;
     }
     /**
      * Save the last import as state for next import
@@ -91,6 +114,9 @@ export class Importer {
         const mtimeMs = fs.statSync(import_file_path).mtimeMs;
         File.create_dir(this.state_file);
         fs.writeFileSync(this.state_file, JSON.stringify({ mtimeMs, datasets_amount }, null, 4));
+        // persist the list
+        File.create_dir(this.state_list_file);
+        fs.writeFileSync(this.state_list_file, JSON.stringify(this.list, null, 4));
     }
     /**
      * Load the last import state, return null when nothing is present

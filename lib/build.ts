@@ -1,12 +1,12 @@
 import * as fs from 'fs-extra';
-const compiler = require('svelte/compiler');
+import { compile } from 'svelte/compiler';
 
-module.exports = {
-    compile(filename) {
+export class Build {
+    static compile(filename) {
         const content = fs.readFileSync(filename).toString();
 
         // process.exit();
-        const compiled = compiler.compile(content, {
+        const compiled = compile(content, {
             filename,
             dev: true,
             generate: 'ssr',
@@ -15,8 +15,8 @@ module.exports = {
         const component = eval(compiled.js.code);
 
         return { filename, compiled, component, result: null, notes: [] };
-    },
-    render(svelte_render_item, props) {
+    }
+    static render(svelte_render_item, props) {
         const propNames = Object.keys(props);
         if (Array.isArray(propNames) && Array.isArray(svelte_render_item.compiled.vars)) {
             // check for not used props
@@ -33,5 +33,5 @@ module.exports = {
         }
         svelte_render_item.result = svelte_render_item.component.render(props);
         return svelte_render_item;
-    },
-};
+    }
+}

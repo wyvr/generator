@@ -2,7 +2,7 @@ import * as fs from 'fs-extra';
 
 import { v4 } from 'uuid';
 
-const build = require('@lib/build');
+import { Build } from '@lib/build';
 const bundle = require('@lib/bundle');
 const link = require('@lib/link');
 const importer = require('@lib/importer');

@@ -1,5 +1,5 @@
 const assert = require('assert');
-const importer = require('./../../lib/importer');
+const importer = require('./../../built/importer');
 
 describe('Lib/Importer', () => {
     describe('import', () => {

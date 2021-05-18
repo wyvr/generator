@@ -1,5 +1,5 @@
 const assert = require('assert');
-const config = require('./../../lib/config');
+const config = require('./../../built/config');
 
 describe('Lib/Config', () => {
     describe('get', () => {

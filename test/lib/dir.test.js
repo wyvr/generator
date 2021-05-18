@@ -1,8 +1,8 @@
 const assert = require('assert');
-const dir = require('./../../lib/dir');
+const dir = require('./../../built/dir');
 const fs = require('fs-extra');
 const { v4 } = require('uuid');
-import path from 'path';
+const path = require('path');
 
 describe('Lib/Dir', () => {
     describe('create', () => {

@@ -1,5 +1,5 @@
 const assert = require('assert');
-const link = require('./../../lib/link');
+const link = require('./../../built/link');
 const fs = require('fs-extra');
 import path from 'path';
 const { v4 } = require('uuid');

@@ -1,33 +1,37 @@
 import * as fs from 'fs-extra';
 
 import { join } from 'path';
-const stream_array = require('stream-json/streamers/StreamArray');
+import * as stream_array from 'stream-json/streamers/StreamArray';
 import { Dir } from '@lib/dir';
-const file = require('@lib/file');
+import { File } from '@lib/file';
 import { Config } from '@lib/config';
-const logger = require('@lib/logger');
+import { Logger } from '@lib/logger';
+import { IPerformance_Measure, Performance_Measure, Performance_Measure_Blank } from '@lib/performance_measure';
 
 const cwd = process.cwd();
 
-const importer = {
-    chunk_index: 0,
-    state_file: join(cwd, 'state', 'import.json'),
-    state: null,
-    perf: null,
+export class Importer {
+    chunk_index = 0;
+    state_file = join(cwd, 'state', 'import.json');
+    state = null;
+    perf: IPerformance_Measure;
+    constructor() {
+        this.perf = Config.get('import.measure_performance') ? new Performance_Measure() : new Performance_Measure_Blank();
+    }
     /**
      * import the datasets from the given filepath into `imported/data`
-     * the hook_before_process must return the original object or a modified version, because it will be executed before the processing of the data
-     * @param {string} import_file_path
-     * @param {null|function} hook_before_process
+     * @param import_file_path path to the file which should be imported
+     * @param hook_before_process the hook_before_process must return the original object or a modified version, because it will be executed before the processing of the data
+     * @returns the amount of imported datasets
      */
-    import(import_file_path, hook_before_process) {
+    import(import_file_path: string, hook_before_process: Hook_Before_Process = null): Promise<number> {
         this.perf.start('import');
 
         Dir.create('imported/data');
         if (!this.should_import(import_file_path)) {
             const state = this.load_import_state();
             if (state) {
-                logger.success('existing datasets', state.datasets_amount);
+                Logger.success('existing datasets', state.datasets_amount);
                 this.perf.end('import');
 
                 return state.datasets_amount;
@@ -41,55 +45,58 @@ const importer = {
 
             const format_processed_file = Config.get('import.format_processed_file');
 
-            if (hook_before_process && typeof hook_before_process == 'function') {
-                jsonStream.on('data', (data) => {
-                    this.process(hook_before_process(data), format_processed_file);
-                });
-            } else {
-                jsonStream.on('data', ({ key, value }) => {
-                    this.process({ key, value }, format_processed_file);
-                });
-            }
+            jsonStream.on('data', (data) => {
+                if (hook_before_process && typeof hook_before_process == 'function') {
+                    data = hook_before_process(data);
+                }
+                this.process(data, format_processed_file);
+            });
+
             jsonStream.on('error', (e) => {
                 reject(e);
             });
             jsonStream.on('end', () => {
                 this.save_import_state(import_file_path, this.chunk_index);
-                logger.success('datasets imported', this.chunk_index);
+                Logger.success('datasets imported', this.chunk_index);
                 this.perf.end('import');
                 resolve(this.chunk_index);
             });
         });
-    },
+    }
     /**
      * stores the given value as dataset on the filesystem
-     * @param {{key:number, value: any}} data
+     * @param data data from json stream
+     * @param format_processed_file
      */
-    process({ key, value }, format_processed_file) {
-        const url = value.url || key.toString();
+    process(data: { key: number; value: any }, format_processed_file: boolean): void {
+        this.chunk_index++;
+        if (!data || data.key == null || !data.value) {
+            return;
+        }
+        const url = data.value.url || data.key.toString();
         const perf_mark = `import/process ${url}`;
         this.perf.start(perf_mark);
-        const filepath = file.to_extension(file.to_index(join(cwd, 'imported', 'data', url)), '.json');
-        file.create_dir(filepath);
-        fs.writeFileSync(filepath, JSON.stringify(value, null, format_processed_file ? 4 : null));
+        const filepath = File.to_extension(File.to_index(join(cwd, 'imported', 'data', url)), '.json');
+        File.create_dir(filepath);
+        fs.writeFileSync(filepath, JSON.stringify(data.value, null, format_processed_file ? 4 : null));
 
         this.perf.end(perf_mark);
-        this.chunk_index++;
-    },
+    }
     /**
      * Save the last import as state for next import
-     * @param {string} import_file_path
-     * @param {number} datasets_amount
+     * @param import_file_path path to the file which should be imported
+     * @param datasets_amount amount of imported datasets
      */
-    save_import_state(import_file_path, datasets_amount) {
+    save_import_state(import_file_path, datasets_amount): void {
         const mtimeMs = fs.statSync(import_file_path).mtimeMs;
-        file.create_dir(this.state_file);
+        File.create_dir(this.state_file);
         fs.writeFileSync(this.state_file, JSON.stringify({ mtimeMs, datasets_amount }, null, 4));
-    },
+    }
     /**
      * Load the last import state, return null when nothing is present
+     * @returns last import state
      */
-    load_import_state() {
+    load_import_state(): any {
         if (fs.existsSync(this.state_file)) {
             try {
                 const content = fs.readFileSync(this.state_file);
@@ -100,16 +107,17 @@ const importer = {
             }
         }
         return null;
-    },
+    }
     /**
      * Return whether the import file should be imported
-     * @param {string} import_file_path
+     * @param import_file_path path to the file which should be imported
+     * @returns
      */
-    should_import(import_file_path) {
+    should_import(import_file_path: string): boolean {
         if (!this.state) {
             const data_content = fs.readdirSync(join(cwd, 'imported', 'data'));
             if (!data_content || !Array.isArray(data_content) || data_content.length == 0) {
-                logger.info('no imported data', 'import');
+                Logger.info('no imported data', 'import');
                 return true;
             }
             this.state = this.load_import_state();
@@ -117,29 +125,15 @@ const importer = {
             if (this.state && fs_stats) {
                 // only if modify date has changed
                 if (this.state.mtimeMs == fs_stats.mtimeMs) {
-                    logger.info('no import needed', 'unchanged');
+                    Logger.info('no import needed', 'unchanged');
                     return false;
                 }
             }
         }
         return true;
-    },
-    /**
-     * performance measuring factory, when measuring is needed
-     */
-    get_performance_func() {
-        const func = {
-            start: () => {},
-            end: () => {},
-        };
-        // when set to false return empty functions
-        if (!Config.get('import.measure_performance')) {
-            return func;
-        }
-        return require('./perf_measure');
-    },
-};
-// set performance function
-importer.perf = importer.get_performance_func();
+    }
+}
 
-module.exports = importer;
+export type Hook_Before_Process = {
+    ({ key: number, value: any }): { key: number; value: any };
+};

@@ -5,9 +5,9 @@ import { v4 } from 'uuid';
 import { Build } from '@lib/build';
 import { Bundle } from '@lib/bundle';
 import { Link } from '@lib/link';
-const importer = require('@lib/importer');
+import { Importer } from '@lib/importer';
 import { Dir } from '@lib/dir';
-const logger = require('@lib/logger');
+import { Logger } from '@lib/logger';
 const worker_controller = require('@lib/worker/controller');
 import { Config } from '@lib/config';
 import { Env } from '@lib/env';
@@ -24,26 +24,27 @@ export class Main {
         const pid = process.pid;
         const cwd = process.cwd();
         process.title = `wyvr main ${pid}`;
-        logger.logo();
-        logger.present('PID', pid, logger.color.dim(`"${process.title}"`));
-        logger.present('cwd', cwd);
-        logger.present('build', uniq_id);
-        logger.present('env', EnvModel[Env.get()]);
+        Logger.logo();
+        Logger.present('PID', pid, Logger.color.dim(`"${process.title}"`));
+        Logger.present('cwd', cwd);
+        Logger.present('build', uniq_id);
+        Logger.present('env', EnvModel[Env.get()]);
 
         const project_config = Config.get();
-        logger.debug('project_config', project_config);
+        Logger.debug('project_config', project_config);
 
         const worker_amount = worker_controller.get_worker_amount();
-        logger.present('workers', worker_amount, logger.color.dim(`of ${require('os').cpus().length} cores`));
+        Logger.present('workers', worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));
         const workers = worker_controller.create_workers(worker_amount);
 
         Dir.create('pub');
 
         // Import the data source
+        const importer = new Importer();
         try {
             const datasets = await importer.import('./data/sample.json');
         } catch (e) {
-            logger.error(e);
+            Logger.error(e);
             return;
         }
 
@@ -77,14 +78,13 @@ export class Main {
 
         var hr_end = process.hrtime(hr_start); // hr_end[0] is in seconds, hr_end[1] is in nanoseconds
         const timeInMs = (hr_end[0] * 1000000000 + hr_end[1]) / 1000000; // convert first to ns then to ms
-        logger.success('total execution time', timeInMs, 'ms');
+        Logger.success('total execution time', timeInMs, 'ms');
 
         if (Env.is_prod()) {
             setTimeout(() => {
-                logger.success('shutdown');
+                Logger.success('shutdown');
                 process.exit(0);
             }, 500);
         }
     }
 }
-(async () => {})();

@@ -1,14 +1,14 @@
 require('module-alias/register');
 
-const assert = require('assert');
-const { Config } = require('@lib/config');
-
 describe('Lib/Config', () => {
+    const assert = require('assert');
+    const { Config } = require('@lib/config');
+    
     describe('get', () => {
         it('all', () => {
             assert.strictEqual(Config.get(), require('./../../config/config'));
         });
-        
+
         it('all from cache', () => {
             Config.cache = set_cache();
             assert.deepStrictEqual(Config.get(), set_cache());
@@ -37,8 +37,8 @@ function set_cache() {
         key: 'value',
         deep: {
             deep: {
-                key: 'deep value'
-            }
-        }
+                key: 'deep value',
+            },
+        },
     };
 }

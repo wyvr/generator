@@ -1,37 +1,37 @@
-const cwd = process.cwd();
 const pkg = require('@root/package.json');
-const color = require('ansi-colors');
+import * as color from 'ansi-colors';
 const env = process.env.WYVR_ENV || 'development';
 
-module.exports = {
-    log(...message) {
+export class Logger {
+    static color = color;
+    static log(...message) {
         console.log(...message);
-    },
-    present(key, ...values) {
+    }
+    static present(key, ...values) {
         console.log(color.dim('>'), key, color.green(values.shift()), ...values.map((m) => this.stringify(m)));
-    },
-    info(key, ...values) {
+    }
+    static info(key, ...values) {
         console.log(color.cyan('i'), key, color.cyan(values.shift()), ...values.map((m) => this.stringify(m)));
-    },
-    success(key, ...values) {
+    }
+    static success(key, ...values) {
         console.log(color.green('✓'), key, color.green(values.shift()), ...values.map((m) => this.stringify(m)));
-    },
-    warning(...message) {
+    }
+    static warning(...message) {
         const error = message.map((m) => color.yellow(this.stringify(m)));
         console.log(color.yellow('⚠'), ...error);
-    },
-    error(...message) {
+    }
+    static error(...message) {
         const error = message.map((m) => color.red(this.stringify(m)));
         console.log(color.red('✘'), ...error);
-    },
-    debug(...message) {
-        if(env != 'debug') {
+    }
+    static debug(...message) {
+        if (env != 'debug') {
             return;
         }
         const error = message.map((m) => color.dim(this.stringify(m)));
         console.log(color.dim('~'), ...error);
-    },
-    logo() {
+    }
+    static logo() {
         const logo = [
             `__  __  __  __  __  ____`,
             `\\ \\/ /\\/ /\\/ /\\/ /\\/ /_/`,
@@ -40,12 +40,12 @@ module.exports = {
         ].join('\n');
         console.log(color.cyan(logo));
         console.log('');
-    },
-    color,
-    stringify(data) {
+    }
+
+    static stringify(data: any): string {
         if (typeof data == 'string' || typeof data == 'number') {
-            return data;
+            return data.toString();
         }
         return JSON.stringify(data, null, 2);
-    },
-};
+    }
+}

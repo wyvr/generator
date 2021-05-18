@@ -1,12 +1,13 @@
 require('module-alias/register');
 
-const assert = require('assert');
-const { Link } = require('@lib/link');
-const fs = require('fs-extra');
-const path = require('path');
-const { v4 } = require('uuid');
 
 describe('Lib/Link', () => {
+    const assert = require('assert');
+    const { Link } = require('@lib/link');
+    const fs = require('fs-extra');
+    const path = require('path');
+    const { v4 } = require('uuid');
+    
     describe('is_symlink', () => {
         it('no path', () => {
             assert.strictEqual(Link.is_symlink(), false);

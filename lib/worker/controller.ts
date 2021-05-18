@@ -3,7 +3,7 @@ import { WorkerStatus } from '@lib/model/worker/status';
 import { WorkerAction } from '@lib/model/worker/action';
 const worker_ratio = Config.get('worker.ratio');
 import { fork } from 'cluster';
-const logger = require('@lib/logger');
+import { Logger } from '@lib/logger';
 const cwd = process.cwd();
 import { Env } from '@lib/env';
 Env.set(process.env.WYVR_ENV);
@@ -32,21 +32,21 @@ module.exports = {
 
         // to receive messages from worker process
         worker.process.on('message', (msg) => {
-            logger.debug('process', worker.pid, 'message', msg);
+            Logger.debug('process', worker.pid, 'message', msg);
             this.get_message(msg);
         });
         worker.process.on('error', (msg) => {
-            logger.error('process', worker.pid, 'error', msg);
+            Logger.error('process', worker.pid, 'error', msg);
         });
         worker.process.on('disconnect', () => {
-            logger.debug('process', worker.pid, 'disconnect');
+            Logger.debug('process', worker.pid, 'disconnect');
         });
         worker.process.on('exit', (code) => {
-            logger.debug('process', worker.pid, 'exit', code);
+            Logger.debug('process', worker.pid, 'exit', code);
         });
         worker.process.on('close', (code) => {
-            logger.warning('worker died PID', worker.pid);
-            logger.info('create new worker');
+            Logger.warning('worker died PID', worker.pid);
+            Logger.info('create new worker');
             this.remove_worker(worker.pid);
             this.workers.push(this.create());
         });
@@ -71,24 +71,24 @@ module.exports = {
         }
         const worker = this.get_worker(msg.pid);
         if (!worker) {
-            logger.error('unknown worker', msg.pid);
+            Logger.error('unknown worker', msg.pid);
         }
         const action = msg.data.action.key;
         const data = msg.data.action.value;
         switch (action) {
             case WorkerAction.status:
                 if (typeof WorkerStatus[data] != 'string') {
-                    logger.error('unknown state', data, 'for worker', msg.pid);
+                    Logger.error('unknown state', data, 'for worker', msg.pid);
                     return;
                 }
                 worker.status = data;
-                logger.present(`status`, WorkerStatus[data], logger.color.dim(`PID ${msg.pid}`));
+                Logger.present(`status`, WorkerStatus[data], Logger.color.dim(`PID ${msg.pid}`));
                 this.livecycle(worker);
                 break;
         }
     },
     send_status(pid, status) {
-        logger.warning('really?! the status comes from the worker itself, worker:', pid, 'status', status, WorkerStatus[status]);
+        Logger.warning('really?! the status comes from the worker itself, worker:', pid, 'status', status, WorkerStatus[status]);
         this.send_action(pid, WorkerAction.status, status);
     },
     send_action(pid, action, data) {
@@ -105,11 +105,11 @@ module.exports = {
         }
         const worker = this.get_worker(pid);
         if (!worker) {
-            logger.warning('can not send message to worker', pid);
+            Logger.warning('can not send message to worker', pid);
             return;
         }
         if (!data) {
-            logger.warning('can not send empty message to worker', pid);
+            Logger.warning('can not send empty message to worker', pid);
             return;
         }
         worker.process.send(data);

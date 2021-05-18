@@ -1,9 +1,10 @@
 require('module-alias/register');
 
-const assert = require('assert');
-const importer = require('./../../built/importer');
 
 describe('Lib/Importer', () => {
+    const assert = require('assert');
+    const importer = require('./../../built/importer');
+    
     describe('import', () => {
     })
 });

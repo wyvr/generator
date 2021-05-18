@@ -1,9 +1,10 @@
 require('module-alias/register');
 
-const assert = require('assert');
-const logger = require('./../../built/logger');
 
 describe('Lib/Logger', () => {
+    const assert = require('assert');
+    const { Logger } =require('@lib/logger');
+    
     describe('log', () => {
     })
 });

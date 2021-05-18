@@ -1,13 +1,12 @@
 require('module-alias/register');
 
-const assert = require('assert');
-const fs = require('fs-extra');
-const { v4 } = require('uuid');
-const path = require('path');
-
-const { Dir } = require('@lib/dir');
-
 describe('Lib/Dir', () => {
+    const assert = require('assert');
+    const fs = require('fs-extra');
+    const { v4 } = require('uuid');
+    const path = require('path');
+    const { Dir } = require('@lib/dir');
+    
     describe('create', () => {
         it('single', () => {
             const name = v4().split('-')[0];

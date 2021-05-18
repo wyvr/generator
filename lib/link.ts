@@ -1,5 +1,4 @@
-const fs = require('fs-extra');
-
+import * as fs from 'fs-extra';
 
 module.exports = {
     // links the given source_dir_name to the pub folder
@@ -12,6 +11,8 @@ module.exports = {
         const trimmed_soure = source_dir_name.replace(/^\//, '');
         const source = `${cwd}/${trimmed_soure}`;
         const destination = `${cwd}/pub/${trimmed_soure}`;
+        // create pub folder when not exists
+        fs.mkdirSync(`${cwd}/pub`, { recursive: true });
         // when the destination exists delete it
         fs.removeSync(destination);
         // symlink from destination to source

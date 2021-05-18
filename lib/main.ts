@@ -1,23 +1,24 @@
-const fs = require('fs');
+import fs from 'fs-extra';
+
 const { v4: uuidv4 } = require('uuid');
 const hr_start = process.hrtime();
 
-const build = require('_lib/build');
-const bundle = require('_lib/bundle');
-const link = require('_lib/link');
-const importer = require('_lib/importer');
-const dir = require('_lib/dir');
-const logger = require('_lib/logger');
-const worker_controller = require('_lib/worker/controller');
-const config = require('_lib/config');
-const env = require('_lib/env');
+const build = require('@lib/build');
+const bundle = require('@lib/bundle');
+const link = require('@lib/link');
+const importer = require('@lib/importer');
+const dir = require('@lib/dir');
+const logger = require('@lib/logger');
+const worker_controller = require('@lib/worker/controller');
+const config = require('@lib/config');
+const env = require('@lib/env');
 env.set(process.env.WYVR_ENV);
 
 const uniq_id = uuidv4().split('-')[0];
 const pid = process.pid;
-const cwd = process.cwd();
 
 (async () => {
+    const cwd = process.cwd();
     process.title = `wyvr main generator ${process.pid}`;
     logger.logo();
     logger.present('PID', pid, logger.color.dim(`"${process.title}"`));

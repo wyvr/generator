@@ -1,5 +1,5 @@
 const cwd = process.cwd();
-const pkg = require('_root/package.json');
+const pkg = require('@root/package.json');
 const color = require('ansi-colors');
 const env = process.env.WYVR_ENV || 'development';
 

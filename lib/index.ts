@@ -1,10 +1,10 @@
+import 'module-alias/register';
 const cluster = require('cluster');
-
 
 (async () => {
     if (cluster.isMaster) {
-        require('_lib/main');
+        require('@lib/main');
     } else {
-        require('_lib/worker');
+        require('@lib/worker');
     }
 })();

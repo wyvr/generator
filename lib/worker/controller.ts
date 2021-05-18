@@ -1,12 +1,11 @@
-const config = require('_lib/config');
-const worker_status = require('_lib/model/worker/status');
-const worker_action = require('_lib/model/worker/action');
+const config = require('@lib/config');
+import { WorkerStatus } from '@lib/model/worker/status';
+import { WorkerAction } from '@lib/model/worker/action';
 const worker_ratio = config.get('worker.ratio');
-const cluster = require('cluster');
-const path = require('path');
-const logger = require('_lib/logger');
+import { fork } from 'cluster';
+const logger = require('@lib/logger');
 const cwd = process.cwd();
-const env = require('_lib/env');
+const env = require('@lib/env');
 env.set(process.env.WYVR_ENV);
 
 module.exports = {
@@ -21,9 +20,9 @@ module.exports = {
         return max_cores;
     },
     create() {
-        const instance = cluster.fork();
+        const instance = fork();
         const worker = {
-            status: worker_status.undefined,
+            status: WorkerStatus.undefined,
             pid: 0, // process id
             process: instance.process,
         };
@@ -77,20 +76,20 @@ module.exports = {
         const action = msg.data.action.key;
         const data = msg.data.action.value;
         switch (action) {
-            case worker_action.status:
-                if (typeof worker_status[data] != 'string') {
+            case WorkerAction.status:
+                if (typeof WorkerStatus[data] != 'string') {
                     logger.error('unknown state', data, 'for worker', msg.pid);
                     return;
                 }
                 worker.status = data;
-                logger.present(`status`, worker_status[data], logger.color.dim(`PID ${msg.pid}`));
+                logger.present(`status`, WorkerStatus[data], logger.color.dim(`PID ${msg.pid}`));
                 this.livecycle(worker);
                 break;
         }
     },
     send_status(pid, status) {
-        logger.warning('really?! the status comes from the worker itself, worker:', pid, 'status', status, worker_status[status]);
-        this.send_action(pid, worker_action.status, status);
+        logger.warning('really?! the status comes from the worker itself, worker:', pid, 'status', status, WorkerStatus[status]);
+        this.send_action(pid, WorkerAction.status, status);
     },
     send_action(pid, action, data) {
         this.send_message(pid, {
@@ -119,47 +118,13 @@ module.exports = {
         if (!worker || !worker.pid) {
             return;
         }
-        if (worker.status == worker_status.exists) {
+        if (worker.status == WorkerStatus.exists) {
             // configure the worker
-            this.send_action(worker.pid, worker_action.configure, {
+            this.send_action(worker.pid, WorkerAction.configure, {
                 config: config.get(),
                 env: env.get(),
                 cwd,
             });
         }
-    },
-
-    test() {
-        for (let i = 0; i < configuredWorkers; i++) {
-            this.createWorker();
-        }
-        // process is clustered on a core and process id is assigned
-        cluster.on('online', (worker) => {
-            this.output.log('worker PID', worker.process.pid, 'started');
-            const workerObject = this.getWorker(worker.process.pid);
-            if (!workerObject) {
-                this.output.err('can not find worker', worker.process.pid);
-                return;
-            }
-            // initialize the worker with the config and other important values
-            const message = new Message(null, EventKeys.config, {
-                cwd: this.fs.getWorkspacePath(),
-                env: this.config.getEnv(),
-                buildVersion: this.config.getBuildVersion(),
-                args: this.args,
-            });
-            workerObject.worker.send(message);
-        });
-
-        // if any of the worker process dies then start a new one by simply forking another one
-        cluster.on('exit', (worker, code, signal) => {
-            // 15 is terminated, will be caused of the worker self, when memory limit is near => self healing
-            if (code != 15) {
-                this.output.err('worker PID', worker.process.pid, 'died with code: ' + code + ', and signal: ' + signal);
-            }
-            this.removeWorker(worker.process.pid);
-            // @TODO check if worker was busy and move the task to another worker
-            this.createWorker();
-        });
     },
 };

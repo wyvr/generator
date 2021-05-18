@@ -1,6 +1,6 @@
-const fs = require('fs');
-const path = require('path');
-const cwd = process.cwd();
+import fs from 'fs-extra';
+
+import { dirname } from 'path';
 
 module.exports = {
     to_extension(filename, extension) {
@@ -21,13 +21,13 @@ module.exports = {
     },
     // create the directory to contain a specific file
     create_dir(filename) {
-        const dir_path = path.dirname(filename);
+        const dir_path = dirname(filename);
         fs.mkdirSync(dir_path, { recursive: true });
     },
     /**
      * adds the path part index.html to the filename when it is a folder
-     * @param {string} filename 
-     * @param {string} extension 
+     * @param {string} filename
+     * @param {string} extension
      * @returns filename
      */
     to_index(filename, extension) {
@@ -41,11 +41,11 @@ module.exports = {
         }
         const parts = filename.split('/');
         const last = parts[parts.length - 1];
-        if(last === '') {
+        if (last === '') {
             parts[parts.length - 1] = `index.${ext}`;
             return parts.join('/');
         }
-        if(last.indexOf('.') == -1) {
+        if (last.indexOf('.') == -1) {
             parts.push(`index.${ext}`);
             return parts.join('/');
         }

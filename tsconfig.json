@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "outDir": "./built",
+        "allowJs": true,
+        "target": "es5",
+        "moduleResolution": "node",
+        "baseUrl": ".",
+        "paths": {
+            "@root/*": ["./*"],
+            "@lib/*": ["lib/*"],
+            "@config/*": ["config/*"],
+            "@src/*": ["src/*"]
+        }
+    },
+    "include": ["./lib/**/*"],
+    "exclude": ["node_modules/*"],
+}

@@ -1,16 +1,17 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs-extra';
+
+import { join } from 'path';
 const stream_array = require('stream-json/streamers/StreamArray');
-const dir = require('_lib/dir');
-const file = require('_lib/file');
-const config = require('_lib/config');
-const logger = require('_lib/logger');
+const dir = require('@lib/dir');
+const file = require('@lib/file');
+const config = require('@lib/config');
+const logger = require('@lib/logger');
 
 const cwd = process.cwd();
 
 const importer = {
     chunk_index: 0,
-    state_file: path.join(cwd, 'state', 'import.json'),
+    state_file: join(cwd, 'state', 'import.json'),
     state: null,
     perf: null,
     /**
@@ -21,7 +22,7 @@ const importer = {
      */
     import(import_file_path, hook_before_process) {
         this.perf.start('import');
-        
+
         dir.create('imported/data');
         if (!this.should_import(import_file_path)) {
             const state = this.load_import_state();
@@ -68,7 +69,7 @@ const importer = {
         const url = value.url || key.toString();
         const perf_mark = `import/process ${url}`;
         this.perf.start(perf_mark);
-        const filepath = file.to_extension(file.to_index(path.join(cwd, 'imported', 'data', url)), '.json');
+        const filepath = file.to_extension(file.to_index(join(cwd, 'imported', 'data', url)), '.json');
         file.create_dir(filepath);
         fs.writeFileSync(filepath, JSON.stringify(value, null, format_processed_file ? 4 : null));
 
@@ -77,8 +78,8 @@ const importer = {
     },
     /**
      * Save the last import as state for next import
-     * @param {string} import_file_path 
-     * @param {number} datasets_amount 
+     * @param {string} import_file_path
+     * @param {number} datasets_amount
      */
     save_import_state(import_file_path, datasets_amount) {
         const mtimeMs = fs.statSync(import_file_path).mtimeMs;
@@ -102,12 +103,12 @@ const importer = {
     },
     /**
      * Return whether the import file should be imported
-     * @param {string} import_file_path 
+     * @param {string} import_file_path
      */
     should_import(import_file_path) {
         if (!this.state) {
-            const data_content = fs.readdirSync(path.join(cwd, 'imported', 'data'));
-            if(!data_content || !Array.isArray(data_content) || data_content.length == 0) {
+            const data_content = fs.readdirSync(join(cwd, 'imported', 'data'));
+            if (!data_content || !Array.isArray(data_content) || data_content.length == 0) {
                 logger.info('no imported data', 'import');
                 return true;
             }

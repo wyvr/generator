@@ -4,7 +4,7 @@ module.exports = {
 
     get(config_segment) {
         if (!this.cache) {
-            const raw_config = require('_config/config');
+            const raw_config = require('@config/config');
 
             this.cache = raw_config;
         }
@@ -14,7 +14,7 @@ module.exports = {
         // load only the partial config segment
         const splitted_config_segment = config_segment.split('.');
         let shrinked_config = this.cache;
-        for (index in splitted_config_segment) {
+        for (let index in splitted_config_segment) {
             if (!splitted_config_segment[index] || !shrinked_config[splitted_config_segment[index]]) {
                 return null;
             }

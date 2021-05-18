@@ -1,7 +1,7 @@
 const assert = require('assert');
 const link = require('./../../lib/link');
 const fs = require('fs-extra');
-const path = require('path');
+import path from 'path';
 const { v4 } = require('uuid');
 
 describe('Lib/Link', () => {

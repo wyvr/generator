@@ -1,4 +1,4 @@
-const logger = require('_lib/logger');
+const logger = require('@lib/logger');
 module.exports = {
     entries: [],
     start(name) {

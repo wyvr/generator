@@ -1,6 +1,6 @@
-const worker_status = require('_lib/model/worker/status');
-const worker_action = require('_lib/model/worker/action');
-const helper = require('_lib/worker/helper');
+import { WorkerHelper } from '@lib/worker/helper';
+import { WorkerStatus } from '@lib/model/worker/status';
+import { WorkerAction } from '@lib/model/worker/action';
 
 (async () => {
     let config = null;
@@ -8,22 +8,22 @@ const helper = require('_lib/worker/helper');
     let cwd = null;
     process.title = `wyvr worker generator ${process.pid}`;
 
-    helper.send_status(worker_status.exists);
+    WorkerHelper.send_status(WorkerStatus.exists);
 
     process.on('message', (msg) => {
         const action = (msg && msg.action && msg.action.key) || null;
         switch (action) {
-            case worker_action.configure:
+            case WorkerAction.configure:
                 // set the config of the worker by the main process
                 config = msg.action.value.config;
                 env = msg.action.value.env;
                 cwd = msg.action.value.cwd;
                 // only when everything is configured set the worker idle
                 if (config && env && cwd) {
-                    helper.send_status(worker_status.idle);
+                    WorkerHelper.send_status(WorkerStatus.idle);
                 }
                 break;
-            case worker_action.status:
+            case WorkerAction.status:
             default:
                 console.log('ignored message from main', msg);
                 break;

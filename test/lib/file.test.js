@@ -2,7 +2,7 @@ const assert = require('assert');
 const file = require('./../../lib/file');
 const fs = require('fs-extra');
 const { v4 } = require('uuid');
-const path = require('path');
+import path from 'path';
 
 describe('Lib/File', () => {
     describe('to_extension', () => {

@@ -1,11 +1,11 @@
 const fs = require('fs-extra');
 
-const cwd = process.cwd();
 
 module.exports = {
     // links the given source_dir_name to the pub folder
     // e.g. to_pub('assets') => /assets -> /pub/assets
     to_pub(source_dir_name) {
+        const cwd = process.cwd();
         if (!source_dir_name || typeof source_dir_name != 'string') {
             return false;
         }

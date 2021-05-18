@@ -1,7 +1,9 @@
+require('module-alias/register');
+
 const assert = require('assert');
 const link = require('./../../built/link');
 const fs = require('fs-extra');
-import path from 'path';
+const path = require('path');
 const { v4 } = require('uuid');
 
 describe('Lib/Link', () => {
@@ -33,16 +35,6 @@ describe('Lib/Link', () => {
             assert.strictEqual(link.to_pub(undefined), false);
             assert.strictEqual(link.to_pub(true), false);
             assert.strictEqual(link.to_pub(false), false);
-        });
-        it('recursion', () => {
-            const name = path.join(v4().split('-')[0]);
-            fs.mkdirSync(name);
-            fs.symlinkSync(name, `pub/${name}`);
-            link.to_pub(name);
-            assert.strictEqual(fs.existsSync(`pub/${name}`), true);
-            assert.strictEqual(fs.readlinkSync(`pub/${name}`), `${process.cwd()}/${name}`);
-            fs.removeSync(name);
-            fs.removeSync(`pub/${name}`);
         });
         it('create symlink', () => {
             const name = path.join(v4().split('-')[0]);

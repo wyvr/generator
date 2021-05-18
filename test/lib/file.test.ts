@@ -1,3 +1,5 @@
+require('module-alias/register');
+
 const assert = require('assert');
 const file = require('./../../built/file');
 const fs = require('fs-extra');

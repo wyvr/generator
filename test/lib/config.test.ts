@@ -1,3 +1,5 @@
+require('module-alias/register');
+
 const assert = require('assert');
 const config = require('./../../built/config');
 

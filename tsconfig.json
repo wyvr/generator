@@ -4,6 +4,7 @@
         "allowJs": true,
         "target": "es5",
         "moduleResolution": "node",
+        "sourceMap": true,
         "baseUrl": ".",
         "paths": {
             "@root/*": ["./*"],

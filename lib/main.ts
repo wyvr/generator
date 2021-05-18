@@ -4,6 +4,8 @@ import { v4 } from 'uuid';
 
 import { Build } from '@lib/build';
 import { Bundle } from '@lib/bundle';
+import { Generate } from '@lib/generate';
+
 import { Link } from '@lib/link';
 import { Importer } from '@lib/importer';
 import { Dir } from '@lib/dir';
@@ -48,7 +50,7 @@ export class Main {
         let datasets_total = null;
         const importer = new Importer();
         try {
-            datasets_total = await importer.import('./data/sample.json');
+            datasets_total = await importer.import('./data/sample.json', this.generate);
         } catch (e) {
             Logger.error(e);
             return;
@@ -141,5 +143,10 @@ export class Main {
         setTimeout(() => {
             this.tick(queue, resolve, reject);
         }, 100);
+    }
+
+    generate(data: { key: number; value: any }) {
+        data.value = Generate.enhance_data(data.value);
+        return data;
     }
 }

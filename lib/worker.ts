@@ -1,7 +1,6 @@
 import { WorkerHelper } from '@lib/worker/helper';
 import { WorkerStatus } from '@lib/model/worker/status';
 import { WorkerAction } from '@lib/model/worker/action';
-import { Generate } from '@lib/generate';
 
 export class Worker {
     private config = null;
@@ -35,7 +34,7 @@ export class Worker {
                     break;
                 case WorkerAction.build:
                     WorkerHelper.send_status(WorkerStatus.busy);
-                    console.log(value, Generate.get(value));
+                    console.log(value);
                     setTimeout(() => {
                         WorkerHelper.send_status(WorkerStatus.idle);
                     }, 100);

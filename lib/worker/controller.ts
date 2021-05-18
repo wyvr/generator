@@ -9,19 +9,25 @@ import { WorkerModel } from '@lib/model/worker/worker';
 export class WorkerController {
     private cwd = process.cwd();
     private workers: WorkerModel[] = [];
-    worker_ratio = Config.get('worker.ratio');
+    private worker_ratio = Config.get('worker.ratio');
+    private max_cores: number;
 
     constructor() {
         Env.set(process.env.WYVR_ENV);
     }
 
     get_worker_amount(): number {
+        if (this.max_cores) {
+            return this.max_cores;
+        }
         // get amount of cores
         // at least one and left 1 core for the main worker
         const cpu_cores = require('os').cpus().length;
         const cpu_cores_ratio = Math.round(cpu_cores * this.worker_ratio);
         const max_cores = Math.max(1, cpu_cores_ratio - 1);
 
+        // store the value
+        this.max_cores = max_cores;
         return max_cores;
     }
     create() {
@@ -65,7 +71,7 @@ export class WorkerController {
         return this.workers.find((worker) => worker.pid == pid);
     }
     get_message(msg) {
-        if (typeof msg == 'string' || !msg.pid || !msg.data || !msg.data.action || !msg.data.action.key || !msg.data.action.value) {
+        if (typeof msg == 'string' || msg.pid == null || msg.data == null || msg.data.action == null || msg.data.action.key == null || msg.data.action.value == null) {
             return;
         }
         const worker = this.get_worker(msg.pid);
@@ -85,6 +91,9 @@ export class WorkerController {
                 this.livecycle(worker);
                 break;
         }
+    }
+    get_idle_workers() {
+        return this.workers.filter((worker) => worker.status == WorkerStatus.idle);
     }
     send_status(pid, status) {
         Logger.warning('really?! the status comes from the worker itself, worker:', pid, 'status', status, WorkerStatus[status]);
@@ -122,7 +131,7 @@ export class WorkerController {
             this.send_action(worker.pid, WorkerAction.configure, {
                 config: Config.get(),
                 env: Env.get(),
-                cwd: this.cwd
+                cwd: this.cwd,
             });
         }
     }

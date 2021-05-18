@@ -5,10 +5,10 @@
     "main": "index.js",
     "scripts": {
         "start": "tsc && node ./built/index.js",
-        "watch": "tsc && env WYVR_ENV=debug nodemon --ignore test --ignore imported --ignore data --ignore pub --ignore state -e js,ts ./built/index.js",
+        "watch": "env WYVR_ENV=debug nodemon --ignore test --ignore imported --ignore data --ignore pub --ignore state --ignore built -e js,ts --exec 'tsc && npm run test && node ./built/index.js'",
         "dev": "tsc && env WYVR_ENV=dev node ./built/index.js",
         "serve": "npx http-server ./pub",
-        "test": "tsc && nyc -x 'config/**/*' -x 'test/**/*' -x 'pub' mocha -R dot './test/**/*.ts'",
+        "test": "nyc -x 'config/**/*' -x 'test/**/*' -x 'pub' mocha -R dot './test/**/*.ts'",
         "watch-test": "nodemon --watch src --watch lib --watch test -e js,ts --exec 'npm run test'"
     },
     "author": "",

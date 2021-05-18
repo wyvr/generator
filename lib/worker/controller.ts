@@ -5,8 +5,8 @@ const worker_ratio = config.get('worker.ratio');
 import { fork } from 'cluster';
 const logger = require('@lib/logger');
 const cwd = process.cwd();
-const env = require('@lib/env');
-env.set(process.env.WYVR_ENV);
+import { Env } from '@lib/env';
+Env.set(process.env.WYVR_ENV);
 
 module.exports = {
     workers: [],
@@ -122,7 +122,7 @@ module.exports = {
             // configure the worker
             this.send_action(worker.pid, WorkerAction.configure, {
                 config: config.get(),
-                env: env.get(),
+                env: Env.get(),
                 cwd,
             });
         }

@@ -10,11 +10,12 @@ import { Dir } from '@lib/dir';
 const logger = require('@lib/logger');
 const worker_controller = require('@lib/worker/controller');
 const config = require('@lib/config');
-const env = require('@lib/env');
+import { Env } from '@lib/env';
+import { EnvModel } from './model/env';
 
 export class Main {
     constructor() {
-        env.set(process.env.WYVR_ENV);
+        Env.set(process.env.WYVR_ENV);
         this.init();
     }
     async init() {
@@ -27,7 +28,7 @@ export class Main {
         logger.present('PID', pid, logger.color.dim(`"${process.title}"`));
         logger.present('cwd', cwd);
         logger.present('build', uniq_id);
-        logger.present('env', env.get());
+        logger.present('env', EnvModel[Env.get()]);
 
         const project_config = config.get();
         logger.debug('project_config', project_config);
@@ -78,7 +79,7 @@ export class Main {
         const timeInMs = (hr_end[0] * 1000000000 + hr_end[1]) / 1000000; // convert first to ns then to ms
         logger.success('total execution time', timeInMs, 'ms');
 
-        if (env.is_prod()) {
+        if (Env.is_prod()) {
             setTimeout(() => {
                 logger.success('shutdown');
                 process.exit(0);

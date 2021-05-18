@@ -2,7 +2,7 @@ import * as fs from 'fs-extra';
 
 import { join } from 'path';
 const stream_array = require('stream-json/streamers/StreamArray');
-const dir = require('@lib/dir');
+import { Dir } from '@lib/dir';
 const file = require('@lib/file');
 const config = require('@lib/config');
 const logger = require('@lib/logger');
@@ -23,7 +23,7 @@ const importer = {
     import(import_file_path, hook_before_process) {
         this.perf.start('import');
 
-        dir.create('imported/data');
+        Dir.create('imported/data');
         if (!this.should_import(import_file_path)) {
             const state = this.load_import_state();
             if (state) {

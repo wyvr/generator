@@ -6,7 +6,7 @@ const build = require('@lib/build');
 const bundle = require('@lib/bundle');
 const link = require('@lib/link');
 const importer = require('@lib/importer');
-const dir = require('@lib/dir');
+import { Dir } from '@lib/dir';
 const logger = require('@lib/logger');
 const worker_controller = require('@lib/worker/controller');
 const config = require('@lib/config');
@@ -36,7 +36,7 @@ export class Main {
         logger.present('workers', worker_amount, logger.color.dim(`of ${require('os').cpus().length} cores`));
         const workers = worker_controller.create_workers(worker_amount);
 
-        dir.create('pub');
+        Dir.create('pub');
 
         // Import the data source
         try {

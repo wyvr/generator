@@ -5,6 +5,7 @@ import { WorkerAction } from '@lib/model/worker/action';
 import { Logger } from '@lib/logger';
 import { Env } from '@lib/env';
 import { WorkerModel } from '@lib/model/worker/worker';
+import { File } from '@lib/file';
 
 export class WorkerController {
     private cwd = process.cwd();
@@ -141,6 +142,7 @@ export class WorkerController {
                 config: Config.get(),
                 env: Env.get(),
                 cwd: this.cwd,
+                global_data: File.read_json('./data/global.json'),
             });
         }
         this.emit(worker.status, worker);

@@ -18,6 +18,7 @@ import { Queue } from '@lib/queue';
 import { WorkerAction } from '@lib/model/worker/action';
 import { WorkerStatus } from './model/worker/status';
 import { IPerformance_Measure, Performance_Measure, Performance_Measure_Blank } from '@lib/performance_measure';
+import { WorkerModel } from '@lib/model/worker/worker';
 
 export class Main {
     queue: Queue = null;
@@ -120,20 +121,21 @@ export class Main {
             };
             this.queue.push(queue_data);
         });
-
         return new Promise((resolve, reject) => {
-            this.tick(this.queue, resolve, reject);
+            const listener_id = this.worker_controller.on(WorkerStatus.idle, () => {
+                if(this.tick(this.queue)){
+                    this.worker_controller.off(listener_id);
+                    resolve(true);
+                }
+            });
         });
     }
     ticks: number = 0;
-    tick(queue: Queue, resolve: Function, reject: Function) {
+    tick(queue: Queue): boolean {
         const workers = this.worker_controller.get_idle_workers();
         this.ticks++;
         if (workers.length == this.worker_amount && queue.length == 0) {
-            setTimeout(() => {
-                resolve(true);
-            }, 10);
-            return;
+            return true;
         }
         if (queue.length > 0) {
             // get all idle workers
@@ -149,9 +151,7 @@ export class Main {
                 });
             }
         }
-        setTimeout(() => {
-            this.tick(queue, resolve, reject);
-        }, 10);
+        return false;
     }
 
     generate(data: { key: number; value: any }) {

@@ -67,6 +67,9 @@ export class File {
      * @returns the data of the file
      */
     static read_json(filename: string): any {
+        if(!filename || !fs.existsSync(filename)) {
+            return null;
+        }
         const content = fs.readFileSync(filename, { encoding: 'utf8', flag: 'r' });
         if (!content) {
             return null;

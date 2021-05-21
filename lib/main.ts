@@ -23,10 +23,10 @@ export class Main {
     queue: Queue = null;
     worker_controller = new WorkerController();
     perf: IPerformance_Measure;
+    worker_amount: number;
     constructor() {
         Env.set(process.env.WYVR_ENV);
         this.init();
-        
     }
     async init() {
         const hr_start = process.hrtime();
@@ -45,9 +45,9 @@ export class Main {
 
         this.perf = Config.get('import.measure_performance') ? new Performance_Measure() : new Performance_Measure_Blank();
 
-        const worker_amount = this.worker_controller.get_worker_amount();
-        Logger.present('workers', worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));
-        const workers = this.worker_controller.create_workers(worker_amount);
+        this.worker_amount = this.worker_controller.get_worker_amount();
+        Logger.present('workers', this.worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));
+        const workers = this.worker_controller.create_workers(this.worker_amount);
 
         Dir.create('pub');
 
@@ -127,24 +127,27 @@ export class Main {
     }
     ticks: number = 0;
     tick(queue: Queue, resolve: Function, reject: Function) {
-        Logger.debug('queue.length', queue.length);
-        if (queue.length == 0) {
-            resolve(true);
+        const workers = this.worker_controller.get_idle_workers();
+        this.ticks++;
+        if (workers.length == this.worker_amount && queue.length == 0) {
+            setTimeout(() => {
+                resolve(true);
+            }, 10);
             return;
         }
-        this.ticks++;
-        // get all idle workers
-        const workers = this.worker_controller.get_idle_workers();
-        if (workers.length > 0) {
-            workers.forEach((worker) => {
-                const queue_entry = queue.take();
-                if (queue_entry != null) {
-                    // set worker busy otherwise the same worker gets multiple actions send
-                    worker.status = WorkerStatus.busy;
-                    // send the data to the worker
-                    this.worker_controller.send_action(worker.pid, queue_entry.action, queue_entry.data);
-                }
-            });
+        if (queue.length > 0) {
+            // get all idle workers
+            if (workers.length > 0) {
+                workers.forEach((worker) => {
+                    const queue_entry = queue.take();
+                    if (queue_entry != null) {
+                        // set worker busy otherwise the same worker gets multiple actions send
+                        worker.status = WorkerStatus.busy;
+                        // send the data to the worker
+                        this.worker_controller.send_action(worker.pid, queue_entry.action, queue_entry.data);
+                    }
+                });
+            }
         }
         setTimeout(() => {
             this.tick(queue, resolve, reject);

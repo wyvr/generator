@@ -10,7 +10,8 @@
         "serve": "npx http-server ./pub",
         "test": "mocha -R dot './test/**/*.ts'",
         "coverage": "nyc -x 'config/**/*' -x 'test/**/*' -x 'pub' npm run test",
-        "watch-test": "nodemon --watch src --watch lib --watch test -e js,ts --exec 'npm run coverage'"
+        "watch-test": "nodemon --watch src --watch lib --watch test -e js,ts --exec 'npm run coverage'",
+        "cleanup": "rm -rf imported coverage built pub state"
     },
     "author": "",
     "license": "ISC",

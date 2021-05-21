@@ -34,4 +34,8 @@ export class Build {
         svelte_render_item.result = svelte_render_item.component.render(props);
         return svelte_render_item;
     }
+    // precompile the components to check whether there is only global data used
+    static precompile_components() {
+        //@TODO implement
+    }
 }

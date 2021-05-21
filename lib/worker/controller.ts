@@ -11,6 +11,8 @@ export class WorkerController {
     private workers: WorkerModel[] = [];
     private worker_ratio = Config.get('worker.ratio');
     private max_cores: number;
+    private listeners: any = {};
+    private listener_auto_increment = 0;
 
     constructor() {
         Env.set(process.env.WYVR_ENV);
@@ -71,7 +73,14 @@ export class WorkerController {
         return this.workers.find((worker) => worker.pid == pid);
     }
     get_message(msg) {
-        if (typeof msg == 'string' || msg.pid == null || msg.data == null || msg.data.action == null || msg.data.action.key == null || msg.data.action.value == null) {
+        if (
+            typeof msg == 'string' ||
+            msg.pid == null ||
+            msg.data == null ||
+            msg.data.action == null ||
+            msg.data.action.key == null ||
+            msg.data.action.value == null
+        ) {
             return;
         }
         const worker = this.get_worker(msg.pid);
@@ -88,9 +97,9 @@ export class WorkerController {
                 }
                 worker.status = data;
                 Logger.present(`status`, WorkerStatus[data], Logger.color.dim(`PID ${msg.pid}`));
-                this.livecycle(worker);
                 break;
         }
+        this.livecycle(worker);
     }
     get_idle_workers() {
         return this.workers.filter((worker) => worker.status == WorkerStatus.idle);
@@ -134,5 +143,41 @@ export class WorkerController {
                 cwd: this.cwd,
             });
         }
+        this.emit(worker.status, worker);
+    }
+    on(status: WorkerStatus, fn: (worker: WorkerModel, status: WorkerStatus, listener_id: number) => void) {
+        if (!this.listeners || status == null || fn == null) {
+            return null;
+        }
+        // create listener array for the status
+        if (!this.listeners[status]) {
+            this.listeners[status] = [];
+        }
+        const id = this.listener_auto_increment;
+        this.listeners[status].push({ id, fn });
+        this.listener_auto_increment++;
+        return id;
+    }
+    off(listener_id: number = null) {
+        if (!this.listeners || listener_id == null || listener_id < 0) {
+            return null;
+        }
+        Object.keys(this.listeners).forEach((listener_status) => {
+            this.listeners[listener_status] = this.listeners[listener_status].filter((listener) => listener.id != listener_id);
+        });
+    }
+    emit(status: WorkerStatus, worker: WorkerModel) {
+        if (status == null || worker == null) {
+            return;
+        }
+        if (!this.listeners[status]) {
+            return;
+        }
+        this.listeners[status].forEach((listener) => {
+            if (typeof listener.fn != 'function') {
+                return;
+            }
+            listener.fn(worker, status, listener.id);
+        });
     }
 }

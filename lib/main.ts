@@ -17,13 +17,16 @@ import { EnvModel } from '@lib/model/env';
 import { Queue } from '@lib/queue';
 import { WorkerAction } from '@lib/model/worker/action';
 import { WorkerStatus } from './model/worker/status';
+import { IPerformance_Measure, Performance_Measure, Performance_Measure_Blank } from '@lib/performance_measure';
 
 export class Main {
     queue: Queue = null;
     worker_controller = new WorkerController();
+    perf: IPerformance_Measure;
     constructor() {
         Env.set(process.env.WYVR_ENV);
         this.init();
+        
     }
     async init() {
         const hr_start = process.hrtime();
@@ -39,6 +42,8 @@ export class Main {
 
         const project_config = Config.get();
         Logger.debug('project_config', project_config);
+
+        this.perf = Config.get('import.measure_performance') ? new Performance_Measure() : new Performance_Measure_Blank();
 
         const worker_amount = this.worker_controller.get_worker_amount();
         Logger.present('workers', worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));
@@ -61,8 +66,9 @@ export class Main {
         }
 
         // Process files in workers
+        this.perf.start('build');
         await this.build(importer.get_import_list());
-        console.log('ticks', this.ticks);
+        this.perf.end('build');
 
         //const component = build.compile(filename);
         //console.log('component', component)
@@ -102,6 +108,7 @@ export class Main {
         }
     }
     async build(list: string[]) {
+        Logger.info('build', list.length, 'datasets');
         // create new queue
         this.queue = new Queue();
 
@@ -114,14 +121,13 @@ export class Main {
             this.queue.push(queue_data);
         });
 
-        console.log('queue length', this.queue.length);
         return new Promise((resolve, reject) => {
             this.tick(this.queue, resolve, reject);
         });
     }
     ticks: number = 0;
     tick(queue: Queue, resolve: Function, reject: Function) {
-        console.log('queue.length', queue.length);
+        Logger.debug('queue.length', queue.length);
         if (queue.length == 0) {
             resolve(true);
             return;
@@ -142,7 +148,7 @@ export class Main {
         }
         setTimeout(() => {
             this.tick(queue, resolve, reject);
-        }, 100);
+        }, 10);
     }
 
     generate(data: { key: number; value: any }) {

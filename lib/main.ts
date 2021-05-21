@@ -113,17 +113,23 @@ export class Main {
         // create new queue
         this.queue = new Queue();
 
-        // add the items from the list to the queue
-        list.forEach((item) => {
+        // add the items from the list to the queue in batches for better load balancing
+        const amount = list.length;
+        const batch_size = 10;
+        
+        let runs = Math.ceil(amount / batch_size);
+        Logger.info('build', runs, 'runs');
+
+        for (let i = 0; i < runs; i++) {
             const queue_data = {
                 action: WorkerAction.build,
-                data: item,
+                data: list.slice(i * batch_size, (i + 1) * batch_size),
             };
             this.queue.push(queue_data);
-        });
+        }
         return new Promise((resolve, reject) => {
             const listener_id = this.worker_controller.on(WorkerStatus.idle, () => {
-                if(this.tick(this.queue)){
+                if (this.tick(this.queue)) {
                     this.worker_controller.off(listener_id);
                     resolve(true);
                 }

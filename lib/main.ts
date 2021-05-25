@@ -69,11 +69,9 @@ export class Main {
         
         // Process files in workers
         this.perf.start('build');
-        console.log('here', importer.get_import_list())
         const build_result = await this.build(importer.get_import_list());
         this.perf.end('build');
 
-        console.log('->', build_result)
         // const content = `
         // <script>
         // import Page from '${process.cwd()}/src/page/Default.svelte';

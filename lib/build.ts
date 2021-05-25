@@ -15,7 +15,6 @@ export class Build {
             format: 'cjs',
             immutable: true
         });
-        console.log(compiled)
         const component = eval(compiled.js.code);
 
         return { compiled, component, result: null, notes: [] };

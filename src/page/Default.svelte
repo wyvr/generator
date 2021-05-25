@@ -11,6 +11,6 @@
 
 <style>
     h1 {
-        color: cornflowerblue;
+        color: var(--color-primary);
     }
 </style>

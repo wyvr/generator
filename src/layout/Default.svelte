@@ -8,7 +8,7 @@
     <Header></Header>
 {/if}
 <main>
-    <code>&lt; Default Layout &gt;</code>
+    <code>Default Layout</code>
     
     <slot></slot>
 </main>

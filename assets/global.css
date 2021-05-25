@@ -66,3 +66,10 @@ input,
 textarea {
     font: var(--size) / 1.2em sans-serif;
 }
+code {
+    font: var(--size) / 1.2em monospace;
+    color: coral;
+    border: 1px solid coral;
+    padding: 0 calc(var(--size) * 0.25);
+    border-radius: calc(var(--size) * 0.125);
+}

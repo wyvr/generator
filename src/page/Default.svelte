@@ -2,7 +2,7 @@
     export let data = null;
 </script>
 
-<code>&lt; Default Page &gt;</code>
+<code>Default Page</code>
 
 {#if data.title}
     <h1>{data.title}</h1>

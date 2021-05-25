@@ -1,20 +1,30 @@
 import * as fs from 'fs-extra';
-import { compile } from 'svelte/compiler';
+import { compile, preprocess } from 'svelte/compiler';
+import * as register from 'svelte/register';
 
 export class Build {
-    static compile(filename) {
-        const content = fs.readFileSync(filename).toString();
-
+    static preprocess(content: string) {
+        return preprocess(content, null, {filename: 'test'});
+    }
+    static compile(content: string) {
         // process.exit();
         const compiled = compile(content, {
-            filename,
             dev: true,
             generate: 'ssr',
             format: 'cjs',
+            immutable: true
         });
+        register()
+        console.log(compiled)
         const component = eval(compiled.js.code);
 
-        return { filename, compiled, component, result: null, notes: [] };
+        return { compiled, component, result: null, notes: [] };
+    }
+    static compile_file(filename: string) {
+        const content = fs.readFileSync(filename).toString();
+        const result:any = this.compile(content);
+        result.filename = filename;
+        return result;
     }
     static render(svelte_render_item, props) {
         const propNames = Object.keys(props);

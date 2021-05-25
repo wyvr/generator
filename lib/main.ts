@@ -65,16 +65,31 @@ export class Main {
             Logger.error('no datasets found');
             return;
         }
-
+        
+        
         // Process files in workers
         this.perf.start('build');
-        await this.build(importer.get_import_list());
+        console.log('here', importer.get_import_list())
+        const build_result = await this.build(importer.get_import_list());
         this.perf.end('build');
 
-        //const component = build.compile(filename);
-        //console.log('component', component)
+        console.log('->', build_result)
+        // const content = `
+        // <script>
+        // import Page from '${process.cwd()}/src/page/Default.svelte';
+        // const data = ${JSON.stringify({ title: 'test' })};
+        // </script>
+        
+        // <Page data={data}>
+        // Inhalt
+        // </Page>
+        // `;
+        // fs.writeFileSync('generated/test.svelte', content, {encoding: 'utf-8'});
+        
+        // const component = Build.compile(content);
+        // console.log('component', component)
 
-        // const rendered = build.render(component, { name: 'P@', details: true });
+        // const rendered = Build.render(component, { name: 'P@', details: true });
         // console.log('rendered');
         // console.log(rendered.result.html)
 
@@ -109,7 +124,7 @@ export class Main {
         }
     }
     async build(list: string[]) {
-        Logger.info('build', list.length, 'datasets');
+        Logger.info('build datasets', list.length);
         // create new queue
         this.queue = new Queue();
 
@@ -118,7 +133,7 @@ export class Main {
         const batch_size = 10;
         
         let runs = Math.ceil(amount / batch_size);
-        Logger.info('build', runs, 'runs');
+        Logger.info('build runs', runs);
 
         for (let i = 0; i < runs; i++) {
             const queue_data = {

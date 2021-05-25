@@ -1,6 +1,6 @@
 import * as fs from 'fs-extra';
 
-import { dirname } from 'path';
+import { dirname, join } from 'path';
 
 export class File {
     /**
@@ -13,16 +13,16 @@ export class File {
         if (!filename || typeof filename != 'string' || !extension || typeof extension != 'string') {
             return '';
         }
-        const splitted = filename.split('.');
-        if (splitted.length <= 1) {
-            return filename;
-        }
-        // remove last element => extension
-        splitted.pop();
         extension.trim();
         if (extension.indexOf('.') == 0) {
             extension = extension.replace(/^\./, '');
         }
+        const splitted = filename.split('.');
+        if (splitted.length <= 1) {
+            return `${filename}.${extension}`;
+        }
+        // remove last element => extension
+        splitted.pop();
         return [...splitted, extension].join('.');
     }
     //
@@ -67,7 +67,7 @@ export class File {
      * @returns the data of the file
      */
     static read_json(filename: string): any {
-        if(!filename || !fs.existsSync(filename)) {
+        if (!filename || !fs.existsSync(filename)) {
             return null;
         }
         const content = fs.readFileSync(filename, { encoding: 'utf8', flag: 'r' });
@@ -82,5 +82,14 @@ export class File {
             return null;
         }
         return data;
+    }
+    static find_file(in_dir: string, possible_files: string[]) {
+        const found = possible_files.find((file) => {
+            return fs.existsSync(join(in_dir, file));
+        });
+        if(!found) {
+            return null;
+        }
+        return join(in_dir, found);
     }
 }

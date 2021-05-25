@@ -1,12 +1,11 @@
 <script>
-    export let language = 'en';
-    export let title = 'wyvr';
+    export let data = null;
 </script>
 
 <!doctype html>
-<html lang="{language}">
+<html lang="{data._wyvr.language}">
     <head>
-        <title>{title}</title>
+        <title>{data.title}</title>
     </head>
     <body>
         <code>&lt; Default Doc &gt;</code>

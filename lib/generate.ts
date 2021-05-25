@@ -14,6 +14,7 @@ export class Generate {
                 layout: ['Default'],
                 page: ['Default'],
             },
+            language: 'en'
         };
 
         if (data._wyvr) {
@@ -26,26 +27,26 @@ export class Generate {
                     wyvr_prop.template.layout = this.merge_property(data._wyvr.template, wyvr_prop.template.layout);
                     wyvr_prop.template.page = this.merge_property(data._wyvr.template, wyvr_prop.template.page);
                 } else {
-                    if(data._wyvr.template.doc) {
+                    if (data._wyvr.template.doc) {
                         wyvr_prop.template.doc = this.merge_property(data._wyvr.template.doc, wyvr_prop.template.doc);
                     }
-                    if(data._wyvr.template.layout) {
+                    if (data._wyvr.template.layout) {
                         wyvr_prop.template.layout = this.merge_property(data._wyvr.template.layout, wyvr_prop.template.layout);
                     }
-                    if(data._wyvr.template.page) {
+                    if (data._wyvr.template.page) {
                         wyvr_prop.template.page = this.merge_property(data._wyvr.template.page, wyvr_prop.template.page);
                     }
                 }
             }
         }
+        // add extension to the template paths
+        wyvr_prop.template.doc = wyvr_prop.template.doc.map((file) => File.to_extension(file, 'svelte'));
+        wyvr_prop.template.layout = wyvr_prop.template.layout.map((file) => File.to_extension(file, 'svelte'));
+        wyvr_prop.template.page = wyvr_prop.template.page.map((file) => File.to_extension(file, 'svelte'));
+        
         // set the new values
         data._wyvr = wyvr_prop;
-        // "_wyvr": {
-        //     "template": [ "about", "Page", "column/1" ]
-        // }
-        // "doc": "Default",
-        //         "layout": "",
-        //         "page": [ "about", "Page", "column/1" ]
+
         return data;
     }
     static merge_property(prop_value: string | string[], default_value: string[]): string[] {

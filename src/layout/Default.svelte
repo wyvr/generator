@@ -1,10 +1,10 @@
 <script>
-    import Header from '$src/Header.svelte';
+    import Header from '@src/Header.svelte';
 
-    export let show_header = true;
+    export let data = null;
 </script>
 
-{#if show_header}
+{#if data.show_header}
     <Header></Header>
 {/if}
 <main>

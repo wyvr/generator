@@ -3,11 +3,14 @@ import { WorkerStatus } from '@lib/model/worker/status';
 import { WorkerAction } from '@lib/model/worker/action';
 import { File } from '@lib/file';
 import { Build } from '@lib/build';
+import { Dir } from '@lib/dir';
+import { join, dirname } from 'path';
+import * as fs from 'fs-extra';
 
 export class Worker {
     private config = null;
     private env = null;
-    private cwd = null;
+    private cwd = process.cwd();
     private global_data: any = null;
     constructor() {
         this.init();
@@ -43,7 +46,37 @@ export class Worker {
                             const data = File.read_json(filename);
                             if (!data) {
                                 console.log('ERR', 'broken/missing/empty file', filename);
+                                return;
                             }
+                            const doc_file_name = File.find_file(join(this.cwd, 'src', 'doc'), data._wyvr.template.doc);
+                            const layout_file_name = File.find_file(join(this.cwd, 'src', 'layout'), data._wyvr.template.layout);
+                            const page_file_name = File.find_file(join(this.cwd, 'src', 'page'), data._wyvr.template.page);
+
+                            const compiled = Build.compile(`
+                            <script>
+                                import Doc from '${doc_file_name}';
+                                import Layout from '${layout_file_name}';
+                                import Page from '${page_file_name}';
+                                const data = ${JSON.stringify(data)};
+                            </script>
+
+                            <Doc data={data}>
+                                <Layout data={data}>
+                                    <Page data={data}>
+                                    ${data.content || ''}
+                                    </Page>
+                                </Layout>
+                            </Doc>
+                            `);
+                            // const compiled = Build.compile(`
+                            // <script>
+                            // const data = ${JSON.stringify(data)};
+                            // </script>
+                            // TEST
+                            // ${data.content || ''}
+                            // `);
+                            const rendered = Build.render(compiled, data);
+
                             //const component = build.compile(filename);
                             //console.log('component', component)
                             // const rendered = build.render(component, { name: 'P@', details: true });
@@ -62,6 +95,12 @@ export class Worker {
                             //     </body>
                             // </html>`;
                             // fs.writeFileSync('./pub/index.html', demo_file);
+                            const path = File.to_extension(filename.replace(join(this.cwd, 'imported', 'data'), 'pub'), 'html');
+                            console.log(filename, path)
+                            fs.mkdirSync(dirname(path), { recursive: true });
+                            fs.writeFileSync(path, rendered.result.html);
+
+                            return filename;
                         })
                     );
                     console.log('result', result);

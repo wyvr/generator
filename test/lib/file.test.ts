@@ -27,7 +27,7 @@ describe('Lib/File', () => {
             assert.strictEqual(File.to_extension('test.js', ''), '');
         });
         it('missing extension', () => {
-            assert.strictEqual(File.to_extension('test', 'txt'), 'test');
+            assert.strictEqual(File.to_extension('test', 'txt'), 'test.txt');
         });
         it('change extension', () => {
             assert.strictEqual(File.to_extension('test.js', '.txt'), 'test.txt');

@@ -1,11 +1,11 @@
 <script>
-    export let headline = 'wyvr';
+    export let data = null;
 </script>
 
 <code>&lt; Default Page &gt;</code>
 
-{#if headline}
-    <h1>{headline}</h1>
+{#if data.title}
+    <h1>{data.title}</h1>
 {/if}
 <slot />
 

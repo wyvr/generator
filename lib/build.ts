@@ -2,6 +2,7 @@ import * as fs from 'fs-extra';
 import { compile, preprocess } from 'svelte/compiler';
 import * as register from 'svelte/register';
 
+register()
 export class Build {
     static preprocess(content: string) {
         return preprocess(content, null, {filename: 'test'});
@@ -14,7 +15,6 @@ export class Build {
             format: 'cjs',
             immutable: true
         });
-        register()
         console.log(compiled)
         const component = eval(compiled.js.code);
 

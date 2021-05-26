@@ -1,6 +1,8 @@
 :root {
     --size: 1rem;
     --color-primary: #58f;
+    --color-secondary: #f75;
+    --color-ternary: #85f;
 }
 html,
 body {
@@ -68,8 +70,8 @@ textarea {
 }
 code {
     font: var(--size) / 1.2em monospace;
-    color: coral;
-    border: 1px solid coral;
+    color: var(--color-secondary);
+    border: 1px solid var(--color-secondary);
     padding: 0 calc(var(--size) * 0.25);
     border-radius: calc(var(--size) * 0.125);
 }

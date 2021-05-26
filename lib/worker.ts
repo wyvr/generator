@@ -52,30 +52,10 @@ export class Worker {
                             const layout_file_name = File.find_file(join(this.cwd, 'src', 'layout'), data._wyvr.template.layout);
                             const page_file_name = File.find_file(join(this.cwd, 'src', 'page'), data._wyvr.template.page);
 
-                            const compiled = Build.compile(`
-                            <script>
-                                import Doc from '${doc_file_name}';
-                                import Layout from '${layout_file_name}';
-                                import Page from '${page_file_name}';
-                                const data = ${JSON.stringify(data)};
-                            </script>
-
-                            <Doc data={data}>
-                                <Layout data={data}>
-                                    <Page data={data}>
-                                    ${data.content || ''}
-                                    </Page>
-                                </Layout>
-                            </Doc>
-                            `);
-                            // const compiled = Build.compile(`
-                            // <script>
-                            // const data = ${JSON.stringify(data)};
-                            // </script>
-                            // TEST
-                            // ${data.content || ''}
-                            // `);
+                            const page_code = Build.get_page_code(data, doc_file_name, layout_file_name, page_file_name);
+                            const compiled = Build.compile(page_code);
                             const rendered = Build.render(compiled, data);
+                            console.log(rendered);
 
                             //const component = build.compile(filename);
                             //console.log('component', component)
@@ -96,7 +76,7 @@ export class Worker {
                             // </html>`;
                             // fs.writeFileSync('./pub/index.html', demo_file);
                             const path = File.to_extension(filename.replace(join(this.cwd, 'imported', 'data'), 'pub'), 'html');
-                            console.log(filename, path)
+                            console.log(filename, path);
                             fs.mkdirSync(dirname(path), { recursive: true });
                             fs.writeFileSync(path, rendered.result.html);
 

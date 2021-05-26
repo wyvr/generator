@@ -2,10 +2,10 @@ import * as fs from 'fs-extra';
 import { compile, preprocess } from 'svelte/compiler';
 import * as register from 'svelte/register';
 
-register()
+register();
 export class Build {
     static preprocess(content: string) {
-        return preprocess(content, null, {filename: 'test'});
+        return preprocess(content, null, { filename: 'test' });
     }
     static compile(content: string) {
         // process.exit();
@@ -13,7 +13,7 @@ export class Build {
             dev: true,
             generate: 'ssr',
             format: 'cjs',
-            immutable: true
+            immutable: true,
         });
         const component = eval(compiled.js.code);
 
@@ -21,7 +21,7 @@ export class Build {
     }
     static compile_file(filename: string) {
         const content = fs.readFileSync(filename).toString();
-        const result:any = this.compile(content);
+        const result: any = this.compile(content);
         result.filename = filename;
         return result;
     }
@@ -41,10 +41,28 @@ export class Build {
             }
         }
         svelte_render_item.result = svelte_render_item.component.render(props);
+        // inject css
+        svelte_render_item.result.html = svelte_render_item.result.html.replace('</head>', `<style>${svelte_render_item.result.css.code}</style></head>`);
         return svelte_render_item;
     }
     // precompile the components to check whether there is only global data used
     static precompile_components() {
         //@TODO implement
+    }
+    static get_page_code(data: any, doc_file_name: string, layout_file_name: string, page_file_name: string) {
+        return `<script>
+                    import Doc from '${doc_file_name}';
+                    import Layout from '${layout_file_name}';
+                    import Page from '${page_file_name}';
+                    const data = ${JSON.stringify(data)};
+                </script>
+
+                <Doc data={data}>
+                    <Layout data={data}>
+                        <Page data={data}>
+                        ${data.content || ''}
+                        </Page>
+                    </Layout>
+                </Doc>`;
     }
 }

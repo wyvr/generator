@@ -10,7 +10,6 @@
         <link href="/assets/global.css" rel="stylesheet" />
     </head>
     <body>
-        <code>Default Doc</code>
         <slot></slot>
     </body>
 </html>

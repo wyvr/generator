@@ -4,19 +4,18 @@
     export let data = null;
 </script>
 
-{#if data.show_header}
+<div class="layout">
     <Header></Header>
-{/if}
-<main>
-    <code>Default Layout</code>
     
-    <slot></slot>
-</main>
+    <main>
+        <slot></slot>
+    </main>
+</div>
 
 <style>
     main {
         margin: 0 auto;
-        max-width: 800px;
+        max-width: var(--layout-content-max-width);
         padding: 1rem;
     }
 </style>

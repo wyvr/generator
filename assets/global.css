@@ -3,6 +3,7 @@
     --color-primary: #58f;
     --color-secondary: #f75;
     --color-ternary: #85f;
+    --layout-content-max-width: 800px;
 }
 html,
 body {
@@ -10,12 +11,7 @@ body {
     color: #ccc;
     font: var(--size) / 1.2em sans-serif;
     margin: 0;
-}
-html {
     padding: 0;
-}
-body {
-    padding: var(--size);
 }
 h1,
 h2,

@@ -16,7 +16,7 @@ export class WorkerController {
     private listeners: any = {};
     private listener_auto_increment = 0;
 
-    constructor() {
+    constructor(private global_data: any) {
         Env.set(process.env.WYVR_ENV);
     }
 
@@ -148,7 +148,7 @@ export class WorkerController {
                 config: Config.get(),
                 env: Env.get(),
                 cwd: this.cwd,
-                global_data: File.read_json('./data/global.json'),
+                global_data: this.global_data,
             });
         }
         this.emit(worker.status, worker);

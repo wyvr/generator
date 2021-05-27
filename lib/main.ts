@@ -19,10 +19,11 @@ import { WorkerAction } from '@lib/model/worker/action';
 import { WorkerStatus } from './model/worker/status';
 import { IPerformance_Measure, Performance_Measure, Performance_Measure_Blank } from '@lib/performance_measure';
 import { WorkerModel } from '@lib/model/worker/worker';
+import { File } from './file';
 
 export class Main {
     queue: Queue = null;
-    worker_controller = new WorkerController();
+    worker_controller: WorkerController = null;
     perf: IPerformance_Measure;
     worker_amount: number;
     constructor() {
@@ -45,7 +46,8 @@ export class Main {
         Logger.debug('project_config', project_config);
 
         this.perf = Config.get('import.measure_performance') ? new Performance_Measure() : new Performance_Measure_Blank();
-
+        const global_data = File.read_json('./data/global.json');
+        this.worker_controller = new WorkerController(global_data);
         this.worker_amount = this.worker_controller.get_worker_amount();
         Logger.present('workers', this.worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));
         const workers = this.worker_controller.create_workers(this.worker_amount);
@@ -65,8 +67,7 @@ export class Main {
             Logger.error('no datasets found');
             return;
         }
-        
-        
+
         // Process files in workers
         this.perf.start('build');
         const build_result = await this.build(importer.get_import_list());
@@ -77,13 +78,13 @@ export class Main {
         // import Page from '${process.cwd()}/src/page/Default.svelte';
         // const data = ${JSON.stringify({ title: 'test' })};
         // </script>
-        
+
         // <Page data={data}>
         // Inhalt
         // </Page>
         // `;
         // fs.writeFileSync('generated/test.svelte', content, {encoding: 'utf-8'});
-        
+
         // const component = Build.compile(content);
         // console.log('component', component)
 
@@ -129,7 +130,7 @@ export class Main {
         // add the items from the list to the queue in batches for better load balancing
         const amount = list.length;
         const batch_size = 10;
-        
+
         let runs = Math.ceil(amount / batch_size);
         Logger.info('build runs', runs);
 

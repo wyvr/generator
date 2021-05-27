@@ -3,9 +3,14 @@
 </script>
 
 <!doctype html>
-<html lang="{data._wyvr.language}">
+<html lang="{data._wyvr.language || 'en'}">
     <head>
         <title>{data.title}</title>
+        
+        <meta charset="utf-8">
+        <meta content="width=device-width,initial-scale=1,minimum-scale=1" name="viewport">
+        <meta content="telephone=no" name="format-detection">
+        
         <link rel="icon" href="/assets/favicon.png">
         <link href="/assets/global.css" rel="stylesheet" />
     </head>

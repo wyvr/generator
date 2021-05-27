@@ -6,6 +6,7 @@ import { Logger } from '@lib/logger';
 import { Env } from '@lib/env';
 import { WorkerModel } from '@lib/model/worker/worker';
 import { File } from '@lib/file';
+import { LogType } from '../model/log';
 
 export class WorkerController {
     private cwd = process.cwd();
@@ -98,6 +99,11 @@ export class WorkerController {
                 }
                 worker.status = data;
                 Logger.present(`status`, WorkerStatus[data], Logger.color.dim(`PID ${msg.pid}`));
+                break;
+            case WorkerAction.log:
+                if(data && data.type && LogType[data.type] && Logger[LogType[data.type]]) {
+                    Logger[LogType[data.type]](...data.messages, Logger.color.dim(`PID ${msg.pid}`))
+                }
                 break;
         }
         this.livecycle(worker);

@@ -6,6 +6,7 @@ import { Build } from '@lib/build';
 import { Dir } from '@lib/dir';
 import { join, dirname } from 'path';
 import * as fs from 'fs-extra';
+import { LogType } from './model/log';
 
 export class Worker {
     private config = null;
@@ -24,7 +25,7 @@ export class Worker {
             const action = msg?.action?.key;
             const value = msg?.action?.value;
             if (!value) {
-                console.log('ignored message from main, no value given', msg);
+                WorkerHelper.log(LogType.warning, 'ignored message from main, no value given', msg);
                 return;
             }
             switch (action) {
@@ -35,9 +36,11 @@ export class Worker {
                     this.cwd = value?.cwd;
                     this.global_data = value?.global_data;
                     // only when everything is configured set the worker idle
-                    if (this.config && this.env && this.cwd) {
-                        WorkerHelper.send_status(WorkerStatus.idle);
+                    if ((!this.config && this.env == null) || !this.cwd) {
+                        WorkerHelper.log(LogType.warning, 'invalid configure value', value);
+                        return;
                     }
+                    WorkerHelper.send_status(WorkerStatus.idle);
                     break;
                 case WorkerAction.build:
                     WorkerHelper.send_status(WorkerStatus.busy);
@@ -45,7 +48,7 @@ export class Worker {
                         value.map((filename) => {
                             const data = File.read_json(filename);
                             if (!data) {
-                                console.log('ERR', 'broken/missing/empty file', filename);
+                                WorkerHelper.log(LogType.error, 'broken/missing/empty file', filename);
                                 return;
                             }
                             const doc_file_name = File.find_file(join(this.cwd, 'src', 'doc'), data._wyvr.template.doc);
@@ -55,7 +58,7 @@ export class Worker {
                             const page_code = Build.get_page_code(data, doc_file_name, layout_file_name, page_file_name);
                             const compiled = Build.compile(page_code);
                             const rendered = Build.render(compiled, data);
-                            console.log(rendered);
+                            // console.log(rendered);
 
                             //const component = build.compile(filename);
                             //console.log('component', component)
@@ -76,25 +79,27 @@ export class Worker {
                             // </html>`;
                             // fs.writeFileSync('./pub/index.html', demo_file);
                             const path = File.to_extension(filename.replace(join(this.cwd, 'imported', 'data'), 'pub'), 'html');
-                            console.log(filename, path);
+                            // console.log(filename, path);
                             fs.mkdirSync(dirname(path), { recursive: true });
                             fs.writeFileSync(path, rendered.result.html);
 
                             return filename;
                         })
                     );
-                    console.log('result', result);
+                    // console.log('result', result);
                     WorkerHelper.send_status(WorkerStatus.idle);
                     break;
                 case WorkerAction.status:
+                    WorkerHelper.log(LogType.debug, 'setting status from outside is not allowed');
+                    break;
                 default:
-                    console.log('ignored message from main', msg);
+                    WorkerHelper.log(LogType.warning, 'unknown message action from outside', msg);
                     break;
             }
         });
 
         process.on('uncaughtException', (err) => {
-            console.error('worker PID', process.pid, 'uncaughtException', err.message, err.stack);
+            WorkerHelper.log(LogType.error, 'uncaughtException', err.message, err.stack);
             process.exit(1);
         });
     }

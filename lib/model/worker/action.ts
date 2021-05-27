@@ -1,6 +1,7 @@
 export enum WorkerAction {
-    status = 0,
-    configure = 1,
-    generate = 2,
-    build = 4,
+    log = 1 << 0,
+    status = 1 << 1,
+    configure = 1 << 2,
+    generate = 1 << 3,
+    build = 1 << 4,
 }

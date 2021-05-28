@@ -57,6 +57,11 @@ export class Worker {
 
                             const page_code = Build.get_page_code(data, doc_file_name, layout_file_name, page_file_name);
                             const compiled = Build.compile(page_code);
+                            if(compiled.error) {
+                                // svelte error messages
+                                WorkerHelper.log(LogType.error, '[svelte]', filename , compiled);
+                                return;
+                            }
                             const rendered = Build.render(compiled, data);
                             // console.log(rendered);
 

@@ -101,8 +101,20 @@ export class WorkerController {
                 Logger.present(`status`, WorkerStatus[data], Logger.color.dim(`PID ${msg.pid}`));
                 break;
             case WorkerAction.log:
-                if(data && data.type && LogType[data.type] && Logger[LogType[data.type]]) {
-                    Logger[LogType[data.type]](...data.messages, Logger.color.dim(`PID ${msg.pid}`))
+                if (data && data.type && LogType[data.type] && Logger[LogType[data.type]]) {
+                    // display svelte errors with better output
+                    if (data.messages.length > 0 && data.messages[0] === '[svelte]') {
+                        data.messages = data.messages.map((message: any, index: number) => {
+                            if(index == 0) {
+                                return Logger.color.dim(message);
+                            }
+                            if (typeof message == 'object' && message.code == 'parse-error' && message.frame && message.start && message.name) {
+                                return `\n${message.name} ${Logger.color.dim('Line:')}${message.start.line}${Logger.color.dim(' Col:')}${message.start.column}\n${message.frame}`;
+                            }
+                            return message;
+                        });
+                    }
+                    Logger[LogType[data.type]](...data.messages, Logger.color.dim(`PID ${msg.pid}`));
                 }
                 break;
         }

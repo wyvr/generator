@@ -9,15 +9,21 @@ export class Build {
     }
     static compile(content: string) {
         // process.exit();
-        const compiled = compile(content, {
-            dev: true,
-            generate: 'ssr',
-            format: 'cjs',
-            immutable: true,
-        });
-        const component = eval(compiled.js.code);
+        try {
 
-        return { compiled, component, result: null, notes: [] };
+            const compiled = compile(content, {
+                dev: true,
+                generate: 'ssr',
+                format: 'cjs',
+                immutable: true,
+            });
+            const component = eval(compiled.js.code);
+            return { compiled, component, result: null, notes: [] };
+        } catch(e) {
+            e.error = true;
+            return e;
+        }
+
     }
     static compile_file(filename: string) {
         const content = fs.readFileSync(filename).toString();
@@ -50,19 +56,26 @@ export class Build {
         //@TODO implement
     }
     static get_page_code(data: any, doc_file_name: string, layout_file_name: string, page_file_name: string) {
-        return `<script>
-                    import Doc from '${doc_file_name}';
-                    import Layout from '${layout_file_name}';
-                    import Page from '${page_file_name}';
-                    const data = ${JSON.stringify(data)};
-                </script>
+        const code = `
+        <script>
+            import Doc from '${doc_file_name}';
+            import Layout from '${layout_file_name}';
+            import Page from '${page_file_name}';
+            const data = ${JSON.stringify(data)};
+            
+            onMount() {
+                console.log('${data.url}')
+            }
+        </script>
 
-                <Doc data={data}>
-                    <Layout data={data}>
-                        <Page data={data}>
-                        ${data.content || ''}
-                        </Page>
-                    </Layout>
-                </Doc>`;
+        <Doc data={data}>
+            <Layout data={data}>
+                <Page data={data}>
+                ${data.content || ''}
+                </Page>
+            </Layout>
+        </Doc>`;
+        console.log(code);
+        return code;
     }
 }

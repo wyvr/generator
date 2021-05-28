@@ -58,14 +58,15 @@ export class Build {
     static get_page_code(data: any, doc_file_name: string, layout_file_name: string, page_file_name: string) {
         const code = `
         <script>
+            import { onMount } from 'svelte';
             import Doc from '${doc_file_name}';
             import Layout from '${layout_file_name}';
             import Page from '${page_file_name}';
             const data = ${JSON.stringify(data)};
             
-            onMount() {
+            onMount(async () => {
                 console.log('${data.url}')
-            }
+            })
         </script>
 
         <Doc data={data}>
@@ -75,7 +76,6 @@ export class Build {
                 </Page>
             </Layout>
         </Doc>`;
-        console.log(code);
         return code;
     }
 }

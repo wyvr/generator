@@ -3,7 +3,7 @@
 
 <header>
     <div class="inner">
-        <a href="/"><img src="/assets/favicon.png" width="48" height="48" alt="wyvr" /></a>
+        <a href="/"><img src="/assets/logo.svg" width="159" height="58" alt="wyvr" /></a>
         {#if $$slots.nav}
             <slot name="nav" />
         {:else}

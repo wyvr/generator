@@ -16,6 +16,7 @@ export class Build {
                 generate: 'ssr',
                 format: 'cjs',
                 immutable: true,
+                hydratable: true
             });
             const component = eval(compiled.js.code);
             return { compiled, component, result: null, notes: [] };

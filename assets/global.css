@@ -1,8 +1,8 @@
 :root {
     --size: 1rem;
-    --color-primary: #58f;
-    --color-secondary: #f75;
-    --color-ternary: #85f;
+    --color-primary: #5E7ED0;
+    --color-secondary: #dd6e52;
+    --color-tertiary: #7c5ed0;
     --layout-content-max-width: 800px;
 }
 html,

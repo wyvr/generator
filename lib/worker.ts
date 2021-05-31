@@ -40,6 +40,26 @@ export class Worker {
                         WorkerHelper.log(LogType.warning, 'invalid configure value', value);
                         return;
                     }
+                    // set function to get global data in the svelte files 
+                    (<any>global).getGlobal = (key: string) => {
+                        if(!key || !this.global_data) {
+                            return null;
+                        }
+                        const steps = key.split('.');
+                        let value = null;
+                        for (let i = 0; i < steps.length; i++) {
+                            if(i == 0) {
+                                value = this.global_data[steps[i]];
+                                continue;
+                            }
+                            if(!value && !value[steps[i]]) {
+                                return null;
+                            }
+                            value = value[steps[i]];
+                        }
+                        
+                        return value;
+                    }
                     WorkerHelper.send_status(WorkerStatus.idle);
                     break;
                 case WorkerAction.build:
@@ -57,6 +77,7 @@ export class Worker {
 
                             const page_code = Build.get_page_code(data, doc_file_name, layout_file_name, page_file_name);
                             const compiled = Build.compile(page_code);
+                            // console.log(JSON.stringify(compiled))
                             if(compiled.error) {
                                 // svelte error messages
                                 WorkerHelper.log(LogType.error, '[svelte]', filename , compiled);

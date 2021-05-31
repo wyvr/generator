@@ -9,9 +9,13 @@
             <slot name="nav" />
         {:else if nav}
             <nav>
-                {#each nav as entry}
-                    <a href={entry.url}>{entry.name}</a>
-                {/each}
+                <label for="nav-toggle"><span>toggle navigation visibility</span></label>
+                <input type="checkbox" id="nav-toggle" />
+                <div class="nav__inner">
+                    {#each nav as entry}
+                        <a href={entry.url}>{entry.name}</a>
+                    {/each}
+                </div>
             </nav>
         {/if}
     </div>
@@ -36,9 +40,98 @@
         text-align: right;
     }
     nav a {
-        display: inline-block;
+        display: block;
         font-weight: 700;
         text-decoration: none;
         margin: var(--size);
+        color: var(--color-text);
+    }
+    nav > div {
+        position: fixed;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        background-color: var(--color-primary);
+        opacity: 0;
+        pointer-events: none;
+        text-align: left;
+        padding: var(--size);
+        transform: translateX(100%);
+        transition: transform 0.2s ease-out, opacity 0.2s linear;
+        z-index: 1000;
+        box-shadow: 0 0 var(--size) rgba(0,0,0,0.75);
+    }
+    #nav-toggle:checked + div {
+        opacity: 1;
+        pointer-events: all;
+        transform: none;
+    }
+    #nav-toggle:checked {
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+    #nav-toggle {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 0;
+        height: 0;
+        opacity: 0;
+        cursor: pointer;
+    }
+    nav label {
+        color: transparent;
+        width: calc(var(--size) * 2.5);
+        height: calc(var(--size) * 2);
+        display: inline-block;
+        overflow: hidden;
+        position: relative;
+        cursor: pointer;
+    }
+    nav label span {
+        overflow: hidden;
+        background-color: var(--color-primary);
+        width: 100%;
+        height: calc(var(--size) * 0.25);
+        position: absolute;
+        left: 0;
+        top: 50%;
+        margin-top: calc(var(--size) * -0.1);
+    }
+    nav label:before,
+    nav label:after {
+        content: '';
+        background-color: var(--color-primary);
+        width: 100%;
+        height: calc(var(--size) * 0.25);
+        position: absolute;
+        left: 0;
+    }
+    nav label:before {
+        top: 0;
+    }
+    nav label:after {
+        bottom: 0;
+    }
+    @media (min-width: 768px) {
+        nav label {
+            display: none;
+        }
+        nav a {
+            display: inline-block;
+            color: var(--color-primary);
+        }
+        nav > div {
+            text-align: right;
+            position: static;
+            background-color: transparent;
+            opacity: 1;
+            pointer-events: all;
+            padding: 0;
+            transform: none;
+            box-shadow: none;
+        }
     }
 </style>

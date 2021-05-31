@@ -25,7 +25,6 @@ watch: ## Start watcher and make debug builds
 		--ignore imported \
 		--ignore data \
 		--ignore pub \
-		--ignore state \
 		--ignore wyvr \
 		--ignore js \
 		--ignore svelte \
@@ -42,7 +41,7 @@ init: ## Install and prepare setup
 	@npm install
 
 clean: ## Removes generated folders for a clean setup
-	@rm -rf imported coverage wyvr pub state
+	@rm -rf imported coverage wyvr pub
 
 coverage: ## Get test coverage result
 	@$(WYVR_COVERAGE)

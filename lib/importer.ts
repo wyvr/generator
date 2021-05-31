@@ -1,8 +1,8 @@
 import * as fs from 'fs-extra';
 
 import { join } from 'path';
-import * as stream_array from 'stream-json/streamers/StreamArray';
-import * as stream_object from 'stream-json/streamers/StreamObject';
+import stream_array from 'stream-json/streamers/StreamArray';
+import stream_object from 'stream-json/streamers/StreamObject';
 import { Dir } from '@lib/dir';
 import { File } from '@lib/file';
 import { Config } from '@lib/config';
@@ -13,9 +13,9 @@ const cwd = process.cwd();
 
 export class Importer {
     chunk_index = 0;
-    state_file = join(cwd, 'state', 'import.json');
-    state_list_file = join(cwd, 'state', 'import_list.json');
-    state_global_file = join(cwd, 'state', 'global.json');
+    state_file = join(cwd, 'imported', 'import.json');
+    state_list_file = join(cwd, 'imported', 'import_list.json');
+    state_global_file = join(cwd, 'imported', 'global.json');
     state = null;
     list: string[] = [];
     perf: IPerformance_Measure;

@@ -8,3 +8,5 @@ coverage
 state
 wyvr
 logs
+js
+svelte

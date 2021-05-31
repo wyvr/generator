@@ -4,4 +4,5 @@ export enum WorkerAction {
     configure = 1 << 2,
     generate = 1 << 3,
     build = 1 << 4,
+    emit = 1 << 5,
 }

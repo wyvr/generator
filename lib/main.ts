@@ -27,6 +27,7 @@ export class Main {
     perf: IPerformance_Measure;
     worker_amount: number;
     global_data: any = null;
+    entrypoints: any = {};
     constructor() {
         Env.set(process.env.WYVR_ENV);
         this.init();
@@ -74,7 +75,7 @@ export class Main {
             Logger.error('no datasets found');
             return;
         }
-        if(!is_imported) {
+        if (!is_imported) {
             this.global_data = await importer.get_global();
         }
 
@@ -82,11 +83,22 @@ export class Main {
         this.worker_amount = this.worker_controller.get_worker_amount();
         Logger.present('workers', this.worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));
         const workers = this.worker_controller.create_workers(this.worker_amount);
+        this.worker_controller.on_entrypoint((data: any) => {
+            this.entrypoints[data.entrypoint] = {
+                doc: data.doc,
+                layout: data.layout,
+                page: data.page,
+            }
+        });
 
         // Process files in workers
         this.perf.start('build');
-        const build_result = await this.build(importer.get_import_list());
+        const build_pages = await this.build(importer.get_import_list());
         this.perf.end('build');
+
+        this.perf.start('scripts');
+        const build_scripts = await this.scripts();
+        this.perf.end('scripts');
 
         // const content = `
         // <script>
@@ -137,7 +149,7 @@ export class Main {
             }, 500);
         }
     }
-    async build(list: string[]) {
+    async build(list: string[]): Promise<boolean> {
         Logger.info('build datasets', list.length);
         // create new queue
         this.queue = new Queue();
@@ -211,5 +223,11 @@ export class Main {
             this.global_data.nav.all.push(nav_result);
         }
         return data;
+    }
+
+    scripts(): Promise<boolean> {
+        return new Promise((resolve) => {
+            resolve(true);
+        });
     }
 }

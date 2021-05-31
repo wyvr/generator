@@ -13,12 +13,13 @@ export class Worker {
     private env = null;
     private cwd = process.cwd();
     private global_data: any = null;
+    private root_template_paths = [join(this.cwd, 'src', 'doc'), join(this.cwd, 'src', 'layout'), join(this.cwd, 'src', 'page')]
     constructor() {
         this.init();
     }
     async init() {
         process.title = `wyvr worker ${process.pid}`;
-
+        
         WorkerHelper.send_status(WorkerStatus.exists);
 
         process.on('message', async (msg) => {
@@ -65,7 +66,7 @@ export class Worker {
                 case WorkerAction.build:
                     WorkerHelper.send_status(WorkerStatus.busy);
                     const result = await Promise.all(
-                        value.map((filename) => {
+                        value.map(async (filename) => {
                             const data = File.read_json(filename);
                             if (!data) {
                                 WorkerHelper.log(LogType.error, 'broken/missing/empty file', filename);
@@ -75,8 +76,20 @@ export class Worker {
                             const layout_file_name = File.find_file(join(this.cwd, 'src', 'layout'), data._wyvr.template.layout);
                             const page_file_name = File.find_file(join(this.cwd, 'src', 'page'), data._wyvr.template.page);
 
+                            const entrypoint = Build.get_entry_point(this.root_template_paths, doc_file_name, layout_file_name, page_file_name);
+                            // add the entrypoint to the wyvr object
+                            data._wyvr.entrypoint = entrypoint;
+                            WorkerHelper.send_action(WorkerAction.emit, {
+                                type: 'entrypoint',
+                                entrypoint,
+                                doc: doc_file_name,
+                                layout: layout_file_name,
+                                page: page_file_name
+                            })
+
                             const page_code = Build.get_page_code(data, doc_file_name, layout_file_name, page_file_name);
                             const compiled = Build.compile(page_code);
+                            // const preprocess = await Build.preprocess(page_code);
                             // console.log(JSON.stringify(compiled))
                             if(compiled.error) {
                                 // svelte error messages

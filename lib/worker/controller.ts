@@ -15,6 +15,7 @@ export class WorkerController {
     private max_cores: number;
     private listeners: any = {};
     private listener_auto_increment = 0;
+    private on_entrypoint_callbacks: Function[] = [];
 
     constructor(private global_data: any) {
         Env.set(process.env.WYVR_ENV);
@@ -117,6 +118,13 @@ export class WorkerController {
                     Logger[LogType[data.type]](...data.messages, Logger.color.dim(`PID ${msg.pid}`));
                 }
                 break;
+            case WorkerAction.emit:
+                if(data.type && data.type == 'entrypoint') {
+                    this.on_entrypoint_callbacks.forEach((fn)=>{
+                        fn(data);
+                    })
+                }
+                break;
         }
         this.livecycle(worker);
     }
@@ -199,5 +207,8 @@ export class WorkerController {
             }
             listener.fn(worker, status, listener.id);
         });
+    }
+    on_entrypoint(fn: Function) {
+        this.on_entrypoint_callbacks.push(fn);
     }
 }

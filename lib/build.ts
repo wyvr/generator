@@ -10,21 +10,19 @@ export class Build {
     static compile(content: string) {
         // process.exit();
         try {
-
             const compiled = compile(content, {
                 dev: true,
                 generate: 'ssr',
                 format: 'cjs',
                 immutable: true,
-                hydratable: true
+                hydratable: true,
             });
             const component = eval(compiled.js.code);
             return { compiled, component, result: null, notes: [] };
-        } catch(e) {
+        } catch (e) {
             e.error = true;
             return e;
         }
-
     }
     static compile_file(filename: string) {
         const content = fs.readFileSync(filename).toString();
@@ -78,5 +76,32 @@ export class Build {
             </Layout>
         </Doc>`;
         return code;
+    }
+    static get_entrypoint_code(data: any, doc_file_name: string, layout_file_name: string, page_file_name: string) {
+        const code = `
+        import { onMount } from 'svelte';
+        import Doc from '${doc_file_name}';
+        import Layout from '${layout_file_name}';
+        import Page from '${page_file_name}';
+        const data = ${JSON.stringify(data)};
+
+        `;
+        return code;
+    }
+    static get_entry_point(root_paths: string[], ...parts: string[]): string {
+        const replace_pattern = new RegExp(`^${root_paths.map((path) => path.replace(/\//g, '/') + '/').join('|')}`);
+        return parts
+            .map((part) => {
+                // remove the root paths to get shorter entrypoints
+                return part
+                    .replace(replace_pattern, '')
+                    .replace(/\.svelte$/, '')
+                    .toLowerCase();
+            })
+            .filter((p, i, arr) => {
+                // remove duplicate entries
+                return arr.indexOf(p) == i;
+            })
+            .join('_');
     }
 }

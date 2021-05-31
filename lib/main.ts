@@ -26,6 +26,7 @@ export class Main {
     worker_controller: WorkerController = null;
     perf: IPerformance_Measure;
     worker_amount: number;
+    global_data: any = null;
     constructor() {
         Env.set(process.env.WYVR_ENV);
         this.init();
@@ -46,19 +47,25 @@ export class Main {
         Logger.debug('project_config', project_config);
 
         this.perf = Config.get('import.measure_performance') ? new Performance_Measure() : new Performance_Measure_Blank();
-        const global_data = File.read_json('./data/global.json');
-        this.worker_controller = new WorkerController(global_data);
-        this.worker_amount = this.worker_controller.get_worker_amount();
-        Logger.present('workers', this.worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));
-        const workers = this.worker_controller.create_workers(this.worker_amount);
 
         Dir.create('pub');
 
         // import the data source
         let datasets_total = null;
+        let is_imported = false;
         const importer = new Importer();
         try {
-            datasets_total = await importer.import('./data/sample.json', this.generate);
+            this.global_data = File.read_json('./data/global.json');
+            datasets_total = await importer.import(
+                './data/sample.json',
+                (data: { key: number; value: any }) => {
+                    return this.generate(data);
+                },
+                () => {
+                    is_imported = true;
+                    importer.set_global(this.global_data);
+                }
+            );
         } catch (e) {
             Logger.error(e);
             return;
@@ -67,6 +74,14 @@ export class Main {
             Logger.error('no datasets found');
             return;
         }
+        if(!is_imported) {
+            this.global_data = await importer.get_global();
+        }
+
+        this.worker_controller = new WorkerController(this.global_data);
+        this.worker_amount = this.worker_controller.get_worker_amount();
+        Logger.present('workers', this.worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));
+        const workers = this.worker_controller.create_workers(this.worker_amount);
 
         // Process files in workers
         this.perf.start('build');
@@ -175,7 +190,26 @@ export class Main {
     }
 
     generate(data: { key: number; value: any }) {
+        // enhance the data from the pages
         data.value = Generate.enhance_data(data.value);
+        // extract navigation data
+        const nav_result = data.value._wyvr.nav;
+        if (nav_result) {
+            if (!this.global_data.nav) {
+                this.global_data.nav = {};
+            }
+            if (!this.global_data.nav.all) {
+                this.global_data.nav.all = [];
+            }
+
+            if (nav_result.scope) {
+                if (!this.global_data.nav[nav_result.scope]) {
+                    this.global_data.nav[nav_result.scope] = [];
+                }
+                this.global_data.nav[nav_result.scope].push(nav_result);
+            }
+            this.global_data.nav.all.push(nav_result);
+        }
         return data;
     }
 }

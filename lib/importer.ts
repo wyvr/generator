@@ -2,6 +2,7 @@ import * as fs from 'fs-extra';
 
 import { join } from 'path';
 import * as stream_array from 'stream-json/streamers/StreamArray';
+import * as stream_object from 'stream-json/streamers/StreamObject';
 import { Dir } from '@lib/dir';
 import { File } from '@lib/file';
 import { Config } from '@lib/config';
@@ -14,6 +15,7 @@ export class Importer {
     chunk_index = 0;
     state_file = join(cwd, 'state', 'import.json');
     state_list_file = join(cwd, 'state', 'import_list.json');
+    state_global_file = join(cwd, 'state', 'global.json');
     state = null;
     list: string[] = [];
     perf: IPerformance_Measure;
@@ -26,7 +28,7 @@ export class Importer {
      * @param hook_before_process the hook_before_process must return the original object or a modified version, because it will be executed before the processing of the data
      * @returns the amount of imported datasets
      */
-    import(import_file_path: string, hook_before_process: Hook_Before_Process = null): Promise<number> {
+    import(import_file_path: string, hook_before_process: Hook_Before_Process = null, hook_after_import: Function): Promise<number> {
         this.perf.start('import');
 
         Dir.create('imported/data');
@@ -60,6 +62,9 @@ export class Importer {
             jsonStream.on('end', () => {
                 this.save_import_state(import_file_path, this.chunk_index);
                 Logger.success('datasets imported', this.chunk_index);
+                if (hook_after_import && typeof hook_after_import == 'function') {
+                    hook_after_import();
+                }
                 this.perf.end('import');
                 resolve(this.chunk_index);
             });
@@ -157,6 +162,36 @@ export class Importer {
             }
         }
         return true;
+    }
+    get_global() {
+        return new Promise((resolve) => {
+            try {
+                const jsonStream = stream_object.withParser();
+                let global_data = null;
+                fs.createReadStream(this.state_global_file, { flags: 'r', encoding: 'utf-8' }).pipe(jsonStream.input);
+
+                jsonStream.on('data', (data) => {
+                    global_data = data;
+                });
+
+                jsonStream.on('error', (e) => {
+                    Logger.error('error streaming global data', e);
+                    resolve(null);
+                });
+                jsonStream.on('end', (data) => {
+                    resolve(global_data);
+                });
+                resolve(null);
+            } catch (e) {
+                Logger.error('error reading global data', e);
+                resolve(null);
+            }
+        });
+    }
+    set_global(global: any) {
+        // persits the global data
+        File.create_dir(this.state_global_file);
+        fs.writeFileSync(this.state_global_file, JSON.stringify(global, null, 4));
     }
 }
 

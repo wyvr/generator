@@ -14,7 +14,13 @@ export class Generate {
                 layout: ['Default'],
                 page: ['Default'],
             },
-            language: 'en'
+            nav: {
+                url: data.url,
+                name: null,
+                scope: null,
+                visible: true
+            },
+            language: 'en',
         };
 
         if (data._wyvr) {
@@ -38,12 +44,21 @@ export class Generate {
                     }
                 }
             }
+            if (data._wyvr.nav) {
+                let visible = data._wyvr.nav.visible;
+                if (visible == null) {
+                    visible = true;
+                }
+                wyvr_prop.nav.visible = visible;
+                wyvr_prop.nav.name = data._wyvr.nav.name;
+                wyvr_prop.nav.scope = data._wyvr.nav.scope || null;
+            }
         }
         // add extension to the template paths
         wyvr_prop.template.doc = wyvr_prop.template.doc.map((file) => File.to_extension(file, 'svelte'));
         wyvr_prop.template.layout = wyvr_prop.template.layout.map((file) => File.to_extension(file, 'svelte'));
         wyvr_prop.template.page = wyvr_prop.template.page.map((file) => File.to_extension(file, 'svelte'));
-        
+
         // set the new values
         data._wyvr = wyvr_prop;
 

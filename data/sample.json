@@ -3,8 +3,8 @@
         "url": "/index.html",
         "title": "wyvr Generator",
         "product": {
-            "name": "Produkt A",
-            "description": "Produktbeschreibung von A",
+            "name": "Product A",
+            "description": "Description von A",
             "price": 13.5
         },
         "cms_content": {
@@ -14,7 +14,11 @@
     },
     {
         "_wyvr": {
-            "template": [ "about", "Page", "column/1" ]
+            "template": ["about", "Page", "column/1"],
+            "nav": {
+                "name": "About",
+                "scope": "header"
+            }
         },
         "url": "/about",
         "title": "wyvr Generator",
@@ -26,10 +30,30 @@
     },
     {
         "_wyvr": {
+            "template": ["contact", "Page", "column/1"],
+            "nav": {
+                "name": "Contact",
+                "scope": "header"
+            }
+        },
+        "url": "/contact",
+        "title": "wyvr Generator",
+        "content": "The content of the contact page",
+        "cms_content": {
+            "header": "Header content",
+            "footer": "Footer content"
+        }
+    },
+    {
+        "_wyvr": {
             "template": {
                 "doc": "Default",
                 "layout": "",
-                "page": [ "about", "Page", "column/1" ]
+                "page": ["test", "Page", "column/1"]
+            },
+            "nav": {
+                "name": "Test",
+                "scope": "footer"
             }
         },
         "url": "/test",
@@ -41,7 +65,27 @@
         }
     },
     {
+        "_wyvr": {
+            "template": {
+                "doc": "Default",
+                "layout": "",
+                "page": ["test", "Page", "column/1"]
+            },
+            "nav": {
+                "name": "Test Hidden",
+                "scope": "footer",
+                "visible": false
+            }
+        },
+        "url": "/test_hidden",
+        "title": "wyvr Generator",
+        "content": "Test page",
+        "cms_content": {
+            "header": "Header content",
+            "footer": "Footer content"
+        }
+    },
+    {
         "title": "No Url"
     }
 ]
-

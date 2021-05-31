@@ -167,11 +167,11 @@ export class Importer {
         return new Promise((resolve) => {
             try {
                 const jsonStream = stream_object.withParser();
-                let global_data = null;
+                let global_data = {};
                 fs.createReadStream(this.state_global_file, { flags: 'r', encoding: 'utf-8' }).pipe(jsonStream.input);
 
-                jsonStream.on('data', (data) => {
-                    global_data = data;
+                jsonStream.on('data', (data: {key: string, value: any}) => {
+                    global_data[data.key] = data.value;
                 });
 
                 jsonStream.on('error', (e) => {
@@ -181,7 +181,6 @@ export class Importer {
                 jsonStream.on('end', (data) => {
                     resolve(global_data);
                 });
-                resolve(null);
             } catch (e) {
                 Logger.error('error reading global data', e);
                 resolve(null);

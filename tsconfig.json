@@ -11,7 +11,9 @@
             "@lib/*": ["lib/*"],
             "@config/*": ["config/*"],
             "@src/*": ["src/*"]
-        }
+        },
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
     },
     "include": ["./lib/**/*"],
     "exclude": ["node_modules/*"],

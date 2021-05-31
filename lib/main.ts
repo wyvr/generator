@@ -85,6 +85,7 @@ export class Main {
         const workers = this.worker_controller.create_workers(this.worker_amount);
         this.worker_controller.on_entrypoint((data: any) => {
             this.entrypoints[data.entrypoint] = {
+                name: data.entrypoint,
                 doc: data.doc,
                 layout: data.layout,
                 page: data.page,
@@ -96,9 +97,9 @@ export class Main {
         const build_pages = await this.build(importer.get_import_list());
         this.perf.end('build');
 
-        this.perf.start('scripts');
-        const build_scripts = await this.scripts();
-        this.perf.end('scripts');
+        // this.perf.start('scripts');
+        // const build_scripts = await this.scripts();
+        // this.perf.end('scripts');
 
         // const content = `
         // <script>
@@ -168,6 +169,36 @@ export class Main {
             };
             this.queue.push(queue_data);
         }
+
+        return new Promise((resolve, reject) => {
+            const listener_id = this.worker_controller.on(WorkerStatus.idle, () => {
+                if (this.tick(this.queue)) {
+                    this.worker_controller.off(listener_id);
+                    resolve(true);
+                }
+            });
+        });
+    }
+    async scripts(): Promise<boolean> {
+        const keys = Object.keys(this.entrypoints);
+        const amount = keys.length;
+        Logger.info('build scripts', amount);
+        // create new queue
+        this.queue = new Queue();
+
+        // add the items from the list to the queue in batches for better load balancing
+        const batch_size = 10;
+
+        let runs = Math.ceil(amount / batch_size);
+        Logger.info('build runs', runs);
+
+        for (let i = 0; i < runs; i++) {
+            const queue_data = {
+                action: WorkerAction.scripts,
+                data: keys.slice(i * batch_size, (i + 1) * batch_size).map((key)=>this.entrypoints[key]),
+            };
+            this.queue.push(queue_data);
+        }
         return new Promise((resolve, reject) => {
             const listener_id = this.worker_controller.on(WorkerStatus.idle, () => {
                 if (this.tick(this.queue)) {
@@ -223,11 +254,5 @@ export class Main {
             this.global_data.nav.all.push(nav_result);
         }
         return data;
-    }
-
-    scripts(): Promise<boolean> {
-        return new Promise((resolve) => {
-            resolve(true);
-        });
     }
 }

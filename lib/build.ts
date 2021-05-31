@@ -1,6 +1,6 @@
 import * as fs from 'fs-extra';
 import { compile, preprocess } from 'svelte/compiler';
-import * as register from 'svelte/register';
+import register from 'svelte/register';
 
 register();
 export class Build {
@@ -57,15 +57,10 @@ export class Build {
     static get_page_code(data: any, doc_file_name: string, layout_file_name: string, page_file_name: string) {
         const code = `
         <script>
-            import { onMount } from 'svelte';
             import Doc from '${doc_file_name}';
             import Layout from '${layout_file_name}';
             import Page from '${page_file_name}';
             const data = ${JSON.stringify(data)};
-            
-            onMount(async () => {
-                console.log('${data.url}')
-            })
         </script>
 
         <Doc data={data}>
@@ -77,18 +72,24 @@ export class Build {
         </Doc>`;
         return code;
     }
-    static get_entrypoint_code(data: any, doc_file_name: string, layout_file_name: string, page_file_name: string) {
-        const code = `
-        import { onMount } from 'svelte';
-        import Doc from '${doc_file_name}';
-        import Layout from '${layout_file_name}';
-        import Page from '${page_file_name}';
-        const data = ${JSON.stringify(data)};
+    static get_entrypoint_code(doc_file_name: string, layout_file_name: string, page_file_name: string) {
+        const code = `<script>
+            import { onMount } from 'svelte';
+            import Doc from '${doc_file_name}';
+            import Layout from '${layout_file_name}';
+            import Page from '${page_file_name}';
+        </script>
 
-        `;
+        <Doc>
+            <Layout>
+                <Page>
+                here
+                </Page>
+            </Layout>
+        </Doc>`;
         return code;
     }
-    static get_entry_point(root_paths: string[], ...parts: string[]): string {
+    static get_entrypoint_name(root_paths: string[], ...parts: string[]): string {
         const replace_pattern = new RegExp(`^${root_paths.map((path) => path.replace(/\//g, '/') + '/').join('|')}`);
         return parts
             .map((part) => {

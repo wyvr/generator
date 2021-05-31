@@ -115,7 +115,7 @@ export class WorkerController {
                             }
                             // rollup errors
                             if (typeof message == 'object' && message.code == 'PARSE_ERROR' && message.frame && message.loc) {
-                                return `\n${message.code} ${Logger.color.dim('Line:')}${message.loc.line}${Logger.color.dim(' Col:')}${message.loc.column}\n${message.frame}`;
+                                return `\n${message.code} ${Logger.color.dim('in')} ${message.loc.file}\n${Logger.color.dim('Line:')}${message.loc.line}${Logger.color.dim(' Col:')}${message.loc.column}\n${message.frame}`;
                             }
                             return message;
                         });

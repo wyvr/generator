@@ -7,19 +7,22 @@ import { Dir } from '@lib/dir';
 import { join, dirname } from 'path';
 import * as fs from 'fs-extra';
 import { LogType } from './model/log';
+import * as rollup from 'rollup';
+import svelte from 'rollup-plugin-svelte';
+import resolve from '@rollup/plugin-node-resolve';
 
 export class Worker {
     private config = null;
     private env = null;
     private cwd = process.cwd();
     private global_data: any = null;
-    private root_template_paths = [join(this.cwd, 'src', 'doc'), join(this.cwd, 'src', 'layout'), join(this.cwd, 'src', 'page')]
+    private root_template_paths = [join(this.cwd, 'src', 'doc'), join(this.cwd, 'src', 'layout'), join(this.cwd, 'src', 'page')];
     constructor() {
         this.init();
     }
     async init() {
         process.title = `wyvr worker ${process.pid}`;
-        
+
         WorkerHelper.send_status(WorkerStatus.exists);
 
         process.on('message', async (msg) => {
@@ -41,31 +44,31 @@ export class Worker {
                         WorkerHelper.log(LogType.warning, 'invalid configure value', value);
                         return;
                     }
-                    // set function to get global data in the svelte files 
+                    // set function to get global data in the svelte files
                     (<any>global).getGlobal = (key: string) => {
-                        if(!key || !this.global_data) {
+                        if (!key || !this.global_data) {
                             return null;
                         }
                         const steps = key.split('.');
                         let value = null;
                         for (let i = 0; i < steps.length; i++) {
-                            if(i == 0) {
+                            if (i == 0) {
                                 value = this.global_data[steps[i]];
                                 continue;
                             }
-                            if(!value && !value[steps[i]]) {
+                            if (!value && !value[steps[i]]) {
                                 return null;
                             }
                             value = value[steps[i]];
                         }
-                        
+
                         return value;
-                    }
+                    };
                     WorkerHelper.send_status(WorkerStatus.idle);
                     break;
                 case WorkerAction.build:
                     WorkerHelper.send_status(WorkerStatus.busy);
-                    const result = await Promise.all(
+                    const build_result = await Promise.all(
                         value.map(async (filename) => {
                             const data = File.read_json(filename);
                             if (!data) {
@@ -76,7 +79,7 @@ export class Worker {
                             const layout_file_name = File.find_file(join(this.cwd, 'src', 'layout'), data._wyvr.template.layout);
                             const page_file_name = File.find_file(join(this.cwd, 'src', 'page'), data._wyvr.template.page);
 
-                            const entrypoint = Build.get_entry_point(this.root_template_paths, doc_file_name, layout_file_name, page_file_name);
+                            const entrypoint = Build.get_entrypoint_name(this.root_template_paths, doc_file_name, layout_file_name, page_file_name);
                             // add the entrypoint to the wyvr object
                             data._wyvr.entrypoint = entrypoint;
                             WorkerHelper.send_action(WorkerAction.emit, {
@@ -84,16 +87,16 @@ export class Worker {
                                 entrypoint,
                                 doc: doc_file_name,
                                 layout: layout_file_name,
-                                page: page_file_name
-                            })
+                                page: page_file_name,
+                            });
 
                             const page_code = Build.get_page_code(data, doc_file_name, layout_file_name, page_file_name);
                             const compiled = Build.compile(page_code);
                             // const preprocess = await Build.preprocess(page_code);
                             // console.log(JSON.stringify(compiled))
-                            if(compiled.error) {
+                            if (compiled.error) {
                                 // svelte error messages
-                                WorkerHelper.log(LogType.error, '[svelte]', filename , compiled);
+                                WorkerHelper.log(LogType.error, '[svelte]', filename, compiled);
                                 return;
                             }
                             const rendered = Build.render(compiled, data);
@@ -119,13 +122,68 @@ export class Worker {
                             // fs.writeFileSync('./pub/index.html', demo_file);
                             const path = File.to_extension(filename.replace(join(this.cwd, 'imported', 'data'), 'pub'), 'html');
                             // console.log(filename, path);
-                            fs.mkdirSync(dirname(path), { recursive: true });
+                            Dir.create(dirname(path));
                             fs.writeFileSync(path, rendered.result.html);
 
                             return filename;
                         })
                     );
                     // console.log('result', result);
+                    WorkerHelper.send_status(WorkerStatus.idle);
+                    break;
+                case WorkerAction.scripts:
+                    WorkerHelper.send_status(WorkerStatus.busy);
+                    const script_result = await Promise.all(
+                        value.map(async (entry, index) => {
+                            console.log(index, entry);
+                            const script_code = Build.get_entrypoint_code(entry.doc, entry.layout, entry.page);
+                            Dir.create(join(this.cwd, 'js'));
+                            fs.writeFileSync(join(this.cwd, 'js', `${entry.name}.svelte`), script_code);
+                            const input_file = join(this.cwd, 'js', `${entry.name}.js`);
+                            fs.writeFileSync(
+                                input_file,
+                                `
+                        import * as App from './${entry.name}.svelte';
+
+                        const app = new App({
+                          target: document.body,
+                          props: {
+                          },
+                        });
+
+                        window.getGlobal = (string) => {
+                            return [];
+                        }
+                        
+                        export default app; 
+                        `
+                            );
+                            const input_options = {
+                                input: input_file,
+                                plugins: [
+                                    svelte({
+                                        include: 'src/**/*.svelte',
+                                    }),
+                                    resolve({ browser: true }),
+                                ],
+                            };
+                            const output_options: any = {
+                                file: `svelte/${entry.name}.js`,
+                                sourcemap: true,
+                                format: 'iife',
+                            };
+                            try {
+                                const bundle = await rollup.rollup(input_options);
+                                const { output } = await bundle.generate(output_options);
+                                console.log(output);
+                                await bundle.write(output_options);
+                            } catch (e) {
+                                // svelte error messages
+                                WorkerHelper.log(LogType.error, '[svelte]', input_file, e);
+                            }
+                            return true;
+                        })
+                    );
                     WorkerHelper.send_status(WorkerStatus.idle);
                     break;
                 case WorkerAction.status:

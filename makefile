@@ -5,7 +5,7 @@ SHELL := /bin/bash
 # @see https://spin.atomicobject.com/2021/03/22/makefiles-vs-package-json-scripts/
 # base commands
 WYVR_COMPILE=npx tsc
-WYVR_BUILD=node ./built/index.js
+WYVR_BUILD=node ./wyvr/index.js
 WYVR_TEST=npx mocha -R dot './test/**/*.ts'
 WYVR_COVERAGE=npx nyc -x 'config/**/*' -x 'test/**/*' -x 'pub' $(WYVR_TEST)
 
@@ -26,7 +26,7 @@ watch: ## Start watcher and make debug builds
 		--ignore data \
 		--ignore pub \
 		--ignore state \
-		--ignore built \
+		--ignore wyvr \
 		-e js,ts,svelte \
 		--exec '$(WYVR_COMPILE) && $(WYVR_BUILD)'
 
@@ -40,7 +40,7 @@ init: ## Install and prepare setup
 	@npm install
 
 clean: ## Removes generated folders for a clean setup
-	@rm -rf imported coverage built pub state
+	@rm -rf imported coverage wyvr pub state
 
 coverage: ## Get test coverage result
 	@$(WYVR_COVERAGE)

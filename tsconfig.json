@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "outDir": "./built",
+        "outDir": "./wyvr",
         "allowJs": true,
         "target": "es5",
         "moduleResolution": "node",

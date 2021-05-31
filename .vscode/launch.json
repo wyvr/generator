@@ -14,7 +14,7 @@
             "program": "${workspaceFolder}/lib/index.ts",
             "preLaunchTask": "tsc: build - tsconfig.json",
             "outFiles": [
-                "${workspaceFolder}/built/**/*.js"
+                "${workspaceFolder}/wyvr/**/*.js"
             ],
             "autoAttachChildProcesses": true,
             "env": {

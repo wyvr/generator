@@ -32,7 +32,7 @@
     },
     "_moduleAliases": {
         "@root": ".",
-        "@lib": "built",
+        "@lib": "wyvr",
         "@config": "config",
         "@src": "src"
     }

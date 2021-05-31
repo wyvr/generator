@@ -1,5 +1,5 @@
 <script>
-    let nav = getGlobal('nav.header');
+    let nav = getGlobal('nav.header').filter((entry) => entry.visible);
 </script>
 
 <header>
@@ -59,7 +59,7 @@
         transform: translateX(100%);
         transition: transform 0.2s ease-out, opacity 0.2s linear;
         z-index: 1000;
-        box-shadow: 0 0 var(--size) rgba(0,0,0,0.75);
+        box-shadow: 0 0 var(--size) rgba(0, 0, 0, 0.75);
     }
     #nav-toggle:checked + div {
         opacity: 1;

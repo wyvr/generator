@@ -1,15 +1,18 @@
 <script>
     import Header from '@src/Header.svelte';
+    import Footer from '@src/Footer.svelte';
 
     export let data = null;
 </script>
 
 <div class="layout">
-    <Header></Header>
-    
+    <Header />
+
     <main>
-        <slot></slot>
+        <slot />
     </main>
+
+    <Footer />
 </div>
 
 <style>

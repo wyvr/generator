@@ -1,13 +1,24 @@
 <script>
     import { onMount } from 'svelte';
 
+    let nav = getGlobal('nav.footer').filter((entry) => entry.visible);
+
     let buzzwords = getGlobal('faker.buzzwords');
 </script>
 
 <footer>
-    <div class="inner">
-        {#if buzzwords}
-            <div class="buzzwords">
+    {#if nav}
+        <nav>
+            <div class="inner">
+                {#each nav as entry}
+                    <a href={entry.url}>{entry.name}</a>
+                {/each}
+            </div>
+        </nav>
+    {/if}
+    {#if buzzwords}
+        <div class="buzzwords">
+            <div class="inner">
                 <label for="buzzwords">Buzzwords loaded from global data</label>
                 <ul id="buzzwords">
                     {#each buzzwords as buzzword}
@@ -15,19 +26,25 @@
                     {/each}
                 </ul>
             </div>
-        {/if}
-    </div>
+        </div>
+    {/if}
 </footer>
 
 <style>
     footer {
         background-color: rgba(0, 0, 0, 0.3);
     }
+    nav {
+        padding: var(--size);
+    }
     .inner {
         margin: 0 auto;
         max-width: var(--layout-content-max-width);
-        padding: 1rem;
+    }
+    .buzzwords {
         opacity: 0.5;
+        padding: calc(var(--size) * 2) var(--size);
+        background-color: rgba(0, 0, 0, 0.2);
     }
     .buzzwords label {
         padding-bottom: calc(var(--size) * 0.25);

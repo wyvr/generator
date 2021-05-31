@@ -6,11 +6,13 @@
 </script>
 
 <div class="layout">
-    <Header />
-
-    <main>
-        <slot />
-    </main>
+    <div class="fullheight">
+        <Header />
+        
+        <main>
+            <slot />
+        </main>
+    </div>
 
     <Footer />
 </div>
@@ -20,5 +22,8 @@
         margin: 0 auto;
         max-width: var(--layout-content-max-width);
         padding: 1rem;
+    }
+    .fullheight {
+        min-height: 100vh;
     }
 </style>

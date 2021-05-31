@@ -14,13 +14,13 @@ help: ## Show this help
 	@grep --no-filename -E '^[a-zA-Z_%-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 prod: ## Start production build
-	$(WYVR_COMPILE) && $(WYVR_BUILD)
+	@$(WYVR_COMPILE) && $(WYVR_BUILD)
 
 dev: ## Start development build
-	$(WYVR_COMPILE) && $(WYVR_TEST) && env WYVR_ENV=dev $(WYVR_BUILD)
+	@$(WYVR_COMPILE) && $(WYVR_TEST) && env WYVR_ENV=dev $(WYVR_BUILD)
 
 watch: ## Start watcher and make debug builds
-	env WYVR_ENV=debug npx nodemon \
+	@env WYVR_ENV=debug npx nodemon \
 		--ignore test \
 		--ignore imported \
 		--ignore data \
@@ -31,7 +31,7 @@ watch: ## Start watcher and make debug builds
 		--exec '$(WYVR_COMPILE) && $(WYVR_BUILD)'
 
 test: ## Executes the tests
-	$(WYVR_TEST)
+	@$(WYVR_TEST)
 
 test-watch: ## Watches changes in the tests
 	@npx nodemon --watch src --watch lib --watch test -e js,ts --exec '$(WYVR_COVERAGE)'
@@ -43,9 +43,9 @@ clean: ## Removes generated folders for a clean setup
 	@rm -rf imported coverage built pub state
 
 coverage: ## Get test coverage result
-	$(WYVR_COVERAGE)
+	@$(WYVR_COVERAGE)
 
 serve: ## start simple http server after production build
-	$(WYVR_COMPILE) && $(WYVR_TEST) && $(WYVR_BUILD)
+	@$(WYVR_COMPILE) && $(WYVR_TEST) && $(WYVR_BUILD)
 	@echo ""
 	@npx http-server ./pub

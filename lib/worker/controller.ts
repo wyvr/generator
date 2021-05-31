@@ -184,6 +184,12 @@ export class WorkerController {
         const id = this.listener_auto_increment;
         this.listeners[status].push({ id, fn });
         this.listener_auto_increment++;
+        // check if there are worker with the given status
+        this.workers.forEach((worker)=>{
+            if(worker.status == status) {
+                this.emit(worker.status, worker);
+            }
+        })
         return id;
     }
     off(listener_id: number = null) {

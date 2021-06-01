@@ -1,6 +1,8 @@
-import * as fs from 'fs-extra';
+import * as fs from 'fs';
+import * as fse from 'fs-extra';
 
 import { dirname, join } from 'path';
+import { HydrateFileEntry } from '@lib/model/wyvr/hydrate';
 
 export class File {
     /**
@@ -87,9 +89,63 @@ export class File {
         const found = possible_files.find((file) => {
             return fs.existsSync(join(in_dir, file));
         });
-        if(!found) {
+        if (!found) {
             return null;
         }
         return join(in_dir, found);
+    }
+    static get_hydrateable_svelte_files(dir: string = null): HydrateFileEntry[] {
+        if (!dir) {
+            dir = join(process.cwd(), 'src');
+        }
+        const entries = fs.readdirSync(dir);
+        const result = [];
+        entries.forEach((entry) => {
+            const path = join(dir, entry);
+            const stat = fs.statSync(path);
+            if (stat.isDirectory()) {
+                result.push(...this.get_hydrateable_svelte_files(path));
+                return;
+            }
+            if (stat.isFile() && entry.match(/\.svelte$/)) {
+                const content = fs.readFileSync(path, { encoding: 'utf-8' });
+                const match = content.match(/wyvr:\s+(\{[^}]+\})/);
+                if (match) {
+                    let config = null;
+                    try {
+                        config = {};
+                        match[1].split('\n').forEach((row) => {
+                            const cfg_string = row.match(/(\w+): '(\w+)'/);
+                            if (cfg_string) {
+                                config[cfg_string[1]] = cfg_string[2];
+                                return;
+                            }
+                            const cfg_bool = row.match(/(\w+): (true|false)/);
+                            if (cfg_bool) {
+                                config[cfg_bool[1]] = cfg_bool[2] === 'true';
+                                return;
+                            }
+                            const cfg_number = row.match(/(\w+): (\d+)/);
+                            if (cfg_number) {
+                                config[cfg_number[1]] = parseFloat(cfg_number[2]);
+                                return;
+                            }
+                        });
+                    } catch (e) {
+                        config = { error: e };
+                    }
+                    result.push({
+                        path,
+                        config,
+                    });
+                }
+                return;
+            }
+        });
+
+        return result;
+    }
+    static transform_hydrateable_svelte_files(files: HydrateFileEntry[]) {
+        return files.map((entry) => entry);
     }
 }

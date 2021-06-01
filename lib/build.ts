@@ -78,11 +78,12 @@ export class Build {
             import Doc from '${doc_file_name}';
             import Layout from '${layout_file_name}';
             import Page from '${page_file_name}';
+            const data = null;
         </script>
 
-        <Doc>
-            <Layout>
-                <Page>
+        <Doc data={data}>
+            <Layout data={data}>
+                <Page data={data}>
                 here
                 </Page>
             </Layout>

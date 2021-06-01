@@ -10,6 +10,7 @@ import { LogType } from './model/log';
 import * as rollup from 'rollup';
 import svelte from 'rollup-plugin-svelte';
 import resolve from '@rollup/plugin-node-resolve';
+import alias from '@rollup/plugin-alias';
 
 export class Worker {
     private config = null;
@@ -137,9 +138,10 @@ export class Worker {
                         value.map(async (entry, index) => {
                             console.log(index, entry);
                             const script_code = Build.get_entrypoint_code(entry.doc, entry.layout, entry.page);
-                            Dir.create(join(this.cwd, 'js'));
-                            fs.writeFileSync(join(this.cwd, 'js', `${entry.name}.svelte`), script_code);
-                            const input_file = join(this.cwd, 'js', `${entry.name}.js`);
+                            const gen_root = join(this.cwd, 'gen', 'js');
+                            fs.mkdirSync(gen_root, { recursive: true });
+                            fs.writeFileSync(join(gen_root, `${entry.name}.svelte`), script_code);
+                            const input_file = join(gen_root, `${entry.name}.js`);
                             fs.writeFileSync(
                                 input_file,
                                 `
@@ -162,15 +164,19 @@ export class Worker {
                                 input: input_file,
                                 plugins: [
                                     svelte({
-                                        include: 'src/**/*.svelte',
+                                        include: ['gen/js/**/*.svelte', 'src/**/*.svelte'],
+                                    }),
+                                    alias({
+                                        entries: [{ find: '@src', replacement: 'src' }],
                                     }),
                                     resolve({ browser: true }),
                                 ],
                             };
                             const output_options: any = {
-                                file: `svelte/${entry.name}.js`,
+                                file: `gen/${entry.name}.js`,
                                 sourcemap: true,
                                 format: 'iife',
+                                name: 'app',
                             };
                             try {
                                 const bundle = await rollup.rollup(input_options);

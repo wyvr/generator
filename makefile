@@ -26,8 +26,7 @@ watch: ## Start watcher and make debug builds
 		--ignore data \
 		--ignore pub \
 		--ignore wyvr \
-		--ignore js \
-		--ignore svelte \
+		--ignore gen \
 		-e js,ts,svelte \
 		--exec '$(WYVR_COMPILE) && $(WYVR_BUILD)'
 

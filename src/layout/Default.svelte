@@ -8,12 +8,17 @@
 <div class="layout">
     <div class="fullheight">
         <Header />
-        
+
         <main>
+            {#if data && data.cms_content && data.cms_content.header}
+                <p>{data.cms_content.header}</p>
+            {/if}
             <slot />
+            {#if data && data.cms_content && data.cms_content.footer}
+                <p>{data.cms_content.footer}</p>
+            {/if}
         </main>
     </div>
-
     <Footer />
 </div>
 

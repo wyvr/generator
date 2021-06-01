@@ -145,10 +145,10 @@ export class Worker {
                     // @todo set marker in the html for the components to mount
 
                     // @todo bundle them together
-                    const gen_root = join(this.cwd, 'gen', 'js');
+                    const client_root = join(this.cwd, 'gen', 'client');
 
                     value.map(async (entry, index) => {
-                        const input_file = join(gen_root, `${entry.name}.js`);
+                        const input_file = join(client_root, `${entry.name}.js`);
 
                         const content = transformed_files
                             .map((file) => {
@@ -199,7 +199,7 @@ export class Worker {
                             ],
                         };
                         const output_options: any = {
-                            file: `gen/${entry.name}.js`,
+                            file: `gen/js/${entry.name}.js`,
                             // sourcemap: true,
                             format: 'iife',
                             name: 'app',

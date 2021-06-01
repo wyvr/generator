@@ -58,7 +58,7 @@ export class Main {
         try {
             this.global_data = File.read_json('./data/global.json');
             datasets_total = await importer.import(
-                './data/startpage.json',
+                './data/sample.json',
                 (data: { key: number; value: any }) => {
                     return this.generate(data);
                 },
@@ -89,7 +89,7 @@ export class Main {
                 doc: data.doc,
                 layout: data.layout,
                 page: data.page,
-            }
+            };
         });
 
         // Process files in workers
@@ -138,7 +138,7 @@ export class Main {
 
         // symlink the "static" folders to pub
         Link.to_pub('assets');
-        Link.to_pub('gen');
+        Link.to_pub('gen/js', 'js');
 
         var hr_end = process.hrtime(hr_start); // hr_end[0] is in seconds, hr_end[1] is in nanoseconds
         const timeInMs = (hr_end[0] * 1000000000 + hr_end[1]) / 1000000; // convert first to ns then to ms
@@ -181,6 +181,8 @@ export class Main {
         });
     }
     async scripts(): Promise<boolean> {
+        fs.mkdirSync('gen/client', { recursive: true });
+        fs.mkdirSync('gen/js', { recursive: true });
         const keys = Object.keys(this.entrypoints);
         const amount = keys.length;
         Logger.info('build scripts', amount);
@@ -196,7 +198,7 @@ export class Main {
         for (let i = 0; i < runs; i++) {
             const queue_data = {
                 action: WorkerAction.scripts,
-                data: keys.slice(i * batch_size, (i + 1) * batch_size).map((key)=>this.entrypoints[key]),
+                data: keys.slice(i * batch_size, (i + 1) * batch_size).map((key) => this.entrypoints[key]),
             };
             this.queue.push(queue_data);
         }

@@ -17,8 +17,7 @@
     <body>
         <slot />
         {#if data._wyvr.entrypoint}
-            {data._wyvr.entrypoint}
-            <!-- <script defer src="/js/{data._wyvr.entrypoint}.js"></script> -->
+            <script defer src="/js/{data._wyvr.entrypoint}.js"></script>
         {/if}
     </body>
 </html>

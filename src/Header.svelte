@@ -1,4 +1,6 @@
 <script>
+    import { onMount } from 'svelte';
+
     const nav_global = getGlobal('nav.header');
     let nav = nav_global ? nav_global.filter((entry) => entry.visible) : null;
 </script>

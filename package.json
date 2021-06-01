@@ -22,11 +22,13 @@
     "devDependencies": {
         "@istanbuljs/nyc-config-typescript": "^1.0.1",
         "@rollup/plugin-alias": "^3.1.2",
+        "@rollup/plugin-commonjs": "^19.0.0",
         "@rollup/plugin-node-resolve": "^13.0.0",
         "locate-character": "^2.0.5",
         "magic-string": "^0.25.7",
         "module-alias": "^2.2.2",
         "nyc": "^15.1.0",
+        "rollup-plugin-css-only": "^3.1.0",
         "rollup-plugin-svelte": "^7.1.0",
         "source-map-support": "^0.5.19",
         "svelte": "^3.38.2",

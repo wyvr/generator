@@ -1,6 +1,9 @@
 import svelte from 'rollup-plugin-svelte';
 import resolve from '@rollup/plugin-node-resolve';
 import alias from '@rollup/plugin-alias';
+import commonjs from '@rollup/plugin-commonjs';
+import css from 'rollup-plugin-css-only';
+import path from 'path';
 
 export default {
     // This `main.js` file we wrote
@@ -14,14 +17,28 @@ export default {
         name: 'app',
     },
     plugins: [
+        alias({
+            entries: [{ find: '@src', replacement: path.resolve('src') }],
+        }),
         svelte({
             // Tell the svelte plugin where our svelte files are located
             include: ['gen/js/**/*.svelte', 'src/**/*.svelte'],
-        }),
-        alias({
-            entries: [{ find: '@src', replacement: 'src' }],
+            emitCss: false,
+            compilerOptions: {
+                // By default, the client-side compiler is used. You
+                // can also use the server-side rendering compiler
+                generate: 'dom',
+
+                // ensure that extra attributes are added to head
+                // elements for hydration (used with generate: 'ssr')
+                hydratable: true,
+                immutable: true,
+                format: 'esm'
+            },
         }),
         resolve({ browser: true }),
+        commonjs(),
+        css({ output: 'gen/default.css' }),
         // Tell any third-party plugins that we're building for the browser
     ],
 };

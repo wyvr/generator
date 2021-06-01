@@ -4,13 +4,15 @@ import { WorkerAction } from '@lib/model/worker/action';
 import { File } from '@lib/file';
 import { Build } from '@lib/build';
 import { Dir } from '@lib/dir';
-import { join, dirname } from 'path';
+import { join, dirname, resolve } from 'path';
 import * as fs from 'fs-extra';
 import { LogType } from './model/log';
 import * as rollup from 'rollup';
 import svelte from 'rollup-plugin-svelte';
-import resolve from '@rollup/plugin-node-resolve';
+import node_resolve from '@rollup/plugin-node-resolve';
 import alias from '@rollup/plugin-alias';
+import commonjs from '@rollup/plugin-commonjs';
+import css from 'rollup-plugin-css-only';
 
 export class Worker {
     private config = null;
@@ -136,7 +138,6 @@ export class Worker {
                     WorkerHelper.send_status(WorkerStatus.busy);
                     const script_result = await Promise.all(
                         value.map(async (entry, index) => {
-                            console.log(index, entry);
                             const script_code = Build.get_entrypoint_code(entry.doc, entry.layout, entry.page);
                             const gen_root = join(this.cwd, 'gen', 'js');
                             fs.mkdirSync(gen_root, { recursive: true });
@@ -165,11 +166,23 @@ export class Worker {
                                 plugins: [
                                     svelte({
                                         include: ['gen/js/**/*.svelte', 'src/**/*.svelte'],
+                                        emitCss: false,
+                                        compilerOptions: {
+                                            // By default, the client-side compiler is used. You
+                                            // can also use the server-side rendering compiler
+                                            generate: 'dom',
+
+                                            // ensure that extra attributes are added to head
+                                            // elements for hydration (used with generate: 'ssr')
+                                            hydratable: true,
+                                        },
                                     }),
                                     alias({
-                                        entries: [{ find: '@src', replacement: 'src' }],
+                                        entries: [{ find: '@src', replacement: resolve('src') }],
                                     }),
-                                    resolve({ browser: true }),
+                                    node_resolve({ browser: true }),
+                                    commonjs(),
+                                    css({ output: 'gen/default.css' }),
                                 ],
                             };
                             const output_options: any = {
@@ -181,7 +194,6 @@ export class Worker {
                             try {
                                 const bundle = await rollup.rollup(input_options);
                                 const { output } = await bundle.generate(output_options);
-                                console.log(output);
                                 await bundle.write(output_options);
                             } catch (e) {
                                 // svelte error messages

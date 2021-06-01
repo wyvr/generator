@@ -13,6 +13,7 @@ import node_resolve from '@rollup/plugin-node-resolve';
 import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
 import css from 'rollup-plugin-css-only';
+import { terser } from 'rollup-plugin-terser';
 
 export class Worker {
     private config = null;
@@ -196,6 +197,7 @@ export class Worker {
                                 node_resolve({ browser: true }),
                                 commonjs(),
                                 css({ output: 'gen/default.css' }),
+                                terser(),
                             ],
                         };
                         const output_options: any = {

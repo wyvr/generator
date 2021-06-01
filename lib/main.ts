@@ -152,6 +152,7 @@ export class Main {
         }
     }
     async build(list: string[]): Promise<boolean> {
+        fs.mkdirSync('gen/server', { recursive: true });
         Logger.info('build datasets', list.length);
         // create new queue
         this.queue = new Queue();

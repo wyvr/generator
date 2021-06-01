@@ -20,6 +20,7 @@ import { WorkerStatus } from './model/worker/status';
 import { IPerformance_Measure, Performance_Measure, Performance_Measure_Blank } from '@lib/performance_measure';
 import { WorkerModel } from '@lib/model/worker/worker';
 import { File } from './file';
+import { Client } from './client';
 
 export class Main {
     queue: Queue = null;
@@ -93,6 +94,11 @@ export class Main {
         });
 
         // Process files in workers
+        this.perf.start('collect');
+        const collect_files = await this.collect();
+        this.perf.end('collect');
+
+        // Process files in workers
         this.perf.start('build');
         const build_pages = await this.build(importer.get_import_list());
         this.perf.end('build');
@@ -151,8 +157,16 @@ export class Main {
             }, 500);
         }
     }
+    async collect() {
+        fs.copySync('src', 'gen/src');
+        const files = Client.get_hydrateable_svelte_files('gen/src');
+
+        // @todo replace global in the svelte components which should be hydrated
+        const transformed_files = Client.transform_hydrateable_svelte_files(files);
+        console.log(files)
+    }
     async build(list: string[]): Promise<boolean> {
-        fs.mkdirSync('gen/server', { recursive: true });
+        fs.mkdirSync('gen/src', { recursive: true });
         Logger.info('build datasets', list.length);
         // create new queue
         this.queue = new Queue();

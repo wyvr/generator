@@ -14,7 +14,7 @@ export class Worker {
     private env = null;
     private cwd = process.cwd();
     private global_data: any = null;
-    private root_template_paths = [join(this.cwd, 'src', 'doc'), join(this.cwd, 'src', 'layout'), join(this.cwd, 'src', 'page')];
+    private root_template_paths = [join(this.cwd, 'gen', 'src', 'doc'), join(this.cwd, 'gen', 'src', 'layout'), join(this.cwd, 'gen', 'src', 'page')];
     constructor() {
         this.init();
     }
@@ -73,9 +73,9 @@ export class Worker {
                                 WorkerHelper.log(LogType.error, 'broken/missing/empty file', filename);
                                 return;
                             }
-                            const doc_file_name = File.find_file(join(this.cwd, 'src', 'doc'), data._wyvr.template.doc);
-                            const layout_file_name = File.find_file(join(this.cwd, 'src', 'layout'), data._wyvr.template.layout);
-                            const page_file_name = File.find_file(join(this.cwd, 'src', 'page'), data._wyvr.template.page);
+                            const doc_file_name = File.find_file(join(this.cwd, 'gen', 'src', 'doc'), data._wyvr.template.doc);
+                            const layout_file_name = File.find_file(join(this.cwd, 'gen', 'src', 'layout'), data._wyvr.template.layout);
+                            const page_file_name = File.find_file(join(this.cwd, 'gen', 'src', 'page'), data._wyvr.template.page);
 
                             const entrypoint = Client.get_entrypoint_name(this.root_template_paths, doc_file_name, layout_file_name, page_file_name);
                             // add the entrypoint to the wyvr object
@@ -132,16 +132,11 @@ export class Worker {
                 case WorkerAction.scripts:
                     WorkerHelper.send_status(WorkerStatus.busy);
                     // @todo get all svelte components which should be hydrated
-                    const files = Client.get_hydrateable_svelte_files();
-
-                    // @todo replace global in the svelte components which should be hydrated
-                    const transformed_files = Client.transform_hydrateable_svelte_files(files);
-
-                    // @todo set marker in the html for the components to mount
+                    const files = Client.get_hydrateable_svelte_files('src');
 
                     // @todo bundle them together
                     try {
-                        await Client.create_bundles(this.cwd, value, transformed_files);
+                        await Client.create_bundles(this.cwd, value, files);
                     } catch (e) {
                         // svelte error messages
                         WorkerHelper.log(LogType.error, '[svelte]', e);

@@ -129,7 +129,17 @@ export class Client {
         return result;
     }
     static transform_hydrateable_svelte_files(files: HydrateFileEntry[]) {
-        return files.map((entry) => entry);
+        return files.map((entry) => {
+            // split svelte file apart to inject markup for the hydration
+            let content = fs.readFileSync(entry.path, { encoding: 'utf-8' });
+            console.log(content);
+            const script_start_index = content.indexOf('<script');
+            if(script_start_index > -1) {
+                const before_script = content.substr(0, script_start_index);
+                console.log('"',before_script, '"')
+            }
+            return entry;
+        });
     }
     static get_entrypoint_name(root_paths: string[], ...parts: string[]): string {
         const replace_pattern = new RegExp(`^${root_paths.map((path) => path.replace(/\//g, '/') + '/').join('|')}`);

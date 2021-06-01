@@ -9,7 +9,7 @@
 <header>
     <div class="inner">
         <a href="/"><img src="/assets/logo.svg" width="150" height="53" alt="wyvr" class="logo" /></a>
-        <div id="Counter"><Counter /></div>
+        <Counter />
         {#if $$slots.nav}
             <slot name="nav" />
         {:else if nav}

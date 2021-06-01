@@ -40,7 +40,7 @@ init: ## Install and prepare setup
 	@npm install
 
 clean: ## Removes generated folders for a clean setup
-	@rm -rf imported coverage wyvr pub
+	@rm -rf imported coverage wyvr pub gen
 
 coverage: ## Get test coverage result
 	@$(WYVR_COVERAGE)

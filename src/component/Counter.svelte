@@ -1,5 +1,6 @@
 <script>
     wyvr: {
+        display: 'inline'
         render: 'hydrate'
         name: 'counter'
         bool: true

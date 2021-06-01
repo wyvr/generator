@@ -1,10 +1,10 @@
 <script>
     import { onMount } from 'svelte';
 
-    const nav_global = getGlobal('nav.footer');
+    const nav_global = getGlobal('nav.footer', []);
     let nav = nav_global ? nav_global.filter((entry) => entry.visible) : null;
 
-    let buzzwords = getGlobal('faker.buzzwords');
+    let buzzwords = getGlobal('faker.buzzwords', []);
 </script>
 
 <footer>

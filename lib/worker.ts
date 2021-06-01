@@ -48,12 +48,12 @@ export class Worker {
                         return;
                     }
                     // set function to get global data in the svelte files
-                    (<any>global).getGlobal = (key: string) => {
+                    (<any>global).getGlobal = (key: string, fallback: any = null) => {
                         if (!key || !this.global_data) {
-                            return null;
+                            return fallback;
                         }
                         const steps = key.split('.');
-                        let value = null;
+                        let value = fallback;
                         for (let i = 0; i < steps.length; i++) {
                             if (i == 0) {
                                 value = this.global_data[steps[i]];
@@ -136,72 +136,151 @@ export class Worker {
                     break;
                 case WorkerAction.scripts:
                     WorkerHelper.send_status(WorkerStatus.busy);
-                    const script_result = await Promise.all(
-                        value.map(async (entry, index) => {
-                            const script_code = Build.get_entrypoint_code(entry.doc, entry.layout, entry.page);
-                            const gen_root = join(this.cwd, 'gen', 'js');
-                            fs.mkdirSync(gen_root, { recursive: true });
-                            fs.writeFileSync(join(gen_root, `${entry.name}.svelte`), script_code);
-                            const input_file = join(gen_root, `${entry.name}.js`);
-                            fs.writeFileSync(
-                                input_file,
-                                `
-                        import * as App from './${entry.name}.svelte';
+                    // @todo get all svelte components which should be hydrated
+                    const files = File.get_hydrateable_svelte_files();
 
-                        const app = new App({
-                          target: document.body,
-                          props: {
-                          },
-                        });
+                    // @todo replace global in the svelte components which should be hydrated
+                    const transformed_files = File.transform_hydrateable_svelte_files(files);
 
-                        window.getGlobal = (string) => {
-                            return [];
+                    // @todo set marker in the html for the components to mount
+
+                    // @todo bundle them together
+                    const gen_root = join(this.cwd, 'gen', 'js');
+
+                    value.map(async (entry, index) => {
+                        const input_file = join(gen_root, `${entry.name}.js`);
+
+                        const content = transformed_files
+                            .map((file) => {
+                                const import_path = file.path.replace(join(process.cwd(), 'src'), '@src');
+                                const import_name = file.path.split('/').pop().replace('.svelte', '');
+                                const var_name = import_name.toLowerCase();
+                                return `import ${import_name} from '${import_path}';
+
+                                document.getElementById('${import_name}').innerHTML = '';
+                                const ${var_name} = new ${import_name}({
+                                  target: document.getElementById('${import_name}'),
+                                  props: {},
+                                });
+                                //export default ${var_name};`;
+                            })
+                            .join('\n');
+
+                        fs.writeFileSync(
+                            input_file,
+                            `${content}
+                        window.getGlobal = (string, fallback) => {
+                            return fallback;
+                        }`
+                        );
+
+                        const input_options = {
+                            input: input_file,
+                            plugins: [
+                                alias({
+                                    entries: [{ find: '@src', replacement: resolve('src') }],
+                                }),
+                                svelte({
+                                    include: ['src/**/*.svelte'],
+                                    emitCss: false,
+                                    compilerOptions: {
+                                        // By default, the client-side compiler is used. You
+                                        // can also use the server-side rendering compiler
+                                        generate: 'dom',
+
+                                        // ensure that extra attributes are added to head
+                                        // elements for hydration (used with generate: 'ssr')
+                                        hydratable: true,
+                                    },
+                                }),
+                                node_resolve({ browser: true }),
+                                commonjs(),
+                                css({ output: 'gen/default.css' }),
+                            ],
+                        };
+                        const output_options: any = {
+                            file: `gen/${entry.name}.js`,
+                            // sourcemap: true,
+                            format: 'iife',
+                            name: 'app',
+                        };
+                        try {
+                            const bundle = await rollup.rollup(input_options);
+                            const { output } = await bundle.generate(output_options);
+                            await bundle.write(output_options);
+                        } catch (e) {
+                            // svelte error messages
+                            WorkerHelper.log(LogType.error, '[svelte]', input_file, e);
                         }
-                        
-                        export default app; 
-                        `
-                            );
-                            const input_options = {
-                                input: input_file,
-                                plugins: [
-                                    svelte({
-                                        include: ['gen/js/**/*.svelte', 'src/**/*.svelte'],
-                                        emitCss: false,
-                                        compilerOptions: {
-                                            // By default, the client-side compiler is used. You
-                                            // can also use the server-side rendering compiler
-                                            generate: 'dom',
+                        return true;
+                    });
 
-                                            // ensure that extra attributes are added to head
-                                            // elements for hydration (used with generate: 'ssr')
-                                            hydratable: true,
-                                        },
-                                    }),
-                                    alias({
-                                        entries: [{ find: '@src', replacement: resolve('src') }],
-                                    }),
-                                    node_resolve({ browser: true }),
-                                    commonjs(),
-                                    css({ output: 'gen/default.css' }),
-                                ],
-                            };
-                            const output_options: any = {
-                                file: `gen/${entry.name}.js`,
-                                sourcemap: true,
-                                format: 'iife',
-                                name: 'app',
-                            };
-                            try {
-                                const bundle = await rollup.rollup(input_options);
-                                const { output } = await bundle.generate(output_options);
-                                await bundle.write(output_options);
-                            } catch (e) {
-                                // svelte error messages
-                                WorkerHelper.log(LogType.error, '[svelte]', input_file, e);
-                            }
-                            return true;
-                        })
-                    );
+                    // const script_result = await Promise.all(
+                    //     value.map(async (entry, index) => {
+                    //         const script_code = Build.get_entrypoint_code(entry.doc, entry.layout, entry.page);
+                    //         const gen_root = join(this.cwd, 'gen', 'js');
+                    //         fs.mkdirSync(gen_root, { recursive: true });
+                    //         fs.writeFileSync(join(gen_root, `${entry.name}.svelte`), script_code);
+                    //         const input_file = join(gen_root, `${entry.name}.js`);
+                    //         fs.writeFileSync(
+                    //             input_file,
+                    //             `
+                    //     import * as App from './${entry.name}.svelte';
+
+                    //     const app = new App({
+                    //       target: document.body,
+                    //       props: {
+                    //       },
+                    //     });
+
+                    //     window.getGlobal = (string, fallback) => {
+                    //         return fallback;
+                    //     }
+
+                    //     export default app;
+                    //     `
+                    //         );
+                    //         const input_options = {
+                    //             input: input_file,
+                    //             plugins: [
+                    //                 svelte({
+                    //                     include: ['gen/js/**/*.svelte', 'src/components/*.svelte'],
+                    //                     emitCss: false,
+                    //                     compilerOptions: {
+                    //                         // By default, the client-side compiler is used. You
+                    //                         // can also use the server-side rendering compiler
+                    //                         generate: 'dom',
+
+                    //                         // ensure that extra attributes are added to head
+                    //                         // elements for hydration (used with generate: 'ssr')
+                    //                         hydratable: true,
+                    //                     },
+                    //                 }),
+                    //                 alias({
+                    //                     entries: [{ find: '@src', replacement: resolve('src') }],
+                    //                 }),
+                    //                 node_resolve({ browser: true }),
+                    //                 commonjs(),
+                    //                 css({ output: 'gen/default.css' }),
+                    //             ],
+                    //         };
+                    //         const output_options: any = {
+                    //             file: `gen/${entry.name}.js`,
+                    //             sourcemap: true,
+                    //             format: 'iife',
+                    //             name: 'app',
+                    //         };
+                    //         try {
+                    //             const bundle = await rollup.rollup(input_options);
+                    //             const { output } = await bundle.generate(output_options);
+                    //             await bundle.write(output_options);
+                    //         } catch (e) {
+                    //             // svelte error messages
+                    //             WorkerHelper.log(LogType.error, '[svelte]', input_file, e);
+                    //         }
+                    //         return true;
+                    //     })
+                    // );
                     WorkerHelper.send_status(WorkerStatus.idle);
                     break;
                 case WorkerAction.status:

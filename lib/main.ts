@@ -58,7 +58,7 @@ export class Main {
         try {
             this.global_data = File.read_json('./data/global.json');
             datasets_total = await importer.import(
-                './data/sample.json',
+                './data/startpage.json',
                 (data: { key: number; value: any }) => {
                     return this.generate(data);
                 },
@@ -97,9 +97,9 @@ export class Main {
         const build_pages = await this.build(importer.get_import_list());
         this.perf.end('build');
 
-        // this.perf.start('scripts');
-        // const build_scripts = await this.scripts();
-        // this.perf.end('scripts');
+        this.perf.start('scripts');
+        const build_scripts = await this.scripts();
+        this.perf.end('scripts');
 
         // const content = `
         // <script>
@@ -138,6 +138,7 @@ export class Main {
 
         // symlink the "static" folders to pub
         Link.to_pub('assets');
+        Link.to_pub('gen');
 
         var hr_end = process.hrtime(hr_start); // hr_end[0] is in seconds, hr_end[1] is in nanoseconds
         const timeInMs = (hr_end[0] * 1000000000 + hr_end[1]) / 1000000; // convert first to ns then to ms

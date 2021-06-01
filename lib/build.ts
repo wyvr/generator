@@ -90,20 +90,4 @@ export class Build {
         </Doc>`;
         return code;
     }
-    static get_entrypoint_name(root_paths: string[], ...parts: string[]): string {
-        const replace_pattern = new RegExp(`^${root_paths.map((path) => path.replace(/\//g, '/') + '/').join('|')}`);
-        return parts
-            .map((part) => {
-                // remove the root paths to get shorter entrypoints
-                return part
-                    .replace(replace_pattern, '')
-                    .replace(/\.svelte$/, '')
-                    .toLowerCase();
-            })
-            .filter((p, i, arr) => {
-                // remove duplicate entries
-                return arr.indexOf(p) == i;
-            })
-            .join('_');
-    }
 }

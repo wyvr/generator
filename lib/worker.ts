@@ -77,7 +77,7 @@ export class Worker {
                             const layout_file_name = File.find_file(join(this.cwd, 'src', 'layout'), data._wyvr.template.layout);
                             const page_file_name = File.find_file(join(this.cwd, 'src', 'page'), data._wyvr.template.page);
 
-                            const entrypoint = Build.get_entrypoint_name(this.root_template_paths, doc_file_name, layout_file_name, page_file_name);
+                            const entrypoint = Client.get_entrypoint_name(this.root_template_paths, doc_file_name, layout_file_name, page_file_name);
                             // add the entrypoint to the wyvr object
                             data._wyvr.entrypoint = entrypoint;
                             WorkerHelper.send_action(WorkerAction.emit, {
@@ -142,11 +142,11 @@ export class Worker {
                     // @todo bundle them together
                     try {
                         await Client.create_bundles(this.cwd, value, transformed_files);
-                    } catch(e) {
+                    } catch (e) {
                         // svelte error messages
                         WorkerHelper.log(LogType.error, '[svelte]', e);
                     }
-                    
+
                     WorkerHelper.send_status(WorkerStatus.idle);
                     break;
                 case WorkerAction.status:

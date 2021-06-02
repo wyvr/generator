@@ -7,10 +7,10 @@ import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
 import css from 'rollup-plugin-css-only';
 import { terser } from 'rollup-plugin-terser';
-import { HydrateFileEntry } from './model/wyvr/hydrate';
+// import { HydrateFileEntry } from '@lib/model/wyvr/hydrate';
 
 export class Client {
-    static async create_bundles(cwd: string, files: any[], hydrate_files: HydrateFileEntry[]) {
+    static async create_bundles(cwd: string, files: any[], hydrate_files: any[]) {//HydrateFileEntry[]) {
         const client_root = join(cwd, 'gen', 'client');
 
         files.map(async (entry, index) => {
@@ -77,7 +77,7 @@ export class Client {
             return true;
         });
     }
-    static get_hydrateable_svelte_files(dir: string = null): HydrateFileEntry[] {
+    static get_hydrateable_svelte_files(dir: string = null): any[] {//HydrateFileEntry[] {
         if (!dir) {
             dir = join(process.cwd(), 'src');
         }
@@ -128,7 +128,7 @@ export class Client {
 
         return result;
     }
-    static transform_hydrateable_svelte_files(files: HydrateFileEntry[]) {
+    static transform_hydrateable_svelte_files(files: any[]) {//HydrateFileEntry[]) {
         return files.map((entry) => {
             // split svelte file apart to inject markup for the hydration
             let content = fs.readFileSync(entry.path, { encoding: 'utf-8' });

@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { join, resolve } from 'path';
+import { join, resolve, basename } from 'path';
 import * as rollup from 'rollup';
 import svelte from 'rollup-plugin-svelte';
 import node_resolve from '@rollup/plugin-node-resolve';
@@ -10,7 +10,8 @@ import { terser } from 'rollup-plugin-terser';
 // import { HydrateFileEntry } from '@lib/model/wyvr/hydrate';
 
 export class Client {
-    static async create_bundles(cwd: string, files: any[], hydrate_files: any[]) {//HydrateFileEntry[]) {
+    static async create_bundles(cwd: string, files: any[], hydrate_files: any[]) {
+        //HydrateFileEntry[]) {
         const client_root = join(cwd, 'gen', 'client');
 
         files.map(async (entry, index) => {
@@ -18,14 +19,13 @@ export class Client {
 
             const content = hydrate_files
                 .map((file) => {
-                    const import_path = file.path.replace(join(process.cwd(), 'src'), '@src');
-                    const import_name = file.path.split('/').pop().replace('.svelte', '');
-                    const var_name = import_name.toLowerCase();
-                    return `import ${import_name} from '${import_path}';
+                    const import_path = file.path.replace(join(process.cwd(), 'src'), 'src').replace(/^src\//, 'gen/src/');
+                    const var_name = file.name.toLowerCase();
+                    return `import ${file.name} from '${import_path}';
 
-                                document.getElementById('${import_name}').innerHTML = '';
-                                const ${var_name} = new ${import_name}({
-                                  target: document.getElementById('${import_name}'),
+                                const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
+                                const ${var_name} = new ${file.name}({
+                                  target: ${var_name}_target,
                                   props: {},
                                 });
                                 //export default ${var_name};`;
@@ -77,7 +77,7 @@ export class Client {
             return true;
         });
     }
-    static get_hydrateable_svelte_files(dir: string = null): any[] {//HydrateFileEntry[] {
+    static collect_svelte_files(dir: string = null) {
         if (!dir) {
             dir = join(process.cwd(), 'src');
         }
@@ -87,11 +87,38 @@ export class Client {
             const path = join(dir, entry);
             const stat = fs.statSync(path);
             if (stat.isDirectory()) {
-                result.push(...this.get_hydrateable_svelte_files(path));
+                result.push(...this.collect_svelte_files(path));
                 return;
             }
             if (stat.isFile() && entry.match(/\.svelte$/)) {
-                const content = fs.readFileSync(path, { encoding: 'utf-8' });
+                result.push({
+                    name: basename(entry).replace(/\.svelte$/, ''),
+                    path,
+                    config: null,
+                });
+            }
+        });
+
+        return result;
+    }
+    static correct_svelte_file_import_paths(svelte_files: any[]): any[] {
+        //HydrateFileEntry[] {
+
+        return svelte_files.map((file) => {
+            const content = fs.readFileSync(file.path, { encoding: 'utf-8' });
+            if (content) {
+                const corrected_imports = content.replace(/'@src\//g, "'src/").replace(/from 'src\//g, `from '${process.cwd()}/gen/src/`);
+                fs.writeFileSync(file.path, corrected_imports);
+            }
+            return file;
+        });
+    }
+    static get_hydrateable_svelte_files(svelte_files: any[]): any[] {
+        //HydrateFileEntry[] {
+
+        return svelte_files
+            .map((file) => {
+                const content = fs.readFileSync(file.path, { encoding: 'utf-8' });
                 const match = content.match(/wyvr:\s+(\{[^}]+\})/);
                 if (match) {
                     let config = null;
@@ -117,29 +144,58 @@ export class Client {
                     } catch (e) {
                         config = { error: e };
                     }
-                    result.push({
-                        path,
-                        config,
-                    });
+                    file.config = config;
+                    return file;
                 }
-                return;
-            }
-        });
-
-        return result;
+                return null;
+            })
+            .filter((x) => x);
     }
-    static transform_hydrateable_svelte_files(files: any[]) {//HydrateFileEntry[]) {
+    static transform_hydrateable_svelte_files(files: any[]) {
+        //HydrateFileEntry[]) {
         return files.map((entry) => {
-            // split svelte file apart to inject markup for the hydration
-            let content = fs.readFileSync(entry.path, { encoding: 'utf-8' });
-            console.log(content);
-            const script_start_index = content.indexOf('<script');
-            if(script_start_index > -1) {
-                const before_script = content.substr(0, script_start_index);
-                console.log('"',before_script, '"')
+            if (entry.config.render == 'hydrate') {
+                // split svelte file apart to inject markup for the hydration
+                let content = fs.readFileSync(entry.path, { encoding: 'utf-8' });
+                // extract scripts
+                const script_result = this.extract_tags_from_content(content, 'script');
+                entry.scripts = script_result.result;
+                content = script_result.content;
+                // extract styles
+                const style_result = this.extract_tags_from_content(content, 'style');
+                entry.styles = style_result.result;
+                content = style_result.content;
+                // add hydrate tag
+                const hydrate_tag = entry.config.display == 'inline' ? 'span' : 'div';
+                content = `<${hydrate_tag} data-hydrate="${entry.name}">${content}</${hydrate_tag}>`;
+                fs.writeFileSync(entry.path, `${entry.scripts.join('')}\n${entry.styles.join('')}\n${content}`);
             }
             return entry;
         });
+    }
+    static extract_tags_from_content(content: string, tag: string): { content: string; result: string[] } {
+        let search_tag = true;
+        tag = tag.toLowerCase().trim();
+        const result = [];
+        const tag_start = `<${tag}`;
+        const tag_end = `</${tag}>`;
+        let tag_start_index, tag_end_index;
+        while (search_tag) {
+            tag_start_index = content.indexOf(tag_start);
+            tag_end_index = content.indexOf(tag_end);
+            if (tag_start_index > -1 && tag_end_index > -1) {
+                // append the tag into the result
+                result.push(content.slice(tag_start_index, tag_end_index + tag_end.length));
+                // remove the script from the content
+                content = content.substr(0, tag_start_index) + content.substr(tag_end_index + tag_end.length);
+                continue;
+            }
+            search_tag = false;
+        }
+        return {
+            content,
+            result,
+        };
     }
     static get_entrypoint_name(root_paths: string[], ...parts: string[]): string {
         const replace_pattern = new RegExp(`^${root_paths.map((path) => path.replace(/\//g, '/') + '/').join('|')}`);

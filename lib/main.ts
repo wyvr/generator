@@ -103,9 +103,9 @@ export class Main {
         const build_pages = await this.build(importer.get_import_list());
         this.perf.end('build');
 
-        this.perf.start('scripts');
-        const build_scripts = await this.scripts();
-        this.perf.end('scripts');
+        // this.perf.start('scripts');
+        // const build_scripts = await this.scripts();
+        // this.perf.end('scripts');
 
         // const content = `
         // <script>
@@ -159,11 +159,14 @@ export class Main {
     }
     async collect() {
         fs.copySync('src', 'gen/src');
-        const files = Client.get_hydrateable_svelte_files('gen/src');
-
+        const svelte_files = Client.collect_svelte_files('gen/src');
+        Client.correct_svelte_file_import_paths(svelte_files);
+        console.log(svelte_files)
+        const files = Client.get_hydrateable_svelte_files(svelte_files);
+        console.log(files)
         // @todo replace global in the svelte components which should be hydrated
         const transformed_files = Client.transform_hydrateable_svelte_files(files);
-        console.log(files)
+        console.log(transformed_files)
     }
     async build(list: string[]): Promise<boolean> {
         fs.mkdirSync('gen/src', { recursive: true });

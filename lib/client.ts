@@ -43,6 +43,7 @@ export class Client {
                             target: el,
                             props: {}
                         })
+                        el.setAttribute('data-hydrated', 'true');
                         return el;
                     })
                 }

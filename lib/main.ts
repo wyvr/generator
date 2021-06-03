@@ -95,7 +95,7 @@ export class Main {
 
         // Process files in workers
         this.perf.start('collect');
-        const collect_files = await this.collect();
+        const collected_files = await this.collect();
         this.perf.end('collect');
 
         // Process files in workers
@@ -103,9 +103,9 @@ export class Main {
         const build_pages = await this.build(importer.get_import_list());
         this.perf.end('build');
 
-        // this.perf.start('scripts');
-        // const build_scripts = await this.scripts();
-        // this.perf.end('scripts');
+        this.perf.start('scripts');
+        const build_scripts = await this.scripts();
+        this.perf.end('scripts');
 
         // const content = `
         // <script>
@@ -160,13 +160,25 @@ export class Main {
     async collect() {
         fs.copySync('src', 'gen/src');
         const svelte_files = Client.collect_svelte_files('gen/src');
+        // search for hydrateable files
+        const hydrateable_files = Client.get_hydrateable_svelte_files(svelte_files);
+        // copy the hydrateable files into the gen/client folder
+        fs.mkdirSync('gen/client', { recursive: true });
+        hydrateable_files.map((file) => {
+            const source_path = file.path;
+            const path = file.path.replace(/^gen\/src/, 'gen/client');
+            fs.copySync(source_path, path);
+            return file;
+        });
+        // correct the import paths in the static files
         Client.correct_svelte_file_import_paths(svelte_files);
-        console.log(svelte_files)
-        const files = Client.get_hydrateable_svelte_files(svelte_files);
-        console.log(files)
+
         // @todo replace global in the svelte components which should be hydrated
-        const transformed_files = Client.transform_hydrateable_svelte_files(files);
-        console.log(transformed_files)
+        const transformed_files = Client.transform_hydrateable_svelte_files(hydrateable_files);
+        return {
+            src: svelte_files,
+            client:transformed_files
+        }
     }
     async build(list: string[]): Promise<boolean> {
         fs.mkdirSync('gen/src', { recursive: true });
@@ -199,7 +211,6 @@ export class Main {
         });
     }
     async scripts(): Promise<boolean> {
-        fs.mkdirSync('gen/client', { recursive: true });
         fs.mkdirSync('gen/js', { recursive: true });
         const keys = Object.keys(this.entrypoints);
         const amount = keys.length;

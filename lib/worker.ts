@@ -131,8 +131,9 @@ export class Worker {
                     break;
                 case WorkerAction.scripts:
                     WorkerHelper.send_status(WorkerStatus.busy);
+                    const svelte_files = Client.collect_svelte_files('gen/client');
                     // @todo get all svelte components which should be hydrated
-                    const files = Client.get_hydrateable_svelte_files('src');
+                    const files = Client.get_hydrateable_svelte_files(svelte_files);
 
                     // @todo bundle them together
                     try {

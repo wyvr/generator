@@ -19,35 +19,48 @@ export class Client {
 
             const content = hydrate_files
                 .map((file) => {
-                    const import_path = file.path.replace(join(process.cwd(), 'src'), 'src').replace(/^src\//, 'gen/src/');
+                    const import_path = file.path.replace(/^gen\/client/, '@src');
                     const var_name = file.name.toLowerCase();
-                    return `import ${file.name} from '${import_path}';
+                    return `
+                        import ${file.name} from '${import_path}';
 
-                                const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
-                                const ${var_name} = new ${file.name}({
-                                  target: ${var_name}_target,
-                                  props: {},
-                                });
-                                //export default ${var_name};`;
+                        const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
+                        hydrate(${var_name}_target, ${file.name})
+                    `;
                 })
                 .join('\n');
 
             fs.writeFileSync(
                 input_file,
-                `${content}
-                        window.getGlobal = (string, fallback) => {
-                            return fallback;
-                        }`
+                `
+                const hydrate = (elements, cls) => {
+                    if(!elements) {
+                        return null;
+                    }
+                    return Array.from(elements).map((el)=>{ 
+                        el.innerHTML = '';
+                        new cls({
+                            target: el,
+                            props: {}
+                        })
+                        return el;
+                    })
+                }
+                window.getGlobal = (string, fallback) => {
+                    return fallback;
+                }
+                ${content}
+                `
             );
 
             const input_options = {
                 input: input_file,
                 plugins: [
                     alias({
-                        entries: [{ find: '@src', replacement: resolve('src') }],
+                        entries: [{ find: '@src', replacement: resolve('gen/client') }],
                     }),
                     svelte({
-                        include: ['src/**/*.svelte'],
+                        include: ['gen/client/**/*.svelte'],
                         emitCss: false,
                         compilerOptions: {
                             // By default, the client-side compiler is used. You
@@ -62,7 +75,7 @@ export class Client {
                     node_resolve({ browser: true }),
                     commonjs(),
                     css({ output: 'gen/default.css' }),
-                    terser(),
+                    // terser(),
                 ],
             };
             const output_options: any = {

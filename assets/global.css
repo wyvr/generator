@@ -55,7 +55,7 @@ a {
 }
 button {
     background-color: var(--color-primary);
-    color: #333;
+    color: #fff;
     border: none;
     font: var(--size) / 1.2em sans-serif;
     border-radius: calc(var(--size) * 0.25);

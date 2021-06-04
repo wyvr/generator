@@ -11,6 +11,8 @@
         <meta content="width=device-width,initial-scale=1,minimum-scale=1" name="viewport" />
         <meta content="telephone=no" name="format-detection" />
 
+        <meta name="description" content="{getGlobal('meta.description')}" />
+
         <link rel="icon" href="/assets/favicon.png" />
         <link href="/assets/global.css" rel="stylesheet" />
     </head>

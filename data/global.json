@@ -1,4 +1,7 @@
 {
+    "meta": {
+        "description": "The simple and empowered static site generator"
+    },
     "faker": {
         "cards": [
             [

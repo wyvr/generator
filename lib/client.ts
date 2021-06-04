@@ -47,9 +47,6 @@ export class Client {
                         return el;
                     })
                 }
-                window.getGlobal = (string, fallback) => {
-                    return fallback;
-                }
                 ${content}
                 `
             );

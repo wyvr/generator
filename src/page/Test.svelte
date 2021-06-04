@@ -19,7 +19,6 @@
     </ul>
     <h2>TODOs</h2>
     <ul>
-        <li>Hydrate with value from global</li>
         <li>Hydrate with value from static parent</li>
         <li>Hydrate with slot</li>
     </ul>

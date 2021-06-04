@@ -7,6 +7,7 @@
     import { onMount } from 'svelte';
 
     let date = update_date();
+    let text = getGlobal('faker.text');
     let on_server = true;
 
     onMount(() => {
@@ -32,7 +33,7 @@
     }
 </script>
 
-<code class:static="{on_server}">{date}</code>
+<code class:static="{on_server}">{date} {text}</code>
 
 <style>
     code {

@@ -86,12 +86,11 @@ export class Client {
                 name: 'app',
             };
             try {
-
                 const bundle = await rollup.rollup(input_options);
                 const { output } = await bundle.generate(output_options);
                 await bundle.write(output_options);
-            } catch(e){
-                console.error(e)
+            } catch (e) {
+                console.error(e);
                 return false;
             }
             return true;
@@ -229,5 +228,57 @@ export class Client {
                 return arr.indexOf(p) == i;
             })
             .join('_');
+    }
+    static replace_global(content: string, global_data: any = null) {
+        return content.replace(/getGlobal\(['"]([^'"]+)['"](?:,\s*([^\)]+))?\)/g, (matched, key, fallback) => {
+            // getGlobal('nav.header')
+            // getGlobal("nav.header")
+            // getGlobal('nav.header[0]')
+            // getGlobal('nav.header', [])
+            // getGlobal('nav.header', true)
+            // getGlobal('nav.header', 'test')
+            try {
+                fallback = JSON.parse(fallback)
+            }
+            catch(e) {
+                fallback = null;
+            }
+            return JSON.stringify(this.get_global(key, fallback || null, global_data));
+        });
+    }
+    static get_global(key: string, fallback: any = null, global_data: any = null) {
+        if (!key || !global_data) {
+            return fallback;
+        }
+        const steps = key.split('.');
+        let value = fallback;
+        for (let i = 0; i < steps.length; i++) {
+            let step = steps[i];
+            let index = null;
+            // searches an element at an specific index
+            if (step.indexOf('[') > -1 && step.indexOf(']') > -1) {
+                const match = step.match(/^([^\[]+)\[([^\]]+)\]$/);
+                if (match) {
+                    step = match[1];
+                    index = parseInt((match[2] + '').trim(), 10);
+                }
+            }
+            if (i == 0) {
+                value = global_data[step];
+                if (index != null && Array.isArray(value)) {
+                    value = value[index];
+                }
+                continue;
+            }
+            if (!value && !value[step]) {
+                return fallback;
+            }
+            value = value[step];
+            if (index != null && Array.isArray(value)) {
+                value = value[index];
+            }
+        }
+
+        return value;
     }
 }

@@ -42,42 +42,6 @@ export class Worker {
                         WorkerHelper.log(LogType.warning, 'invalid configure value', value);
                         return;
                     }
-                    // set function to get global data in the svelte files
-                    (<any>global).getGlobal = (key: string, fallback: any = null) => {
-                        if (!key || !this.global_data) {
-                            return fallback;
-                        }
-                        const steps = key.split('.');
-                        let value = fallback;
-                        for (let i = 0; i < steps.length; i++) {
-                            let step = steps[i];
-                            let index = null;
-                            // searches an element at an specific index
-                            if (step.indexOf('[') > -1 && step.indexOf(']') > -1) {
-                                const match = step.match(/^([^\[]+)\[([^\]]+)\]$/);
-                                if (match) {
-                                    step = match[1];
-                                    index = parseInt((match[2] + '').trim(), 10);
-                                }
-                            }
-                            if (i == 0) {
-                                value = this.global_data[step];
-                                if (index != null && Array.isArray(value)) {
-                                    value = value[index];
-                                }
-                                continue;
-                            }
-                            if (!value && !value[step]) {
-                                return fallback;
-                            }
-                            value = value[step];
-                            if (index != null && Array.isArray(value)) {
-                                value = value[index];
-                            }
-                        }
-
-                        return value;
-                    };
                     WorkerHelper.send_status(WorkerStatus.idle);
                     break;
                 case WorkerAction.build:

@@ -3,6 +3,7 @@
         "description": "The simple and empowered static site generator"
     },
     "faker": {
+        "text": "Lorem ipsum dolor sit amet",
         "cards": [
             [
                 {

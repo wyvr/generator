@@ -50,14 +50,30 @@ export class Worker {
                         const steps = key.split('.');
                         let value = fallback;
                         for (let i = 0; i < steps.length; i++) {
+                            let step = steps[i];
+                            let index = null;
+                            // searches an element at an specific index
+                            if (step.indexOf('[') > -1 && step.indexOf(']') > -1) {
+                                const match = step.match(/^([^\[]+)\[([^\]]+)\]$/);
+                                if (match) {
+                                    step = match[1];
+                                    index = parseInt((match[2] + '').trim(), 10);
+                                }
+                            }
                             if (i == 0) {
-                                value = this.global_data[steps[i]];
+                                value = this.global_data[step];
+                                if (index != null && Array.isArray(value)) {
+                                    value = value[index];
+                                }
                                 continue;
                             }
-                            if (!value && !value[steps[i]]) {
-                                return null;
+                            if (!value && !value[step]) {
+                                return fallback;
                             }
-                            value = value[steps[i]];
+                            value = value[step];
+                            if (index != null && Array.isArray(value)) {
+                                value = value[index];
+                            }
                         }
 
                         return value;

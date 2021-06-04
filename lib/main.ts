@@ -162,7 +162,8 @@ export class Main {
         const svelte_files = Client.collect_svelte_files('gen/src');
         // replace global data in the svelte files
         svelte_files.map((file) => {
-            fs.writeFileSync(file.path, Client.replace_global(fs.readFileSync(file.path, { encoding: 'utf-8' }), this.global_data));
+            const content = Client.replace_global(fs.readFileSync(file.path, { encoding: 'utf-8' }), this.global_data);
+            fs.writeFileSync(file.path, content);
         });
         // search for hydrateable files
         const hydrateable_files = Client.get_hydrateable_svelte_files(svelte_files);

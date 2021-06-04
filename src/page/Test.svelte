@@ -12,13 +12,13 @@
 <slot />
 <section>
     <ul>
-        <li>Static &raquo;<Static />&laquo;</li>
-        <li>Static with prop `data.product`&raquo;<Static value={data.product} />&laquo;</li>
-        <li>Static with global &raquo;<Static with_global={true} />&laquo;</li>
-        <li>Hydrate Inline &raquo;<HydrateInline />&laquo;</li>
-        <li>Hydrate Block &raquo;<HydrateBlock />&laquo;</li>
+        <li>Static <Static /></li>
+        <li>Static with prop `data.product` <Static value={data.product} /></li>
+        <li>Static with global <Static with_global={true} /></li>
+        <li>Hydrate Inline <HydrateInline /></li>
+        <li>Hydrate Block <HydrateBlock /></li>
         {#if data.product}
-            <li>Hydrate with value from static parent &raquo;<HydrateProp price={data.product.price} locale={data._wyvr.language}/>&laquo;</li>
+            <li>Hydrate with value from static parent <HydrateProp price={data.product.price} locale={data._wyvr.language}/></li>
         {:else}
             <li>ERROR: Missing product to hydrate with value from static parent</li>
         {/if}

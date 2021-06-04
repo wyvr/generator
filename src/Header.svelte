@@ -1,6 +1,5 @@
 <script>
     import { onMount } from 'svelte';
-    import Counter from '@src/component/Counter.svelte';
 
     const nav_global = getGlobal('nav.header', []);
     let nav = nav_global ? nav_global.filter((entry) => entry.visible) : null;
@@ -9,7 +8,6 @@
 <header>
     <div class="inner">
         <a href="/"><img src="/assets/logo.svg" width="150" height="53" alt="wyvr" class="logo" /></a>
-        <Counter />
         {#if $$slots.nav}
             <slot name="nav" />
         {:else if nav}

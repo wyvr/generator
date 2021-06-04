@@ -3,6 +3,9 @@ import { basename, extname } from 'path';
 export class WyvrFile {
     name: string;
     config?: WyvrFileConfig;
+    scripts?: string[];
+    styles?: string[];
+    props?: string[];
     constructor(public path: string) {
         if (path) {
             this.name = basename(path).replace(new RegExp(`${extname(path).replace('.', '\\.')}$`), '');

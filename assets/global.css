@@ -31,15 +31,15 @@ h1 {
     line-height: 1.2em;
 }
 h2 {
-    font-size: calc(var(--size) * 1.75);
-    line-height: 1.2em;
-}
-h3 {
     font-size: calc(var(--size) * 1.5);
     line-height: 1.2em;
 }
-h4 {
+h3 {
     font-size: calc(var(--size) * 1.25);
+    line-height: 1.2em;
+}
+h4 {
+    font-size: calc(var(--size) * 1.2);
     line-height: 1.2em;
 }
 h5 {

@@ -33,7 +33,10 @@
 
 <style>
     footer {
-        background-color: rgba(0, 0, 0, 0.3);
+        background-color: rgba(0, 0, 0, 0.75);
+    }
+    footer a {
+        color: #fff;
     }
     nav {
         padding: var(--size);
@@ -43,9 +46,9 @@
         max-width: var(--layout-content-max-width);
     }
     .buzzwords {
-        opacity: 0.5;
+        opacity: 0.75;
         padding: calc(var(--size) * 2) var(--size);
-        background-color: rgba(0, 0, 0, 0.2);
+        background-color: rgba(255, 255, 255, 0.1);
     }
     .buzzwords label {
         padding-bottom: calc(var(--size) * 0.25);

@@ -20,12 +20,12 @@ export class Client {
             const content = hydrate_files
                 .map((file) => {
                     const import_path = file.path.replace(/^gen\/client/, '@src');
-                    const var_name = file.name.toLowerCase();
+                    const var_name = file.name.toLowerCase().replace(/\s/g, '_');
                     return `
-                        import ${file.name} from '${import_path}';
+                        import ${var_name} from '${import_path}';
 
                         const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
-                        hydrate(${var_name}_target, ${file.name})
+                        wyvr_hydrate(${var_name}_target, ${var_name})
                     `;
                 })
                 .join('\n');
@@ -33,7 +33,7 @@ export class Client {
             fs.writeFileSync(
                 input_file,
                 `
-                const hydrate = (elements, cls) => {
+                const wyvr_hydrate = (elements, cls) => {
                     if(!elements) {
                         return null;
                     }
@@ -85,9 +85,15 @@ export class Client {
                 format: 'iife',
                 name: 'app',
             };
-            const bundle = await rollup.rollup(input_options);
-            const { output } = await bundle.generate(output_options);
-            await bundle.write(output_options);
+            try {
+
+                const bundle = await rollup.rollup(input_options);
+                const { output } = await bundle.generate(output_options);
+                await bundle.write(output_options);
+            } catch(e){
+                console.error(e)
+                return false;
+            }
             return true;
         });
     }

@@ -58,7 +58,7 @@
         opacity: 0;
         pointer-events: none;
         text-align: left;
-        padding: var(--size);
+        padding: calc(var(--size) * 2);
         transform: translateX(100%);
         transition: transform 0.2s ease-out, opacity 0.2s linear;
         z-index: 1000;

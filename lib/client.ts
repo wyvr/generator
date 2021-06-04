@@ -39,9 +39,16 @@ export class Client {
                     }
                     return Array.from(elements).map((el)=>{ 
                         el.innerHTML = '';
+                        let props = {};
+                        const json = '{'+el.getAttribute('data-props').replace(/'/g, '"')+'}';
+                        try {
+                            props = JSON.parse(json)
+                        } catch(e) {
+                            console.warn(json, e)
+                        }
                         new cls({
                             target: el,
-                            props: {}
+                            props: props
                         })
                         el.setAttribute('data-hydrated', 'true');
                         return el;
@@ -164,7 +171,7 @@ export class Client {
             })
             .filter((x) => x);
     }
-    static transform_hydrateable_svelte_files(files: any[]) {
+    static transform_hydrateable_svelte_files(files: WyvrFile[]) {
         //HydrateFileEntry[]) {
         return files.map((entry) => {
             if (entry.config.render == 'hydrate') {
@@ -174,13 +181,15 @@ export class Client {
                 const script_result = this.extract_tags_from_content(content, 'script');
                 entry.scripts = script_result.result;
                 content = script_result.content;
+                entry.props = this.extract_props_from_scripts(script_result.result);
+                const props_include = `data-props="${entry.props.map((prop) => `'${prop}':{JSON.stringify(${prop}).replace(/"/g, "'")}`).join(',')}"`;
                 // extract styles
                 const style_result = this.extract_tags_from_content(content, 'style');
                 entry.styles = style_result.result;
                 content = style_result.content;
                 // add hydrate tag
                 const hydrate_tag = entry.config.display == 'inline' ? 'span' : 'div';
-                content = `<${hydrate_tag} data-hydrate="${entry.name}">${content}</${hydrate_tag}>`;
+                content = `<${hydrate_tag} data-hydrate="${entry.name}" ${props_include}>${content}</${hydrate_tag}>`;
                 fs.writeFileSync(entry.path, `${entry.scripts.join('')}\n${entry.styles.join('')}\n${content}`);
             }
             return entry;
@@ -235,9 +244,8 @@ export class Client {
             // getGlobal('nav.header', true)
             // getGlobal('nav.header', 'test')
             try {
-                fallback = JSON.parse(fallback)
-            }
-            catch(e) {
+                fallback = JSON.parse(fallback);
+            } catch (e) {
                 fallback = null;
             }
             return JSON.stringify(this.get_global(key, fallback || null, global_data));
@@ -277,5 +285,16 @@ export class Client {
         }
 
         return value;
+    }
+    static extract_props_from_scripts(scripts: string[]): string[] {
+        const props = [];
+        scripts.forEach((script) => {
+            //export let price = null;
+            script.replace(/export let ([^ =]*)\s*=.*/g, (_, prop) => {
+                props.push(prop);
+                return '';
+            });
+        });
+        return props;
     }
 }

@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { join, resolve, basename } from 'path';
+import { join, resolve } from 'path';
 import * as rollup from 'rollup';
 import svelte from 'rollup-plugin-svelte';
 import node_resolve from '@rollup/plugin-node-resolve';
@@ -7,10 +7,10 @@ import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
 import css from 'rollup-plugin-css-only';
 import { terser } from 'rollup-plugin-terser';
-// import { HydrateFileEntry } from '@lib/model/wyvr/hydrate';
+import { WyvrFile, WyvrFileConfig } from '@lib/model/wyvr/file';
 
 export class Client {
-    static async create_bundles(cwd: string, files: any[], hydrate_files: any[]) {
+    static async create_bundles(cwd: string, files: any[], hydrate_files: WyvrFile[]) {
         //HydrateFileEntry[]) {
         const client_root = join(cwd, 'gen', 'client');
 
@@ -105,17 +105,13 @@ export class Client {
                 return;
             }
             if (stat.isFile() && entry.match(/\.svelte$/)) {
-                result.push({
-                    name: basename(entry).replace(/\.svelte$/, ''),
-                    path,
-                    config: null,
-                });
+                result.push(new WyvrFile(path));
             }
         });
 
         return result;
     }
-    static correct_svelte_file_import_paths(svelte_files: any[]): any[] {
+    static correct_svelte_file_import_paths(svelte_files: WyvrFile[]): WyvrFile[] {
         //HydrateFileEntry[] {
 
         return svelte_files.map((file) => {
@@ -127,7 +123,7 @@ export class Client {
             return file;
         });
     }
-    static get_hydrateable_svelte_files(svelte_files: any[]): any[] {
+    static get_hydrateable_svelte_files(svelte_files: WyvrFile[]): WyvrFile[] {
         //HydrateFileEntry[] {
 
         return svelte_files
@@ -135,9 +131,9 @@ export class Client {
                 const content = fs.readFileSync(file.path, { encoding: 'utf-8' });
                 const match = content.match(/wyvr:\s+(\{[^}]+\})/);
                 if (match) {
-                    let config = null;
+                    let config: WyvrFileConfig = null;
                     try {
-                        config = {};
+                        config = new WyvrFileConfig();
                         match[1].split('\n').forEach((row) => {
                             const cfg_string = row.match(/(\w+): '(\w+)'/);
                             if (cfg_string) {
@@ -156,7 +152,8 @@ export class Client {
                             }
                         });
                     } catch (e) {
-                        config = { error: e };
+                        // add error object
+                        config.error = e;
                     }
                     file.config = config;
                     return file;
@@ -228,70 +225,3 @@ export class Client {
             .join('_');
     }
 }
-
-// const script_result = await Promise.all(
-//     value.map(async (entry, index) => {
-//         const script_code = Build.get_entrypoint_code(entry.doc, entry.layout, entry.page);
-//         const gen_root = join(this.cwd, 'gen', 'js');
-//         fs.mkdirSync(gen_root, { recursive: true });
-//         fs.writeFileSync(join(gen_root, `${entry.name}.svelte`), script_code);
-//         const input_file = join(gen_root, `${entry.name}.js`);
-//         fs.writeFileSync(
-//             input_file,
-//             `
-//     import * as App from './${entry.name}.svelte';
-
-//     const app = new App({
-//       target: document.body,
-//       props: {
-//       },
-//     });
-
-//     window.getGlobal = (string, fallback) => {
-//         return fallback;
-//     }
-
-//     export default app;
-//     `
-//         );
-//         const input_options = {
-//             input: input_file,
-//             plugins: [
-//                 svelte({
-//                     include: ['gen/js/**/*.svelte', 'src/components/*.svelte'],
-//                     emitCss: false,
-//                     compilerOptions: {
-//                         // By default, the client-side compiler is used. You
-//                         // can also use the server-side rendering compiler
-//                         generate: 'dom',
-
-//                         // ensure that extra attributes are added to head
-//                         // elements for hydration (used with generate: 'ssr')
-//                         hydratable: true,
-//                     },
-//                 }),
-//                 alias({
-//                     entries: [{ find: '@src', replacement: resolve('src') }],
-//                 }),
-//                 node_resolve({ browser: true }),
-//                 commonjs(),
-//                 css({ output: 'gen/default.css' }),
-//             ],
-//         };
-//         const output_options: any = {
-//             file: `gen/${entry.name}.js`,
-//             sourcemap: true,
-//             format: 'iife',
-//             name: 'app',
-//         };
-//         try {
-//             const bundle = await rollup.rollup(input_options);
-//             const { output } = await bundle.generate(output_options);
-//             await bundle.write(output_options);
-//         } catch (e) {
-//             // svelte error messages
-//             WorkerHelper.log(LogType.error, '[svelte]', input_file, e);
-//         }
-//         return true;
-//     })
-// );

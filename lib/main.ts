@@ -21,6 +21,7 @@ import { IPerformance_Measure, Performance_Measure, Performance_Measure_Blank } 
 import { WorkerModel } from '@lib/model/worker/worker';
 import { File } from './file';
 import { Client } from './client';
+import { dirname } from 'path';
 
 export class Main {
     queue: Queue = null;
@@ -172,7 +173,8 @@ export class Main {
         hydrateable_files.map((file) => {
             const source_path = file.path;
             const path = file.path.replace(/^gen\/src/, 'gen/client');
-            fs.copySync(source_path, path);
+            fs.mkdirSync(dirname(path), { recursive: true });
+            fs.writeFileSync(path, Client.replace_slots_client(fs.readFileSync(source_path, { encoding: 'utf-8' })));
             return file;
         });
         // correct the import paths in the static files

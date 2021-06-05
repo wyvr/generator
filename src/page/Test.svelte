@@ -1,5 +1,6 @@
 <script>
     export let data = null;
+    import Counter from '@src/component/Counter.svelte';
     import Static from '@src/test/Static.svelte';
     import HydrateInline from '@src/test/HydrateInline.svelte';
     import HydrateBlock from '@src/test/HydrateBlock.svelte';
@@ -18,15 +19,28 @@
         <li>Hydrate Inline <HydrateInline /></li>
         <li>Hydrate Block <HydrateBlock /></li>
         {#if data.product}
-            <li>Hydrate with value from static parent <HydrateProp price={data.product.price} locale={data._wyvr.language}/></li>
+            <li>Hydrate with value from static parent <HydrateProp price={data.product.price} locale={data._wyvr.language} /></li>
         {:else}
             <li>ERROR: Missing product to hydrate with value from static parent</li>
         {/if}
+        <li>
+            Hydrate with slot <HydrateInline>
+                <span>🚀</span>
+            </HydrateInline>
+        </li>
+        <li>
+            Hydrate with slot with static component <HydrateInline>
+                <Static />
+            </HydrateInline>
+        </li>
+        <li>
+            Hydrate with slot with hydrated component <HydrateInline>
+                <Counter />
+            </HydrateInline>
+        </li>
     </ul>
     <h2>TODOs</h2>
-    <ul>
-        <li>Hydrate with slot</li>
-    </ul>
+    <ul />
 </section>
 
 <style>

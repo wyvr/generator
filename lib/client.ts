@@ -38,18 +38,29 @@ export class Client {
                         return null;
                     }
                     return Array.from(elements).map((el)=>{ 
-                        el.innerHTML = '';
                         let props = {};
                         const json = '{'+el.getAttribute('data-props').replace(/'/g, '"')+'}';
+                        const slots = el.querySelectorAll('[data-slot]');
                         try {
                             props = JSON.parse(json)
                         } catch(e) {
                             console.warn(json, e)
                         }
+                        el.innerHTML = '';
                         new cls({
                             target: el,
                             props: props
                         })
+                        if(slots) {
+                            Array.from(slots).map((slot)=>{ 
+                                const slot_name = slot.getAttribute('data-slot');
+                                const client_slot = el.querySelector('[data-client-slot="'+slot_name+'"]')
+                                if(client_slot) {
+                                    client_slot.parentNode.insertBefore(slot, client_slot);
+                                    client_slot.remove();
+                                }
+                            });
+                        }
                         el.setAttribute('data-hydrated', 'true');
                         return el;
                     })
@@ -190,6 +201,7 @@ export class Client {
                 // add hydrate tag
                 const hydrate_tag = entry.config.display == 'inline' ? 'span' : 'div';
                 content = `<${hydrate_tag} data-hydrate="${entry.name}" ${props_include}>${content}</${hydrate_tag}>`;
+                content = this.replace_slots_static(content);
                 fs.writeFileSync(entry.path, `${entry.scripts.join('')}\n${entry.styles.join('')}\n${content}`);
             }
             return entry;
@@ -296,5 +308,27 @@ export class Client {
             });
         });
         return props;
+    }
+    static replace_slots_static(content: string): string {
+        const content_replaced = content.replace(/(<slot[^>/]*>.*?<\/slot>|<slot[^>]*\/>)/g, (_, slot) => {
+            const match = slot.match(/name="(.*)"/);
+            let name = null;
+            if (match) {
+                name = match[1];
+            }
+            return `<div data-slot="${name || 'default'}">${slot}</div>`;
+        });
+        return content_replaced;
+    }
+    static replace_slots_client(content: string): string {
+        const content_replaced = content.replace(/(<slot[^>/]*>.*?<\/slot>|<slot[^>]*\/>)/g, (_, slot) => {
+            const match = slot.match(/name="(.*)"/);
+            let name = null;
+            if (match) {
+                name = match[1];
+            }
+            return `<div data-client-slot="${name || 'default'}">${slot}</div>`;
+        });
+        return content_replaced;
     }
 }

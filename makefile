@@ -19,8 +19,8 @@ prod: ## Start production build
 dev: ## Start development build
 	@$(WYVR_COMPILE) && $(WYVR_TEST) && env WYVR_ENV=dev $(WYVR_BUILD)
 
-watch: ## Start watcher and make debug builds
-	@env WYVR_ENV=debug npx nodemon \
+watch: ## Start watcher and make dev builds
+	@env WYVR_ENV=dev npx nodemon \
 		--ignore test \
 		--ignore imported \
 		--ignore data \

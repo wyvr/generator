@@ -12,13 +12,16 @@
             <slot name="nav" />
         {:else if nav}
             <nav>
-                <label for="nav-toggle"><span>toggle navigation visibility</span></label>
+                <label class="trigger" for="nav-toggle"><span>toggle navigation visibility</span></label>
                 <input type="checkbox" id="nav-toggle" />
-                <div class="nav__inner">
-                    {#each nav as entry}
+                <div class="nav">
+                    <div class="nav__inner">
+                        {#each nav as entry}
                         <a href={entry.url}>{entry.name}</a>
-                    {/each}
+                        {/each}
+                    </div>
                 </div>
+                <label for="nav-toggle" aria-hidden="true" class="backdrop"></label>
             </nav>
         {/if}
     </div>

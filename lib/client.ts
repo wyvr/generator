@@ -7,7 +7,7 @@ import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
 import css from 'rollup-plugin-css-only';
 import { terser } from 'rollup-plugin-terser';
-import { WyvrFile, WyvrFileConfig } from '@lib/model/wyvr/file';
+import { WyvrFile, WyvrFileConfig, WyvrFileLoading, WyvrFileRender } from '@lib/model/wyvr/file';
 
 export class Client {
     static async create_bundles(cwd: string, files: any[], hydrate_files: WyvrFile[]) {
@@ -16,11 +16,37 @@ export class Client {
 
         files.map(async (entry, index) => {
             const input_file = join(client_root, `${entry.name}.js`);
+            const lazy_input_files = [];
 
             const content = hydrate_files
                 .map((file) => {
                     const import_path = file.path.replace(/^gen\/client/, '@src');
                     const var_name = file.name.toLowerCase().replace(/\s/g, '_');
+                    if (file.config?.loading == WyvrFileLoading.lazy) {
+                        // const lazy_input_path = join(client_root, `${file.name}.js`);
+                        // lazy_input_files.push(lazy_input_path);
+                        // fs.writeFileSync(
+                        //     lazy_input_path,
+                        //     `
+                        //     import ${var_name} from '${import_path}';
+
+                        //     const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
+                        //     wyvr_hydrate(${var_name}_target, ${var_name})
+                        // `
+                        // );
+                        // return `
+                        //     const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
+                        //     wyvr_hydrate_lazy('./${file.path}', ${var_name}_target, '${file.name}', '${var_name}')
+                        // `;
+                        return `
+                            import ${var_name} from '${import_path}';
+
+                            const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
+
+                            wyvr_hydrate_lazy('./${file.path}', ${var_name}_target, '${file.name}', ${var_name})
+                        `;
+                    }
+                    // WyvrFileLoading.instant
                     return `
                         import ${var_name} from '${import_path}';
 
@@ -65,6 +91,30 @@ export class Client {
                         return el;
                     })
                 }
+                const wyvr_hydrate_lazy = (path, elements, name, cls) => {
+                    /*import(path).then(module => {
+                        if(!module || !module.default) {
+                            wyvr_hydrate(elements, module.default)
+                        }
+                    });*/
+                    wyvr_loading_classes[name] = cls;
+                    return Array.from(elements).map((el)=>{
+                        wyvr_loading_observer.observe(el);
+                        return el;
+                    })
+                }
+                const wyvr_loading_classes = {};
+                const wyvr_loading_observer = new IntersectionObserver((entries) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            const name = entry.target.getAttribute('data-hydrate');
+                            if(name) {
+                                wyvr_hydrate([entry.target], wyvr_loading_classes[name])
+                            }
+                            wyvr_loading_observer.unobserve(entry.target)
+                        }
+                    })
+                });
                 ${content}
                 `
             );
@@ -90,11 +140,12 @@ export class Client {
                     }),
                     node_resolve({ browser: true }),
                     commonjs(),
-                    css({ output: 'gen/default.css' }),
+                    css({ output: `gen/${entry.name}.css` }),
                     // terser(),
                 ],
             };
             const output_options: any = {
+                // dir: `gen/js`,
                 file: `gen/js/${entry.name}.js`,
                 // sourcemap: true,
                 format: 'iife',
@@ -185,7 +236,7 @@ export class Client {
     static transform_hydrateable_svelte_files(files: WyvrFile[]) {
         //HydrateFileEntry[]) {
         return files.map((entry) => {
-            if (entry.config.render == 'hydrate') {
+            if (entry.config.render == WyvrFileRender.hydrate) {
                 // split svelte file apart to inject markup for the hydration
                 let content = fs.readFileSync(entry.path, { encoding: 'utf-8' });
                 // extract scripts

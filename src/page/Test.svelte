@@ -5,6 +5,7 @@
     import HydrateInline from '@src/test/HydrateInline.svelte';
     import HydrateBlock from '@src/test/HydrateBlock.svelte';
     import HydrateProp from '@src/test/HydrateProp.svelte';
+    import LoadingLazy from '@src/test/LoadingLazy.svelte';
 </script>
 
 {#if data.title}
@@ -24,23 +25,25 @@
             <li>ERROR: Missing product to hydrate with value from static parent</li>
         {/if}
         <li>
-            Hydrate with slot <HydrateInline>
+            Hydrate with slot <HydrateBlock>
                 <span>🚀</span>
-            </HydrateInline>
+            </HydrateBlock>
         </li>
         <li>
-            Hydrate with slot with static component <HydrateInline>
+            Hydrate with slot with static component <HydrateBlock>
                 <Static />
-            </HydrateInline>
+            </HydrateBlock>
         </li>
         <li>
-            Hydrate with slot with hydrated component <HydrateInline>
+            Hydrate with slot with hydrated component <HydrateBlock>
                 <Counter />
-            </HydrateInline>
+            </HydrateBlock>
         </li>
+        <li>Lazy Loaded Hydrated Component <LoadingLazy /></li>
     </ul>
-    <h2>TODOs</h2>
-    <ul />
+    <!-- <h2>TODOs</h2>
+    <ul>
+    </ul> -->
 </section>
 
 <style>

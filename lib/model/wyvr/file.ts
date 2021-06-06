@@ -15,6 +15,7 @@ export class WyvrFile {
 export class WyvrFileConfig {
     display: WyvrHydrateDisplay = WyvrHydrateDisplay.block;
     render: WyvrFileRender = WyvrFileRender.static;
+    loading: WyvrFileLoading = WyvrFileLoading.instant;
     error: any;
     [key: string]: any;
 }
@@ -25,4 +26,8 @@ export enum WyvrHydrateDisplay {
 export enum WyvrFileRender {
     static = 'static',
     hydrate = 'hydrate',
+}
+export enum WyvrFileLoading {
+    instant = 'instant',
+    lazy = 'lazy',
 }

@@ -1,6 +1,7 @@
 <script>
     // wyvr.display = 'block' is default
     wyvr: {
+        display: 'block';
         render: 'hydrate';
     }
 
@@ -33,7 +34,7 @@
     }
 </script>
 
-<code class:static="{on_server}">{date} {text}</code>
+<code class:static={on_server}><slot /> {date} {text}</code>
 
 <style>
     code {

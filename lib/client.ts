@@ -8,6 +8,7 @@ import commonjs from '@rollup/plugin-commonjs';
 import css from 'rollup-plugin-css-only';
 import { terser } from 'rollup-plugin-terser';
 import { WyvrFile, WyvrFileConfig, WyvrFileLoading, WyvrFileRender } from '@lib/model/wyvr/file';
+import { File } from './file';
 
 export class Client {
     static async create_bundles(cwd: string, files: any[], hydrate_files: WyvrFile[]) {
@@ -381,5 +382,26 @@ export class Client {
             return `<div data-client-slot="${name || 'default'}">${slot}</div>`;
         });
         return content_replaced;
+    }
+    static insert_splits(file_path: string, content: string): string {
+        const css_file = File.to_extension(file_path, 'css');
+        if (fs.existsSync(css_file)) {
+            const css_content = fs.readFileSync(css_file);
+            const css_result = this.extract_tags_from_content(content, 'style');
+            const combined_css = css_result.result.map((style)=>{
+                return style.replace(/^<style>/, '').replace(/<\/style>$/, '');
+            }).join('\n')
+            content = `${css_result.content}<style>${combined_css}${css_content}</style>`;
+        }
+        const js_file = File.to_extension(file_path, 'js');
+        if (fs.existsSync(js_file)) {
+            const js_content = fs.readFileSync(js_file);
+            const js_result = this.extract_tags_from_content(content, 'style');
+            const combined_js = js_result.result.map((script)=>{
+                return script.replace(/^<script>/, '').replace(/<\/script>$/, '');
+            }).join('\n')
+            content = `<script>${combined_js}${js_content}</script>${js_result.content}`;
+        }
+        return content;
     }
 }

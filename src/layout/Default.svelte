@@ -21,14 +21,3 @@
     </div>
     <Footer />
 </div>
-
-<style>
-    main {
-        margin: 0 auto;
-        max-width: var(--layout-content-max-width);
-        padding: 1rem;
-    }
-    .fullheight {
-        min-height: 100vh;
-    }
-</style>

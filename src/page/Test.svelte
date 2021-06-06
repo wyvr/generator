@@ -46,8 +46,3 @@
     </ul> -->
 </section>
 
-<style>
-    h1 {
-        color: var(--color-primary);
-    }
-</style>

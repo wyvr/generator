@@ -1,0 +1,36 @@
+footer {
+    background-color: rgba(0, 0, 0, 0.75);
+}
+footer a {
+    color: #fff;
+}
+nav {
+    padding: var(--size);
+}
+.inner {
+    margin: 0 auto;
+    max-width: var(--layout-content-max-width);
+}
+.buzzwords {
+    opacity: 0.75;
+    padding: calc(var(--size) * 2) var(--size);
+    background-color: rgba(255, 255, 255, 0.1);
+}
+.buzzwords label {
+    padding-bottom: calc(var(--size) * 0.25);
+    display: inline-block;
+}
+.buzzwords ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.buzzwords li {
+    list-style: none;
+    margin: 0;
+    padding: calc(var(--size) * 0.25);
+    display: inline-block;
+    border: 1px solid;
+    border-radius: calc(var(--size) * 0.25);
+    margin-right: calc(var(--size) * 0.25);
+}

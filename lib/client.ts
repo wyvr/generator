@@ -9,57 +9,59 @@ import css from 'rollup-plugin-css-only';
 import { terser } from 'rollup-plugin-terser';
 import { WyvrFile, WyvrFileConfig, WyvrFileLoading, WyvrFileRender } from '@lib/model/wyvr/file';
 import { File } from './file';
+import { Env } from './env';
 
 export class Client {
     static async create_bundles(cwd: string, files: any[], hydrate_files: WyvrFile[]) {
         //HydrateFileEntry[]) {
         const client_root = join(cwd, 'gen', 'client');
 
-        files.map(async (entry, index) => {
-            const input_file = join(client_root, `${entry.name}.js`);
-            const lazy_input_files = [];
+        await Promise.all(
+            files.map(async (entry, index) => {
+                const input_file = join(client_root, `${entry.name}.js`);
+                const lazy_input_files = [];
 
-            const content = hydrate_files
-                .map((file) => {
-                    const import_path = file.path.replace(/^gen\/client/, '@src');
-                    const var_name = file.name.toLowerCase().replace(/\s/g, '_');
-                    if (file.config?.loading == WyvrFileLoading.lazy) {
-                        // const lazy_input_path = join(client_root, `${file.name}.js`);
-                        // lazy_input_files.push(lazy_input_path);
-                        // fs.writeFileSync(
-                        //     lazy_input_path,
-                        //     `
-                        //     import ${var_name} from '${import_path}';
+                const content = hydrate_files
+                    .map((file) => {
+                        const import_path = join(cwd, file.path); //.replace(/^gen\/client/, '@src');
+                        const var_name = file.name.toLowerCase().replace(/\s/g, '_');
+                        if (file.config?.loading == WyvrFileLoading.lazy) {
+                            // const lazy_input_path = join(client_root, `${file.name}.js`);
+                            // lazy_input_files.push(lazy_input_path);
+                            // fs.writeFileSync(
+                            //     lazy_input_path,
+                            //     `
+                            //     import ${var_name} from '${import_path}';
 
-                        //     const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
-                        //     wyvr_hydrate(${var_name}_target, ${var_name})
-                        // `
-                        // );
-                        // return `
-                        //     const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
-                        //     wyvr_hydrate_lazy('./${file.path}', ${var_name}_target, '${file.name}', '${var_name}')
-                        // `;
-                        return `
+                            //     const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
+                            //     wyvr_hydrate(${var_name}_target, ${var_name})
+                            // `
+                            // );
+                            // return `
+                            //     const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
+                            //     wyvr_hydrate_lazy('./${file.path}', ${var_name}_target, '${file.name}', '${var_name}')
+                            // `;
+                            return `
                             import ${var_name} from '${import_path}';
 
                             const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
 
                             wyvr_hydrate_lazy('./${file.path}', ${var_name}_target, '${file.name}', ${var_name})
                         `;
-                    }
-                    // WyvrFileLoading.instant
-                    return `
+                        }
+                        // WyvrFileLoading.instant
+                        return `
                         import ${var_name} from '${import_path}';
 
                         const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
                         wyvr_hydrate(${var_name}_target, ${var_name})
                     `;
-                })
-                .join('\n');
+                    })
+                    .join('\n');
 
-            fs.writeFileSync(
-                input_file,
-                `
+                fs.writeFileSync(
+                    input_file,
+                    `
                 const wyvr_hydrate = (elements, cls) => {
                     if(!elements) {
                         return null;
@@ -118,50 +120,54 @@ export class Client {
                 });
                 ${content}
                 `
-            );
+                );
 
-            const input_options = {
-                input: input_file,
-                plugins: [
-                    alias({
-                        entries: [{ find: '@src', replacement: resolve('gen/client') }],
-                    }),
-                    svelte({
-                        include: ['gen/client/**/*.svelte'],
-                        emitCss: false,
-                        compilerOptions: {
-                            // By default, the client-side compiler is used. You
-                            // can also use the server-side rendering compiler
-                            generate: 'dom',
+                const input_options = {
+                    input: input_file,
+                    plugins: [
+                        alias({
+                            entries: [{ find: '@src', replacement: resolve('gen/client') }],
+                        }),
+                        svelte({
+                            include: ['gen/client/**/*.svelte'],
+                            emitCss: false,
+                            compilerOptions: {
+                                // By default, the client-side compiler is used. You
+                                // can also use the server-side rendering compiler
+                                generate: 'dom',
 
-                            // ensure that extra attributes are added to head
-                            // elements for hydration (used with generate: 'ssr')
-                            hydratable: true,
-                        },
-                    }),
-                    node_resolve({ browser: true }),
-                    commonjs(),
-                    css({ output: `gen/${entry.name}.css` }),
-                    // terser(),
-                ],
-            };
-            const output_options: any = {
-                // dir: `gen/js`,
-                file: `gen/js/${entry.name}.js`,
-                // sourcemap: true,
-                format: 'iife',
-                name: 'app',
-            };
-            try {
-                const bundle = await rollup.rollup(input_options);
-                const { output } = await bundle.generate(output_options);
-                await bundle.write(output_options);
-            } catch (e) {
-                console.error(e);
-                return false;
-            }
-            return true;
-        });
+                                // ensure that extra attributes are added to head
+                                // elements for hydration (used with generate: 'ssr')
+                                hydratable: true,
+                            },
+                        }),
+                        node_resolve({ browser: true }),
+                        commonjs(),
+                        css({ output: `gen/${entry.name}.css` }),
+                    ],
+                };
+                // compress the output
+                if(Env.is_prod()) {
+                    input_options.plugins.push(terser());
+                }
+                const output_options: any = {
+                    // dir: `gen/js`,
+                    file: join(cwd, 'gen', 'js', `${entry.name}.js`),
+                    // sourcemap: true,
+                    format: 'iife',
+                    name: 'app',
+                };
+                try {
+                    const bundle = await rollup.rollup(input_options);
+                    const { output } = await bundle.generate(output_options);
+                    const result = await bundle.write(output_options);
+                    return result;
+                } catch (e) {
+                    console.error(e);
+                    return false;
+                }
+            })
+        );
     }
     static collect_svelte_files(dir: string = null) {
         if (!dir) {
@@ -388,18 +394,22 @@ export class Client {
         if (fs.existsSync(css_file)) {
             const css_content = fs.readFileSync(css_file);
             const css_result = this.extract_tags_from_content(content, 'style');
-            const combined_css = css_result.result.map((style)=>{
-                return style.replace(/^<style>/, '').replace(/<\/style>$/, '');
-            }).join('\n')
+            const combined_css = css_result.result
+                .map((style) => {
+                    return style.replace(/^<style>/, '').replace(/<\/style>$/, '');
+                })
+                .join('\n');
             content = `${css_result.content}<style>${combined_css}${css_content}</style>`;
         }
         const js_file = File.to_extension(file_path, 'js');
         if (fs.existsSync(js_file)) {
             const js_content = fs.readFileSync(js_file);
             const js_result = this.extract_tags_from_content(content, 'script');
-            const combined_js = js_result.result.map((script)=>{
-                return script.replace(/^<script>/, '').replace(/<\/script>$/, '');
-            }).join('\n')
+            const combined_js = js_result.result
+                .map((script) => {
+                    return script.replace(/^<script>/, '').replace(/<\/script>$/, '');
+                })
+                .join('\n');
             content = `<script>${combined_js}${js_content}</script>${js_result.content}`;
         }
         return content;

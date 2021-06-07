@@ -340,6 +340,7 @@ export class Main {
                 themes.map((theme) => theme.path),
                 {
                     ignoreInitial: true,
+                    ignored: /(^|[\/\\])\../, // ignore dotfiles
                 }
             )
             .on('all', (event, path) => {

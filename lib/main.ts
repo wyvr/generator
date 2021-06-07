@@ -21,7 +21,7 @@ import { IPerformance_Measure, Performance_Measure, Performance_Measure_Blank } 
 import { WorkerModel } from '@lib/model/worker/worker';
 import { File } from './file';
 import { Client } from './client';
-import { dirname } from 'path';
+import { dirname, join } from 'path';
 
 export class Main {
     queue: Queue = null;
@@ -47,7 +47,6 @@ export class Main {
         Logger.present('env', EnvModel[Env.get()]);
 
         const project_config = Config.get();
-        Logger.present('project_config', JSON.stringify(project_config, null, 4));
 
         this.perf = Config.get('import.measure_performance') ? new Performance_Measure() : new Performance_Measure_Blank();
 
@@ -98,6 +97,7 @@ export class Main {
         this.perf.start('themes');
         const themes = await this.themes();
         this.perf.end('themes');
+        Logger.present('project_config', JSON.stringify(Config.get(), null, 4));
 
         // Process files in workers
         this.perf.start('collect');
@@ -168,12 +168,51 @@ export class Main {
     }
     async themes() {
         const themes = Config.get('themes');
+        const disabled_themes = [];
+        const available_themes = [];
+        if (themes && Array.isArray(themes)) {
+            // reset the config
+            Config.set({ themes: null });
+            themes.forEach((theme, index) => {
+                // set default name for the config
+                if (!theme.name) {
+                    theme.name = '#' + index;
+                }
+                if (fs.existsSync(theme.path)) {
+                    available_themes.push(theme);
+                    // copy the files from the theme to the project
+                    ['src', 'assets'].forEach((part)=>{
+                        if(fs.existsSync(join(theme.path, part))) {
+                            fs.copySync(join(theme.path, part), part);
+                        }
+                    })
+                    return;
+                }
+
+                disabled_themes.push(theme);
+            });
+            const new_config = { themes: available_themes };
+            Logger.debug('update config', JSON.stringify(new_config));
+            Config.set(new_config);
+        }
         Logger.present(
             'themes',
-            themes?.map((theme) => {
-                return `${theme.name}@${Logger.color.dim(theme.path)}`;
-            }).join(' ')
+            available_themes
+                ?.map((theme) => {
+                    return `${theme.name}@${Logger.color.dim(theme.path)}`;
+                })
+                .join(' ')
         );
+        if (disabled_themes.length) {
+            Logger.warning(
+                'disabled themes',
+                disabled_themes
+                    .map((theme) => {
+                        return `${theme.name}@${Logger.color.dim(theme.path)}`;
+                    })
+                    .join(' ')
+            );
+        }
 
         return themes;
     }

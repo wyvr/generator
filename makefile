@@ -13,6 +13,9 @@ help: ## Show this help
 	@echo "Usage: make [TARGET ...]"
 	@grep --no-filename -E '^[a-zA-Z_%-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
+compile: ## compiles the lib from ts to js
+	@$(WYVR_COMPILE)
+
 prod: ## Start production build
 	@$(WYVR_COMPILE) && $(WYVR_BUILD)
 

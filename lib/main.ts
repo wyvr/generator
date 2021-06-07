@@ -104,7 +104,10 @@ export class Main {
         this.perf.start('collect');
         const collected_files = await this.collect();
         this.perf.end('collect');
-
+        if(!collected_files) {
+            this.fail();
+        }
+        
         // Process files in workers
         this.perf.start('build');
         const build_pages = await this.build(importer.get_import_list());
@@ -168,6 +171,10 @@ export class Main {
         return [];
     }
     async collect() {
+        if(!fs.existsSync('src')) {
+            Logger.error('missing folder', 'src');
+            return null;
+        }
         fs.copySync('src', 'gen/src');
         const svelte_files = Client.collect_svelte_files('gen/src');
         // replace global data in the svelte files
@@ -304,5 +311,10 @@ export class Main {
             this.global_data.nav.all.push(nav_result);
         }
         return data;
+    }
+
+    fail() {
+        Logger.error('failed')
+        process.exit(0);
     }
 }

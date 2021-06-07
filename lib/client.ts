@@ -189,7 +189,7 @@ export class Client {
         return svelte_files.map((file) => {
             const content = fs.readFileSync(file.path, { encoding: 'utf-8' });
             if (content) {
-                const corrected_imports = content.replace(/'@src\//g, "'src/").replace(/from 'src\//g, `from '${process.cwd()}/gen/src/`);
+                const corrected_imports = content.replace(/'@src\//g, `'${process.cwd()}/gen/src/`);
                 fs.writeFileSync(file.path, corrected_imports);
             }
             return file;

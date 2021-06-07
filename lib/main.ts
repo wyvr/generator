@@ -350,7 +350,7 @@ export class Main {
                 if(theme) {
                     Logger.info('detect', `${event} ${theme.name}@${Logger.color.dim(path.replace(theme.path, ''))}`);
                 } else {
-                    Logger.warning('o_O detect', `${event}@${Logger.color.dim(path)}`, 'from unknown theme');
+                    Logger.warning('detect', `${event}@${Logger.color.dim(path)}`, 'from unknown theme');
                 }
                 //this.changed_files.push({event, path});
                 if (debounce) {

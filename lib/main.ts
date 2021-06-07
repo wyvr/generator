@@ -338,7 +338,8 @@ export class Main {
         bs.init(
             {
                 proxy: Config.get('url'),
-                ghostMode: false
+                ghostMode: false,
+                open: false,
             },
             function () {
                 Logger.info('sync is ready');

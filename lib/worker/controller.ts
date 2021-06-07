@@ -222,4 +222,9 @@ export class WorkerController {
     on_entrypoint(fn: Function) {
         this.on_entrypoint_callbacks.push(fn);
     }
+    cleanup() {
+        this.workers.forEach((worker)=>{
+            this.send_action(worker.pid, WorkerAction.cleanup, true);
+        })
+    }
 }

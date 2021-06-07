@@ -25,7 +25,6 @@ import { dirname, join } from 'path';
 import chokidar from 'chokidar';
 import { hrtime_to_ms } from '@lib/converter/time';
 
-
 export class Main {
     queue: Queue = null;
     worker_controller: WorkerController = null;
@@ -61,18 +60,24 @@ export class Main {
         let datasets_total = null;
         let is_imported = false;
         const importer = new Importer();
+
         try {
             this.global_data = File.read_json('./data/global.json');
-            datasets_total = await importer.import(
-                './data/sample.json',
-                (data: { key: number; value: any }) => {
-                    return this.generate(data);
-                },
-                () => {
-                    is_imported = true;
-                    importer.set_global(this.global_data);
-                }
-            );
+            const import_path = join(cwd, 'data/sample.json');
+            if (fs.existsSync(import_path)) {
+                datasets_total = await importer.import(
+                    import_path,
+                    (data: { key: number; value: any }) => {
+                        return this.generate(data);
+                    },
+                    () => {
+                        is_imported = true;
+                        importer.set_global(this.global_data);
+                    }
+                );
+            } else {
+                Logger.warning('import file does not exist', import_path);
+            }
         } catch (e) {
             Logger.error(e);
             return;
@@ -102,12 +107,12 @@ export class Main {
         this.perf.start('themes');
         const themes = await this.themes();
         this.perf.end('themes');
-        Logger.present('project_config', JSON.stringify(Config.get(), null, 4));
+        Logger.debug('project_config', JSON.stringify(Config.get(), null, 4));
 
         // execute
         await this.execute(importer.get_import_list());
 
-        const timeInMs = hrtime_to_ms(process.hrtime(hr_start))
+        const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
         Logger.success('initial execution time', timeInMs, 'ms');
 
         if (Env.is_prod()) {
@@ -131,12 +136,6 @@ export class Main {
                 }
                 if (fs.existsSync(theme.path)) {
                     available_themes.push(theme);
-                    // copy the files from the theme to the project
-                    ['src', 'assets'].forEach((part) => {
-                        if (fs.existsSync(join(theme.path, part))) {
-                            fs.copySync(join(theme.path, part), part);
-                        }
-                    });
                     return;
                 }
 
@@ -168,6 +167,17 @@ export class Main {
         return themes;
     }
     async collect() {
+        const themes = Config.get('themes');
+        if(themes) {
+            themes.forEach((theme) => { 
+                // copy the files from the theme to the project
+                ['src', 'assets'].forEach((part) => {
+                    if (fs.existsSync(join(theme.path, part))) {
+                        fs.copySync(join(theme.path, part), part);
+                    }
+                });
+            });
+        }
         if (!fs.existsSync('src')) {
             Logger.error('missing folder', 'src');
             return null;
@@ -342,8 +352,8 @@ export class Main {
                     const hr_start = process.hrtime();
 
                     await this.execute(file_list);
-                    
-                    const timeInMs = hrtime_to_ms(process.hrtime(hr_start))
+
+                    const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
                     Logger.success('watch execution time', timeInMs, 'ms');
                 }, 2000);
             });
@@ -375,7 +385,8 @@ export class Main {
         // symlink the "static" folders to pub
         Link.to_pub('assets');
         Link.to_pub('gen/js', 'js');
-
+        this.worker_controller.cleanup();
         this.is_executing = false;
     }
+
 }

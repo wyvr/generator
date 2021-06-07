@@ -91,4 +91,11 @@ export class Build {
         </Doc>`;
         return code;
     }
+    static remove_svelte_files_from_cache() {
+        Object.keys(require.cache).forEach(cache_file => {
+            if(cache_file.match(/\.svelte$/)) {
+                delete require.cache[cache_file];
+            }
+        });
+    }
 }

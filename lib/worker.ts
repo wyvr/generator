@@ -106,6 +106,7 @@ export class Worker {
                             return filename;
                         })
                     );
+
                     // console.log('result', result);
                     WorkerHelper.send_status(WorkerStatus.idle);
                     break;
@@ -127,6 +128,10 @@ export class Worker {
                     break;
                 case WorkerAction.status:
                     WorkerHelper.log(LogType.debug, 'setting status from outside is not allowed');
+                    break;
+                    case WorkerAction.cleanup:
+                    WorkerHelper.log(LogType.debug, 'cleanup worker');
+                    Build.remove_svelte_files_from_cache();
                     break;
                 default:
                     WorkerHelper.log(LogType.warning, 'unknown message action from outside', msg);

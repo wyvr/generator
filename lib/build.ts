@@ -1,6 +1,7 @@
 import * as fs from 'fs-extra';
 import { compile, preprocess } from 'svelte/compiler';
 import register from 'svelte/register';
+import { Env } from './env';
 
 register();
 export class Build {
@@ -11,7 +12,7 @@ export class Build {
         // process.exit();
         try {
             const compiled = compile(content, {
-                dev: true,
+                dev: Env.is_dev(),
                 generate: 'ssr',
                 format: 'cjs',
                 immutable: true,

@@ -112,6 +112,10 @@ export class Main {
         // execute
         await this.execute(importer.get_import_list());
 
+        // symlink the "static" folders to pub
+        Link.to_pub('assets');
+        Link.to_pub('gen/js', 'js');
+
         const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
         Logger.success('initial execution time', timeInMs, 'ms');
 
@@ -166,12 +170,25 @@ export class Main {
 
         return themes;
     }
+    copy_static_files() {
+        const themes = Config.get('themes');
+        if (themes) {
+            themes.forEach((theme) => {
+                // copy the files from the theme to the project
+                ['assets'].forEach((part) => {
+                    if (fs.existsSync(join(theme.path, part))) {
+                        fs.copySync(join(theme.path, part), part);
+                    }
+                });
+            });
+        }
+    }
     async collect() {
         const themes = Config.get('themes');
         if (themes) {
             themes.forEach((theme) => {
                 // copy the files from the theme to the project
-                ['src', 'assets'].forEach((part) => {
+                ['src'].forEach((part) => {
                     if (fs.existsSync(join(theme.path, part))) {
                         fs.copySync(join(theme.path, part), part);
                     }
@@ -359,22 +376,23 @@ export class Main {
                     return;
                 }
                 const theme = themes.find((t) => path.indexOf(t.path) > -1);
+                let rel_path = path;
                 if (theme) {
-                    Logger.info('detect', `${event} ${theme.name}@${Logger.color.dim(path.replace(theme.path, ''))}`);
+                    rel_path = path.replace(theme.path + '/', '');
+                    Logger.info('detect', `${event} ${theme.name}@${Logger.color.dim(rel_path)}`);
                 } else {
                     Logger.warning('detect', `${event}@${Logger.color.dim(path)}`, 'from unknown theme');
                 }
-                this.changed_files.push({ event, path });
+                this.changed_files.push({ event, path, rel_path });
                 if (debounce) {
                     clearTimeout(debounce);
                 }
                 setTimeout(async () => {
                     const hr_start = process.hrtime();
-                    const files = this.changed_files.filter((x) => x);
+                    const files = this.changed_files.filter((f) => f);
                     // reset the files
                     this.changed_files.length = 0;
-                    console.log(files);
-                    await this.execute(file_list);
+                    await this.execute(file_list, files);
                     bs.reload();
                     const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
                     Logger.success('watch execution time', timeInMs, 'ms');
@@ -383,12 +401,22 @@ export class Main {
         Logger.info('watching', themes.length, 'themes');
     }
 
-    async execute(file_list: any[]) {
+    async execute(file_list: any[], changed_files: { event: string; path: string; rel_path: string }[] = []) {
         if (this.is_executing == true) {
             return;
         }
         this.is_executing = true;
 
+        const only_static = changed_files.length > 0 && changed_files.every((file) => file.rel_path.match(/^assets\//));
+        
+        this.perf.start('static');
+        this.copy_static_files();
+        this.perf.end('static');
+        
+        if (only_static) {
+            this.is_executing = false;
+            return;
+        }
         // Process files in workers
         this.perf.start('collect');
         const collected_files = await this.collect();
@@ -396,19 +424,28 @@ export class Main {
         if (!collected_files) {
             this.fail();
         }
+        const only_build = changed_files.length > 0 && changed_files.every((file) => {
+            if(!file.rel_path.match(/^src\//)) {
+                return false;
+            }
+            const client_file = collected_files.client.find((c_file)=>c_file.path.indexOf(File.to_extension(file.rel_path, 'svelte')) > -1)
+            if(client_file) {
+                return false;
+            }
+            return true;
+        });
 
         // Process files in workers
         this.perf.start('build');
         const build_pages = await this.build(file_list);
         this.perf.end('build');
 
-        this.perf.start('scripts');
-        const build_scripts = await this.scripts();
-        this.perf.end('scripts');
+        if(!only_build) {
+            this.perf.start('scripts');
+            const build_scripts = await this.scripts();
+            this.perf.end('scripts');
+        }
 
-        // symlink the "static" folders to pub
-        Link.to_pub('assets');
-        Link.to_pub('gen/js', 'js');
         this.worker_controller.cleanup();
         this.is_executing = false;
     }

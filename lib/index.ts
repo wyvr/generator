@@ -1,13 +1,13 @@
 import 'module-alias/register';
-
 import { isMaster } from 'cluster';
-import { Main } from '@lib/main';
-import { Worker } from '@lib/worker';
 
+// console.log('argv', process.argv);
 (async () => {
     if (isMaster) {
+        const { Main } = require('@lib/main');
         new Main();
     } else {
+        const { Worker } = require('@lib/worker');
         new Worker();
     }
 })();

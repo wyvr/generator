@@ -97,17 +97,16 @@ export class Main {
         // collect configured themes
         this.perf.start('themes');
         const themes = await this.themes();
-        console.log('themes', themes)
         this.perf.end('themes');
 
         // Process files in workers
         this.perf.start('collect');
         const collected_files = await this.collect();
         this.perf.end('collect');
-        if(!collected_files) {
+        if (!collected_files) {
             this.fail();
         }
-        
+
         // Process files in workers
         this.perf.start('build');
         const build_pages = await this.build(importer.get_import_list());
@@ -168,10 +167,18 @@ export class Main {
         }
     }
     async themes() {
-        return [];
+        const themes = Config.get('themes');
+        Logger.present(
+            'themes',
+            themes?.map((theme) => {
+                return `${theme.name}:${Logger.color.dim(theme.path)}`;
+            })
+        );
+
+        return themes;
     }
     async collect() {
-        if(!fs.existsSync('src')) {
+        if (!fs.existsSync('src')) {
             Logger.error('missing folder', 'src');
             return null;
         }
@@ -314,7 +321,7 @@ export class Main {
     }
 
     fail() {
-        Logger.error('failed')
-        process.exit(0);
+        Logger.error('failed');
+        process.exit(1);
     }
 }

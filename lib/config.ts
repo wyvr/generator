@@ -47,4 +47,16 @@ export class Config {
         }
         return shrinked_config;
     }
+    /**
+     * allow changing of the config
+     * @param value object structure to replace the current config with
+     * @returns 
+     */
+    static set(value: any) {
+        if(value) {
+            this.cache = merge(this.cache, value);
+            return true;
+        }
+        return false;
+    }
 }

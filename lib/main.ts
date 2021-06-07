@@ -333,6 +333,18 @@ export class Main {
             return;
         }
 
+        // start reloader
+        const bs = require('browser-sync').create();
+        bs.init(
+            {
+                proxy: Config.get('url'),
+                ghostMode: false
+            },
+            function () {
+                Logger.info('sync is ready');
+            }
+        );
+        // watch for file changes
         let debounce = null;
         chokidar
             .watch(
@@ -351,15 +363,18 @@ export class Main {
                 } else {
                     Logger.warning('detect', `${event}@${Logger.color.dim(path)}`, 'from unknown theme');
                 }
-                //this.changed_files.push({event, path});
+                this.changed_files.push({ event, path });
                 if (debounce) {
                     clearTimeout(debounce);
                 }
                 setTimeout(async () => {
                     const hr_start = process.hrtime();
-
+                    const files = this.changed_files.filter((x) => x);
+                    // reset the files
+                    this.changed_files.length = 0;
+                    console.log(files);
                     await this.execute(file_list);
-
+                    bs.reload();
                     const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
                     Logger.success('watch execution time', timeInMs, 'ms');
                 }, 2000);

@@ -339,12 +339,19 @@ export class Main {
             .watch(
                 themes.map((theme) => theme.path),
                 {
-                    ignoreInitial: true,
-                    ignored: /(^|[\/\\])\../, // ignore dotfiles
+                    ignoreInitial: true
                 }
             )
             .on('all', (event, path) => {
-                Logger.info('detect', `${event}@${Logger.color.dim(path)}`);
+                if(path.indexOf('/.git/') > -1) {
+                    return;
+                }
+                const theme = themes.find((t)=>path.indexOf(t.path) > -1);
+                if(theme) {
+                    Logger.info('detect', `${event} ${theme.name}@${Logger.color.dim(path.replace(theme.path, ''))}`);
+                } else {
+                    Logger.warning('o_O detect', `${event}@${Logger.color.dim(path)}`, 'from unknown theme');
+                }
                 //this.changed_files.push({event, path});
                 if (debounce) {
                     clearTimeout(debounce);

@@ -6,6 +6,6 @@
 /.nyc_output
 /coverage
 /state
-#/wyvr
+/wyvr
 /logs
 /gen

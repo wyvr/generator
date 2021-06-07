@@ -16,12 +16,15 @@ import { Env } from '@lib/env';
 import { EnvModel } from '@lib/model/env';
 import { Queue } from '@lib/queue';
 import { WorkerAction } from '@lib/model/worker/action';
-import { WorkerStatus } from './model/worker/status';
+import { WorkerStatus } from '@lib/model/worker/status';
 import { IPerformance_Measure, Performance_Measure, Performance_Measure_Blank } from '@lib/performance_measure';
 import { WorkerModel } from '@lib/model/worker/worker';
-import { File } from './file';
-import { Client } from './client';
+import { File } from '@lib/file';
+import { Client } from '@lib/client';
 import { dirname, join } from 'path';
+import chokidar from 'chokidar';
+import { hrtime_to_ms } from '@lib/converter/time';
+
 
 export class Main {
     queue: Queue = null;
@@ -30,6 +33,8 @@ export class Main {
     worker_amount: number;
     global_data: any = null;
     entrypoints: any = {};
+    changed_files: any[] = [];
+    is_executing: boolean = false;
     constructor() {
         Env.set(process.env.WYVR_ENV);
         this.init();
@@ -99,72 +104,18 @@ export class Main {
         this.perf.end('themes');
         Logger.present('project_config', JSON.stringify(Config.get(), null, 4));
 
-        // Process files in workers
-        this.perf.start('collect');
-        const collected_files = await this.collect();
-        this.perf.end('collect');
-        if (!collected_files) {
-            this.fail();
-        }
+        // execute
+        await this.execute(importer.get_import_list());
 
-        // Process files in workers
-        this.perf.start('build');
-        const build_pages = await this.build(importer.get_import_list());
-        this.perf.end('build');
-
-        this.perf.start('scripts');
-        const build_scripts = await this.scripts();
-        this.perf.end('scripts');
-
-        // const content = `
-        // <script>
-        // import Page from '${process.cwd()}/src/page/Default.svelte';
-        // const data = ${JSON.stringify({ title: 'test' })};
-        // </script>
-
-        // <Page data={data}>
-        // Inhalt
-        // </Page>
-        // `;
-        // fs.writeFileSync('generated/test.svelte', content, {encoding: 'utf-8'});
-
-        // const component = Build.compile(content);
-        // console.log('component', component)
-
-        // const rendered = Build.render(component, { name: 'P@', details: true });
-        // console.log('rendered');
-        // console.log(rendered.result.html)
-
-        // await bundle.build(filename)
-
-        // const demo_file = `
-        // <!doctype html>
-        // <html>
-        //     <head>
-        //         <link href="/assets/global.css?${uniq_id}" rel="stylesheet" />
-        //     </head>
-        //     <body>
-        //         ${rendered.result.html}
-        //         <script src="/bundle.js?${uniq_id}"></script>
-        //     </body>
-        // </html>`;
-
-        // fs.writeFileSync('./pub/index.html', demo_file);
-
-        // symlink the "static" folders to pub
-        Link.to_pub('assets');
-        Link.to_pub('gen/js', 'js');
-
-        var hr_end = process.hrtime(hr_start); // hr_end[0] is in seconds, hr_end[1] is in nanoseconds
-        const timeInMs = (hr_end[0] * 1000000000 + hr_end[1]) / 1000000; // convert first to ns then to ms
-        Logger.success('total execution time', timeInMs, 'ms');
+        const timeInMs = hrtime_to_ms(process.hrtime(hr_start))
+        Logger.success('initial execution time', timeInMs, 'ms');
 
         if (Env.is_prod()) {
-            setTimeout(() => {
-                Logger.success('shutdown');
-                process.exit(0);
-            }, 500);
+            Logger.success('shutdown');
+            process.exit(0);
+            return;
         }
+        this.watch(importer.get_import_list());
     }
     async themes() {
         const themes = Config.get('themes');
@@ -181,11 +132,11 @@ export class Main {
                 if (fs.existsSync(theme.path)) {
                     available_themes.push(theme);
                     // copy the files from the theme to the project
-                    ['src', 'assets'].forEach((part)=>{
-                        if(fs.existsSync(join(theme.path, part))) {
+                    ['src', 'assets'].forEach((part) => {
+                        if (fs.existsSync(join(theme.path, part))) {
                             fs.copySync(join(theme.path, part), part);
                         }
-                    })
+                    });
                     return;
                 }
 
@@ -362,5 +313,68 @@ export class Main {
     fail() {
         Logger.error('failed');
         process.exit(1);
+    }
+
+    watch(file_list: any[]) {
+        const themes = Config.get('themes');
+        if (!themes || !Array.isArray(themes) || themes.length == 0) {
+            Logger.warning('no themes to watch');
+            return;
+        }
+
+        Logger.info('watching', themes.length, 'themes');
+        let debounce = null;
+        chokidar
+            .watch(
+                themes.map((theme) => theme.path),
+                {
+                    ignoreInitial: true,
+                }
+            )
+            .on('all', (event, path) => {
+                Logger.info('detect', `${event}@${Logger.color.dim(path)}`);
+                //this.changed_files.push({event, path});
+                if (debounce) {
+                    clearTimeout(debounce);
+                }
+                setTimeout(async () => {
+                    const hr_start = process.hrtime();
+
+                    await this.execute(file_list);
+                    
+                    const timeInMs = hrtime_to_ms(process.hrtime(hr_start))
+                    Logger.success('watch execution time', timeInMs, 'ms');
+                }, 2000);
+            });
+    }
+
+    async execute(file_list: any[]) {
+        if (this.is_executing == true) {
+            return;
+        }
+        this.is_executing = true;
+
+        // Process files in workers
+        this.perf.start('collect');
+        const collected_files = await this.collect();
+        this.perf.end('collect');
+        if (!collected_files) {
+            this.fail();
+        }
+
+        // Process files in workers
+        this.perf.start('build');
+        const build_pages = await this.build(file_list);
+        this.perf.end('build');
+
+        this.perf.start('scripts');
+        const build_scripts = await this.scripts();
+        this.perf.end('scripts');
+
+        // symlink the "static" folders to pub
+        Link.to_pub('assets');
+        Link.to_pub('gen/js', 'js');
+
+        this.is_executing = false;
     }
 }

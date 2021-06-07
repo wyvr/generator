@@ -1,1 +1,0 @@
-{"version":3,"file":"time.js","sourceRoot":"","sources":["../../lib/converter/time.ts"],"names":[],"mappings":";;;AAAA;;;;GAIG;AACH,SAAgB,YAAY,CAAC,MAAwB;IACjD,IAAI,CAAC,MAAM,EAAE;QACT,OAAO,CAAC,CAAC;KACZ;IACD,OAAO,CAAC,MAAM,CAAC,CAAC,CAAC,GAAG,UAAU,GAAG,MAAM,CAAC,CAAC,CAAC,CAAC,GAAG,OAAO,CAAC;AAC1D,CAAC;AALD,oCAKC"}

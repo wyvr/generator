@@ -384,6 +384,11 @@ export class Main {
                     Logger.warning('detect', `${event}@${Logger.color.dim(path)}`, 'from unknown theme');
                 }
                 this.changed_files.push({ event, path, rel_path });
+                // avoid that 2 commands get sent
+                if (this.is_executing == true) {
+                    Logger.warning('currently running, try again after current execution')
+                    return;
+                }
                 if (debounce) {
                     clearTimeout(debounce);
                 }
@@ -396,15 +401,12 @@ export class Main {
                     bs.reload();
                     const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
                     Logger.success('watch execution time', timeInMs, 'ms');
-                }, 2000);
+                }, 250);
             });
         Logger.info('watching', themes.length, 'themes');
     }
 
     async execute(file_list: any[], changed_files: { event: string; path: string; rel_path: string }[] = []) {
-        if (this.is_executing == true) {
-            return;
-        }
         this.is_executing = true;
 
         const only_static = changed_files.length > 0 && changed_files.every((file) => file.rel_path.match(/^assets\//));

@@ -168,8 +168,8 @@ export class Main {
     }
     async collect() {
         const themes = Config.get('themes');
-        if(themes) {
-            themes.forEach((theme) => { 
+        if (themes) {
+            themes.forEach((theme) => {
                 // copy the files from the theme to the project
                 ['src', 'assets'].forEach((part) => {
                     if (fs.existsSync(join(theme.path, part))) {
@@ -333,21 +333,20 @@ export class Main {
             return;
         }
 
-        Logger.info('watching', themes.length, 'themes');
         let debounce = null;
         chokidar
             .watch(
                 themes.map((theme) => theme.path),
                 {
-                    ignoreInitial: true
+                    ignoreInitial: true,
                 }
             )
             .on('all', (event, path) => {
-                if(path.indexOf('/.git/') > -1) {
+                if (path.indexOf('/.git/') > -1) {
                     return;
                 }
-                const theme = themes.find((t)=>path.indexOf(t.path) > -1);
-                if(theme) {
+                const theme = themes.find((t) => path.indexOf(t.path) > -1);
+                if (theme) {
                     Logger.info('detect', `${event} ${theme.name}@${Logger.color.dim(path.replace(theme.path, ''))}`);
                 } else {
                     Logger.warning('detect', `${event}@${Logger.color.dim(path)}`, 'from unknown theme');
@@ -365,6 +364,7 @@ export class Main {
                     Logger.success('watch execution time', timeInMs, 'ms');
                 }, 2000);
             });
+        Logger.info('watching', themes.length, 'themes');
     }
 
     async execute(file_list: any[]) {
@@ -396,5 +396,4 @@ export class Main {
         this.worker_controller.cleanup();
         this.is_executing = false;
     }
-
 }

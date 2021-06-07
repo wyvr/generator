@@ -1,8 +1,5 @@
 <script>
-    import { onMount } from 'svelte';
-
-    const nav_global = getGlobal('nav.header', []);
-    let nav = nav_global ? nav_global.filter((entry) => entry.visible) : null;
+    let nav = get_nav();
 </script>
 
 <header>
@@ -17,11 +14,11 @@
                 <div class="nav">
                     <div class="nav__inner">
                         {#each nav as entry}
-                        <a href={entry.url}>{entry.name}</a>
+                            <a href={entry.url}>{entry.name}</a>
                         {/each}
                     </div>
                 </div>
-                <label for="nav-toggle" aria-hidden="true" class="backdrop"></label>
+                <label for="nav-toggle" aria-hidden="true" class="backdrop" />
             </nav>
         {/if}
     </div>

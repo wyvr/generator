@@ -47,7 +47,7 @@ export class Main {
         Logger.present('env', EnvModel[Env.get()]);
 
         const project_config = Config.get();
-        Logger.debug('project_config', project_config);
+        Logger.present('project_config', JSON.stringify(project_config, null, 4));
 
         this.perf = Config.get('import.measure_performance') ? new Performance_Measure() : new Performance_Measure_Blank();
 
@@ -93,6 +93,12 @@ export class Main {
                 page: data.page,
             };
         });
+
+        // collect configured themes
+        this.perf.start('themes');
+        const themes = await this.themes();
+        console.log('themes', themes)
+        this.perf.end('themes');
 
         // Process files in workers
         this.perf.start('collect');
@@ -157,6 +163,9 @@ export class Main {
                 process.exit(0);
             }, 500);
         }
+    }
+    async themes() {
+        return [];
     }
     async collect() {
         fs.copySync('src', 'gen/src');

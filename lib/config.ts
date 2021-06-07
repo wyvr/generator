@@ -1,6 +1,22 @@
+import * as fs from 'fs';
+import { join } from 'path';
+import merge from 'deepmerge';
+
 export class Config {
     // cached troughout the whole process
     private static cache = null;
+    /**
+     * get the local config of the project
+     * @returns the local config
+     */
+    static load_from_local() {
+        const local_config_path = join(process.cwd(), 'wyvr.js');
+        if (fs.existsSync(local_config_path)) {
+            const config = require(local_config_path);
+            return config;
+        }
+        return null;
+    }
     /**
      * get the config value
      * @example get('path.to.the.config.value')
@@ -9,9 +25,13 @@ export class Config {
      */
     static get(config_segment: string | null = null): any | null {
         if (!this.cache) {
-            const raw_config = require('@config/config');
-
-            this.cache = raw_config;
+            const local_config = this.load_from_local();
+            const default_config = require('@config/config');
+            if(local_config) {
+                this.cache = merge(default_config, local_config);
+            } else {
+                this.cache = default_config;
+            }
         }
         if (!config_segment || typeof config_segment != 'string') {
             return this.cache;

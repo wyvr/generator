@@ -9,6 +9,7 @@
         "@snowpack/plugin-svelte": "^3.7.0",
         "ansi-colors": "^4.1.1",
         "chokidar": "^3.5.1",
+        "deepmerge": "^4.2.2",
         "fs-extra": "^10.0.0",
         "glob": "^7.1.7",
         "http-server": "^0.12.3",

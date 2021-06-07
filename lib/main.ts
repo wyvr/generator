@@ -24,6 +24,7 @@ import { Client } from '@lib/client';
 import { dirname, join } from 'path';
 import chokidar from 'chokidar';
 import { hrtime_to_ms } from '@lib/converter/time';
+import { Routes } from '@lib/routes';
 
 export class Main {
     queue: Queue = null;
@@ -386,7 +387,7 @@ export class Main {
                 this.changed_files.push({ event, path, rel_path });
                 // avoid that 2 commands get sent
                 if (this.is_executing == true) {
-                    Logger.warning('currently running, try again after current execution')
+                    Logger.warning('currently running, try again after current execution');
                     return;
                 }
                 if (debounce) {
@@ -406,19 +407,30 @@ export class Main {
         Logger.info('watching', themes.length, 'themes');
     }
 
+    async routes() {
+        const routes = Routes.collect_routes();
+        console.log(routes);
+        return routes;
+    }
+
     async execute(file_list: any[], changed_files: { event: string; path: string; rel_path: string }[] = []) {
         this.is_executing = true;
 
         const only_static = changed_files.length > 0 && changed_files.every((file) => file.rel_path.match(/^assets\//));
-        
+
         this.perf.start('static');
         this.copy_static_files();
         this.perf.end('static');
-        
+
         if (only_static) {
             this.is_executing = false;
             return;
         }
+        // Process files in workers
+        this.perf.start('routes');
+        const route_files = await this.routes();
+        this.perf.end('routes');
+
         // Process files in workers
         this.perf.start('collect');
         const collected_files = await this.collect();
@@ -426,23 +438,25 @@ export class Main {
         if (!collected_files) {
             this.fail();
         }
-        const only_build = changed_files.length > 0 && changed_files.every((file) => {
-            if(!file.rel_path.match(/^src\//)) {
-                return false;
-            }
-            const client_file = collected_files.client.find((c_file)=>c_file.path.indexOf(File.to_extension(file.rel_path, 'svelte')) > -1)
-            if(client_file) {
-                return false;
-            }
-            return true;
-        });
+        const only_build =
+            changed_files.length > 0 &&
+            changed_files.every((file) => {
+                if (!file.rel_path.match(/^src\//)) {
+                    return false;
+                }
+                const client_file = collected_files.client.find((c_file) => c_file.path.indexOf(File.to_extension(file.rel_path, 'svelte')) > -1);
+                if (client_file) {
+                    return false;
+                }
+                return true;
+            });
 
         // Process files in workers
         this.perf.start('build');
         const build_pages = await this.build(file_list);
         this.perf.end('build');
 
-        if(!only_build) {
+        if (!only_build) {
             this.perf.start('scripts');
             const build_scripts = await this.scripts();
             this.perf.end('scripts');

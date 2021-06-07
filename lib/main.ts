@@ -319,6 +319,7 @@ export class Main {
         const themes = Config.get('themes');
         if (!themes || !Array.isArray(themes) || themes.length == 0) {
             Logger.warning('no themes to watch');
+            this.fail();
             return;
         }
 

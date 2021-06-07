@@ -171,8 +171,8 @@ export class Main {
         Logger.present(
             'themes',
             themes?.map((theme) => {
-                return `${theme.name}:${Logger.color.dim(theme.path)}`;
-            })
+                return `${theme.name}@${Logger.color.dim(theme.path)}`;
+            }).join(' ')
         );
 
         return themes;

@@ -396,7 +396,7 @@ export class Client {
         const js_file = File.to_extension(file_path, 'js');
         if (fs.existsSync(js_file)) {
             const js_content = fs.readFileSync(js_file);
-            const js_result = this.extract_tags_from_content(content, 'style');
+            const js_result = this.extract_tags_from_content(content, 'script');
             const combined_js = js_result.result.map((script)=>{
                 return script.replace(/^<script>/, '').replace(/<\/script>$/, '');
             }).join('\n')

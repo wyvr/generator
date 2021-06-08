@@ -69,7 +69,8 @@ export class Main {
                 datasets_total = await importer.import(
                     import_path,
                     (data: { key: number; value: any }) => {
-                        return this.generate(data);
+                        data.value = this.generate(data.value);
+                        return data;
                     },
                     () => {
                         is_imported = true;
@@ -314,11 +315,11 @@ export class Main {
         return false;
     }
 
-    generate(data: { key: number; value: any }) {
+    generate(data) {
         // enhance the data from the pages
-        data.value = Generate.enhance_data(data.value);
+        data = Generate.enhance_data(data);
         // extract navigation data
-        const nav_result = data.value._wyvr.nav;
+        const nav_result = data._wyvr.nav;
         if (nav_result) {
             if (!this.global_data.nav) {
                 this.global_data.nav = {};
@@ -407,10 +408,15 @@ export class Main {
         Logger.info('watching', themes.length, 'themes');
     }
 
-    async routes() {
+    async routes(file_list: any[]) {
         const routes = Routes.collect_routes();
-        console.log(routes);
-        return routes;
+        const routes_result = await Routes.execute_routes(routes);
+        const routes_urls = Routes.write_routes(routes_result, (data:any) => {
+            return this.generate(data);
+        });
+        Logger.present('datasets from routes', routes_urls.length)
+        Routes.remove_routes_from_cache();
+        return [].concat(file_list, routes_urls);
     }
 
     async execute(file_list: any[], changed_files: { event: string; path: string; rel_path: string }[] = []) {
@@ -428,7 +434,7 @@ export class Main {
         }
         // Process files in workers
         this.perf.start('routes');
-        const route_files = await this.routes();
+        const route_file_list = await this.routes(file_list);
         this.perf.end('routes');
 
         // Process files in workers
@@ -453,7 +459,7 @@ export class Main {
 
         // Process files in workers
         this.perf.start('build');
-        const build_pages = await this.build(file_list);
+        const build_pages = await this.build(route_file_list);
         this.perf.end('build');
 
         if (!only_build) {

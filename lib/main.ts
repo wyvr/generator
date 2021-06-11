@@ -35,6 +35,7 @@ export class Main {
     entrypoints: any = {};
     changed_files: any[] = [];
     is_executing: boolean = false;
+    cwd = process.cwd();
     constructor() {
         Env.set(process.env.WYVR_ENV);
         this.init();
@@ -43,11 +44,10 @@ export class Main {
         const hr_start = process.hrtime();
         const uniq_id = v4().split('-')[0];
         const pid = process.pid;
-        const cwd = process.cwd();
         process.title = `wyvr main ${pid}`;
         Logger.logo();
         Logger.present('PID', pid, Logger.color.dim(`"${process.title}"`));
-        Logger.present('cwd', cwd);
+        Logger.present('cwd', this.cwd);
         Logger.present('build', uniq_id);
         Logger.present('env', EnvModel[Env.get()]);
 
@@ -55,6 +55,7 @@ export class Main {
 
         this.perf = Config.get('import.measure_performance') ? new Performance_Measure() : new Performance_Measure_Blank();
 
+        Dir.clear('gen');
         Dir.create('pub');
 
         // import the data source
@@ -64,7 +65,7 @@ export class Main {
 
         try {
             this.global_data = File.read_json('./data/global.json');
-            const import_path = join(cwd, 'data/sample.json');
+            const import_path = join(this.cwd, 'data/sample.json');
             if (fs.existsSync(import_path)) {
                 datasets_total = await importer.import(
                     import_path,
@@ -115,7 +116,7 @@ export class Main {
         await this.execute(importer.get_import_list());
 
         // symlink the "static" folders to pub
-        Link.to_pub('assets');
+        Link.to_pub('gen/assets', 'assets');
         Link.to_pub('gen/js', 'js');
 
         const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
@@ -179,7 +180,7 @@ export class Main {
                 // copy the files from the theme to the project
                 ['assets'].forEach((part) => {
                     if (fs.existsSync(join(theme.path, part))) {
-                        fs.copySync(join(theme.path, part), part);
+                        fs.copySync(join(theme.path, part), join(this.cwd, 'gen', part));
                     }
                 });
             });
@@ -188,11 +189,12 @@ export class Main {
     async collect() {
         const themes = Config.get('themes');
         if (themes) {
+            Dir.create('gen/raw');
             themes.forEach((theme) => {
-                // copy the files from the theme to the project
+                // copy the files from the theme to the project gen/src
                 ['src'].forEach((part) => {
                     if (fs.existsSync(join(theme.path, part))) {
-                        fs.copySync(join(theme.path, part), part);
+                        fs.copySync(join(theme.path, part), join(this.cwd, 'gen/raw'));
                     }
                 });
             });
@@ -201,7 +203,7 @@ export class Main {
             Logger.error('missing folder', 'src');
             return null;
         }
-        fs.copySync('src', 'gen/src');
+        fs.copySync('gen/raw', 'gen/src');
         const svelte_files = Client.collect_svelte_files('gen/src');
         // replace global data in the svelte files
         svelte_files.map((file) => {
@@ -212,6 +214,7 @@ export class Main {
         });
         // search for hydrateable files
         const hydrateable_files = Client.get_hydrateable_svelte_files(svelte_files);
+
         // copy the hydrateable files into the gen/client folder
         fs.mkdirSync('gen/client', { recursive: true });
         hydrateable_files.map((file) => {
@@ -315,27 +318,34 @@ export class Main {
         return false;
     }
 
-    generate(data) {
+    generate(data, ignore_global: boolean = false) {
         // enhance the data from the pages
         data = Generate.enhance_data(data);
+        if (ignore_global) {
+            return data;
+        }
         // extract navigation data
         const nav_result = data._wyvr.nav;
-        if (nav_result) {
-            if (!this.global_data.nav) {
-                this.global_data.nav = {};
-            }
-            if (!this.global_data.nav.all) {
-                this.global_data.nav.all = [];
-            }
 
-            if (nav_result.scope) {
-                if (!this.global_data.nav[nav_result.scope]) {
-                    this.global_data.nav[nav_result.scope] = [];
-                }
-                this.global_data.nav[nav_result.scope].push(nav_result);
-            }
-            this.global_data.nav.all.push(nav_result);
+        if (!this.global_data.nav) {
+            this.global_data.nav = {};
         }
+        if (!this.global_data.nav.all) {
+            this.global_data.nav.all = [];
+        }
+
+        if (!nav_result) {
+            return data;
+        }
+
+        if (nav_result.scope) {
+            if (!this.global_data.nav[nav_result.scope]) {
+                this.global_data.nav[nav_result.scope] = [];
+            }
+            this.global_data.nav[nav_result.scope].push(nav_result);
+        }
+        this.global_data.nav.all.push(nav_result);
+
         return data;
     }
 
@@ -408,13 +418,13 @@ export class Main {
         Logger.info('watching', themes.length, 'themes');
     }
 
-    async routes(file_list: any[]) {
+    async routes(file_list: any[], enhance_data: boolean = true) {
         const routes = Routes.collect_routes();
         const routes_result = await Routes.execute_routes(routes);
-        const routes_urls = Routes.write_routes(routes_result, (data:any) => {
-            return this.generate(data);
+        const routes_urls = Routes.write_routes(routes_result, (data: any) => {
+            return this.generate(data, !enhance_data);
         });
-        Logger.present('datasets from routes', routes_urls.length)
+        Logger.present('datasets from routes', routes_urls.length);
         Routes.remove_routes_from_cache();
         return [].concat(file_list, routes_urls);
     }
@@ -422,7 +432,9 @@ export class Main {
     async execute(file_list: any[], changed_files: { event: string; path: string; rel_path: string }[] = []) {
         this.is_executing = true;
 
-        const only_static = changed_files.length > 0 && changed_files.every((file) => file.rel_path.match(/^assets\//));
+        const is_regenerating = changed_files.length > 0;
+
+        const only_static = is_regenerating && changed_files.every((file) => file.rel_path.match(/^assets\//));
 
         this.perf.start('static');
         this.copy_static_files();
@@ -434,7 +446,7 @@ export class Main {
         }
         // Process files in workers
         this.perf.start('routes');
-        const route_file_list = await this.routes(file_list);
+        const route_file_list = await this.routes(file_list, !is_regenerating);
         this.perf.end('routes');
 
         // Process files in workers
@@ -445,7 +457,7 @@ export class Main {
             this.fail();
         }
         const only_build =
-            changed_files.length > 0 &&
+            is_regenerating &&
             changed_files.every((file) => {
                 if (!file.rel_path.match(/^src\//)) {
                     return false;

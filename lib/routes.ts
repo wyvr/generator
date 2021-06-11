@@ -28,7 +28,7 @@ export class Routes {
     static async execute_routes(routes: string[]) {
         const result = await Promise.all(
             routes.map(async (route) => {
-                const route_module = require(route);
+                const route_module = await require(route);
                 if (!Array.isArray(route_module)) {
                     return [route_module];
                 }

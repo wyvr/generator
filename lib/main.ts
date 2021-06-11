@@ -63,12 +63,19 @@ export class Main {
         let is_imported = false;
         const importer = new Importer();
 
-        try {
-            this.global_data = File.read_json('./data/global.json');
-            const import_path = join(this.cwd, 'data/sample.json');
-            if (fs.existsSync(import_path)) {
+        const import_global_path = Config.get('import.global');
+        if (fs.existsSync(import_global_path)) {
+            try {
+                this.global_data = File.read_json(import_global_path);
+            } catch (e) {
+                Logger.warning('import global file does not exist', import_global_path);
+            }
+        }
+        const import_main_path = Config.get('import.main');
+        if (import_main_path && fs.existsSync(import_main_path)) {
+            try {
                 datasets_total = await importer.import(
-                    import_path,
+                    import_main_path,
                     (data: { key: number; value: any }) => {
                         data.value = this.generate(data.value);
                         return data;
@@ -78,19 +85,19 @@ export class Main {
                         importer.set_global(this.global_data);
                     }
                 );
-            } else {
-                Logger.warning('import file does not exist', import_path);
+            } catch (e) {
+                Logger.error(e);
+                return;
             }
-        } catch (e) {
-            Logger.error(e);
-            return;
-        }
-        if (!datasets_total) {
-            Logger.error('no datasets found');
-            return;
-        }
-        if (!is_imported) {
-            this.global_data = await importer.get_global();
+            if (!datasets_total) {
+                Logger.error('no datasets found');
+                return;
+            }
+            if (!is_imported) {
+                this.global_data = await importer.get_global();
+            }
+        } else {
+            Logger.warning('import main file does not exist', import_main_path);
         }
 
         this.worker_controller = new WorkerController(this.global_data);

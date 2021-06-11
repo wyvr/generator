@@ -185,7 +185,7 @@ export class Main {
         if (themes) {
             themes.forEach((theme) => {
                 // copy the files from the theme to the project
-                ['assets'].forEach((part) => {
+                ['assets', 'routes'].forEach((part) => {
                     if (fs.existsSync(join(theme.path, part))) {
                         fs.copySync(join(theme.path, part), join(this.cwd, 'gen', part));
                     }

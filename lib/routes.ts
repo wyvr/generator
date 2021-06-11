@@ -5,9 +5,9 @@ import { File } from '@lib/file';
 export class Routes {
     static collect_routes(dir: string = null) {
         if (!dir) {
-            dir = join(process.cwd(), 'routes');
+            dir = join(process.cwd(), 'gen/routes');
         }
-        if(!fs.existsSync(dir)) {
+        if (!fs.existsSync(dir)) {
             return [];
         }
         const entries = fs.readdirSync(dir);
@@ -23,7 +23,6 @@ export class Routes {
                 result.push(path);
             }
         });
-
         return result;
     }
     static async execute_routes(routes: string[]) {
@@ -40,8 +39,8 @@ export class Routes {
     }
     static write_routes(route_entries: any[], hook_before_process: Function = null) {
         return route_entries.map((data, index) => {
-            const url = data.url || '/route/' + index;
-            if(hook_before_process && typeof hook_before_process == 'function') {
+            const url = data.url || '/routes/' + index;
+            if (hook_before_process && typeof hook_before_process == 'function') {
                 data = hook_before_process(data);
             }
             const path = File.to_index(join(process.cwd(), 'imported/data', url), 'json');

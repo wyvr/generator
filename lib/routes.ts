@@ -7,6 +7,9 @@ export class Routes {
         if (!dir) {
             dir = join(process.cwd(), 'routes');
         }
+        if(!fs.existsSync(dir)) {
+            return [];
+        }
         const entries = fs.readdirSync(dir);
         const result = [];
         entries.forEach((entry) => {

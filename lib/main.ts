@@ -427,6 +427,9 @@ export class Main {
 
     async routes(file_list: any[], enhance_data: boolean = true) {
         const routes = Routes.collect_routes();
+        if (!routes || routes.length == 0) {
+            return file_list;
+        }
         const routes_result = await Routes.execute_routes(routes);
         const routes_urls = Routes.write_routes(routes_result, (data: any) => {
             return this.generate(data, !enhance_data);

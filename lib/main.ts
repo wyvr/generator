@@ -451,7 +451,7 @@ export class Main {
         }
         const routes_result = await Routes.execute_routes(routes);
         let default_values = null;
-        if(enhance_data) {
+        if(routes_result && routes_result.length > 0) {
             default_values = Config.get('default_values');
         }
         const routes_urls = Routes.write_routes(routes_result, (data: any) => {

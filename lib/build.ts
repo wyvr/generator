@@ -24,6 +24,8 @@ export class Build {
             return { compiled, component, result: null, notes: [] };
         } catch (e) {
             e.error = true;
+            // @todo add better error messages
+            console.log(e)
             return e;
         }
     }

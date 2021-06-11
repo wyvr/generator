@@ -391,7 +391,7 @@ export class Main {
                 }
             )
             .on('all', (event, path) => {
-                if (path.indexOf('/.git/') > -1) {
+                if (path.indexOf('/.git/') > -1 || event == 'addDir' || event == 'unlinkDir') {
                     return;
                 }
                 const theme = themes.find((t) => path.indexOf(t.path) > -1);

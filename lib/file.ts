@@ -84,6 +84,9 @@ export class File {
         return data;
     }
     static find_file(in_dir: string, possible_files: string[]) {
+        if(!possible_files || !Array.isArray(possible_files) || possible_files.length == 0) {
+            return null;
+        }
         const found = possible_files.find((file) => {
             return fs.existsSync(join(in_dir, file));
         });
@@ -92,5 +95,4 @@ export class File {
         }
         return join(in_dir, found);
     }
-    
 }

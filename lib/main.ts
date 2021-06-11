@@ -214,10 +214,6 @@ export class Main {
                 });
             });
         }
-        if (!fs.existsSync('src')) {
-            Logger.error('missing folder', 'src');
-            return null;
-        }
         fs.copySync('gen/raw', 'gen/src');
         const svelte_files = Client.collect_svelte_files('gen/src');
         // replace global data in the svelte files

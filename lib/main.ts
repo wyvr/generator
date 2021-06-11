@@ -402,6 +402,11 @@ export class Main {
                 } else {
                     Logger.warning('detect', `${event}@${Logger.color.dim(path)}`, 'from unknown theme');
                 }
+                // check if the file is empty >= ignore it for now
+                if(event != 'unlink' && fs.readFileSync(path, { encoding: 'utf-8' }).trim() == '') {
+                    Logger.warning('the file is empty, empty files are ignored');
+                    return;
+                }
                 this.changed_files.push({ event, path, rel_path });
                 // avoid that 2 commands get sent
                 if (this.is_executing == true) {

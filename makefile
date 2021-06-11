@@ -31,6 +31,7 @@ watch: ## Start watcher and make dev builds
 		--ignore wyvr \
 		--ignore gen \
 		-e js,ts,svelte,css \
+		--verbose \
 		--exec '$(WYVR_COMPILE) && $(WYVR_BUILD)'
 
 test: ## Executes the tests

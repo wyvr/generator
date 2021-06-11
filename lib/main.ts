@@ -192,6 +192,14 @@ export class Main {
                 });
             });
         }
+        const assets = Config.get('assets');
+        if(assets) {
+            assets.forEach((entry)=>{
+                if(entry.src && fs.existsSync(entry.src)) {
+                    fs.copySync(entry.src, join(this.cwd, 'gen/assets', entry.target))
+                }
+            })
+        }
     }
     async collect() {
         const themes = Config.get('themes');

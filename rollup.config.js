@@ -33,7 +33,11 @@ export default {
                 // elements for hydration (used with generate: 'ssr')
                 hydratable: true,
                 immutable: true,
-                format: 'esm'
+                format: 'esm',
+                cssHash: ({hash, css})=>{
+                    return `ru-${hash(css)}`;
+                }
+
             },
         }),
         resolve({ browser: true }),

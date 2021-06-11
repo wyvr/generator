@@ -1,6 +1,7 @@
 import * as fs from 'fs-extra';
 import { compile, preprocess } from 'svelte/compiler';
 import register from 'svelte/register';
+import { Client } from './client';
 import { Env } from './env';
 
 register();
@@ -17,6 +18,7 @@ export class Build {
                 format: 'cjs',
                 immutable: true,
                 hydratable: true,
+                cssHash: Client.css_hash
             });
             const component = eval(compiled.js.code);
             return { compiled, component, result: null, notes: [] };

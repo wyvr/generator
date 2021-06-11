@@ -1,3 +1,6 @@
+import { Env } from '@lib/env';
+import { Client } from '@lib/client';
+
 const rollup = require('rollup');
 const svelte = require('rollup-plugin-svelte');
 const resolve = require('@rollup/plugin-node-resolve').default;
@@ -11,7 +14,7 @@ export class Bundle {
             {
                 input: filename,
             },
-            logger_options
+            bundle_options
         );
         // create a bundle
         let bundle = null;
@@ -77,8 +80,8 @@ export class Bundle {
 }
 
 // @see https://github.com/sveltejs/rollup-plugin-svelte
-const logger_options = {
-    logger: {
+const bundle_options = {
+    input: {
         name: 'bundle',
         file: 'pub/bundle.js',
         format: 'iife',
@@ -90,7 +93,9 @@ const logger_options = {
             // include: 'src/components/**/*.svelte',
             include: 'src/**/*.svelte',
             compilerOptions: {
+                dev: Env.is_dev(),
                 hydratable: true,
+                cssHash: Client.css_hash,
             },
 
             // Optionally, preprocess components with svelte.preprocess:

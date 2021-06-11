@@ -1,3 +1,5 @@
+const pkg = require('./package.json');
+
 module.exports = {
     url: 'generator.wyvr',
     import: {
@@ -23,4 +25,11 @@ module.exports = {
         { src: '../website/node_modules/remixicon/fonts/remixicon.woff', target: 'remixicon/remixicon.woff' },
         { src: '../website/node_modules/remixicon/fonts/remixicon.woff2', target: 'remixicon/remixicon.woff2' },
     ],
+    default_values: {
+        title: 'wyvr',
+        meta_description: 'Static sites made different',
+        author: pkg.author,
+        version: pkg.version,
+        date: new Date()
+    }
 };

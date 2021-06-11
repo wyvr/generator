@@ -72,12 +72,13 @@ export class Main {
             }
         }
         const import_main_path = Config.get('import.main');
+        const default_values = Config.get('default_values');
         if (import_main_path && fs.existsSync(import_main_path)) {
             try {
                 datasets_total = await importer.import(
                     import_main_path,
                     (data: { key: number; value: any }) => {
-                        data.value = this.generate(data.value);
+                        data.value = this.generate(data.value, false, default_values);
                         return data;
                     },
                     () => {
@@ -329,9 +330,18 @@ export class Main {
         return false;
     }
 
-    generate(data, ignore_global: boolean = false) {
+    generate(data, ignore_global: boolean = false, default_values: any = null) {
+        
         // enhance the data from the pages
         data = Generate.enhance_data(data);
+        // set default values when the key is not available in the given data
+        if(default_values) {
+            Object.keys(default_values).forEach((key)=>{
+                if(!data[key]) {
+                    data[key] = default_values[key];
+                }
+            })
+        }
         if (ignore_global) {
             return data;
         }
@@ -420,7 +430,7 @@ export class Main {
                 if (debounce) {
                     clearTimeout(debounce);
                 }
-                setTimeout(async () => {
+                debounce = setTimeout(async () => {
                     const hr_start = process.hrtime();
                     const files = this.changed_files.filter((f) => f);
                     // reset the files
@@ -429,7 +439,7 @@ export class Main {
                     bs.reload();
                     const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
                     Logger.success('watch execution time', timeInMs, 'ms');
-                }, 250);
+                }, 500);
             });
         Logger.info('watching', themes.length, 'themes');
     }
@@ -440,8 +450,12 @@ export class Main {
             return file_list;
         }
         const routes_result = await Routes.execute_routes(routes);
+        let default_values = null;
+        if(enhance_data) {
+            default_values = Config.get('default_values');
+        }
         const routes_urls = Routes.write_routes(routes_result, (data: any) => {
-            return this.generate(data, !enhance_data);
+            return this.generate(data, !enhance_data, default_values);
         });
         Logger.present('datasets from routes', routes_urls.length);
         Routes.remove_routes_from_cache();

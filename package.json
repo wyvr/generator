@@ -3,7 +3,7 @@
     "version": "0.0.0",
     "description": "",
     "main": "wyvr/index.js",
-    "author": "",
+    "author": "wyvr",
     "license": "ISC",
     "dependencies": {
         "@snowpack/plugin-svelte": "^3.7.0",

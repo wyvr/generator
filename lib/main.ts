@@ -233,7 +233,7 @@ export class Main {
             const source_path = file.path;
             const path = file.path.replace(/^gen\/src/, 'gen/client');
             fs.mkdirSync(dirname(path), { recursive: true });
-            fs.writeFileSync(path, Client.replace_slots_client(fs.readFileSync(source_path, { encoding: 'utf-8' })));
+            fs.writeFileSync(path, Client.remove_on_server(Client.replace_slots_client(fs.readFileSync(source_path, { encoding: 'utf-8' }))));
             return file;
         });
         // correct the import paths in the static files

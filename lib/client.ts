@@ -62,9 +62,6 @@ export class Client {
                 fs.writeFileSync(
                     input_file,
                     `
-                // onServer Client implementation
-                // set as string literal to avoid that terser mangled the name
-                window['onServer'] = () => {};
                 const wyvr_hydrate = (elements, cls) => {
                     if(!elements) {
                         return null;
@@ -383,6 +380,39 @@ export class Client {
             return `<div data-slot="${name || 'default'}">${slot}</div>`;
         });
         return content_replaced;
+    }
+    static remove_on_server(content: string) {
+        const search_string = 'onServer(';
+        let start_index = content.indexOf(search_string);
+        if( start_index == -1) {
+            return content;
+        }
+        let index = start_index + search_string.length;
+        let open_brackets = 1;
+        let found_closing = false;
+        const length = content.length;
+        while(index < length && open_brackets > 0) {
+            const char = content[index];
+            switch(char) {
+                case '(':
+                    open_brackets++;
+                    break;
+                case ')':
+                    open_brackets--;
+                    if(open_brackets == 0) {
+                        found_closing = true;
+                    }
+                    break;
+            }
+            index++;
+        }
+        if(found_closing) {
+            const replaced = content.substr(0, start_index) + content.substr(index);
+            // check if more onServer handlers are used
+            return this.remove_on_server(replaced);
+        }
+        return content;
+        
     }
     static replace_slots_client(content: string): string {
         const content_replaced = content.replace(/(<slot[^>/]*>.*?<\/slot>|<slot[^>]*\/>)/g, (_, slot) => {

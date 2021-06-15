@@ -221,8 +221,8 @@ export class Main {
             });
             // update config, but keep the main config values
             Config.replace(Config.merge(config, Config.get()));
-            console.log(Config.get())
         }
+        fs.writeFileSync('gen/config.json', JSON.stringify(Config.get(), null, 4));
         fs.copySync('gen/raw', 'gen/src');
         const svelte_files = Client.collect_svelte_files('gen/src');
         // replace global data in the svelte files

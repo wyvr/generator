@@ -10,9 +10,16 @@ export class Config {
      * @returns the local config
      */
     static load_from_local() {
-        const local_config_path = join(process.cwd(), 'wyvr.js');
-        if (fs.existsSync(local_config_path)) {
-            const config = require(local_config_path);
+        return this.load_from_path('');
+    }
+     /**
+     * get the config of the path
+     * @returns the config
+     */
+    static load_from_path(path: string) {
+        const config_path = join(process.cwd(), path, 'wyvr.js');
+        if (fs.existsSync(config_path)) {
+            const config = require(config_path);
             return config;
         }
         return null;
@@ -27,7 +34,7 @@ export class Config {
         if (!this.cache) {
             const local_config = this.load_from_local();
             const default_config = require('@config/config');
-            if(local_config) {
+            if (local_config) {
                 this.cache = merge(default_config, local_config);
             } else {
                 this.cache = default_config;
@@ -50,13 +57,23 @@ export class Config {
     /**
      * allow changing of the config
      * @param value object structure to replace the current config with
-     * @returns 
+     * @returns
      */
     static set(value: any) {
-        if(value) {
+        if (value) {
             this.cache = merge(this.cache, value);
             return true;
         }
         return false;
+    }
+    static replace(value: any){
+        if (value) {
+            this.cache = value;
+            return true;
+        }
+        return false;
+    }
+    static merge(config1:any, config2:any) {
+        return merge(config1, config2);
     }
 }

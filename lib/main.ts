@@ -194,19 +194,24 @@ export class Main {
             });
         }
         const assets = Config.get('assets');
-        if(assets) {
-            assets.forEach((entry)=>{
-                if(entry.src && fs.existsSync(entry.src)) {
-                    fs.copySync(entry.src, join(this.cwd, 'gen/assets', entry.target))
+        if (assets) {
+            assets.forEach((entry) => {
+                if (entry.src && fs.existsSync(entry.src)) {
+                    fs.copySync(entry.src, join(this.cwd, 'gen/assets', entry.target));
                 }
-            })
+            });
         }
     }
     async collect() {
         const themes = Config.get('themes');
         if (themes) {
+            let config = {};
             Dir.create('gen/raw');
             themes.forEach((theme) => {
+                const theme_config = Config.load_from_path(theme.path);
+                if (theme_config) {
+                    config = Config.merge(config, theme_config);
+                }
                 // copy the files from the theme to the project gen/src
                 ['src'].forEach((part) => {
                     if (fs.existsSync(join(theme.path, part))) {
@@ -214,6 +219,9 @@ export class Main {
                     }
                 });
             });
+            // update config, but keep the main config values
+            Config.replace(Config.merge(config, Config.get()));
+            console.log(Config.get())
         }
         fs.copySync('gen/raw', 'gen/src');
         const svelte_files = Client.collect_svelte_files('gen/src');
@@ -331,16 +339,15 @@ export class Main {
     }
 
     generate(data, ignore_global: boolean = false, default_values: any = null) {
-        
         // enhance the data from the pages
         data = Generate.enhance_data(data);
         // set default values when the key is not available in the given data
-        if(default_values) {
-            Object.keys(default_values).forEach((key)=>{
-                if(!data[key]) {
+        if (default_values) {
+            Object.keys(default_values).forEach((key) => {
+                if (!data[key]) {
                     data[key] = default_values[key];
                 }
-            })
+            });
         }
         if (ignore_global) {
             return data;
@@ -405,7 +412,7 @@ export class Main {
                 }
             )
             .on('all', (event, path) => {
-                if (path.indexOf('/.git/') > -1 || event == 'addDir' || event == 'unlinkDir') {
+                if (path.indexOf('/.git/') > -1 || path.indexOf('wyvr.js') > -1 || event == 'addDir' || event == 'unlinkDir') {
                     return;
                 }
                 const theme = themes.find((t) => path.indexOf(t.path) > -1);
@@ -417,7 +424,7 @@ export class Main {
                     Logger.warning('detect', `${event}@${Logger.color.dim(path)}`, 'from unknown theme');
                 }
                 // check if the file is empty >= ignore it for now
-                if(event != 'unlink' && fs.readFileSync(path, { encoding: 'utf-8' }).trim() == '') {
+                if (event != 'unlink' && fs.readFileSync(path, { encoding: 'utf-8' }).trim() == '') {
                     Logger.warning('the file is empty, empty files are ignored');
                     return;
                 }
@@ -451,7 +458,7 @@ export class Main {
         }
         const routes_result = await Routes.execute_routes(routes);
         let default_values = null;
-        if(routes_result && routes_result.length > 0) {
+        if (routes_result && routes_result.length > 0) {
             default_values = Config.get('default_values');
         }
         const routes_urls = Routes.write_routes(routes_result, (data: any) => {

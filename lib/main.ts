@@ -24,6 +24,7 @@ import { Client } from '@lib/client';
 import { dirname, join } from 'path';
 import chokidar from 'chokidar';
 import { hrtime_to_ms } from '@lib/converter/time';
+import { Routes } from '@lib/routes';
 
 export class Main {
     queue: Queue = null;
@@ -34,6 +35,7 @@ export class Main {
     entrypoints: any = {};
     changed_files: any[] = [];
     is_executing: boolean = false;
+    cwd = process.cwd();
     constructor() {
         Env.set(process.env.WYVR_ENV);
         this.init();
@@ -42,11 +44,10 @@ export class Main {
         const hr_start = process.hrtime();
         const uniq_id = v4().split('-')[0];
         const pid = process.pid;
-        const cwd = process.cwd();
         process.title = `wyvr main ${pid}`;
         Logger.logo();
         Logger.present('PID', pid, Logger.color.dim(`"${process.title}"`));
-        Logger.present('cwd', cwd);
+        Logger.present('cwd', this.cwd);
         Logger.present('build', uniq_id);
         Logger.present('env', EnvModel[Env.get()]);
 
@@ -54,6 +55,7 @@ export class Main {
 
         this.perf = Config.get('import.measure_performance') ? new Performance_Measure() : new Performance_Measure_Blank();
 
+        Dir.clear('gen');
         Dir.create('pub');
 
         // import the data source
@@ -61,33 +63,42 @@ export class Main {
         let is_imported = false;
         const importer = new Importer();
 
-        try {
-            this.global_data = File.read_json('./data/global.json');
-            const import_path = join(cwd, 'data/sample.json');
-            if (fs.existsSync(import_path)) {
+        const import_global_path = Config.get('import.global');
+        if (fs.existsSync(import_global_path)) {
+            try {
+                this.global_data = File.read_json(import_global_path);
+            } catch (e) {
+                Logger.warning('import global file does not exist', import_global_path);
+            }
+        }
+        const import_main_path = Config.get('import.main');
+        const default_values = Config.get('default_values');
+        if (import_main_path && fs.existsSync(import_main_path)) {
+            try {
                 datasets_total = await importer.import(
-                    import_path,
+                    import_main_path,
                     (data: { key: number; value: any }) => {
-                        return this.generate(data);
+                        data.value = this.generate(data.value, false, default_values);
+                        return data;
                     },
                     () => {
                         is_imported = true;
                         importer.set_global(this.global_data);
                     }
                 );
-            } else {
-                Logger.warning('import file does not exist', import_path);
+            } catch (e) {
+                Logger.error(e);
+                return;
             }
-        } catch (e) {
-            Logger.error(e);
-            return;
-        }
-        if (!datasets_total) {
-            Logger.error('no datasets found');
-            return;
-        }
-        if (!is_imported) {
-            this.global_data = await importer.get_global();
+            if (!datasets_total) {
+                Logger.error('no datasets found');
+                return;
+            }
+            if (!is_imported) {
+                this.global_data = await importer.get_global();
+            }
+        } else {
+            Logger.warning('import main file does not exist', import_main_path);
         }
 
         this.worker_controller = new WorkerController(this.global_data);
@@ -113,7 +124,7 @@ export class Main {
         await this.execute(importer.get_import_list());
 
         // symlink the "static" folders to pub
-        Link.to_pub('assets');
+        Link.to_pub('gen/assets', 'assets');
         Link.to_pub('gen/js', 'js');
 
         const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
@@ -175,31 +186,36 @@ export class Main {
         if (themes) {
             themes.forEach((theme) => {
                 // copy the files from the theme to the project
-                ['assets'].forEach((part) => {
+                ['assets', 'routes'].forEach((part) => {
                     if (fs.existsSync(join(theme.path, part))) {
-                        fs.copySync(join(theme.path, part), part);
+                        fs.copySync(join(theme.path, part), join(this.cwd, 'gen', part));
                     }
                 });
             });
+        }
+        const assets = Config.get('assets');
+        if(assets) {
+            assets.forEach((entry)=>{
+                if(entry.src && fs.existsSync(entry.src)) {
+                    fs.copySync(entry.src, join(this.cwd, 'gen/assets', entry.target))
+                }
+            })
         }
     }
     async collect() {
         const themes = Config.get('themes');
         if (themes) {
+            Dir.create('gen/raw');
             themes.forEach((theme) => {
-                // copy the files from the theme to the project
+                // copy the files from the theme to the project gen/src
                 ['src'].forEach((part) => {
                     if (fs.existsSync(join(theme.path, part))) {
-                        fs.copySync(join(theme.path, part), part);
+                        fs.copySync(join(theme.path, part), join(this.cwd, 'gen/raw'));
                     }
                 });
             });
         }
-        if (!fs.existsSync('src')) {
-            Logger.error('missing folder', 'src');
-            return null;
-        }
-        fs.copySync('src', 'gen/src');
+        fs.copySync('gen/raw', 'gen/src');
         const svelte_files = Client.collect_svelte_files('gen/src');
         // replace global data in the svelte files
         svelte_files.map((file) => {
@@ -210,6 +226,7 @@ export class Main {
         });
         // search for hydrateable files
         const hydrateable_files = Client.get_hydrateable_svelte_files(svelte_files);
+
         // copy the hydrateable files into the gen/client folder
         fs.mkdirSync('gen/client', { recursive: true });
         hydrateable_files.map((file) => {
@@ -313,27 +330,43 @@ export class Main {
         return false;
     }
 
-    generate(data: { key: number; value: any }) {
+    generate(data, ignore_global: boolean = false, default_values: any = null) {
+        
         // enhance the data from the pages
-        data.value = Generate.enhance_data(data.value);
-        // extract navigation data
-        const nav_result = data.value._wyvr.nav;
-        if (nav_result) {
-            if (!this.global_data.nav) {
-                this.global_data.nav = {};
-            }
-            if (!this.global_data.nav.all) {
-                this.global_data.nav.all = [];
-            }
-
-            if (nav_result.scope) {
-                if (!this.global_data.nav[nav_result.scope]) {
-                    this.global_data.nav[nav_result.scope] = [];
+        data = Generate.enhance_data(data);
+        // set default values when the key is not available in the given data
+        if(default_values) {
+            Object.keys(default_values).forEach((key)=>{
+                if(!data[key]) {
+                    data[key] = default_values[key];
                 }
-                this.global_data.nav[nav_result.scope].push(nav_result);
-            }
-            this.global_data.nav.all.push(nav_result);
+            })
         }
+        if (ignore_global) {
+            return data;
+        }
+        // extract navigation data
+        const nav_result = data._wyvr.nav;
+
+        if (!this.global_data.nav) {
+            this.global_data.nav = {};
+        }
+        if (!this.global_data.nav.all) {
+            this.global_data.nav.all = [];
+        }
+
+        if (!nav_result) {
+            return data;
+        }
+
+        if (nav_result.scope) {
+            if (!this.global_data.nav[nav_result.scope]) {
+                this.global_data.nav[nav_result.scope] = [];
+            }
+            this.global_data.nav[nav_result.scope].push(nav_result);
+        }
+        this.global_data.nav.all.push(nav_result);
+
         return data;
     }
 
@@ -372,7 +405,7 @@ export class Main {
                 }
             )
             .on('all', (event, path) => {
-                if (path.indexOf('/.git/') > -1) {
+                if (path.indexOf('/.git/') > -1 || event == 'addDir' || event == 'unlinkDir') {
                     return;
                 }
                 const theme = themes.find((t) => path.indexOf(t.path) > -1);
@@ -383,16 +416,21 @@ export class Main {
                 } else {
                     Logger.warning('detect', `${event}@${Logger.color.dim(path)}`, 'from unknown theme');
                 }
+                // check if the file is empty >= ignore it for now
+                if(event != 'unlink' && fs.readFileSync(path, { encoding: 'utf-8' }).trim() == '') {
+                    Logger.warning('the file is empty, empty files are ignored');
+                    return;
+                }
                 this.changed_files.push({ event, path, rel_path });
                 // avoid that 2 commands get sent
                 if (this.is_executing == true) {
-                    Logger.warning('currently running, try again after current execution')
+                    Logger.warning('currently running, try again after current execution');
                     return;
                 }
                 if (debounce) {
                     clearTimeout(debounce);
                 }
-                setTimeout(async () => {
+                debounce = setTimeout(async () => {
                     const hr_start = process.hrtime();
                     const files = this.changed_files.filter((f) => f);
                     // reset the files
@@ -401,24 +439,49 @@ export class Main {
                     bs.reload();
                     const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
                     Logger.success('watch execution time', timeInMs, 'ms');
-                }, 250);
+                }, 500);
             });
         Logger.info('watching', themes.length, 'themes');
+    }
+
+    async routes(file_list: any[], enhance_data: boolean = true) {
+        const routes = Routes.collect_routes();
+        if (!routes || routes.length == 0) {
+            return file_list;
+        }
+        const routes_result = await Routes.execute_routes(routes);
+        let default_values = null;
+        if(routes_result && routes_result.length > 0) {
+            default_values = Config.get('default_values');
+        }
+        const routes_urls = Routes.write_routes(routes_result, (data: any) => {
+            return this.generate(data, !enhance_data, default_values);
+        });
+        Logger.present('datasets from routes', routes_urls.length);
+        Routes.remove_routes_from_cache();
+        return [].concat(file_list, routes_urls);
     }
 
     async execute(file_list: any[], changed_files: { event: string; path: string; rel_path: string }[] = []) {
         this.is_executing = true;
 
-        const only_static = changed_files.length > 0 && changed_files.every((file) => file.rel_path.match(/^assets\//));
-        
+        const is_regenerating = changed_files.length > 0;
+
+        const only_static = is_regenerating && changed_files.every((file) => file.rel_path.match(/^assets\//));
+
         this.perf.start('static');
         this.copy_static_files();
         this.perf.end('static');
-        
+
         if (only_static) {
             this.is_executing = false;
             return;
         }
+        // Process files in workers
+        this.perf.start('routes');
+        const route_file_list = await this.routes(file_list, !is_regenerating);
+        this.perf.end('routes');
+
         // Process files in workers
         this.perf.start('collect');
         const collected_files = await this.collect();
@@ -426,23 +489,25 @@ export class Main {
         if (!collected_files) {
             this.fail();
         }
-        const only_build = changed_files.length > 0 && changed_files.every((file) => {
-            if(!file.rel_path.match(/^src\//)) {
-                return false;
-            }
-            const client_file = collected_files.client.find((c_file)=>c_file.path.indexOf(File.to_extension(file.rel_path, 'svelte')) > -1)
-            if(client_file) {
-                return false;
-            }
-            return true;
-        });
+        const only_build =
+            is_regenerating &&
+            changed_files.every((file) => {
+                if (!file.rel_path.match(/^src\//)) {
+                    return false;
+                }
+                const client_file = collected_files.client.find((c_file) => c_file.path.indexOf(File.to_extension(file.rel_path, 'svelte')) > -1);
+                if (client_file) {
+                    return false;
+                }
+                return true;
+            });
 
         // Process files in workers
         this.perf.start('build');
-        const build_pages = await this.build(file_list);
+        const build_pages = await this.build(route_file_list);
         this.perf.end('build');
 
-        if(!only_build) {
+        if (!only_build) {
             this.perf.start('scripts');
             const build_scripts = await this.scripts();
             this.perf.end('scripts');

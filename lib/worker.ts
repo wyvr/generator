@@ -129,7 +129,7 @@ export class Worker {
                 case WorkerAction.status:
                     WorkerHelper.log(LogType.debug, 'setting status from outside is not allowed');
                     break;
-                    case WorkerAction.cleanup:
+                case WorkerAction.cleanup:
                     WorkerHelper.log(LogType.debug, 'cleanup worker');
                     Build.remove_svelte_files_from_cache();
                     break;

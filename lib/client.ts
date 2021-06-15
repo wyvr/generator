@@ -142,6 +142,9 @@ export class Client {
                                 // ensure that extra attributes are added to head
                                 // elements for hydration (used with generate: 'ssr')
                                 hydratable: true,
+                                dev: Env.is_dev(),
+                                cssHash: Client.css_hash
+
                             },
                         }),
                         node_resolve({ browser: true }),
@@ -150,7 +153,7 @@ export class Client {
                     ],
                 };
                 // compress the output
-                if(Env.is_prod()) {
+                if (Env.is_prod()) {
                     input_options.plugins.push(terser());
                 }
                 const output_options: any = {
@@ -416,5 +419,8 @@ export class Client {
             content = `<script>${combined_js}${js_content}</script>${js_result.content}`;
         }
         return content;
+    }
+    static css_hash({ hash, css, name, filename }) {
+        return `wyvr-${hash(css)}`;
     }
 }

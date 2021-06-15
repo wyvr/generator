@@ -10,4 +10,8 @@ export class Dir {
     static delete(dir_name) {
         fs.removeSync(dir_name);
     }
+    static clear(dir_name) {
+        this.delete(dir_name)
+        this.create(dir_name)
+    }
 }

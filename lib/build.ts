@@ -4,6 +4,12 @@ import register from 'svelte/register';
 import { Env } from './env';
 
 register();
+// onServer Server implementation
+(<any>global).onServer = (callback: Function) => {
+    if(callback && typeof callback == 'function') {
+        callback();
+    }
+}
 export class Build {
     static preprocess(content: string) {
         return preprocess(content, null, { filename: 'test' });

@@ -62,6 +62,9 @@ export class Client {
                 fs.writeFileSync(
                     input_file,
                     `
+                // onServer Client implementation
+                // set as string literal to avoid that terser mangled the name
+                window['onServer'] = () => {};
                 const wyvr_hydrate = (elements, cls) => {
                     if(!elements) {
                         return null;

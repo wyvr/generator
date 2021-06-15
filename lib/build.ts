@@ -6,9 +6,9 @@ import { Env } from './env';
 
 register();
 // onServer Server implementation
-(<any>global).onServer = (callback: Function) => {
+(<any>global).onServer = async (callback: Function) => {
     if(callback && typeof callback == 'function') {
-        callback();
+        await callback();
     }
 }
 export class Build {

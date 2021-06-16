@@ -56,6 +56,20 @@ export class Main {
         Dir.clear('gen');
         Dir.create('pub');
 
+
+        this.worker_controller = new WorkerController(this.global_data);
+        this.worker_amount = this.worker_controller.get_worker_amount();
+        Logger.present('workers', this.worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));
+        const workers = this.worker_controller.create_workers(this.worker_amount);
+        this.worker_controller.on_entrypoint((data: any) => {
+            this.entrypoints[data.entrypoint] = {
+                name: data.entrypoint,
+                doc: data.doc,
+                layout: data.layout,
+                page: data.page,
+            };
+        });
+
         // collect configured themes
         this.perf.start('themes');
         const themes = await this.themes();
@@ -104,19 +118,6 @@ export class Main {
         } else {
             Logger.warning('import main file does not exist', import_main_path);
         }
-
-        this.worker_controller = new WorkerController(this.global_data);
-        this.worker_amount = this.worker_controller.get_worker_amount();
-        Logger.present('workers', this.worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));
-        const workers = this.worker_controller.create_workers(this.worker_amount);
-        this.worker_controller.on_entrypoint((data: any) => {
-            this.entrypoints[data.entrypoint] = {
-                name: data.entrypoint,
-                doc: data.doc,
-                layout: data.layout,
-                page: data.page,
-            };
-        });
 
         // execute
         await this.execute(importer.get_import_list());
@@ -277,7 +278,7 @@ export class Main {
 
         // add the items from the list to the queue in batches for better load balancing
         const amount = list.length;
-        const batch_size = 10;
+        const batch_size = 100;
 
         let runs = Math.ceil(amount / batch_size);
         Logger.info('build runs', runs);

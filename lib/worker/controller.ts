@@ -99,7 +99,7 @@ export class WorkerController {
                     return;
                 }
                 worker.status = data;
-                Logger.present(`status`, WorkerStatus[data], Logger.color.dim(`PID ${msg.pid}`));
+                Logger.debug(`status`, WorkerStatus[data], Logger.color.dim(`PID ${msg.pid}`));
                 break;
             case WorkerAction.log:
                 if (data && data.type && LogType[data.type] && Logger[LogType[data.type]]) {

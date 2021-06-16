@@ -1,17 +1,17 @@
-import { Config } from "./config";
-import { Logger } from "./logger";
+import { Config } from './config';
+import { Logger } from './logger';
 import chokidar from 'chokidar';
 import fs from 'fs';
+import { join } from 'path';
 import { hrtime_to_ms } from '@lib/converter/time';
-
 
 export class Watch {
     changed_files: any[] = [];
     is_executing: boolean = false;
 
     constructor(private callback: Function = null) {
-        if(!callback || typeof callback != 'function') {
-            Logger.warning('can not start watching because no callback is defined')
+        if (!callback || typeof callback != 'function') {
+            Logger.warning('can not start watching because no callback is defined');
             return;
         }
         this.init();
@@ -19,7 +19,7 @@ export class Watch {
     private init() {
         const themes = Config.get('themes');
         if (!themes || !Array.isArray(themes) || themes.length == 0) {
-            throw 'no themes to watch'
+            throw 'no themes to watch';
         }
 
         // start reloader
@@ -47,10 +47,35 @@ export class Watch {
                 if (path.indexOf('/.git/') > -1 || path.indexOf('wyvr.js') > -1 || event == 'addDir' || event == 'unlinkDir') {
                     return;
                 }
-                const theme = themes.find((t) => path.indexOf(t.path) > -1);
+                // find the theme of the changed file
+                let theme_index = -1;
+                const theme = themes.find((t) => {
+                    const cur_theme_index = path.indexOf(t.path);
+                    if (cur_theme_index > -1) {
+                        theme_index = cur_theme_index;
+                        return true;
+                    }
+                    return false;
+                });
                 let rel_path = path;
                 if (theme) {
                     rel_path = path.replace(theme.path + '/', '');
+                    // check if the changed file gets overwritten in another theme
+                    if (event != 'unlink' && theme_index > -1 && theme_index < themes.length - 1) {
+                        for (let i = theme_index + 1; i < themes.length; i++) {
+                            const theme_path = join(themes[i].path, rel_path);
+                            if (fs.existsSync(theme_path)) {
+                                Logger.warning(
+                                    'ignore',
+                                    `${event}@${Logger.color.dim(path)}`,
+                                    'because it gets overwritten by theme',
+                                    Logger.color.bold(themes[i].name),
+                                    Logger.color.dim(theme_path)
+                                );
+                                return;
+                            }
+                        }
+                    }
                     Logger.info('detect', `${event} ${theme.name}@${Logger.color.dim(rel_path)}`);
                 } else {
                     Logger.warning('detect', `${event}@${Logger.color.dim(path)}`, 'from unknown theme');

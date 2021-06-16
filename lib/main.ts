@@ -25,6 +25,7 @@ import { dirname, join } from 'path';
 import chokidar from 'chokidar';
 import { hrtime_to_ms } from '@lib/converter/time';
 import { Routes } from '@lib/routes';
+import { Watch } from './watch';
 
 export class Main {
     queue: Queue = null;
@@ -33,7 +34,6 @@ export class Main {
     worker_amount: number;
     global_data: any = null;
     entrypoints: any = {};
-    changed_files: any[] = [];
     is_executing: boolean = false;
     cwd = process.cwd();
     constructor() {
@@ -136,7 +136,15 @@ export class Main {
             process.exit(0);
             return;
         }
-        this.watch(importer.get_import_list());
+        // watch for file changes
+        try {
+            const watch = new Watch(async (changed_files: any[]) => {
+                await this.execute(importer.get_import_list(), changed_files);
+            });
+        } catch (e) {
+            Logger.warning(e);
+            this.fail();
+        }
     }
     async themes() {
         const themes = Config.get('themes');
@@ -387,75 +395,6 @@ export class Main {
     fail() {
         Logger.error('failed');
         process.exit(1);
-    }
-
-    watch(file_list: any[]) {
-        const themes = Config.get('themes');
-        if (!themes || !Array.isArray(themes) || themes.length == 0) {
-            Logger.warning('no themes to watch');
-            this.fail();
-            return;
-        }
-
-        // start reloader
-        const bs = require('browser-sync').create();
-        bs.init(
-            {
-                proxy: Config.get('url'),
-                ghostMode: false,
-                open: false,
-            },
-            function () {
-                Logger.info('sync is ready');
-            }
-        );
-        // watch for file changes
-        let debounce = null;
-        chokidar
-            .watch(
-                themes.map((theme) => theme.path),
-                {
-                    ignoreInitial: true,
-                }
-            )
-            .on('all', (event, path) => {
-                if (path.indexOf('/.git/') > -1 || path.indexOf('wyvr.js') > -1 || event == 'addDir' || event == 'unlinkDir') {
-                    return;
-                }
-                const theme = themes.find((t) => path.indexOf(t.path) > -1);
-                let rel_path = path;
-                if (theme) {
-                    rel_path = path.replace(theme.path + '/', '');
-                    Logger.info('detect', `${event} ${theme.name}@${Logger.color.dim(rel_path)}`);
-                } else {
-                    Logger.warning('detect', `${event}@${Logger.color.dim(path)}`, 'from unknown theme');
-                }
-                // check if the file is empty >= ignore it for now
-                if (event != 'unlink' && fs.readFileSync(path, { encoding: 'utf-8' }).trim() == '') {
-                    Logger.warning('the file is empty, empty files are ignored');
-                    return;
-                }
-                this.changed_files.push({ event, path, rel_path });
-                // avoid that 2 commands get sent
-                if (this.is_executing == true) {
-                    Logger.warning('currently running, try again after current execution');
-                    return;
-                }
-                if (debounce) {
-                    clearTimeout(debounce);
-                }
-                debounce = setTimeout(async () => {
-                    const hr_start = process.hrtime();
-                    const files = this.changed_files.filter((f) => f);
-                    // reset the files
-                    this.changed_files.length = 0;
-                    await this.execute(file_list, files);
-                    bs.reload();
-                    const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
-                    Logger.success('watch execution time', timeInMs, 'ms');
-                }, 500);
-            });
-        Logger.info('watching', themes.length, 'themes');
     }
 
     async routes(file_list: any[], enhance_data: boolean = true) {

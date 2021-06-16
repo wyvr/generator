@@ -56,7 +56,6 @@ export class Main {
         Dir.clear('gen');
         Dir.create('pub');
 
-
         this.worker_controller = new WorkerController(this.global_data);
         this.worker_amount = this.worker_controller.get_worker_amount();
         Logger.present('workers', this.worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));
@@ -130,7 +129,7 @@ export class Main {
         fs.writeFileSync('gen/config.json', JSON.stringify(Config.get(), null, 4));
 
         const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
-        Logger.success('initial execution time', timeInMs, 'ms');
+        Logger.stop('initial total', timeInMs);
 
         if (Env.is_prod()) {
             Logger.success('shutdown');

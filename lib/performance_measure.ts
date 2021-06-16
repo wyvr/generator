@@ -1,9 +1,13 @@
 import { Logger } from '@lib/logger';
 import { hrtime_to_ms } from '@lib/converter/time';
+import ora from 'ora';
+import { Env } from './env';
 
 export class Performance_Measure implements IPerformance_Measure {
+    spinner = null;
     entries: Performance_Measure_Entry[] = [];
     start(name: string) {
+        Logger.start(name);
         this.entries.push(new Performance_Measure_Entry(name));
     }
     end(name: string) {
@@ -23,7 +27,7 @@ export class Performance_Measure implements IPerformance_Measure {
         if (entry) {
             var hrtime = process.hrtime(entry.hrtime); // hr_end[0] is in seconds, hr_end[1] is in nanoseconds
             const timeInMs = hrtime_to_ms(hrtime);
-            Logger.log(Logger.color.yellow('#'), Logger.color.yellow(entry.name), Logger.color.yellow(timeInMs.toString()), 'ms');
+            Logger.stop(entry.name, timeInMs);
         }
     }
 }

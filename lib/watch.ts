@@ -102,7 +102,7 @@ export class Watch {
                     await this.callback(files);
                     bs.reload();
                     const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
-                    Logger.success('watch execution time', timeInMs, 'ms');
+                    Logger.stop('watch total', timeInMs);
                 }, 500);
             });
         Logger.info('watching', themes.length, 'themes');

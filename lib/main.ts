@@ -51,12 +51,16 @@ export class Main {
         Logger.present('build', uniq_id);
         Logger.present('env', EnvModel[Env.get()]);
 
-        const project_config = Config.get();
-
         this.perf = Config.get('import.measure_performance') ? new Performance_Measure() : new Performance_Measure_Blank();
 
         Dir.clear('gen');
         Dir.create('pub');
+
+        // collect configured themes
+        this.perf.start('themes');
+        const themes = await this.themes();
+        this.perf.end('themes');
+        Logger.debug('project_config', JSON.stringify(Config.get(), null, 4));
 
         // import the data source
         let datasets_total = null;
@@ -114,18 +118,15 @@ export class Main {
             };
         });
 
-        // collect configured themes
-        this.perf.start('themes');
-        const themes = await this.themes();
-        this.perf.end('themes');
-        Logger.debug('project_config', JSON.stringify(Config.get(), null, 4));
-
         // execute
         await this.execute(importer.get_import_list());
 
         // symlink the "static" folders to pub
         Link.to_pub('gen/assets', 'assets');
         Link.to_pub('gen/js', 'js');
+
+        // save config fo debugging
+        fs.writeFileSync('gen/config.json', JSON.stringify(Config.get(), null, 4));
 
         const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
         Logger.success('initial execution time', timeInMs, 'ms');
@@ -142,12 +143,18 @@ export class Main {
         const disabled_themes = [];
         const available_themes = [];
         if (themes && Array.isArray(themes)) {
+            let config: any = {};
             // reset the config
             Config.set({ themes: null });
             themes.forEach((theme, index) => {
                 // set default name for the config
                 if (!theme.name) {
                     theme.name = '#' + index;
+                }
+                // load the theme config
+                const theme_config = Config.load_from_path(theme.path);
+                if (theme_config) {
+                    config = Config.merge(config, theme_config);
                 }
                 if (fs.existsSync(theme.path)) {
                     available_themes.push(theme);
@@ -156,8 +163,11 @@ export class Main {
 
                 disabled_themes.push(theme);
             });
+            // update config, but keep the main config values
+            Config.replace(Config.merge(config, Config.get()));
+            // update the themes in the config
             const new_config = { themes: available_themes };
-            Logger.debug('update config', JSON.stringify(new_config));
+            Logger.debug('update themes', JSON.stringify(new_config));
             Config.set(new_config);
         }
         Logger.present(
@@ -197,7 +207,11 @@ export class Main {
         if (assets) {
             assets.forEach((entry) => {
                 if (entry.src && fs.existsSync(entry.src)) {
-                    fs.copySync(entry.src, join(this.cwd, 'gen/assets', entry.target));
+                    const target = join(this.cwd, 'gen/assets', entry.target);
+                    Logger.debug('copy asset from', entry.src, 'to', target);
+                    fs.copySync(entry.src, target);
+                } else {
+                    Logger.warning('can not copy asset', entry.src, 'empty or not existing');
                 }
             });
         }
@@ -208,10 +222,6 @@ export class Main {
             let config = {};
             Dir.create('gen/raw');
             themes.forEach((theme) => {
-                const theme_config = Config.load_from_path(theme.path);
-                if (theme_config) {
-                    config = Config.merge(config, theme_config);
-                }
                 // copy the files from the theme to the project gen/src
                 ['src'].forEach((part) => {
                     if (fs.existsSync(join(theme.path, part))) {
@@ -219,10 +229,7 @@ export class Main {
                     }
                 });
             });
-            // update config, but keep the main config values
-            Config.replace(Config.merge(config, Config.get()));
         }
-        fs.writeFileSync('gen/config.json', JSON.stringify(Config.get(), null, 4));
         fs.copySync('gen/raw', 'gen/src');
         const svelte_files = Client.collect_svelte_files('gen/src');
         // replace global data in the svelte files

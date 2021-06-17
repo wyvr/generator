@@ -69,6 +69,8 @@ export class Main {
             };
         });
 
+        Logger.stop('config', hrtime_to_ms(process.hrtime(hr_start)));
+
         // collect configured themes
         this.perf.start('themes');
         const themes = await this.themes();
@@ -280,7 +282,7 @@ export class Main {
         const batch_size = 100;
 
         let runs = Math.ceil(amount / batch_size);
-        Logger.info('build runs', runs);
+        Logger.debug('build runs', runs);
 
         for (let i = 0; i < runs; i++) {
             const queue_data = {
@@ -303,7 +305,7 @@ export class Main {
         fs.mkdirSync('gen/js', { recursive: true });
         const keys = Object.keys(this.entrypoints);
         const amount = keys.length;
-        Logger.info('build scripts', amount);
+        Logger.info('scripts amount', amount);
         // create new queue
         this.queue = new Queue();
 
@@ -311,7 +313,7 @@ export class Main {
         const batch_size = 10;
 
         let runs = Math.ceil(amount / batch_size);
-        Logger.info('build runs', runs);
+        Logger.debug('script runs', runs);
 
         for (let i = 0; i < runs; i++) {
             const queue_data = {
@@ -410,7 +412,7 @@ export class Main {
         const routes_urls = Routes.write_routes(routes_result, (data: any) => {
             return this.generate(data, !enhance_data, default_values);
         });
-        Logger.present('datasets from routes', routes_urls.length);
+        Logger.info('routes amount', routes_urls.length);
         Routes.remove_routes_from_cache();
         return [].concat(file_list, routes_urls);
     }

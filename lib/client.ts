@@ -140,8 +140,7 @@ export class Client {
                                 // elements for hydration (used with generate: 'ssr')
                                 hydratable: true,
                                 dev: Env.is_dev(),
-                                cssHash: Client.css_hash
-
+                                cssHash: Client.css_hash,
                             },
                         }),
                         node_resolve({ browser: true }),
@@ -210,38 +209,48 @@ export class Client {
         return svelte_files
             .map((file) => {
                 const content = fs.readFileSync(file.path, { encoding: 'utf-8' });
-                const match = content.match(/wyvr:\s+(\{[^}]+\})/);
-                if (match) {
-                    let config: WyvrFileConfig = null;
-                    try {
-                        config = new WyvrFileConfig();
-                        match[1].split('\n').forEach((row) => {
-                            const cfg_string = row.match(/(\w+): '(\w+)'/);
-                            if (cfg_string) {
-                                config[cfg_string[1]] = cfg_string[2];
-                                return;
-                            }
-                            const cfg_bool = row.match(/(\w+): (true|false)/);
-                            if (cfg_bool) {
-                                config[cfg_bool[1]] = cfg_bool[2] === 'true';
-                                return;
-                            }
-                            const cfg_number = row.match(/(\w+): (\d+)/);
-                            if (cfg_number) {
-                                config[cfg_number[1]] = parseFloat(cfg_number[2]);
-                                return;
-                            }
-                        });
-                    } catch (e) {
-                        // add error object
-                        config.error = e;
-                    }
+                const config = this.parse_wyvr_config(content);
+                if(config) {
                     file.config = config;
                     return file;
                 }
                 return null;
             })
             .filter((x) => x);
+    }
+    static parse_wyvr_config(content: string): WyvrFileConfig {
+        let config: WyvrFileConfig = null;
+        if (!content) {
+            return config;
+        }
+        const match = content.match(/wyvr:\s+(\{[^}]+\})/);
+        if (match) {
+            try {
+                config = new WyvrFileConfig();
+                match[1].split('\n').forEach((row) => {
+                    const cfg_string = row.match(/(\w+): '(\w+)'/);
+                    if (cfg_string) {
+                        config[cfg_string[1]] = cfg_string[2];
+                        return;
+                    }
+                    const cfg_bool = row.match(/(\w+): (true|false)/);
+                    if (cfg_bool) {
+                        config[cfg_bool[1]] = cfg_bool[2] === 'true';
+                        return;
+                    }
+                    const cfg_number = row.match(/(\w+): (\d+)/);
+                    if (cfg_number) {
+                        config[cfg_number[1]] = parseFloat(cfg_number[2]);
+                        return;
+                    }
+                });
+            } catch (e) {
+                // add error object
+                config.error = e;
+            }
+        }
+
+        return config;
     }
     static transform_hydrateable_svelte_files(files: WyvrFile[]) {
         //HydrateFileEntry[]) {
@@ -384,35 +393,34 @@ export class Client {
     static remove_on_server(content: string) {
         const search_string = 'onServer(';
         let start_index = content.indexOf(search_string);
-        if( start_index == -1) {
+        if (start_index == -1) {
             return content;
         }
         let index = start_index + search_string.length;
         let open_brackets = 1;
         let found_closing = false;
         const length = content.length;
-        while(index < length && open_brackets > 0) {
+        while (index < length && open_brackets > 0) {
             const char = content[index];
-            switch(char) {
+            switch (char) {
                 case '(':
                     open_brackets++;
                     break;
                 case ')':
                     open_brackets--;
-                    if(open_brackets == 0) {
+                    if (open_brackets == 0) {
                         found_closing = true;
                     }
                     break;
             }
             index++;
         }
-        if(found_closing) {
+        if (found_closing) {
             const replaced = content.substr(0, start_index) + content.substr(index);
             // check if more onServer handlers are used
             return this.remove_on_server(replaced);
         }
         return content;
-        
     }
     static replace_slots_client(content: string): string {
         const content_replaced = content.replace(/(<slot[^>/]*>.*?<\/slot>|<slot[^>]*\/>)/g, (_, slot) => {

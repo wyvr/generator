@@ -64,6 +64,43 @@ export class Generate {
 
         return data;
     }
+    static add_to_global(data: any, global: any) {
+        if(!global || !data) {
+            return global;
+        }
+        // extract navigation data
+        const nav_result = data._wyvr?.nav;
+
+        if (!nav_result) {
+            return global;
+        }
+        // ensure global data structure
+        if (!global.nav) {
+            global.nav = {};
+        }
+        if (!global.nav.all) {
+            global.nav.all = [];
+        }
+
+        if (nav_result.scope) {
+            if (!global.nav[nav_result.scope]) {
+                global.nav[nav_result.scope] = [];
+            }
+            global.nav[nav_result.scope].push(nav_result);
+        }
+        global.nav.all.push(nav_result);
+        return global;
+    }
+    static set_default_values(data: any, default_values: any) {
+        if (default_values) {
+            Object.keys(default_values).forEach((key) => {
+                if (!data[key]) {
+                    data[key] = default_values[key];
+                }
+            });
+        }
+        return data;
+    }
     static merge_property(prop_value: string | string[], default_value: string[]): string[] {
         if (typeof prop_value == 'string') {
             prop_value = [prop_value];

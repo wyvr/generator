@@ -8,6 +8,9 @@ import { join, dirname, resolve } from 'path';
 import * as fs from 'fs-extra';
 import { LogType } from './model/log';
 import { Client } from '@lib/client';
+import { Routes } from '@lib/routes';
+import { Config } from '@lib/config';
+import { Generate } from '@lib/generate';
 
 export class Worker {
     private config = null;
@@ -44,6 +47,46 @@ export class Worker {
                     }
                     WorkerHelper.send_status(WorkerStatus.idle);
                     break;
+                case WorkerAction.route:
+                    if(!value || !value.routes) {
+                        WorkerHelper.log(LogType.warning, 'missing routes', value);
+                        return;
+                    }
+                    WorkerHelper.send_status(WorkerStatus.busy);
+
+                    const list = [];
+                    const default_values = Config.get('default_values');
+                    const route_result = await Promise.all(
+                        value.routes.map(async (filename) => {
+                            console.log(filename)
+                            const route_result = await Routes.execute_route(filename);
+                            const route_url = Routes.write_route(route_result, (data: any) => {
+                                // enhance the data from the pages
+                                // set default values when the key is not available in the given data
+                                data = Generate.set_default_values(Generate.enhance_data(data), default_values);
+
+                                if (!value.add_to_global) {
+                                    return data;
+                                }
+                                const global_data = Generate.add_to_global(data, {});
+                                WorkerHelper.send_action(WorkerAction.emit, {
+                                    type: 'global',
+                                    data: global_data,
+                                });
+                                return data;
+                            });
+                            Routes.remove_routes_from_cache();
+                            list.push(filename);
+                            return filename;
+                        })
+                    );
+                    console.log(process.pid, list)
+                    WorkerHelper.send_action(WorkerAction.emit, {
+                        type: 'route',
+                        list,
+                    });
+                    WorkerHelper.send_status(WorkerStatus.idle);
+                    break;
                 case WorkerAction.build:
                     WorkerHelper.send_status(WorkerStatus.busy);
                     const build_result = await Promise.all(
@@ -70,36 +113,16 @@ export class Worker {
 
                             const page_code = Build.get_page_code(data, doc_file_name, layout_file_name, page_file_name);
                             const compiled = Build.compile(page_code);
-                            // const preprocess = await Build.preprocess(page_code);
-                            // console.log(JSON.stringify(compiled))
+
                             if (compiled.error) {
                                 // svelte error messages
                                 WorkerHelper.log(LogType.error, '[svelte]', filename, compiled);
                                 return;
                             }
                             const rendered = Build.render(compiled, data);
-                            // console.log(rendered);
 
-                            //const component = build.compile(filename);
-                            //console.log('component', component)
-                            // const rendered = build.render(component, { name: 'P@', details: true });
-                            // console.log('rendered');
-                            // console.log(rendered.result.html)
-                            // await bundle.build(filename)
-                            // const demo_file = `
-                            // <!doctype html>
-                            // <html>
-                            //     <head>
-                            //         <link href="/assets/global.css?${uniq_id}" rel="stylesheet" />
-                            //     </head>
-                            //     <body>
-                            //         ${rendered.result.html}
-                            //         <script src="/bundle.js?${uniq_id}"></script>
-                            //     </body>
-                            // </html>`;
-                            // fs.writeFileSync('./pub/index.html', demo_file);
                             const path = File.to_extension(filename.replace(join(this.cwd, 'imported', 'data'), 'pub'), 'html');
-                            // console.log(filename, path);
+
                             Dir.create(dirname(path));
                             fs.writeFileSync(path, rendered.result.html);
 

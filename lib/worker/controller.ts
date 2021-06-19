@@ -16,6 +16,7 @@ export class WorkerController {
     private listeners: any = {};
     private listener_auto_increment = 0;
     private on_entrypoint_callbacks: Function[] = [];
+    private on_route_callbacks: Function[] = [];
 
     constructor(private global_data: any) {
         Env.set(process.env.WYVR_ENV);
@@ -106,16 +107,20 @@ export class WorkerController {
                     // display svelte errors with better output
                     if (data.messages.length > 0 && data.messages[0] === '[svelte]') {
                         data.messages = data.messages.map((message: any, index: number) => {
-                            if(index == 0) {
+                            if (index == 0) {
                                 return Logger.color.dim(message);
                             }
                             // ssr errors
                             if (typeof message == 'object' && message.code == 'parse-error' && message.frame && message.start && message.name) {
-                                return `\n${message.name} ${Logger.color.dim('Line:')}${message.start.line}${Logger.color.dim(' Col:')}${message.start.column}\n${message.frame}`;
+                                return `\n${message.name} ${Logger.color.dim('Line:')}${message.start.line}${Logger.color.dim(' Col:')}${
+                                    message.start.column
+                                }\n${message.frame}`;
                             }
                             // rollup errors
                             if (typeof message == 'object' && message.code == 'PARSE_ERROR' && message.frame && message.loc) {
-                                return `\n${message.code} ${Logger.color.dim('in')} ${message.loc.file}\n${Logger.color.dim('Line:')}${message.loc.line}${Logger.color.dim(' Col:')}${message.loc.column}\n${message.frame}`;
+                                return `\n${message.code} ${Logger.color.dim('in')} ${message.loc.file}\n${Logger.color.dim('Line:')}${
+                                    message.loc.line
+                                }${Logger.color.dim(' Col:')}${message.loc.column}\n${message.frame}`;
                             }
                             return message;
                         });
@@ -124,10 +129,19 @@ export class WorkerController {
                 }
                 break;
             case WorkerAction.emit:
-                if(data.type && data.type == 'entrypoint') {
-                    this.on_entrypoint_callbacks.forEach((fn)=>{
+                if (data.type && data.type == 'entrypoint') {
+                    this.on_entrypoint_callbacks.forEach((fn) => {
                         fn(data);
-                    })
+                    });
+                }
+                if (data.type && data.type == 'route') {
+                    console.log('message route', data);
+                    this.on_route_callbacks.forEach((fn) => {
+                        fn(data);
+                    });
+                }
+                if (data.type && data.type == 'global') {
+                    console.log('message global', data);
                 }
                 break;
         }
@@ -190,11 +204,11 @@ export class WorkerController {
         this.listeners[status].push({ id, fn });
         this.listener_auto_increment++;
         // check if there are worker with the given status
-        this.workers.forEach((worker)=>{
-            if(worker.status == status) {
+        this.workers.forEach((worker) => {
+            if (worker.status == status) {
                 this.emit(worker.status, worker);
             }
-        })
+        });
         return id;
     }
     off(listener_id: number = null) {
@@ -222,9 +236,17 @@ export class WorkerController {
     on_entrypoint(fn: Function) {
         this.on_entrypoint_callbacks.push(fn);
     }
+    on_route(fn: Function) {
+        const len = this.on_route_callbacks.length;
+        this.on_route_callbacks.push(fn);
+        return len;
+    }
+    off_route(index: number) {
+        this.on_route_callbacks.slice(index, 1);
+    }
     cleanup() {
-        this.workers.forEach((worker)=>{
+        this.workers.forEach((worker) => {
             this.send_action(worker.pid, WorkerAction.cleanup, true);
-        })
+        });
     }
 }

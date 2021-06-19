@@ -3,8 +3,9 @@ export enum WorkerAction {
     status = 1 << 1,
     configure = 1 << 2,
     emit = 1 << 3,
-    generate = 1 << 4,
-    build = 1 << 5,
-    scripts = 1 << 6,
-    cleanup = 1 << 7,
+    route = 1 << 4,
+    generate = 1 << 5,
+    build = 1 << 6,
+    scripts = 1 << 7,
+    cleanup = 1 << 8,
 }

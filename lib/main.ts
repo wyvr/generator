@@ -357,40 +357,13 @@ export class Main {
 
     generate(data, ignore_global: boolean = false, default_values: any = null) {
         // enhance the data from the pages
-        data = Generate.enhance_data(data);
         // set default values when the key is not available in the given data
-        if (default_values) {
-            Object.keys(default_values).forEach((key) => {
-                if (!data[key]) {
-                    data[key] = default_values[key];
-                }
-            });
-        }
+        data = Generate.set_default_values(Generate.enhance_data(data), default_values);
+
         if (ignore_global) {
             return data;
         }
-        // extract navigation data
-        const nav_result = data._wyvr.nav;
-
-        if (!this.global_data.nav) {
-            this.global_data.nav = {};
-        }
-        if (!this.global_data.nav.all) {
-            this.global_data.nav.all = [];
-        }
-
-        if (!nav_result) {
-            return data;
-        }
-
-        if (nav_result.scope) {
-            if (!this.global_data.nav[nav_result.scope]) {
-                this.global_data.nav[nav_result.scope] = [];
-            }
-            this.global_data.nav[nav_result.scope].push(nav_result);
-        }
-        this.global_data.nav.all.push(nav_result);
-
+        this.global_data = Generate.add_to_global(data, this.global_data);
         return data;
     }
 
@@ -404,17 +377,62 @@ export class Main {
         if (!routes || routes.length == 0) {
             return file_list;
         }
-        const routes_result = await Routes.execute_routes(routes);
-        let default_values = null;
-        if (routes_result && routes_result.length > 0) {
-            default_values = Config.get('default_values');
+        Logger.info('route files', routes.length);
+
+        // create new queue
+        this.queue = new Queue();
+
+        // add the items from the list to the queue in batches for better load balancing
+        const amount = routes.length;
+        const batch_size = 1;
+
+        let runs = Math.ceil(amount / batch_size);
+        Logger.debug('route runs', runs);
+
+        for (let i = 0; i < runs; i++) {
+            const queue_data = {
+                action: WorkerAction.route,
+                data: {
+                    routes: routes.slice(i * batch_size, (i + 1) * batch_size),
+                    add_to_global: !enhance_data,
+                },
+            };
+            this.queue.push(queue_data);
         }
-        const routes_urls = Routes.write_routes(routes_result, (data: any) => {
-            return this.generate(data, !enhance_data, default_values);
+
+        const on_route_index = this.worker_controller.on_route((data) => {
+            if (data && data.list) {
+                console.log('found', data);
+            }
         });
-        Logger.info('routes amount', routes_urls.length);
+
+        const result = await new Promise((resolve, reject) => {
+            const listener_id = this.worker_controller.on(WorkerStatus.idle, () => {
+                if (this.tick(this.queue)) {
+                    this.worker_controller.off(listener_id);
+                    resolve(true);
+                }
+            });
+        });
+        this.worker_controller.off_route(on_route_index);
+
+        console.log(result);
+        // Logger.info('routes amount', routes_urls.length);
         Routes.remove_routes_from_cache();
-        return [].concat(file_list, routes_urls);
+        // return [].concat(file_list, routes_urls);
+        return file_list;
+
+        // const routes_result = await Routes.execute_routes(routes);
+        // let default_values = null;
+        // if (routes_result && routes_result.length > 0) {
+        //     default_values = Config.get('default_values');
+        // }
+        // const routes_urls = Routes.write_routes(routes_result, (data: any) => {
+        //     return this.generate(data, !enhance_data, default_values);
+        // });
+        // Logger.info('routes amount', routes_urls.length);
+        // Routes.remove_routes_from_cache();
+        // return [].concat(file_list, routes_urls);
     }
 
     async execute(file_list: any[], changed_files: { event: string; path: string; rel_path: string }[] = []) {
@@ -434,7 +452,7 @@ export class Main {
         }
         // Process files in workers
         this.perf.start('routes');
-        const route_file_list = await this.routes(file_list, !is_regenerating);
+        const merged_route_file_list = await this.routes(file_list, !is_regenerating);
         this.perf.end('routes');
 
         // Process files in workers
@@ -459,7 +477,7 @@ export class Main {
 
         // Process files in workers
         this.perf.start('build');
-        const build_pages = await this.build(route_file_list);
+        const build_pages = await this.build(merged_route_file_list);
         this.perf.end('build');
 
         if (!only_build) {

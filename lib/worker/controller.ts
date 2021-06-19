@@ -190,9 +190,9 @@ export class WorkerController {
                 global_data: this.global_data,
             });
         }
-        this.emit(worker.status, worker);
+        this.emit_status(worker.status, worker);
     }
-    on(status: WorkerStatus, fn: (worker: WorkerModel, status: WorkerStatus, listener_id: number) => void) {
+    on_status(status: WorkerStatus, fn: (worker: WorkerModel, status: WorkerStatus, listener_id: number) => void) {
         if (!this.listeners || status == null || fn == null) {
             return null;
         }
@@ -206,12 +206,12 @@ export class WorkerController {
         // check if there are worker with the given status
         this.workers.forEach((worker) => {
             if (worker.status == status) {
-                this.emit(worker.status, worker);
+                this.emit_status(worker.status, worker);
             }
         });
         return id;
     }
-    off(listener_id: number = null) {
+    off_status(listener_id: number = null) {
         if (!this.listeners || listener_id == null || listener_id < 0) {
             return null;
         }
@@ -219,7 +219,7 @@ export class WorkerController {
             this.listeners[listener_status] = this.listeners[listener_status].filter((listener) => listener.id != listener_id);
         });
     }
-    emit(status: WorkerStatus, worker: WorkerModel) {
+    emit_status(status: WorkerStatus, worker: WorkerModel) {
         if (status == null || worker == null) {
             return;
         }

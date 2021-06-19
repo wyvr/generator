@@ -293,9 +293,9 @@ export class Main {
         }
 
         return new Promise((resolve, reject) => {
-            const listener_id = this.worker_controller.on(WorkerStatus.idle, () => {
+            const listener_id = this.worker_controller.on_status(WorkerStatus.idle, () => {
                 if (this.tick(this.queue)) {
-                    this.worker_controller.off(listener_id);
+                    this.worker_controller.off_status(listener_id);
                     resolve(true);
                 }
             });
@@ -323,9 +323,9 @@ export class Main {
             this.queue.push(queue_data);
         }
         return new Promise((resolve, reject) => {
-            const listener_id = this.worker_controller.on(WorkerStatus.idle, () => {
+            const listener_id = this.worker_controller.on_status(WorkerStatus.idle, () => {
                 if (this.tick(this.queue)) {
-                    this.worker_controller.off(listener_id);
+                    this.worker_controller.off_status(listener_id);
                     resolve(true);
                 }
             });
@@ -407,9 +407,9 @@ export class Main {
         });
 
         const result = await new Promise((resolve, reject) => {
-            const listener_id = this.worker_controller.on(WorkerStatus.idle, () => {
+            const listener_id = this.worker_controller.on_status(WorkerStatus.idle, () => {
                 if (this.tick(this.queue)) {
-                    this.worker_controller.off(listener_id);
+                    this.worker_controller.off_status(listener_id);
                     resolve(true);
                 }
             });

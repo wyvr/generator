@@ -117,8 +117,6 @@ export class Main {
             if (!is_imported) {
                 this.global_data = await importer.get_global();
             }
-        } else {
-            Logger.warning('import main file does not exist', import_main_path);
         }
 
         // execute

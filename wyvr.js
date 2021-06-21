@@ -3,7 +3,6 @@ const pkg = require('./package.json');
 module.exports = {
     url: 'generator.wyvr',
     import: {
-        main: '../website/data/sample.json',
         global: '../website/data/global.json',
     },
     themes: [

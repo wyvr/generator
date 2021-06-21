@@ -108,7 +108,7 @@ export class Importer {
         } catch (e) {
             Logger.error('can not read', this.state_list_file, e);
         }
-        return null;
+        return [];
     }
     /**
      * Save the last import as state for next import

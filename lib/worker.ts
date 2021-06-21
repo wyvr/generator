@@ -48,24 +48,25 @@ export class Worker {
                     WorkerHelper.send_status(WorkerStatus.idle);
                     break;
                 case WorkerAction.route:
-                    if(!value || !value.routes) {
-                        WorkerHelper.log(LogType.warning, 'missing routes', value);
-                        return;
-                    }
+                    // if(!value || !value.routes) {
+                    //     WorkerHelper.log(LogType.warning, 'missing routes', value);
+                    //     return;
+                    // }
                     WorkerHelper.send_status(WorkerStatus.busy);
 
                     const list = [];
                     const default_values = Config.get('default_values');
                     const route_result = await Promise.all(
-                        value.routes.map(async (filename) => {
-                            console.log(filename)
+                        value.map(async (entry) => {
+                            const filename = entry.route;
+                            // console.log(process.pid, '?', filename)
                             const route_result = await Routes.execute_route(filename);
                             const route_url = Routes.write_route(route_result, (data: any) => {
                                 // enhance the data from the pages
                                 // set default values when the key is not available in the given data
                                 data = Generate.set_default_values(Generate.enhance_data(data), default_values);
 
-                                if (!value.add_to_global) {
+                                if (!entry.add_to_global) {
                                     return data;
                                 }
                                 const global_data = Generate.add_to_global(data, {});

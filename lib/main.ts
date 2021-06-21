@@ -60,7 +60,7 @@ export class Main {
         this.worker_amount = this.worker_controller.get_worker_amount();
         Logger.present('workers', this.worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));
         const workers = this.worker_controller.create_workers(this.worker_amount);
-        this.worker_controller.on_entrypoint((data: any) => {
+        this.worker_controller.events.on('emit', 'entrypoint', (data: any) => {
             this.entrypoints[data.entrypoint] = {
                 name: data.entrypoint,
                 doc: data.doc,
@@ -274,66 +274,21 @@ export class Main {
     async build(list: string[]): Promise<boolean> {
         fs.mkdirSync('gen/src', { recursive: true });
         Logger.info('build datasets', list.length);
-        // create new queue
-        this.queue = new Queue();
 
-        // add the items from the list to the queue in batches for better load balancing
-        const amount = list.length;
-        const batch_size = 100;
-
-        let runs = Math.ceil(amount / batch_size);
-        Logger.debug('build runs', runs);
-
-        for (let i = 0; i < runs; i++) {
-            const queue_data = {
-                action: WorkerAction.build,
-                data: list.slice(i * batch_size, (i + 1) * batch_size),
-            };
-            this.queue.push(queue_data);
-        }
-
-        return new Promise((resolve, reject) => {
-            const listener_id = this.worker_controller.on_status(WorkerStatus.idle, () => {
-                if (this.tick(this.queue)) {
-                    this.worker_controller.off_status(listener_id);
-                    resolve(true);
-                }
-            });
-        });
+        const result = await this.process_in_workers(WorkerAction.build, list, 100);
+        return result;
     }
     async scripts(): Promise<boolean> {
         fs.mkdirSync('gen/js', { recursive: true });
-        const keys = Object.keys(this.entrypoints);
-        const amount = keys.length;
-        Logger.info('scripts amount', amount);
-        // create new queue
-        this.queue = new Queue();
 
-        // add the items from the list to the queue in batches for better load balancing
-        const batch_size = 10;
-
-        let runs = Math.ceil(amount / batch_size);
-        Logger.debug('script runs', runs);
-
-        for (let i = 0; i < runs; i++) {
-            const queue_data = {
-                action: WorkerAction.scripts,
-                data: keys.slice(i * batch_size, (i + 1) * batch_size).map((key) => this.entrypoints[key]),
-            };
-            this.queue.push(queue_data);
-        }
-        return new Promise((resolve, reject) => {
-            const listener_id = this.worker_controller.on_status(WorkerStatus.idle, () => {
-                if (this.tick(this.queue)) {
-                    this.worker_controller.off_status(listener_id);
-                    resolve(true);
-                }
-            });
-        });
+        const list = Object.keys(this.entrypoints).map((key) => this.entrypoints[key]);
+        const result = await this.process_in_workers(WorkerAction.scripts, list, 1);
+        return result;
     }
     ticks: number = 0;
     tick(queue: Queue): boolean {
         const workers = this.worker_controller.get_idle_workers();
+        Logger.debug('tick', this.ticks, 'idle workers', workers.length, 'queue', queue.length);
         this.ticks++;
         if (workers.length == this.worker_amount && queue.length == 0) {
             return true;
@@ -377,46 +332,24 @@ export class Main {
         if (!routes || routes.length == 0) {
             return file_list;
         }
-        Logger.info('route files', routes.length);
 
-        // create new queue
-        this.queue = new Queue();
-
-        // add the items from the list to the queue in batches for better load balancing
-        const amount = routes.length;
-        const batch_size = 1;
-
-        let runs = Math.ceil(amount / batch_size);
-        Logger.debug('route runs', runs);
-
-        for (let i = 0; i < runs; i++) {
-            const queue_data = {
-                action: WorkerAction.route,
-                data: {
-                    routes: routes.slice(i * batch_size, (i + 1) * batch_size),
-                    add_to_global: !enhance_data,
-                },
-            };
-            this.queue.push(queue_data);
-        }
-
-        const on_route_index = this.worker_controller.on_route((data) => {
+        const on_route_index = this.worker_controller.events.on('emit', 'route', (data) => {
             if (data && data.list) {
                 console.log('found', data);
             }
         });
 
-        const result = await new Promise((resolve, reject) => {
-            const listener_id = this.worker_controller.on_status(WorkerStatus.idle, () => {
-                if (this.tick(this.queue)) {
-                    this.worker_controller.off_status(listener_id);
-                    resolve(true);
-                }
-            });
-        });
-        this.worker_controller.off_route(on_route_index);
+        const result = await this.process_in_workers(
+            WorkerAction.route,
+            routes.map((route_path) => ({
+                route: route_path,
+                add_to_global: !enhance_data,
+            })),
+            1
+        );
 
-        console.log(result);
+        this.worker_controller.events.off('emit', 'route', on_route_index);
+
         // Logger.info('routes amount', routes_urls.length);
         Routes.remove_routes_from_cache();
         // return [].concat(file_list, routes_urls);
@@ -488,5 +421,35 @@ export class Main {
 
         this.worker_controller.cleanup();
         this.is_executing = false;
+    }
+    async process_in_workers(action: WorkerAction, list: any[], batch_size: number = 10): Promise<boolean> {
+        const amount = list.length;
+        Logger.info('process', amount, 'items, batch size', Logger.color.cyan(batch_size.toString()));
+        // create new queue
+        this.queue = new Queue();
+
+        let iterations = Math.ceil(amount / batch_size);
+        Logger.debug('process iterations', iterations);
+
+        for (let i = 0; i < iterations; i++) {
+            const queue_data = {
+                action,
+                data: list.slice(i * batch_size, (i + 1) * batch_size),
+            };
+            this.queue.push(queue_data);
+        }
+        return new Promise((resolve, reject) => {
+            const idle = this.worker_controller.get_idle_workers();
+            const listener_id = this.worker_controller.events.on('worker_status', WorkerStatus.idle, () => {
+                if (this.tick(this.queue)) {
+                    this.worker_controller.events.off('worker_status', WorkerStatus.idle, listener_id);
+                    resolve(true);
+                }
+            });
+            // when all workers are idle, emit on first
+            if (idle.length > 0 && idle.length == this.worker_controller.get_worker_amount()) {
+                this.worker_controller.livecycle(idle[0]);
+            }
+        });
     }
 }

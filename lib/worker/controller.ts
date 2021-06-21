@@ -6,17 +6,20 @@ import { Logger } from '@lib/logger';
 import { Env } from '@lib/env';
 import { WorkerModel } from '@lib/model/worker/worker';
 import { File } from '@lib/file';
-import { LogType } from '../model/log';
+import { LogType } from '@lib/model/log';
+import { Events } from '@lib/events';
 
 export class WorkerController {
     private cwd = process.cwd();
     private workers: WorkerModel[] = [];
     private worker_ratio = Config.get('worker.ratio');
     private max_cores: number;
-    private listeners: any = {};
+    private listeners_status: any = {};
+    private listeners_emit: any = {};
     private listener_auto_increment = 0;
     private on_entrypoint_callbacks: Function[] = [];
     private on_route_callbacks: Function[] = [];
+    public events: Events = new Events();
 
     constructor(private global_data: any) {
         Env.set(process.env.WYVR_ENV);
@@ -129,19 +132,8 @@ export class WorkerController {
                 }
                 break;
             case WorkerAction.emit:
-                if (data.type && data.type == 'entrypoint') {
-                    this.on_entrypoint_callbacks.forEach((fn) => {
-                        fn(data);
-                    });
-                }
-                if (data.type && data.type == 'route') {
-                    console.log('message route', data);
-                    this.on_route_callbacks.forEach((fn) => {
-                        fn(data);
-                    });
-                }
-                if (data.type && data.type == 'global') {
-                    console.log('message global', data);
+                if (data.type && ['entrypoint', 'route', 'global'].indexOf(data.type) > -1 ) {
+                    this.events.emit('emit', data.type, data);
                 }
                 break;
         }
@@ -190,59 +182,7 @@ export class WorkerController {
                 global_data: this.global_data,
             });
         }
-        this.emit_status(worker.status, worker);
-    }
-    on_status(status: WorkerStatus, fn: (worker: WorkerModel, status: WorkerStatus, listener_id: number) => void) {
-        if (!this.listeners || status == null || fn == null) {
-            return null;
-        }
-        // create listener array for the status
-        if (!this.listeners[status]) {
-            this.listeners[status] = [];
-        }
-        const id = this.listener_auto_increment;
-        this.listeners[status].push({ id, fn });
-        this.listener_auto_increment++;
-        // check if there are worker with the given status
-        this.workers.forEach((worker) => {
-            if (worker.status == status) {
-                this.emit_status(worker.status, worker);
-            }
-        });
-        return id;
-    }
-    off_status(listener_id: number = null) {
-        if (!this.listeners || listener_id == null || listener_id < 0) {
-            return null;
-        }
-        Object.keys(this.listeners).forEach((listener_status) => {
-            this.listeners[listener_status] = this.listeners[listener_status].filter((listener) => listener.id != listener_id);
-        });
-    }
-    emit_status(status: WorkerStatus, worker: WorkerModel) {
-        if (status == null || worker == null) {
-            return;
-        }
-        if (!this.listeners[status]) {
-            return;
-        }
-        this.listeners[status].forEach((listener) => {
-            if (typeof listener.fn != 'function') {
-                return;
-            }
-            listener.fn(worker, status, listener.id);
-        });
-    }
-    on_entrypoint(fn: Function) {
-        this.on_entrypoint_callbacks.push(fn);
-    }
-    on_route(fn: Function) {
-        const len = this.on_route_callbacks.length;
-        this.on_route_callbacks.push(fn);
-        return len;
-    }
-    off_route(index: number) {
-        this.on_route_callbacks.slice(index, 1);
+        this.events.emit('worker_status', worker.status, worker);
     }
     cleanup() {
         this.workers.forEach((worker) => {

@@ -61,6 +61,9 @@ export class Routes {
     static async execute_route(route: string) {
         if (route.match(/\.js$/)) {
             const route_module = await require(route);
+            if (!Array.isArray(route_module)) {
+                return this.inject_source([route_module]);
+            }
             return this.inject_source(route_module);
         }
         // if (route.match(/\.svelte$/)) {
@@ -112,18 +115,23 @@ export class Routes {
             return entry;
         });
     }
-    static write_route(route_entry: any, hook_before_process: Function = null) {
-        if(!route_entry || !route_entry.url) {
+    static write_routes(route_entries: any[], hook_before_process: Function = null) {
+        if(!route_entries) {
             return null;
         }
-        const url = route_entry.url;
-        if (hook_before_process && typeof hook_before_process == 'function') {
-            route_entry = hook_before_process(route_entry);
-        }
-        const path = File.to_index(join(process.cwd(), 'imported/data', url), 'json');
-        fs.mkdirSync(dirname(path), { recursive: true });
-        fs.writeFileSync(path, JSON.stringify(route_entry));
-        return path;
+        return route_entries.map((route: any)=>{
+            if (!route || !route.url) {
+                return null;
+            }
+            const url = route.url;
+            if (hook_before_process && typeof hook_before_process == 'function') {
+                route = hook_before_process(route);
+            }
+            const path = File.to_index(join(process.cwd(), 'imported/data', url), 'json');
+            fs.mkdirSync(dirname(path), { recursive: true });
+            fs.writeFileSync(path, JSON.stringify(route));
+            return path;
+        })
     }
     static remove_routes_from_cache() {
         Object.keys(require.cache).forEach((cache_file) => {

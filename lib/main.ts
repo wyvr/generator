@@ -27,6 +27,7 @@ import { hrtime_to_ms } from '@lib/converter/time';
 import { Routes } from '@lib/routes';
 import { Watch } from '@lib/watch';
 import merge from 'deepmerge';
+// import { Dependency } from '@lib/dependency';
 
 export class Main {
     queue: Queue = null;
@@ -54,6 +55,9 @@ export class Main {
 
         this.perf = Config.get('import.measure_performance') ? new Performance_Measure() : new Performance_Measure_Blank();
 
+        // console.log(Dependency.build(join(this.cwd, 'gen', 'raw')));
+        // this.fail();
+        // return;
         Dir.clear('gen');
         Dir.create('pub');
 
@@ -231,7 +235,7 @@ export class Main {
             let config = {};
             Dir.create('gen/raw');
             themes.forEach((theme) => {
-                // copy the files from the theme to the project gen/src
+                // copy the files from the theme to the project gen/raw
                 ['src'].forEach((part) => {
                     if (fs.existsSync(join(theme.path, part))) {
                         fs.copySync(join(theme.path, part), join(this.cwd, 'gen/raw'));
@@ -381,13 +385,15 @@ export class Main {
 
         // get the route files
         this.perf.start('routes');
-        const merged_route_file_list = await this.routes(file_list, !is_regenerating);
+        await this.routes(file_list, !is_regenerating);
         this.perf.end('routes');
 
+        // read all imported files
+        const files = File.collect_files(join(this.cwd, 'imported', 'data'), 'json');
         
         // Process files in workers
         this.perf.start('build');
-        const build_pages = await this.build(merged_route_file_list);
+        const build_pages = await this.build(files);
         this.perf.end('build');
         
         // check if the execution should stop after the build

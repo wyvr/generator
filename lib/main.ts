@@ -286,6 +286,7 @@ export class Main {
         });
 
         const result = await this.process_in_workers(
+            'routes',
             WorkerAction.route,
             routes.map((route_path) => ({
                 route: route_path,
@@ -305,14 +306,14 @@ export class Main {
         fs.mkdirSync('gen/src', { recursive: true });
         Logger.info('build datasets', list.length);
 
-        const result = await this.process_in_workers(WorkerAction.build, list, 100);
+        const result = await this.process_in_workers('build', WorkerAction.build, list, 100);
         return result;
     }
     async scripts(): Promise<boolean> {
         fs.mkdirSync('gen/js', { recursive: true });
 
         const list = Object.keys(this.entrypoints).map((key) => this.entrypoints[key]);
-        const result = await this.process_in_workers(WorkerAction.scripts, list, 1);
+        const result = await this.process_in_workers('scripts', WorkerAction.scripts, list, 1);
         return result;
     }
     ticks: number = 0;
@@ -411,7 +412,7 @@ export class Main {
         this.worker_controller.cleanup();
         this.is_executing = false;
     }
-    async process_in_workers(action: WorkerAction, list: any[], batch_size: number = 10): Promise<boolean> {
+    async process_in_workers(name: string, action: WorkerAction, list: any[], batch_size: number = 10): Promise<boolean> {
         const amount = list.length;
         Logger.info('process', amount, 'items, batch size', Logger.color.cyan(batch_size.toString()));
         // create new queue
@@ -427,9 +428,12 @@ export class Main {
             };
             this.queue.push(queue_data);
         }
+        const size = this.queue.length;
         return new Promise((resolve, reject) => {
             const idle = this.worker_controller.get_idle_workers();
             const listener_id = this.worker_controller.events.on('worker_status', WorkerStatus.idle, () => {
+                const done = size - this.queue.length;
+                Logger.text(name, Logger.color.dim('...'), `${Math.round((100 / size) * done)}%`, Logger.color.dim(`${done}/${size}`));
                 if (this.tick(this.queue)) {
                     this.worker_controller.events.off('worker_status', WorkerStatus.idle, listener_id);
                     resolve(true);

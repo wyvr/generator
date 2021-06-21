@@ -23,7 +23,7 @@ export class Client {
 
                 const content = hydrate_files
                     .map((file) => {
-                        const import_path = join(cwd, file.path); //.replace(/^gen\/client/, '@src');
+                        const import_path = join(cwd, file.path);
                         const var_name = file.name.toLowerCase().replace(/\s/g, '_');
                         if (file.config?.loading == WyvrFileLoading.lazy) {
                             // const lazy_input_path = join(client_root, `${file.name}.js`);

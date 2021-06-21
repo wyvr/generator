@@ -48,10 +48,6 @@ export class Worker {
                     WorkerHelper.send_status(WorkerStatus.idle);
                     break;
                 case WorkerAction.route:
-                    // if(!value || !value.routes) {
-                    //     WorkerHelper.log(LogType.warning, 'missing routes', value);
-                    //     return;
-                    // }
                     WorkerHelper.send_status(WorkerStatus.busy);
 
                     const list = [];

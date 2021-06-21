@@ -100,6 +100,9 @@ export class Importer {
         if (this.list && this.list.length > 0) {
             return this.list;
         }
+        if(!fs.existsSync(this.state_list_file)) {
+            return [];
+        }
         // try to load the list from state
         const content = fs.readFileSync(this.state_list_file, { encoding: 'utf-8' });
         try {

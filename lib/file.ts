@@ -85,7 +85,7 @@ export class File {
         return data;
     }
     static find_file(in_dir: string, possible_files: string[]) {
-        if(!possible_files || !Array.isArray(possible_files) || possible_files.length == 0) {
+        if (!possible_files || !Array.isArray(possible_files) || possible_files.length == 0) {
             return null;
         }
         const found = possible_files.find((file) => {
@@ -100,17 +100,28 @@ export class File {
         if (!dir) {
             dir = join(process.cwd(), 'src');
         }
+        const result = this.collect_files(dir, 'svelte').map((path) => new WyvrFile(path));
+        return result;
+    }
+    static collect_files(dir: string, extension: string = null) {
+        if (!dir || !fs.existsSync(dir)) {
+            return [];
+        }
         const entries = fs.readdirSync(dir);
         const result = [];
+        let regex = /./;
+        if (extension) {
+            regex = new RegExp(`\.${extension}$`);
+        }
         entries.forEach((entry) => {
             const path = join(dir, entry);
             const stat = fs.statSync(path);
             if (stat.isDirectory()) {
-                result.push(...this.collect_svelte_files(path));
+                result.push(...this.collect_files(path, extension));
                 return;
             }
-            if (stat.isFile() && entry.match(/\.svelte$/)) {
-                result.push(new WyvrFile(path));
+            if (stat.isFile() && entry.match(regex)) {
+                result.push(path);
             }
         });
 

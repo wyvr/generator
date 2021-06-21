@@ -21,7 +21,7 @@ export class WorkerController {
     private on_route_callbacks: Function[] = [];
     public events: Events = new Events();
 
-    constructor(private global_data: any) {
+    constructor(public global_data: any) {
         Env.set(process.env.WYVR_ENV);
     }
 
@@ -175,18 +175,21 @@ export class WorkerController {
         }
         if (worker.status == WorkerStatus.exists) {
             // configure the worker
-            this.send_action(worker.pid, WorkerAction.configure, {
-                config: Config.get(),
-                env: Env.get(),
-                cwd: this.cwd,
-                global_data: this.global_data,
-            });
+            this.configure(worker);
         }
         this.events.emit('worker_status', worker.status, worker);
     }
     cleanup() {
         this.workers.forEach((worker) => {
             this.send_action(worker.pid, WorkerAction.cleanup, true);
+        });
+    }
+    configure(worker) {
+        this.send_action(worker.pid, WorkerAction.configure, {
+            config: Config.get(),
+            env: Env.get(),
+            cwd: this.cwd,
+            global_data: this.global_data,
         });
     }
 }

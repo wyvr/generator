@@ -61,7 +61,7 @@ export class Worker {
                             const filename = entry.route;
                             // console.log(process.pid, '?', filename)
                             const route_result = await Routes.execute_route(filename);
-                            const route_url = Routes.write_route(route_result, (data: any) => {
+                            const route_url = Routes.write_routes(route_result, (data: any) => {
                                 // enhance the data from the pages
                                 // set default values when the key is not available in the given data
                                 data = Generate.set_default_values(Generate.enhance_data(data), default_values);
@@ -81,11 +81,6 @@ export class Worker {
                             return filename;
                         })
                     );
-                    console.log(process.pid, list)
-                    WorkerHelper.send_action(WorkerAction.emit, {
-                        type: 'route',
-                        list,
-                    });
                     WorkerHelper.send_status(WorkerStatus.idle);
                     break;
                 case WorkerAction.build:

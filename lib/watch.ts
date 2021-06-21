@@ -85,24 +85,26 @@ export class Watch {
                     Logger.warning('the file is empty, empty files are ignored');
                     return;
                 }
-                this.changed_files.push({ event, path, rel_path });
                 // avoid that 2 commands get sent
-                // if (this.is_executing == true) {
-                //     Logger.warning('currently running, try again after current execution');
-                //     return;
-                // }
+                if (this.is_executing == true) {
+                    Logger.warning('currently running, try again after current execution');
+                    return;
+                }
+                this.changed_files = [...this.changed_files, { event, path, rel_path }];
                 if (debounce) {
                     clearTimeout(debounce);
                 }
+                const files = this.changed_files.filter((f) => f);
+                // reset the files
+                this.changed_files = [];
                 debounce = setTimeout(async () => {
+                    this.is_executing = true;
                     const hr_start = process.hrtime();
-                    const files = this.changed_files.filter((f) => f);
-                    // reset the files
-                    this.changed_files.length = 0;
                     await this.callback(files);
                     bs.reload();
                     const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
                     Logger.stop('watch total', timeInMs);
+                    this.is_executing = false;
                 }, 500);
             });
         Logger.info('watching', themes.length, 'themes');

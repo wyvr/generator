@@ -171,7 +171,7 @@ export class Client {
             })
         );
     }
-    
+
     static correct_svelte_file_import_paths(svelte_files: WyvrFile[]): WyvrFile[] {
         //HydrateFileEntry[] {
 
@@ -191,7 +191,7 @@ export class Client {
             .map((file) => {
                 const content = fs.readFileSync(file.path, { encoding: 'utf-8' });
                 const config = this.parse_wyvr_config(content);
-                if(config) {
+                if (config) {
                     file.config = config;
                     return file;
                 }
@@ -290,7 +290,8 @@ export class Client {
                 return part
                     .replace(replace_pattern, '')
                     .replace(/\.svelte$/, '')
-                    .toLowerCase();
+                    .toLowerCase()
+                    .replace(/\//, '-');
             })
             .filter((p, i, arr) => {
                 // remove duplicate entries
@@ -338,7 +339,7 @@ export class Client {
                 }
                 continue;
             }
-            if (value === undefined || !value && !value[step]) {
+            if (value === undefined || (!value && !value[step])) {
                 return fallback;
             }
             value = value[step];
@@ -367,7 +368,7 @@ export class Client {
             if (match) {
                 name = match[1];
             }
-            return `<div data-slot="${name || 'default'}">${slot}</div>`;
+            return `<span data-slot="${name || 'default'}">${slot}</span>`;
         });
         return content_replaced;
     }

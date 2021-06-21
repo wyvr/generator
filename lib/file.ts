@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 
 import { dirname, join } from 'path';
+import { WyvrFile } from '@lib/model/wyvr/file';
 
 export class File {
     /**
@@ -94,5 +95,25 @@ export class File {
             return null;
         }
         return join(in_dir, found);
+    }
+    static collect_svelte_files(dir: string = null) {
+        if (!dir) {
+            dir = join(process.cwd(), 'src');
+        }
+        const entries = fs.readdirSync(dir);
+        const result = [];
+        entries.forEach((entry) => {
+            const path = join(dir, entry);
+            const stat = fs.statSync(path);
+            if (stat.isDirectory()) {
+                result.push(...this.collect_svelte_files(path));
+                return;
+            }
+            if (stat.isFile() && entry.match(/\.svelte$/)) {
+                result.push(new WyvrFile(path));
+            }
+        });
+
+        return result;
     }
 }

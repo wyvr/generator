@@ -25,7 +25,7 @@ import { dirname, join } from 'path';
 import chokidar from 'chokidar';
 import { hrtime_to_ms } from '@lib/converter/time';
 import { Routes } from '@lib/routes';
-import { Watch } from './watch';
+import { Watch } from '@lib/watch';
 import merge from 'deepmerge';
 
 export class Main {
@@ -240,7 +240,7 @@ export class Main {
             });
         }
         fs.copySync('gen/raw', 'gen/src');
-        const svelte_files = Client.collect_svelte_files('gen/src');
+        const svelte_files = File.collect_svelte_files('gen/src');
         // replace global data in the svelte files
         svelte_files.map((file) => {
             const raw_content = fs.readFileSync(file.path, { encoding: 'utf-8' });

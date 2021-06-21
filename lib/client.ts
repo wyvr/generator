@@ -171,26 +171,7 @@ export class Client {
             })
         );
     }
-    static collect_svelte_files(dir: string = null) {
-        if (!dir) {
-            dir = join(process.cwd(), 'src');
-        }
-        const entries = fs.readdirSync(dir);
-        const result = [];
-        entries.forEach((entry) => {
-            const path = join(dir, entry);
-            const stat = fs.statSync(path);
-            if (stat.isDirectory()) {
-                result.push(...this.collect_svelte_files(path));
-                return;
-            }
-            if (stat.isFile() && entry.match(/\.svelte$/)) {
-                result.push(new WyvrFile(path));
-            }
-        });
-
-        return result;
-    }
+    
     static correct_svelte_file_import_paths(svelte_files: WyvrFile[]): WyvrFile[] {
         //HydrateFileEntry[] {
 

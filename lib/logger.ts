@@ -43,6 +43,7 @@ export class Logger {
     static start(name: string) {
         if (env != 'production') {
             this.last_text = name || '';
+            this.output(this.color.dim('>'), this.color.dim(name));
             this.spinner = ora(name).start();
         }
     }
@@ -54,7 +55,7 @@ export class Logger {
             this.log(`${color.green('✓')} ${message}`);
         } else {
             if (!this.spinner) {
-                this.start('name');
+                this.spinner = ora(name).start();
             }
             this.spinner.succeed(message);
             this.spinner = null;

@@ -62,6 +62,7 @@ export class Main {
         Logger.present('workers', this.worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));
         const workers = this.worker_controller.create_workers(this.worker_amount);
         this.worker_controller.events.on('emit', 'entrypoint', (data: any) => {
+            Logger.log('entrypoint', data.entrypoint)
             this.entrypoints[data.entrypoint] = {
                 name: data.entrypoint,
                 doc: data.doc,
@@ -373,18 +374,26 @@ export class Main {
             this.is_executing = false;
             return;
         }
-        // Process files in workers
-        this.perf.start('routes');
-        const merged_route_file_list = await this.routes(file_list, !is_regenerating);
-        this.perf.end('routes');
-
-        // Process files in workers
+        // collect the files for the generation
         this.perf.start('collect');
         const collected_files = await this.collect();
         this.perf.end('collect');
         if (!collected_files) {
             this.fail();
         }
+
+        // get the route files
+        this.perf.start('routes');
+        const merged_route_file_list = await this.routes(file_list, !is_regenerating);
+        this.perf.end('routes');
+
+        
+        // Process files in workers
+        this.perf.start('build');
+        const build_pages = await this.build(merged_route_file_list);
+        this.perf.end('build');
+        
+        // check if the execution should stop after the build
         const only_build =
             is_regenerating &&
             changed_files.every((file) => {
@@ -397,12 +406,6 @@ export class Main {
                 }
                 return true;
             });
-
-        // Process files in workers
-        this.perf.start('build');
-        const build_pages = await this.build(merged_route_file_list);
-        this.perf.end('build');
-
         if (!only_build) {
             this.perf.start('scripts');
             const build_scripts = await this.scripts();

@@ -66,6 +66,21 @@ export class Worker {
                                 // set default values when the key is not available in the given data
                                 data = Generate.set_default_values(Generate.enhance_data(data), default_values);
 
+                                const doc_file_name = File.find_file(join(this.cwd, 'gen', 'src', 'doc'), data._wyvr.template.doc);
+                                const layout_file_name = File.find_file(join(this.cwd, 'gen', 'src', 'layout'), data._wyvr.template.layout);
+                                const page_file_name = File.find_file(join(this.cwd, 'gen', 'src', 'page'), data._wyvr.template.page);
+
+                                const entrypoint = Client.get_entrypoint_name(this.root_template_paths, doc_file_name, layout_file_name, page_file_name);
+                                // add the entrypoint to the wyvr object
+                                data._wyvr.entrypoint = entrypoint;
+                                WorkerHelper.send_action(WorkerAction.emit, {
+                                    type: 'entrypoint',
+                                    entrypoint,
+                                    doc: doc_file_name,
+                                    layout: layout_file_name,
+                                    page: page_file_name,
+                                });
+
                                 if (!entry.add_to_global) {
                                     return data;
                                 }

@@ -8,6 +8,8 @@ WYVR_COMPILE=npx tsc
 WYVR_BUILD=node ./wyvr/index.js
 WYVR_TEST=npx mocha -R dot './test/**/*.ts'
 WYVR_COVERAGE=npx nyc -x 'config/**/*' -x 'test/**/*' -x 'pub' $(WYVR_TEST)
+WYVR_CLEAN=rm -rf imported coverage wyvr pub gen
+WYVR_FOLDERS=mkdir imported coverage wyvr pub gen
 
 help: ## Show this help
 	@echo "Usage: make [TARGET ...]"
@@ -23,6 +25,8 @@ dev: ## Start development build
 	@$(WYVR_COMPILE) && $(WYVR_TEST) && env WYVR_ENV=dev $(WYVR_BUILD)
 
 watch: ## Start watcher and make dev builds
+	@$(WYVR_CLEAN)
+	@$(WYVR_FOLDERS)
 	@env WYVR_ENV=dev npx nodemon \
 		--ignore test \
 		--ignore imported \
@@ -44,7 +48,8 @@ init: ## Install and prepare setup
 	@npm install
 
 clean: ## Removes generated folders for a clean setup
-	@rm -rf imported coverage wyvr pub gen
+	@$(WYVR_CLEAN)
+	@$(WYVR_FOLDERS)
 
 coverage: ## Get test coverage result
 	@$(WYVR_COVERAGE)

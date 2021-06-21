@@ -244,35 +244,7 @@ export class Main {
             });
         }
         fs.copySync('gen/raw', 'gen/src');
-        const svelte_files = File.collect_svelte_files('gen/src');
-        // replace global data in the svelte files
-        svelte_files.map((file) => {
-            const raw_content = fs.readFileSync(file.path, { encoding: 'utf-8' });
-            const combined_content = Client.insert_splits(file.path, raw_content);
-            const content = Client.replace_global(combined_content, this.global_data);
-            fs.writeFileSync(file.path, content);
-        });
-        // search for hydrateable files
-        const hydrateable_files = Client.get_hydrateable_svelte_files(svelte_files);
-
-        // copy the hydrateable files into the gen/client folder
-        fs.mkdirSync('gen/client', { recursive: true });
-        hydrateable_files.map((file) => {
-            const source_path = file.path;
-            const path = file.path.replace(/^gen\/src/, 'gen/client');
-            fs.mkdirSync(dirname(path), { recursive: true });
-            fs.writeFileSync(path, Client.remove_on_server(Client.replace_slots_client(fs.readFileSync(source_path, { encoding: 'utf-8' }))));
-            return file;
-        });
-        // correct the import paths in the static files
-        Client.correct_svelte_file_import_paths(svelte_files);
-
-        // @todo replace global in the svelte components which should be hydrated
-        const transformed_files = Client.transform_hydrateable_svelte_files(hydrateable_files);
-        return {
-            src: svelte_files,
-            client: transformed_files,
-        };
+        return true;
     }
     async routes(file_list: any[], enhance_data: boolean = true) {
         const routes = Routes.collect_routes();
@@ -303,6 +275,37 @@ export class Main {
         Routes.remove_routes_from_cache();
         // return [].concat(file_list, routes_urls);
         return file_list;
+    }
+    async transform() {
+        const svelte_files = File.collect_svelte_files('gen/src');
+        // combine svelte files
+        svelte_files.map((file) => {
+            const raw_content = fs.readFileSync(file.path, { encoding: 'utf-8' });
+            const combined_content = Client.insert_splits(file.path, raw_content);
+            const content = Client.replace_global(combined_content, this.global_data);
+            fs.writeFileSync(file.path, content);
+        });
+        // search for hydrateable files
+        const hydrateable_files = Client.get_hydrateable_svelte_files(svelte_files);
+
+        // copy the hydrateable files into the gen/client folder
+        fs.mkdirSync('gen/client', { recursive: true });
+        hydrateable_files.map((file) => {
+            const source_path = file.path;
+            const path = file.path.replace(/^gen\/src/, 'gen/client');
+            fs.mkdirSync(dirname(path), { recursive: true });
+            fs.writeFileSync(path, Client.remove_on_server(Client.replace_slots_client(fs.readFileSync(source_path, { encoding: 'utf-8' }))));
+            return file;
+        });
+        // correct the import paths in the static files
+        Client.correct_svelte_file_import_paths(svelte_files);
+
+        // @todo replace global in the svelte components which should be hydrated
+        const transformed_files = Client.transform_hydrateable_svelte_files(hydrateable_files);
+        return {
+            src: svelte_files,
+            client: transformed_files,
+        };
     }
     async build(list: string[]): Promise<boolean> {
         fs.mkdirSync('gen/src', { recursive: true });
@@ -377,25 +380,28 @@ export class Main {
         }
         // collect the files for the generation
         this.perf.start('collect');
-        const collected_files = await this.collect();
+        await this.collect();
         this.perf.end('collect');
-        if (!collected_files) {
-            this.fail();
-        }
 
         // get the route files
         this.perf.start('routes');
         await this.routes(file_list, !is_regenerating);
         this.perf.end('routes');
 
+        this.perf.start('transform');
+        const collected_files = await this.transform();
+        if (!collected_files) {
+            this.fail();
+        }
+        this.perf.end('transform');
+
+        this.perf.start('build');
         // read all imported files
         const files = File.collect_files(join(this.cwd, 'imported', 'data'), 'json');
-        
-        // Process files in workers
-        this.perf.start('build');
+        // build static files
         const build_pages = await this.build(files);
         this.perf.end('build');
-        
+
         // check if the execution should stop after the build
         const only_build =
             is_regenerating &&

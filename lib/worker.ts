@@ -65,21 +65,7 @@ export class Worker {
                                 // enhance the data from the pages
                                 // set default values when the key is not available in the given data
                                 data = Generate.set_default_values(Generate.enhance_data(data), default_values);
-
-                                const doc_file_name = File.find_file(join(this.cwd, 'gen', 'src', 'doc'), data._wyvr.template.doc);
-                                const layout_file_name = File.find_file(join(this.cwd, 'gen', 'src', 'layout'), data._wyvr.template.layout);
-                                const page_file_name = File.find_file(join(this.cwd, 'gen', 'src', 'page'), data._wyvr.template.page);
-
-                                const entrypoint = Client.get_entrypoint_name(this.root_template_paths, doc_file_name, layout_file_name, page_file_name);
-                                // add the entrypoint to the wyvr object
-                                data._wyvr.entrypoint = entrypoint;
-                                WorkerHelper.send_action(WorkerAction.emit, {
-                                    type: 'entrypoint',
-                                    entrypoint,
-                                    doc: doc_file_name,
-                                    layout: layout_file_name,
-                                    page: page_file_name,
-                                });
+                                const result = this.emit_entrypoint(data);
 
                                 if (!entry.add_to_global) {
                                     return data;
@@ -89,7 +75,7 @@ export class Worker {
                                     type: 'global',
                                     data: global_data,
                                 });
-                                return data;
+                                return result.data;
                             });
                             Routes.remove_routes_from_cache();
                             list.push(filename);
@@ -107,22 +93,9 @@ export class Worker {
                                 WorkerHelper.log(LogType.error, 'broken/missing/empty file', filename);
                                 return;
                             }
-                            const doc_file_name = File.find_file(join(this.cwd, 'gen', 'src', 'doc'), data._wyvr.template.doc);
-                            const layout_file_name = File.find_file(join(this.cwd, 'gen', 'src', 'layout'), data._wyvr.template.layout);
-                            const page_file_name = File.find_file(join(this.cwd, 'gen', 'src', 'page'), data._wyvr.template.page);
+                            const result = this.emit_entrypoint(data);
 
-                            const entrypoint = Client.get_entrypoint_name(this.root_template_paths, doc_file_name, layout_file_name, page_file_name);
-                            // add the entrypoint to the wyvr object
-                            data._wyvr.entrypoint = entrypoint;
-                            WorkerHelper.send_action(WorkerAction.emit, {
-                                type: 'entrypoint',
-                                entrypoint,
-                                doc: doc_file_name,
-                                layout: layout_file_name,
-                                page: page_file_name,
-                            });
-
-                            const page_code = Build.get_page_code(data, doc_file_name, layout_file_name, page_file_name);
+                            const page_code = Build.get_page_code(result.data, result.doc, result.layout, result.page);
                             const compiled = Build.compile(page_code);
 
                             if (compiled.error) {
@@ -177,5 +150,25 @@ export class Worker {
             WorkerHelper.log(LogType.error, 'uncaughtException', err.message, err.stack);
             process.exit(1);
         });
+    }
+    emit_entrypoint(data: any) {
+        const doc_file_name = File.find_file(join(this.cwd, 'gen', 'src', 'doc'), data._wyvr.template.doc);
+        const layout_file_name = File.find_file(join(this.cwd, 'gen', 'src', 'layout'), data._wyvr.template.layout);
+        const page_file_name = File.find_file(join(this.cwd, 'gen', 'src', 'page'), data._wyvr.template.page);
+
+        const entrypoint = Client.get_entrypoint_name(this.root_template_paths, doc_file_name, layout_file_name, page_file_name);
+        // add the entrypoint to the wyvr object
+        data._wyvr.entrypoint = entrypoint;
+        const result = {
+            type: 'entrypoint',
+            entrypoint,
+            doc: doc_file_name,
+            layout: layout_file_name,
+            page: page_file_name,
+            data: null
+        };
+        WorkerHelper.send_action(WorkerAction.emit, result);
+        result.data = data;
+        return result;
     }
 }

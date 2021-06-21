@@ -271,6 +271,52 @@ export class Main {
             client: transformed_files,
         };
     }
+    async routes(file_list: any[], enhance_data: boolean = true) {
+        const routes = Routes.collect_routes();
+        if (!routes || routes.length == 0) {
+            return file_list;
+        }
+
+        const on_route_index = this.worker_controller.events.on('emit', 'route', (data) => {
+            if (data && data.list) {
+                console.log('found', data);
+            }
+        });
+        const on_global_index = this.worker_controller.events.on('emit', 'global', (data) => {
+            if (data) {
+                console.log('global', data);
+            }
+        });
+
+        const result = await this.process_in_workers(
+            WorkerAction.route,
+            routes.map((route_path) => ({
+                route: route_path,
+                add_to_global: !enhance_data,
+            })),
+            1
+        );
+
+        this.worker_controller.events.off('emit', 'route', on_route_index);
+        this.worker_controller.events.off('emit', 'global', on_global_index);
+
+        // Logger.info('routes amount', routes_urls.length);
+        Routes.remove_routes_from_cache();
+        // return [].concat(file_list, routes_urls);
+        return file_list;
+
+        // const routes_result = await Routes.execute_routes(routes);
+        // let default_values = null;
+        // if (routes_result && routes_result.length > 0) {
+        //     default_values = Config.get('default_values');
+        // }
+        // const routes_urls = Routes.write_routes(routes_result, (data: any) => {
+        //     return this.generate(data, !enhance_data, default_values);
+        // });
+        // Logger.info('routes amount', routes_urls.length);
+        // Routes.remove_routes_from_cache();
+        // return [].concat(file_list, routes_urls);
+    }
     async build(list: string[]): Promise<boolean> {
         fs.mkdirSync('gen/src', { recursive: true });
         Logger.info('build datasets', list.length);
@@ -325,47 +371,6 @@ export class Main {
     fail() {
         Logger.error('failed');
         process.exit(1);
-    }
-
-    async routes(file_list: any[], enhance_data: boolean = true) {
-        const routes = Routes.collect_routes();
-        if (!routes || routes.length == 0) {
-            return file_list;
-        }
-
-        const on_route_index = this.worker_controller.events.on('emit', 'route', (data) => {
-            if (data && data.list) {
-                console.log('found', data);
-            }
-        });
-
-        const result = await this.process_in_workers(
-            WorkerAction.route,
-            routes.map((route_path) => ({
-                route: route_path,
-                add_to_global: !enhance_data,
-            })),
-            1
-        );
-
-        this.worker_controller.events.off('emit', 'route', on_route_index);
-
-        // Logger.info('routes amount', routes_urls.length);
-        Routes.remove_routes_from_cache();
-        // return [].concat(file_list, routes_urls);
-        return file_list;
-
-        // const routes_result = await Routes.execute_routes(routes);
-        // let default_values = null;
-        // if (routes_result && routes_result.length > 0) {
-        //     default_values = Config.get('default_values');
-        // }
-        // const routes_urls = Routes.write_routes(routes_result, (data: any) => {
-        //     return this.generate(data, !enhance_data, default_values);
-        // });
-        // Logger.info('routes amount', routes_urls.length);
-        // Routes.remove_routes_from_cache();
-        // return [].concat(file_list, routes_urls);
     }
 
     async execute(file_list: any[], changed_files: { event: string; path: string; rel_path: string }[] = []) {

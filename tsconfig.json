@@ -3,6 +3,7 @@
         "outDir": "./wyvr",
         "allowJs": true,
         "target": "es5",
+        "lib": ["es2020"],
         "moduleResolution": "node",
         "sourceMap": true,
         "baseUrl": ".",
@@ -13,7 +14,8 @@
             "@src/*": ["src/*"]
         },
         "esModuleInterop": true,
-        "allowSyntheticDefaultImports": true
+        "allowSyntheticDefaultImports": true,
+        "downlevelIteration": true
     },
     "include": ["./lib/**/*"],
     "exclude": ["node_modules/*"]

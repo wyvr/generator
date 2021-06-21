@@ -23,7 +23,7 @@ import { hrtime_to_ms } from '@lib/converter/time';
 import { Routes } from '@lib/routes';
 import { Watch } from '@lib/watch';
 import merge from 'deepmerge';
-// import { Dependency } from '@lib/dependency';
+import { Dependency } from '@lib/dependency';
 
 export class Main {
     queue: Queue = null;
@@ -51,9 +51,6 @@ export class Main {
 
         this.perf = Config.get('import.measure_performance') ? new Performance_Measure() : new Performance_Measure_Blank();
 
-        // console.log(Dependency.build(join(this.cwd, 'gen', 'raw')));
-        // this.fail();
-        // return;
         Dir.clear('gen');
         Dir.create('pub');
 
@@ -61,13 +58,15 @@ export class Main {
         this.worker_amount = this.worker_controller.get_worker_amount();
         Logger.present('workers', this.worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));
         const workers = this.worker_controller.create_workers(this.worker_amount);
+        const gen_src_folder = join(this.cwd, 'gen', 'src');
         this.worker_controller.events.on('emit', 'entrypoint', (data: any) => {
             this.entrypoints[data.entrypoint] = {
-                name: data.entrypoint,
-                doc: data.doc,
-                layout: data.layout,
-                page: data.page,
+                name: data.entrypoint.replace(gen_src_folder+'/', ''),
+                doc: data.doc.replace(gen_src_folder+'/', ''),
+                layout: data.layout.replace(gen_src_folder+'/', ''),
+                page: data.page.replace(gen_src_folder+'/', ''),
             };
+
         });
 
         Logger.stop('config', hrtime_to_ms(process.hrtime(hr_start)));
@@ -313,7 +312,7 @@ export class Main {
     async scripts(): Promise<boolean> {
         fs.mkdirSync('gen/js', { recursive: true });
 
-        const list = Object.keys(this.entrypoints).map((key) => this.entrypoints[key]);
+        const list = Object.keys(this.entrypoints).map((key) => ({ file: this.entrypoints[key], dependency: Dependency.cache }));
         const result = await this.process_in_workers('scripts', WorkerAction.scripts, list, 1);
         return result;
     }
@@ -411,7 +410,13 @@ export class Main {
                 }
                 return true;
             });
+
         if (!only_build) {
+            this.perf.start('dependencies');
+            const dep_folder = ['doc', 'layout', 'page'];
+            Dependency.build(dep_folder);
+            this.perf.end('dependencies');
+
             this.perf.start('scripts');
             const build_scripts = await this.scripts();
             this.perf.end('scripts');

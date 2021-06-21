@@ -119,13 +119,33 @@ export class Worker {
                     // @todo get all svelte components which should be hydrated
                     const files = Client.get_hydrateable_svelte_files(svelte_files);
 
-                    // @todo bundle them together
-                    try {
-                        await Client.create_bundles(this.cwd, value, files);
-                    } catch (e) {
-                        // svelte error messages
-                        WorkerHelper.log(LogType.error, '[svelte]', e);
-                    }
+                    await Promise.all(
+                        value.map(async (entrypoint) => {
+                            let dep_files = [];
+                            ['doc', 'layout', 'page'].map((type) => {
+                                // console.log(type, entrypoint.file[type], entrypoint.dependency[type], !!entrypoint.dependency[type][entrypoint.file[type]])
+                                if (entrypoint.file[type] && entrypoint.dependency[type] && entrypoint.dependency[type][entrypoint.file[type]]) {
+                                    dep_files.push(
+                                        ...entrypoint.dependency[type][entrypoint.file[type]]
+                                            .map((path) => {
+                                                const client_path = join('gen/client', path);
+                                                const match = files.find((file) => file.path == client_path);
+                                                return match;
+                                            })
+                                            .filter((x) => x)
+                                    );
+                                }
+                            });
+                            try {
+                                await Client.create_bundle(this.cwd, entrypoint.file, dep_files);
+                            } catch (e) {
+                                console.log(e)
+                                // svelte error messages
+                                WorkerHelper.log(LogType.error, '[svelte]', e);
+                            }
+                            return null;
+                        })
+                    );
 
                     WorkerHelper.send_status(WorkerStatus.idle);
                     break;
@@ -161,7 +181,7 @@ export class Worker {
             doc: doc_file_name,
             layout: layout_file_name,
             page: page_file_name,
-            data: null
+            data: null,
         };
         WorkerHelper.send_action(WorkerAction.emit, result);
         result.data = data;

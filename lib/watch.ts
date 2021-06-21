@@ -64,7 +64,7 @@ export class Watch {
                     if (event != 'unlink' && theme_index > -1 && theme_index < themes.length - 1) {
                         for (let i = theme_index + 1; i < themes.length; i++) {
                             const theme_path = join(themes[i].path, rel_path);
-                            if (fs.existsSync(theme_path)) {
+                            if (fs.existsSync(theme_path) && theme_path != path) {
                                 Logger.warning(
                                     'ignore',
                                     `${event}@${Logger.color.dim(path)}`,

@@ -62,7 +62,6 @@ export class Main {
         Logger.present('workers', this.worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));
         const workers = this.worker_controller.create_workers(this.worker_amount);
         this.worker_controller.events.on('emit', 'entrypoint', (data: any) => {
-            Logger.log('entrypoint', data.entrypoint)
             this.entrypoints[data.entrypoint] = {
                 name: data.entrypoint,
                 doc: data.doc,

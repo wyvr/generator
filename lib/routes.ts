@@ -3,7 +3,8 @@ import { join, dirname, resolve } from 'path';
 import { File } from '@lib/file';
 import { Build } from '@lib/build';
 import { Client } from '@lib/client';
-import { Logger } from './logger';
+import { Logger } from '@lib/logger';
+import { WyvrFile } from '@lib/model/wyvr/file';
 
 export class Routes {
     static collect_routes(dir: string = null) {
@@ -99,6 +100,7 @@ export class Routes {
                 entry.error = `source file ${source_path} does not exist`;
                 return entry;
             }
+            Client.correct_svelte_file_import_paths([new WyvrFile(source_path)]);
             const source_code = fs.readFileSync(source_path, { encoding: 'utf-8' });
             if (!source_code) {
                 entry.error = `empty source file ${source_path}`;
@@ -116,10 +118,10 @@ export class Routes {
         });
     }
     static write_routes(route_entries: any[], hook_before_process: Function = null) {
-        if(!route_entries) {
+        if (!route_entries) {
             return null;
         }
-        return route_entries.map((route: any)=>{
+        return route_entries.map((route: any) => {
             if (!route || !route.url) {
                 return null;
             }
@@ -131,7 +133,7 @@ export class Routes {
             fs.mkdirSync(dirname(path), { recursive: true });
             fs.writeFileSync(path, JSON.stringify(route));
             return path;
-        })
+        });
     }
     static remove_routes_from_cache() {
         Object.keys(require.cache).forEach((cache_file) => {

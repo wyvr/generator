@@ -52,6 +52,13 @@ export class Logger {
             this.spinner = ora(name).start();
         }
     }
+    static text(...values) {
+        if(this.spinner) {
+            const text = values.map(this.stringify).join(' ');
+            this.last_text = text;
+            this.spinner.text = text;
+        }
+    }
     static stop(name: string, duration_in_ms: number = null) {
         let duration_text = Math.round(duration_in_ms).toString();
         const spaces = new Array(35 - duration_text.length - name.length).fill('.').join('');

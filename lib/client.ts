@@ -352,16 +352,16 @@ export class Client {
             }
             if (i == 0) {
                 value = global_data[step];
-                if (index != null && Array.isArray(value)) {
+                if (value !== undefined && index != null && Array.isArray(value)) {
                     value = value[index];
                 }
                 continue;
             }
-            if (!value && !value[step]) {
+            if (value === undefined || !value && !value[step]) {
                 return fallback;
             }
             value = value[step];
-            if (index != null && Array.isArray(value)) {
+            if (value !== undefined && index != null && Array.isArray(value)) {
                 value = value[index];
             }
         }

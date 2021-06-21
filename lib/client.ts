@@ -19,13 +19,17 @@ export class Client {
         const input_file = join(client_root, `${entry.name}.js`);
         const lazy_input_files = [];
 
+        if (hydrate_files.length == 0) {
+            fs.writeFileSync(join(cwd, 'gen', 'js', `${entry.name}.js`), '');
+            return null;
+        }
         const content = hydrate_files
             .map((file) => {
                 const import_path = join(cwd, file.path);
                 const var_name = file.name.toLowerCase().replace(/\s/g, '_');
                 if (file.config?.loading == WyvrFileLoading.lazy) {
+                    lazy_input_files.push(file);
                     // const lazy_input_path = join(client_root, `${file.name}.js`);
-                    // lazy_input_files.push(lazy_input_path);
                     // fs.writeFileSync(
                     //     lazy_input_path,
                     //     `
@@ -57,68 +61,13 @@ export class Client {
             })
             .join('\n');
 
-        fs.writeFileSync(
-            input_file,
-            `
-                const wyvr_hydrate = (elements, cls) => {
-                    if(!elements) {
-                        return null;
-                    }
-                    return Array.from(elements).map((el)=>{ 
-                        let props = {};
-                        const json = '{'+el.getAttribute('data-props').replace(/'/g, '"')+'}';
-                        const slots = el.querySelectorAll('[data-slot]');
-                        try {
-                            props = JSON.parse(json)
-                        } catch(e) {
-                            console.warn(json, e)
-                        }
-                        el.innerHTML = '';
-                        new cls({
-                            target: el,
-                            props: props
-                        })
-                        if(slots) {
-                            Array.from(slots).map((slot)=>{ 
-                                const slot_name = slot.getAttribute('data-slot');
-                                const client_slot = el.querySelector('[data-client-slot="'+slot_name+'"]')
-                                if(client_slot) {
-                                    client_slot.parentNode.insertBefore(slot, client_slot);
-                                    client_slot.remove();
-                                }
-                            });
-                        }
-                        el.setAttribute('data-hydrated', 'true');
-                        return el;
-                    })
-                }
-                const wyvr_hydrate_lazy = (path, elements, name, cls) => {
-                    /*import(path).then(module => {
-                        if(!module || !module.default) {
-                            wyvr_hydrate(elements, module.default)
-                        }
-                    });*/
-                    wyvr_loading_classes[name] = cls;
-                    return Array.from(elements).map((el)=>{
-                        wyvr_loading_observer.observe(el);
-                        return el;
-                    })
-                }
-                const wyvr_loading_classes = {};
-                const wyvr_loading_observer = new IntersectionObserver((entries) => {
-                    entries.forEach((entry) => {
-                        if (entry.isIntersecting) {
-                            const name = entry.target.getAttribute('data-hydrate');
-                            if(name) {
-                                wyvr_hydrate([entry.target], wyvr_loading_classes[name])
-                            }
-                            wyvr_loading_observer.unobserve(entry.target)
-                        }
-                    })
-                });
-                ${content}
-                `
-        );
+        const entrypoint_content = [fs.readFileSync(join(cwd, 'wyvr/resource/hydrate.js'), { encoding: 'utf-8' })];
+        if (lazy_input_files.length > 0) {
+            entrypoint_content.push(fs.readFileSync(join(cwd, 'wyvr/resource/hydrate_lazy.js'), { encoding: 'utf-8' }));
+        }
+        entrypoint_content.push(content);
+
+        fs.writeFileSync(input_file, entrypoint_content.join('\n'));
 
         const input_options = {
             input: input_file,

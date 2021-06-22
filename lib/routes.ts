@@ -51,7 +51,7 @@ export class Routes {
             if (hook_before_process && typeof hook_before_process == 'function') {
                 route = hook_before_process(route);
             }
-            const path = File.to_index(join(process.cwd(), 'imported/data', url), 'json');
+            const path = File.to_extension(File.to_index(join(process.cwd(), 'imported/data', url), 'json'), 'json');
             fs.mkdirSync(dirname(path), { recursive: true });
             fs.writeFileSync(path, JSON.stringify(route));
             return path;

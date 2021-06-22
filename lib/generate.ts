@@ -20,6 +20,7 @@ export class Generate {
                 scope: null,
                 visible: true
             },
+            extension: 'html',
             language: 'en',
         };
 
@@ -58,6 +59,9 @@ export class Generate {
         wyvr_prop.template.doc = wyvr_prop.template.doc.map((file) => File.to_extension(file, 'svelte'));
         wyvr_prop.template.layout = wyvr_prop.template.layout.map((file) => File.to_extension(file, 'svelte'));
         wyvr_prop.template.page = wyvr_prop.template.page.map((file) => File.to_extension(file, 'svelte'));
+
+        // add file extension
+        wyvr_prop.extension = data._wyvr.extension || 'html';
 
         // set the new values
         data._wyvr = wyvr_prop;

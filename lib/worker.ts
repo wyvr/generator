@@ -101,7 +101,9 @@ export class Worker {
                             }
                             const rendered = Build.render(compiled, data);
 
-                            const path = File.to_extension(filename.replace(join(this.cwd, 'imported', 'data'), 'pub'), 'html');
+                            // change extension when set
+                            const extension = data._wyvr?.extension|| 'html';
+                            const path = File.to_extension(filename.replace(join(this.cwd, 'imported', 'data'), 'pub'), extension);
 
                             Dir.create(dirname(path));
                             fs.writeFileSync(path, rendered.result.html);

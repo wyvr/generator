@@ -29,8 +29,11 @@ export class Routes {
         });
         return result;
     }
-    static async execute_route(route: string) {
+    static async execute_route(route: string, global_data: any) {
         if (route.match(/\.js$/)) {
+            (<any>global).getGlobal = (key, fallback) => {
+                return Client.get_global(key, fallback || null, global_data);
+            };
             const route_module = await require(route);
             if (!Array.isArray(route_module)) {
                 return [route_module];

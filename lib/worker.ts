@@ -56,7 +56,7 @@ export class Worker {
                         value.map(async (entry) => {
                             const filename = entry.route;
                             // console.log(process.pid, '?', filename)
-                            const route_result = await Routes.execute_route(filename);
+                            const route_result = await Routes.execute_route(filename, this.global_data);
                             const route_url = Routes.write_routes(route_result, (data: any) => {
                                 // enhance the data from the pages
                                 // set default values when the key is not available in the given data

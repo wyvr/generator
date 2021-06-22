@@ -60,6 +60,11 @@ export class File {
             parts.push(`index.${ext}`);
             return parts.join('/');
         }
+        // dotfiles
+        if (last.indexOf('.') == 0) {
+            parts[parts.length - 1] = `${last}.${ext}`;
+            return parts.join('/');
+        }
         return filename;
     }
     /**

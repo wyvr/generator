@@ -78,6 +78,11 @@ describe('Lib/File', () => {
             assert.strictEqual(File.to_index('foo/bar/demo.txt', 'json'), 'foo/bar/demo.txt');
             assert.strictEqual(File.to_index('foo/bar/demo.json', 'json'), 'foo/bar/demo.json');
         });
+        it('dotfiles', () => {
+            assert.strictEqual(File.to_index('/.htaccess', 'json'), '/.htaccess.json');
+            assert.strictEqual(File.to_index('./test/.htaccess', 'json'), './test/.htaccess.json');
+            assert.strictEqual(File.to_index('foo/bar/.htaccess', 'json'), 'foo/bar/.htaccess.json');
+        });
     });
     describe('create_dir', () => {
         it('single', () => {

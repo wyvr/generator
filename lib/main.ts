@@ -54,34 +54,19 @@ export class Main {
         Dir.clear('gen');
         Dir.create('pub');
 
-        this.worker_controller = new WorkerController(this.global_data);
-        this.worker_amount = this.worker_controller.get_worker_amount();
-        Logger.present('workers', this.worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));
-        const workers = this.worker_controller.create_workers(this.worker_amount);
-        const gen_src_folder = join(this.cwd, 'gen', 'src');
-        this.worker_controller.events.on('emit', 'entrypoint', (data: any) => {
-            this.entrypoints[data.entrypoint] = {
-                name: data.entrypoint.replace(gen_src_folder+'/', ''),
-                doc: data.doc.replace(gen_src_folder+'/', ''),
-                layout: data.layout.replace(gen_src_folder+'/', ''),
-                page: data.page.replace(gen_src_folder+'/', ''),
-            };
-
-        });
-
         Logger.stop('config', hrtime_to_ms(process.hrtime(hr_start)));
-
+        
         // collect configured themes
         this.perf.start('themes');
         const themes = await this.themes();
         this.perf.end('themes');
         Logger.debug('project_config', JSON.stringify(Config.get(), null, 4));
-
+        
         // import the data source
         let datasets_total = null;
         let is_imported = false;
         const importer = new Importer();
-
+        
         const import_global_path = Config.get('import.global');
         if (fs.existsSync(import_global_path)) {
             try {
@@ -90,6 +75,8 @@ export class Main {
                 Logger.warning('import global file does not exist', import_global_path);
             }
         }
+        this.global_data.env = EnvModel[Env.get()];
+        this.global_data.url = Config.get('url');
         const import_main_path = Config.get('import.main');
         const default_values = Config.get('default_values');
         if (import_main_path && fs.existsSync(import_main_path)) {
@@ -117,6 +104,24 @@ export class Main {
                 this.global_data = await importer.get_global();
             }
         }
+
+        this.perf.start('worker');
+        
+        this.worker_controller = new WorkerController(this.global_data);
+        this.worker_amount = this.worker_controller.get_worker_amount();
+        Logger.present('workers', this.worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));
+        const workers = this.worker_controller.create_workers(this.worker_amount);
+        const gen_src_folder = join(this.cwd, 'gen', 'src');
+        this.worker_controller.events.on('emit', 'entrypoint', (data: any) => {
+            this.entrypoints[data.entrypoint] = {
+                name: data.entrypoint.replace(gen_src_folder+'/', ''),
+                doc: data.doc.replace(gen_src_folder+'/', ''),
+                layout: data.layout.replace(gen_src_folder+'/', ''),
+                page: data.page.replace(gen_src_folder+'/', ''),
+            };
+            
+        });
+        this.perf.end('worker');
 
         // execute
         await this.execute(importer.get_import_list());

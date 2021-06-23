@@ -62,6 +62,8 @@ export class Client {
             .join('\n');
 
         const entrypoint_content = [fs.readFileSync(join(cwd, 'wyvr/resource/hydrate.js'), { encoding: 'utf-8' })];
+        entrypoint_content.push(fs.readFileSync(join(cwd, 'wyvr/resource/props.js'), { encoding: 'utf-8' }));
+        entrypoint_content.push(fs.readFileSync(join(cwd, 'wyvr/resource/portal.js'), { encoding: 'utf-8' }));
         if (lazy_input_files.length > 0) {
             entrypoint_content.push(fs.readFileSync(join(cwd, 'wyvr/resource/hydrate_lazy.js'), { encoding: 'utf-8' }));
         }
@@ -190,13 +192,14 @@ export class Client {
                 content = script_result.content;
                 entry.props = this.extract_props_from_scripts(script_result.result);
                 const props_include = `data-props="${entry.props.map((prop) => `'${prop}':{JSON.stringify(${prop}).replace(/"/g, "'")}`).join(',')}"`;
+                const portal = entry.config.portal ? `data-portal="${entry.config.portal}"` : '';
                 // extract styles
                 const style_result = this.extract_tags_from_content(content, 'style');
                 entry.styles = style_result.result;
                 content = style_result.content;
                 // add hydrate tag
                 const hydrate_tag = entry.config.display == 'inline' ? 'span' : 'div';
-                content = `<${hydrate_tag} data-hydrate="${entry.name}" ${props_include}>${content}</${hydrate_tag}>`;
+                content = `<${hydrate_tag} data-hydrate="${entry.name}" ${props_include} ${portal}>${content}</${hydrate_tag}>`;
                 content = this.replace_slots_static(content);
                 fs.writeFileSync(entry.path, `${entry.scripts.join('')}\n${entry.styles.join('')}\n${content}`);
             }

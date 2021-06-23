@@ -17,6 +17,7 @@ export class WyvrFileConfig {
     render: WyvrFileRender = WyvrFileRender.static;
     loading: WyvrFileLoading = WyvrFileLoading.instant;
     error: any;
+    portal: string;
     [key: string]: any;
 }
 export enum WyvrHydrateDisplay {

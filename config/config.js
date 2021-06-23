@@ -1,4 +1,5 @@
 module.exports = {
+    url: '',
     worker: {
         ratio: 0,
     },

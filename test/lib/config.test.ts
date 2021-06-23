@@ -6,7 +6,9 @@ describe('Lib/Config', () => {
     
     describe('get', () => {
         it('all', () => {
-            assert.strictEqual(Config.get(), require('./../../config/config'));
+            const config_keys = Object.keys(Config.get());
+            const must_have_keys = Object.keys(require('./../../config/config'));
+            assert.deepStrictEqual(config_keys, must_have_keys);
         });
 
         it('all from cache', () => {

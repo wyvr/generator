@@ -42,7 +42,7 @@ test-exec: ## Executes the tests
 	@$(WYVR_COMPILE) && $(WYVR_TEST)
 
 test-watch: ## Watches changes in the tests
-	@npx nodemon --watch lib --watch test -e js,ts --exec "$(WYVR_COVERAGE)"
+	@npx nodemon --watch lib --watch test -e js,ts --delay 2 --exec "$(WYVR_COVERAGE)"
 
 init: ## Install and prepare setup
 	@npm install

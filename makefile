@@ -7,7 +7,7 @@ SHELL := /bin/bash
 WYVR_COMPILE=npx tsc
 WYVR_BUILD=node ./wyvr/index.js
 WYVR_TEST=npx mocha -R dot './test/**/*.ts'
-WYVR_COVERAGE=npx nyc -x 'config/**/*' -x 'test/**/*' -x 'pub' $(WYVR_TEST)
+WYVR_COVERAGE=npx nyc -x 'config/**/*' -x 'test/**/*' -x 'gen/**/*' -x 'imported/**/*' -x 'pub' $(WYVR_TEST)
 WYVR_CLEAN=rm -rf imported coverage wyvr pub gen
 WYVR_FOLDERS=mkdir imported coverage wyvr pub gen
 
@@ -38,22 +38,21 @@ watch: ## Start watcher and make dev builds
 		--verbose \
 		--exec '$(WYVR_COMPILE) && $(WYVR_BUILD)'
 
-test: ## Executes the tests
-	@$(WYVR_TEST)
+test-exec: ## Executes the tests
+	@$(WYVR_COMPILE) && $(WYVR_TEST)
 
 test-watch: ## Watches changes in the tests
-	@npx nodemon --watch src --watch lib --watch test -e js,ts --exec '$(WYVR_COVERAGE)'
+	@npx nodemon --watch lib --watch test -e js,ts --exec "$(WYVR_COVERAGE)"
 
 init: ## Install and prepare setup
 	@npm install
 
+test-coverage: ## Get test coverage result
+	@$(WYVR_COVERAGE)
+
 clean: ## Removes generated folders for a clean setup
 	@$(WYVR_CLEAN)
 	@$(WYVR_FOLDERS)
-
-coverage: ## Get test coverage result
-	@$(WYVR_COVERAGE)
-
 serve: ## start simple http server after production build
 	@$(WYVR_COMPILE) && $(WYVR_TEST) && $(WYVR_BUILD)
 	@echo ""

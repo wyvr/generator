@@ -102,7 +102,7 @@ export class Worker {
                             const rendered = Build.render(compiled, data);
 
                             // change extension when set
-                            const extension = data._wyvr?.extension|| 'html';
+                            const extension = data._wyvr?.extension;
                             const path = File.to_extension(filename.replace(join(this.cwd, 'imported', 'data'), 'pub'), extension);
 
                             Dir.create(dirname(path));
@@ -141,7 +141,7 @@ export class Worker {
                             try {
                                 await Client.create_bundle(this.cwd, entrypoint.file, dep_files);
                             } catch (e) {
-                                console.log(e)
+                                console.log(e);
                                 // svelte error messages
                                 WorkerHelper.log(LogType.error, '[svelte]', e);
                             }

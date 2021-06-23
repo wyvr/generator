@@ -61,7 +61,7 @@ export class Generate {
         wyvr_prop.template.page = wyvr_prop.template.page.map((file) => File.to_extension(file, 'svelte'));
 
         // add file extension
-        wyvr_prop.extension = data._wyvr.extension || 'html';
+        wyvr_prop.extension = data._wyvr?.extension == null ? 'html' : data._wyvr.extension;
 
         // set the new values
         data._wyvr = wyvr_prop;

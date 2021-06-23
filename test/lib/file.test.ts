@@ -22,9 +22,9 @@ describe('Lib/File', () => {
             assert.strictEqual(File.to_extension([0, 1, 2]), '');
         });
         it('missing extension', () => {
-            assert.strictEqual(File.to_extension('test.js'), '');
-            assert.strictEqual(File.to_extension('test.js', null), '');
-            assert.strictEqual(File.to_extension('test.js', ''), '');
+            assert.strictEqual(File.to_extension('test.js'), 'test.js');
+            assert.strictEqual(File.to_extension('test.js', null), 'test.js');
+            assert.strictEqual(File.to_extension('test.js', ''), 'test.js');
         });
         it('missing extension', () => {
             assert.strictEqual(File.to_extension('test', 'txt'), 'test.txt');
@@ -40,6 +40,11 @@ describe('Lib/File', () => {
         it('change extension with multiple dots', () => {
             assert.strictEqual(File.to_extension('test/.hidden/test.js', '.txt'), 'test/.hidden/test.txt');
             assert.strictEqual(File.to_extension('test/.hidden/test.js', 'txt'), 'test/.hidden/test.txt');
+        });
+        it('dotfiles', () => {
+            assert.strictEqual(File.to_extension('test/.htaccess', ''), 'test/.htaccess');
+            assert.strictEqual(File.to_extension('test/.htaccess', null), 'test/.htaccess');
+            assert.strictEqual(File.to_extension('test/.htaccess', '.txt'), 'test/.htaccess.txt');
         });
     });
     describe('to_index', () => {

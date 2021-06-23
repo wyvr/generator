@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import { extname } from 'path';
 
 import { dirname, join } from 'path';
 import { WyvrFile } from '@lib/model/wyvr/file';
@@ -11,20 +12,30 @@ export class File {
      * @returns filename with the given extension
      */
     static to_extension(filename: string, extension: string): string {
-        if (!filename || typeof filename != 'string' || !extension || typeof extension != 'string') {
+        if (!filename || typeof filename != 'string') {
             return '';
         }
+        // avoid wrong types of extension
+        if(typeof extension != 'string') {
+            return filename;
+        }
+        // create new extension
         extension.trim();
         if (extension.indexOf('.') == 0) {
             extension = extension.replace(/^\./, '');
         }
-        const splitted = filename.split('.');
-        if (splitted.length <= 1) {
-            return `${filename}.${extension}`;
+        // only add dot when something is set
+        if(extension) {
+            extension = `.${extension}`;
         }
-        // remove last element => extension
-        splitted.pop();
-        return [...splitted, extension].join('.');
+        // remove old extension
+        const ext = extname(filename);
+        if(ext && extension) {
+            const regex = new RegExp(`${ext.replace(/^\./, '\\.')}$`);
+            return filename.replace(regex, extension);
+        }
+        // append to dotfiles or to folders
+        return filename + extension;
     }
     //
     /**

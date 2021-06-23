@@ -19,37 +19,44 @@ export class Client {
         const input_file = join(client_root, `${entry.name}.js`);
         const lazy_input_files = [];
 
+        // create empty file because it is required as entrypoint
         if (hydrate_files.length == 0) {
             fs.writeFileSync(join(cwd, 'gen', 'js', `${entry.name}.js`), '');
             return null;
         }
-        const content = hydrate_files
-            .map((file) => {
+        const script_partials = {
+            hydrate: fs.readFileSync(join(cwd, 'wyvr/resource/hydrate.js'), { encoding: 'utf-8' }),
+            props: fs.readFileSync(join(cwd, 'wyvr/resource/props.js'), { encoding: 'utf-8' }),
+            portal: fs.readFileSync(join(cwd, 'wyvr/resource/portal.js'), { encoding: 'utf-8' }),
+            lazy: fs.readFileSync(join(cwd, 'wyvr/resource/hydrate_lazy.js'), { encoding: 'utf-8' }),
+        };
+        const content = await Promise.all(
+            hydrate_files.map(async (file) => {
                 const import_path = join(cwd, file.path);
                 const var_name = file.name.toLowerCase().replace(/\s/g, '_');
                 if (file.config?.loading == WyvrFileLoading.lazy) {
                     lazy_input_files.push(file);
-                    // const lazy_input_path = join(client_root, `${file.name}.js`);
-                    // fs.writeFileSync(
-                    //     lazy_input_path,
-                    //     `
-                    //     import ${var_name} from '${import_path}';
-
-                    //     const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
-                    //     wyvr_hydrate(${var_name}_target, ${var_name})
-                    // `
-                    // );
-                    // return `
-                    //     const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
-                    //     wyvr_hydrate_lazy('./${file.path}', ${var_name}_target, '${file.name}', '${var_name}')
-                    // `;
-                    return `
+                    const lazy_input_path = join(client_root, `${File.to_extension(file.path, '').replace(join('gen', 'client') + '/', '')}.js`);
+                    const lazy_input_name = File.to_extension(lazy_input_path, '').replace(client_root + '/', '');
+                    if (!fs.existsSync(lazy_input_path)) {
+                        fs.writeFileSync(
+                            lazy_input_path,
+                            `
+                            ${script_partials.hydrate}
+                            ${script_partials.props}
+                            ${script_partials.portal}
                             import ${var_name} from '${import_path}';
-
+    
                             const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
-
-                            wyvr_hydrate_lazy('./${file.path}', ${var_name}_target, '${file.name}', ${var_name})
-                        `;
+                            wyvr_hydrate(${var_name}_target, ${var_name});
+                        `
+                        );
+                        await this.process_bundle(lazy_input_path, lazy_input_name, cwd);
+                    }
+                    return `
+                        const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
+                        wyvr_hydrate_lazy('/js/${lazy_input_name}.js', ${var_name}_target, '${file.name}', '${var_name}');
+                    `;
                 }
                 // WyvrFileLoading.instant
                 return `
@@ -59,18 +66,21 @@ export class Client {
                         wyvr_hydrate(${var_name}_target, ${var_name})
                     `;
             })
-            .join('\n');
-
-        const entrypoint_content = [fs.readFileSync(join(cwd, 'wyvr/resource/hydrate.js'), { encoding: 'utf-8' })];
-        entrypoint_content.push(fs.readFileSync(join(cwd, 'wyvr/resource/props.js'), { encoding: 'utf-8' }));
-        entrypoint_content.push(fs.readFileSync(join(cwd, 'wyvr/resource/portal.js'), { encoding: 'utf-8' }));
+        );
+        const entrypoint_content = [script_partials.hydrate];
+        entrypoint_content.push(script_partials.props);
+        entrypoint_content.push(script_partials.portal);
         if (lazy_input_files.length > 0) {
-            entrypoint_content.push(fs.readFileSync(join(cwd, 'wyvr/resource/hydrate_lazy.js'), { encoding: 'utf-8' }));
+            entrypoint_content.push(script_partials.lazy);
         }
-        entrypoint_content.push(content);
+        entrypoint_content.push(content.join('\n'));
 
         fs.writeFileSync(input_file, entrypoint_content.join('\n'));
 
+        await this.process_bundle(input_file, entry.name, cwd);
+    }
+
+    static async process_bundle(input_file: string, name: string, cwd: string) {
         const input_options = {
             input: input_file,
             plugins: [
@@ -94,7 +104,7 @@ export class Client {
                 }),
                 node_resolve({ browser: true }),
                 commonjs(),
-                css({ output: `gen/${entry.name}.css` }),
+                css({ output: `gen/${name}.css` }),
             ],
         };
         // compress the output
@@ -103,7 +113,7 @@ export class Client {
         }
         const output_options: any = {
             // dir: `gen/js`,
-            file: join(cwd, 'gen', 'js', `${entry.name}.js`),
+            file: join(cwd, 'gen', 'js', `${name}.js`),
             // sourcemap: true,
             format: 'iife',
             name: 'app',

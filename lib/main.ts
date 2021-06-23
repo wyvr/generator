@@ -315,7 +315,7 @@ export class Main {
         return result;
     }
     async scripts(): Promise<boolean> {
-        fs.mkdirSync('gen/js', { recursive: true });
+        Dir.clear('gen/js');
 
         const list = Object.keys(this.entrypoints).map((key) => ({ file: this.entrypoints[key], dependency: Dependency.cache }));
         const result = await this.process_in_workers('scripts', WorkerAction.scripts, list, 1);

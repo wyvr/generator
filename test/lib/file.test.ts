@@ -1,13 +1,12 @@
 require('module-alias/register');
 
-
 describe('Lib/File', () => {
     const assert = require('assert');
     const { File } = require('@lib/file');
     const fs = require('fs-extra');
     const { v4 } = require('uuid');
     const path = require('path');
-    
+
     describe('to_extension', () => {
         it('no filename', () => {
             assert.strictEqual(File.to_extension(null), '');
@@ -24,9 +23,12 @@ describe('Lib/File', () => {
         it('missing extension', () => {
             assert.strictEqual(File.to_extension('test.js'), 'test.js');
             assert.strictEqual(File.to_extension('test.js', null), 'test.js');
-            assert.strictEqual(File.to_extension('test.js', ''), 'test.js');
         });
-        it('missing extension', () => {
+        it('remove extension', () => {
+            assert.strictEqual(File.to_extension('test.js', ''), 'test');
+            assert.strictEqual(File.to_extension('test', ''), 'test');
+        });
+        it('missing extension in file', () => {
             assert.strictEqual(File.to_extension('test', 'txt'), 'test.txt');
         });
         it('change extension', () => {
@@ -45,6 +47,7 @@ describe('Lib/File', () => {
             assert.strictEqual(File.to_extension('test/.htaccess', ''), 'test/.htaccess');
             assert.strictEqual(File.to_extension('test/.htaccess', null), 'test/.htaccess');
             assert.strictEqual(File.to_extension('test/.htaccess', '.txt'), 'test/.htaccess.txt');
+            assert.strictEqual(File.to_extension('test/.htaccess.txt', ''), 'test/.htaccess');
         });
     });
     describe('to_index', () => {

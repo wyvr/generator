@@ -30,7 +30,7 @@ export class File {
         }
         // remove old extension
         const ext = extname(filename);
-        if(ext && extension) {
+        if(ext) {
             const regex = new RegExp(`${ext.replace(/^\./, '\\.')}$`);
             return filename.replace(regex, extension);
         }

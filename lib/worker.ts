@@ -95,11 +95,18 @@ export class Worker {
                             const compiled = Build.compile(page_code);
 
                             if (compiled.error) {
+                                compiled.filename = filename;
                                 // svelte error messages
-                                WorkerHelper.log(LogType.error, '[svelte]', filename, compiled);
+                                WorkerHelper.log(LogType.error, '[svelte]', data.url, compiled);
                                 return;
                             }
                             const rendered = Build.render(compiled, data);
+                            if(rendered.error) {
+                                rendered.filename = filename;
+                                // svelte error messages
+                                WorkerHelper.log(LogType.error, '[svelte]', data.url, rendered);
+                                return;
+                            }
 
                             // change extension when set
                             const extension = data._wyvr?.extension;

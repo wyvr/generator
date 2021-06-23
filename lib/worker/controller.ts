@@ -125,6 +125,14 @@ export class WorkerController {
                                     message.loc.line
                                 }${Logger.color.dim(' Col:')}${message.loc.column}\n${message.frame}`;
                             }
+                            // nodejs error
+                            if (typeof message == 'object' && message.message) {
+                                if (message.code == 'MODULE_NOT_FOUND') {
+                                    return `\n${message.message}\n${Logger.color.dim('in')} ${message.requireStack[0]}\n${Logger.color.dim('source file')} ${message.filename}`;
+                                }
+                                return `\n${message.code} ${message.message}\n${Logger.color.dim('in')} ${message.requireStack[0]}\n${Logger.color.dim('source file')} ${message.filename}`;
+
+                            }
                             return message;
                         });
                     }
@@ -132,7 +140,7 @@ export class WorkerController {
                 }
                 break;
             case WorkerAction.emit:
-                if (data.type && ['entrypoint', 'route', 'global'].indexOf(data.type) > -1 ) {
+                if (data.type && ['entrypoint', 'route', 'global'].indexOf(data.type) > -1) {
                     this.events.emit('emit', data.type, data);
                 }
                 break;

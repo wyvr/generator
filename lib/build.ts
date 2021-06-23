@@ -7,10 +7,10 @@ import { Env } from './env';
 register();
 // onServer Server implementation
 (<any>global).onServer = async (callback: Function) => {
-    if(callback && typeof callback == 'function') {
+    if (callback && typeof callback == 'function') {
         await callback();
     }
-}
+};
 export class Build {
     static preprocess(content: string) {
         return preprocess(content, null, { filename: 'test' });
@@ -24,15 +24,19 @@ export class Build {
                 format: 'cjs',
                 immutable: true,
                 hydratable: true,
-                cssHash: Client.css_hash
+                cssHash: Client.css_hash,
             });
             const component = eval(compiled.js.code);
             return { compiled, component, result: null, notes: [] };
         } catch (e) {
-            e.error = true;
-            // @todo add better error messages
-            console.log(e)
-            return e;
+            const error = Object.assign({}, e);
+            const message_raw = e.toString().split('\n');
+            if (message_raw) {
+                const message = message_raw.slice(0, message_raw.indexOf('Require stack:')).join('\n');
+                error.message = message;
+            }
+            error.error = true;
+            return error;
         }
     }
     static compile_file(filename: string) {
@@ -56,7 +60,24 @@ export class Build {
                 svelte_render_item.notes.push({ msg: 'unused props', details: unused_props });
             }
         }
-        svelte_render_item.result = svelte_render_item.component.render(props);
+        try {
+            svelte_render_item.result = svelte_render_item.component.render(props);
+        } catch (e) {
+            const error = Object.assign({}, e);
+            const message_raw = e.toString().split('\n');
+            error.message = e.message;
+            if (error.message) {
+                const stack = e.stack.split('\n');
+                if (stack) {
+                    error.code = stack[0].slice(0, stack[0].indexOf(':'));
+                    error.requireStack = stack.slice(1).map((stack_entry) => {
+                        return stack_entry.slice(stack_entry.indexOf('at') + 3);
+                    });
+                }
+            }
+            error.error = true;
+            return error;
+        }
         // inject css
         svelte_render_item.result.html = svelte_render_item.result.html.replace('</head>', `<style>${svelte_render_item.result.css.code}</style></head>`);
         return svelte_render_item;
@@ -102,8 +123,8 @@ export class Build {
         return code;
     }
     static remove_svelte_files_from_cache() {
-        Object.keys(require.cache).forEach(cache_file => {
-            if(cache_file.match(/\.svelte$/)) {
+        Object.keys(require.cache).forEach((cache_file) => {
+            if (cache_file.match(/\.svelte$/)) {
                 delete require.cache[cache_file];
             }
         });

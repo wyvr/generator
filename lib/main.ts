@@ -427,8 +427,15 @@ export class Main {
             this.perf.end('scripts');
         }
 
+        this.perf.start('sitemap');
+        await this.sitemap();
+        this.perf.end('sitemap');
+
         this.worker_controller.cleanup();
         this.is_executing = false;
+    }
+    async sitemap() {
+        return null;
     }
     async process_in_workers(name: string, action: WorkerAction, list: any[], batch_size: number = 10): Promise<boolean> {
         const amount = list.length;

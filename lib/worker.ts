@@ -12,6 +12,7 @@ import { Routes } from '@lib/routes';
 import { Config } from '@lib/config';
 import { Generate } from '@lib/generate';
 import { RequireCache } from '@lib/require_cache';
+import { Error } from '@lib/error';
 
 export class Worker {
     private config = null;
@@ -57,7 +58,11 @@ export class Worker {
                         value.map(async (entry) => {
                             const filename = entry.route;
                             // console.log(process.pid, '?', filename)
-                            const route_result = await Routes.execute_route(filename, this.global_data);
+                            const [error, route_result] = await Routes.execute_route(filename, this.global_data);
+                            if (error) {
+                                WorkerHelper.log(LogType.error, 'route error', Error.get(error, filename, 'route'));
+                                return null;
+                            }
                             const route_url = Routes.write_routes(route_result, (data: any) => {
                                 // enhance the data from the pages
                                 // set default values when the key is not available in the given data
@@ -92,19 +97,17 @@ export class Worker {
                             const result = this.emit_entrypoint(data);
 
                             const page_code = Build.get_page_code(result.data, result.doc, result.layout, result.page);
-                            const compiled = Build.compile(page_code);
+                            const [compile_error, compiled] = Build.compile(page_code);
 
-                            if (compiled.error) {
-                                compiled.filename = filename;
+                            if (compile_error) {
                                 // svelte error messages
-                                WorkerHelper.log(LogType.error, '[svelte]', data.url, compiled);
+                                WorkerHelper.log(LogType.error, '[svelte]', data.url, Error.get(compile_error, filename, 'build'));
                                 return;
                             }
-                            const rendered = Build.render(compiled, data);
-                            if(rendered.error) {
-                                rendered.filename = filename;
+                            const [render_error, rendered] = Build.render(compiled, data);
+                            if (render_error) {
                                 // svelte error messages
-                                WorkerHelper.log(LogType.error, '[svelte]', data.url, rendered);
+                                WorkerHelper.log(LogType.error, '[svelte]', data.url, Error.get(render_error, filename, 'render'));
                                 return;
                             }
 
@@ -148,7 +151,6 @@ export class Worker {
                             try {
                                 await Client.create_bundle(this.cwd, entrypoint.file, dep_files);
                             } catch (e) {
-                                console.log(e);
                                 // svelte error messages
                                 WorkerHelper.log(LogType.error, '[svelte]', e);
                             }

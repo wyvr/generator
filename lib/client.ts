@@ -8,8 +8,11 @@ import commonjs from '@rollup/plugin-commonjs';
 import css from 'rollup-plugin-css-only';
 import { terser } from 'rollup-plugin-terser';
 import { WyvrFile, WyvrFileConfig, WyvrFileLoading, WyvrFileRender } from '@lib/model/wyvr/file';
-import { File } from './file';
-import { Env } from './env';
+import { File } from '@lib/file';
+import { Env } from '@lib/env';
+import { WorkerHelper } from '@lib/worker/helper';
+import { LogType } from '@lib/model/log';
+import { Error } from '@lib/error';
 
 export class Client {
     static async create_bundle(cwd: string, entry: any, hydrate_files: WyvrFile[]) {
@@ -51,7 +54,10 @@ export class Client {
                             wyvr_hydrate(${var_name}_target, ${var_name});
                         `
                         );
-                        await this.process_bundle(lazy_input_path, lazy_input_name, cwd);
+                        const [error, result] = await this.process_bundle(lazy_input_path, lazy_input_name, cwd);
+                        if (error) {
+                            WorkerHelper.log(LogType.error, '[svelte]', error);
+                        }
                     }
                     return `
                         const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
@@ -77,7 +83,10 @@ export class Client {
 
         fs.writeFileSync(input_file, entrypoint_content.join('\n'));
 
-        await this.process_bundle(input_file, entry.name, cwd);
+        const [error, result] = await this.process_bundle(input_file, entry.name, cwd);
+        if (error) {
+            WorkerHelper.log(LogType.error, '[svelte]', error);
+        }
     }
 
     static async process_bundle(input_file: string, name: string, cwd: string) {
@@ -120,12 +129,11 @@ export class Client {
         };
         try {
             const bundle = await rollup.rollup(input_options);
-            const { output } = await bundle.generate(output_options);
+            await bundle.generate(output_options);
             const result = await bundle.write(output_options);
-            return result;
+            return [null, result];
         } catch (e) {
-            console.error(e);
-            return false;
+            return [Error.get(e, input_file, 'bundle'), null];
         }
     }
 

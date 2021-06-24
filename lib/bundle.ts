@@ -21,10 +21,10 @@ export class Bundle {
         try {
             bundle = await rollup.rollup(options);
         } catch (e) {
-            console.log(e);
+            return [e, null];
         }
         if (!bundle) {
-            return null;
+            return [null, null];
         }
 
         // generate logger specific code in-memory

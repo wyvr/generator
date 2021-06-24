@@ -95,7 +95,7 @@ export class File {
         try {
             data = JSON.parse(content);
         } catch (e) {
-            console.log(e);
+            console.log('error reading json from', filename, e);
             return null;
         }
         return data;

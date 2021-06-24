@@ -34,13 +34,18 @@ export class Routes {
             (<any>global).getGlobal = (key, fallback) => {
                 return Client.get_global(key, fallback || null, global_data);
             };
-            const route_module = await require(route);
-            if (!Array.isArray(route_module)) {
-                return [route_module];
+            let route_module = null;
+            try {
+                route_module = await require(route);
+            } catch (e) {
+                return [e, null];
             }
-            return route_module;
+            if (!Array.isArray(route_module)) {
+                return [null, [route_module]];
+            }
+            return [null, route_module];
         }
-        return null;
+        return [null, null];
     }
     static write_routes(route_entries: any[], hook_before_process: Function = null) {
         if (!route_entries) {

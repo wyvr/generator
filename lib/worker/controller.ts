@@ -8,6 +8,7 @@ import { WorkerModel } from '@lib/model/worker/worker';
 import { File } from '@lib/file';
 import { LogType } from '@lib/model/log';
 import { Events } from '@lib/events';
+import { Error } from '../error';
 
 export class WorkerController {
     private cwd = process.cwd();
@@ -126,12 +127,8 @@ export class WorkerController {
                                 }${Logger.color.dim(' Col:')}${message.loc.column}\n${message.frame}`;
                             }
                             // nodejs error
-                            if (typeof message == 'object' && message.message) {
-                                if (message.code == 'MODULE_NOT_FOUND') {
-                                    return `\n${message.message}\n${Logger.color.dim('in')} ${message.requireStack[0]}\n${Logger.color.dim('source file')} ${message.filename}`;
-                                }
-                                return `\n${message.code} ${message.message}\n${Logger.color.dim('in')} ${message.requireStack[0]}\n${Logger.color.dim('source file')} ${message.filename}`;
-
+                            if (message == 'object' && message.error) {
+                                return Error.get(message.error, message.filename);
                             }
                             return message;
                         });

@@ -15,7 +15,7 @@ export class Build {
     static preprocess(content: string) {
         return preprocess(content, null, { filename: 'test' });
     }
-    static compile(content: string) {
+    static compile(content: string): [any, any] {
         // process.exit();
         try {
             const compiled = compile(content, {
@@ -27,22 +27,15 @@ export class Build {
                 cssHash: Client.css_hash,
             });
             const component = eval(compiled.js.code);
-            return { compiled, component, result: null, notes: [] };
+            return [null, { compiled, component, result: null, notes: [] }];
         } catch (e) {
-            const error = Object.assign({}, e);
-            const message_raw = e.toString().split('\n');
-            if (message_raw) {
-                const message = message_raw.slice(0, message_raw.indexOf('Require stack:')).join('\n');
-                error.message = message;
-            }
-            error.error = true;
-            return error;
+            return [e, null];
         }
     }
-    static compile_file(filename: string) {
+    static compile_file(filename: string): [any, any] {
         const content = fs.readFileSync(filename).toString();
-        const result: any = this.compile(content);
-        result.filename = filename;
+        const result: [any, any] = this.compile(content);
+        // result.filename = filename;
         return result;
     }
     static render(svelte_render_item, props) {
@@ -63,24 +56,11 @@ export class Build {
         try {
             svelte_render_item.result = svelte_render_item.component.render(props);
         } catch (e) {
-            const error = Object.assign({}, e);
-            const message_raw = e.toString().split('\n');
-            error.message = e.message;
-            if (error.message) {
-                const stack = e.stack.split('\n');
-                if (stack) {
-                    error.code = stack[0].slice(0, stack[0].indexOf(':'));
-                    error.requireStack = stack.slice(1).map((stack_entry) => {
-                        return stack_entry.slice(stack_entry.indexOf('at') + 3);
-                    });
-                }
-            }
-            error.error = true;
-            return error;
+            return [e, null];
         }
         // inject css
         svelte_render_item.result.html = svelte_render_item.result.html.replace('</head>', `<style>${svelte_render_item.result.css.code}</style></head>`);
-        return svelte_render_item;
+        return [null, svelte_render_item];
     }
     // precompile the components to check whether there is only global data used
     static precompile_components() {

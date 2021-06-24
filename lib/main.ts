@@ -513,11 +513,10 @@ export class Main {
             this.queue.push(queue_data);
         }
         const size = this.queue.length;
+        let done = 0;
         return new Promise((resolve, reject) => {
             const idle = this.worker_controller.get_idle_workers();
             const listener_id = this.worker_controller.events.on('worker_status', WorkerStatus.idle, () => {
-                const done = size - this.queue.length;
-                Logger.text(name, Logger.color.dim('...'), `${Math.round((100 / size) * done)}%`, Logger.color.dim(`${done}/${size}`));
                 if (this.tick(this.queue)) {
                     this.worker_controller.events.off('worker_status', WorkerStatus.idle, listener_id);
                     resolve(true);
@@ -527,6 +526,13 @@ export class Main {
             if (idle.length > 0 && idle.length == this.worker_controller.get_worker_amount()) {
                 this.worker_controller.livecycle(idle[0]);
             }
+            const done_listener_id = this.worker_controller.events.on('worker_status', WorkerStatus.done, () => {
+                done++;
+                Logger.text(name, Logger.color.dim('...'), `${Math.round((100 / size) * done)}%`, Logger.color.dim(`${done}/${size}`));
+                if (done == size) {
+                    this.worker_controller.events.off('worker_status', WorkerStatus.done, done_listener_id);
+                }
+            });
         });
     }
 }

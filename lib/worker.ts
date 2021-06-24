@@ -47,6 +47,7 @@ export class Worker {
                         WorkerHelper.log(LogType.warning, 'invalid configure value', value);
                         return;
                     }
+                    WorkerHelper.send_status(WorkerStatus.done);
                     WorkerHelper.send_status(WorkerStatus.idle);
                     break;
                 case WorkerAction.route:
@@ -57,7 +58,6 @@ export class Worker {
                     const route_result = await Promise.all(
                         value.map(async (entry) => {
                             const filename = entry.route;
-                            // console.log(process.pid, '?', filename)
                             const [error, route_result] = await Routes.execute_route(filename, this.global_data);
                             if (error) {
                                 WorkerHelper.log(LogType.error, 'route error', Error.get(error, filename, 'route'));
@@ -83,6 +83,7 @@ export class Worker {
                             return filename;
                         })
                     );
+                    WorkerHelper.send_status(WorkerStatus.done);
                     WorkerHelper.send_status(WorkerStatus.idle);
                     break;
                 case WorkerAction.build:
@@ -123,6 +124,7 @@ export class Worker {
                     );
 
                     // console.log('result', result);
+                    WorkerHelper.send_status(WorkerStatus.done);
                     WorkerHelper.send_status(WorkerStatus.idle);
                     break;
                 case WorkerAction.scripts:
@@ -158,6 +160,7 @@ export class Worker {
                         })
                     );
 
+                    WorkerHelper.send_status(WorkerStatus.done);
                     WorkerHelper.send_status(WorkerStatus.idle);
                     break;
                 case WorkerAction.status:

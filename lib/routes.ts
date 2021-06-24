@@ -60,11 +60,4 @@ export class Routes {
             return path;
         });
     }
-    static remove_routes_from_cache() {
-        Object.keys(require.cache).forEach((cache_file) => {
-            if (cache_file.match(/\/routes\//)) {
-                delete require.cache[cache_file];
-            }
-        });
-    }
 }

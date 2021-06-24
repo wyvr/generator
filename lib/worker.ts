@@ -11,6 +11,7 @@ import { Client } from '@lib/client';
 import { Routes } from '@lib/routes';
 import { Config } from '@lib/config';
 import { Generate } from '@lib/generate';
+import { RequireCache } from '@lib/require_cache';
 
 export class Worker {
     private config = null;
@@ -73,7 +74,6 @@ export class Worker {
                                 });
                                 return result.data;
                             });
-                            Routes.remove_routes_from_cache();
                             list.push(filename);
                             return filename;
                         })
@@ -163,7 +163,7 @@ export class Worker {
                     break;
                 case WorkerAction.cleanup:
                     WorkerHelper.log(LogType.debug, 'cleanup worker');
-                    Build.remove_svelte_files_from_cache();
+                    RequireCache.clear();
                     break;
                 default:
                     WorkerHelper.log(LogType.warning, 'unknown message action from outside', msg);

@@ -4,6 +4,7 @@ import chokidar from 'chokidar';
 import fs from 'fs';
 import { join } from 'path';
 import { hrtime_to_ms } from '@lib/converter/time';
+import { RequireCache } from '@lib/require_cache';
 
 export class Watch {
     changed_files: any[] = [];
@@ -14,6 +15,7 @@ export class Watch {
             Logger.warning('can not start watching because no callback is defined');
             return;
         }
+        RequireCache.clear();
         this.init();
     }
     private init() {
@@ -102,6 +104,8 @@ export class Watch {
                     const hr_start = process.hrtime();
                     await this.callback(files);
                     bs.reload();
+                    
+                    RequireCache.clear();
                     const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
                     Logger.stop('watch total', timeInMs);
                     this.is_executing = false;

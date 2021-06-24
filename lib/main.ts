@@ -24,6 +24,7 @@ import { Routes } from '@lib/routes';
 import { Watch } from '@lib/watch';
 import merge from 'deepmerge';
 import { Dependency } from '@lib/dependency';
+import { Plugin } from './plugin';
 
 export class Main {
     queue: Queue = null;
@@ -55,18 +56,18 @@ export class Main {
         Dir.create('pub');
 
         Logger.stop('config', hrtime_to_ms(process.hrtime(hr_start)));
-        
+
         // collect configured themes
         this.perf.start('themes');
         const themes = await this.themes();
         this.perf.end('themes');
         Logger.debug('project_config', JSON.stringify(Config.get(), null, 4));
-        
+
         // import the data source
         let datasets_total = null;
         let is_imported = false;
         const importer = new Importer();
-        
+
         const import_global_path = Config.get('import.global');
         if (fs.existsSync(import_global_path)) {
             try {
@@ -106,7 +107,7 @@ export class Main {
         }
 
         this.perf.start('worker');
-        
+
         this.worker_controller = new WorkerController(this.global_data);
         this.worker_amount = this.worker_controller.get_worker_amount();
         Logger.present('workers', this.worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));
@@ -114,12 +115,11 @@ export class Main {
         const gen_src_folder = join(this.cwd, 'gen', 'src');
         this.worker_controller.events.on('emit', 'entrypoint', (data: any) => {
             this.entrypoints[data.entrypoint] = {
-                name: data.entrypoint.replace(gen_src_folder+'/', ''),
-                doc: data.doc.replace(gen_src_folder+'/', ''),
-                layout: data.layout.replace(gen_src_folder+'/', ''),
-                page: data.page.replace(gen_src_folder+'/', ''),
+                name: data.entrypoint.replace(gen_src_folder + '/', ''),
+                doc: data.doc.replace(gen_src_folder + '/', ''),
+                layout: data.layout.replace(gen_src_folder + '/', ''),
+                page: data.page.replace(gen_src_folder + '/', ''),
             };
-            
         });
         this.perf.end('worker');
 
@@ -144,6 +144,7 @@ export class Main {
         // watch for file changes
         try {
             const watch = new Watch(async (changed_files: any[]) => {
+                Plugin.clear();
                 await this.execute(importer.get_import_list(), changed_files);
             });
         } catch (e) {
@@ -209,7 +210,7 @@ export class Main {
         if (themes) {
             themes.forEach((theme) => {
                 // copy the files from the theme to the project
-                ['assets', 'routes'].forEach((part) => {
+                ['assets', 'routes', 'plugins'].forEach((part) => {
                     if (fs.existsSync(join(theme.path, part))) {
                         fs.copySync(join(theme.path, part), join(this.cwd, 'gen', part));
                     }
@@ -272,7 +273,6 @@ export class Main {
         this.worker_controller.events.off('emit', 'global', on_global_index);
 
         // Logger.info('routes amount', routes_urls.length);
-        Routes.remove_routes_from_cache();
         // return [].concat(file_list, routes_urls);
         return file_list;
     }
@@ -374,6 +374,10 @@ export class Main {
         this.copy_static_files();
         this.perf.end('static');
 
+        this.perf.start('plugins');
+        await this.plugins();
+        this.perf.end('plugins');
+
         if (only_static) {
             this.is_executing = false;
             return;
@@ -435,6 +439,29 @@ export class Main {
         this.is_executing = false;
     }
     async sitemap() {
+        const [error, files] = await Plugin.before('sitemap', [
+            {
+                name: 'sitemap.xml',
+                entries: [],
+            },
+        ]);
+        if (error) {
+            Logger.error(error);
+            this.fail();
+        }
+        // console.log(JSON.stringify(files))
+        files.forEach((file) => {
+            if (!file || !file.name || !file.entries) {
+                return;
+            }
+            fs.writeFileSync(join('pub', file.name), JSON.stringify(file.entries, null, 4));
+        });
+        return files;
+    }
+    async plugins() {
+        const plugin_files = File.collect_files(join('gen', 'plugins'));
+        await Plugin.init(plugin_files);
+
         return null;
     }
     async process_in_workers(name: string, action: WorkerAction, list: any[], batch_size: number = 10): Promise<boolean> {

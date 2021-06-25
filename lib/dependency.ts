@@ -9,11 +9,24 @@ export class Dependency {
     static new_cache() {
         return {};
     }
+    // static get_list() {
+    //     if (!this.cache) {
+    //         return [];
+    //     }
+    //     const list = [];
+    //     Object.keys(this.cache).map((key) => {
+    //         Object.keys(this.cache[key]).forEach((parent_file) => {
+    //             list.push(parent_file);
+    //             list.push(...this.cache[key][parent_file]);
+    //         });
+    //     });
+    //     return list;
+    // }
     static build() {
         this.cache = this.new_cache();
         const raw_folder = join(process.cwd(), 'gen', 'raw');
-        const folders = fs.readdirSync(raw_folder).filter((entry)=>{
-            return !File.is_file(join(raw_folder, entry))
+        const folders = fs.readdirSync(raw_folder).filter((entry) => {
+            return !File.is_file(join(raw_folder, entry));
         });
         const folder_files = folders.map((folder) => {
             const folder_path = join(raw_folder, folder);

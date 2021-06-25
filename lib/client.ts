@@ -25,7 +25,7 @@ export class Client {
         // create empty file because it is required as entrypoint
         if (hydrate_files.length == 0) {
             fs.writeFileSync(join(cwd, 'gen', 'js', `${entry.name}.js`), '');
-            return null;
+            return [null, null];
         }
         const script_partials = {
             hydrate: fs.readFileSync(join(cwd, 'wyvr/resource/hydrate.js'), { encoding: 'utf-8' }),
@@ -89,6 +89,7 @@ export class Client {
         if (error) {
             WorkerHelper.log(LogType.error, '[svelte]', error);
         }
+        return [error, result];
     }
 
     static async process_bundle(input_file: string, name: string, cwd: string) {

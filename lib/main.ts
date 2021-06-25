@@ -291,7 +291,7 @@ export class Main {
         });
         // search for hydrateable files
         const hydrateable_files = Client.get_hydrateable_svelte_files(svelte_files);
-        
+
         // copy the hydrateable files into the gen/client folder
         Dir.clear('gen/client');
         hydrateable_files.map((file) => {
@@ -325,12 +325,33 @@ export class Main {
         await Plugin.before('scripts', [this.entrypoints, Dependency.cache]);
         Dir.clear('gen/js');
 
-        // @TODO add static components to the client bundle
-        // console.log(Dependency.cache);
-        // console.log(this.entrypoints);
+        // copy static component which are imported into hydrated components into the gen/client folder to avoid errors
+        const hydrateable_files = Client.get_hydrateable_svelte_files(File.collect_svelte_files('gen/client')).map((file) => {
+            return file.path.replace('gen/client/', '');
+        });
+        hydrateable_files.forEach((file_path) => {
+            const group = file_path.split('/')[0];
+            if (Dependency.cache[group]) {
+                if (Dependency.cache[group][file_path]) {
+                    Dependency.cache[group][file_path].forEach((dep_file) => {
+                        if (hydrateable_files.indexOf(dep_file) == -1) {
+                            // this dependency file is not hydrateable and must be copied to the client folder
+                            const path = join(this.cwd, 'gen', 'client', dep_file);
+                            fs.mkdirSync(dirname(path), { recursive: true });
+                            fs.writeFileSync(
+                                path,
+                                Client.remove_on_server(
+                                    Client.replace_slots_client(fs.readFileSync(join(this.cwd, 'gen', 'src', dep_file), { encoding: 'utf-8' }))
+                                )
+                            );
+                            Logger.debug('make the static file', dep_file, 'hydrateable because it is used inside the hydrateable file', file_path);
+                        }
+                    });
+                }
+            }
+        });
 
         const list = Object.keys(this.entrypoints).map((key) => {
-            // find static resources
             return { file: this.entrypoints[key], dependency: Dependency.cache };
         });
         const result = await this.process_in_workers('scripts', WorkerAction.scripts, list, 1);

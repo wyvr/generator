@@ -150,8 +150,6 @@ export class Client {
         });
     }
     static get_hydrateable_svelte_files(svelte_files: WyvrFile[]): WyvrFile[] {
-        //HydrateFileEntry[] {
-
         return svelte_files
             .map((file) => {
                 const content = fs.readFileSync(file.path, { encoding: 'utf-8' });

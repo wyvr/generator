@@ -291,9 +291,9 @@ export class Main {
         });
         // search for hydrateable files
         const hydrateable_files = Client.get_hydrateable_svelte_files(svelte_files);
-
+        
         // copy the hydrateable files into the gen/client folder
-        fs.mkdirSync('gen/client', { recursive: true });
+        Dir.clear('gen/client');
         hydrateable_files.map((file) => {
             const source_path = file.path;
             const path = file.path.replace(/^gen\/src/, 'gen/client');

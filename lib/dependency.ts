@@ -7,18 +7,14 @@ import { File } from '@lib/file';
 export class Dependency {
     static cache: any = null;
     static new_cache() {
-        return {
-            doc: {},
-            layout: {},
-            page: {},
-        };
+        return {};
     }
-    static build(folders: string[]) {
-        if (!folders || folders.length == 0) {
-            return null;
-        }
+    static build() {
         this.cache = this.new_cache();
         const raw_folder = join(process.cwd(), 'gen', 'raw');
+        const folders = fs.readdirSync(raw_folder).filter((entry)=>{
+            return !File.is_file(join(raw_folder, entry))
+        });
         const folder_files = folders.map((folder) => {
             const folder_path = join(raw_folder, folder);
             if (!fs.existsSync(folder_path)) {
@@ -37,7 +33,7 @@ export class Dependency {
                     const parent = filepath.replace(raw_folder + '/', '');
                     matches.forEach((match) => {
                         if (!this.cache[folder]) {
-                            Logger.warning('unknown dependency type', folder);
+                            this.cache[folder] = {};
                         }
                         if (!this.cache[folder][parent]) {
                             this.cache[folder][parent] = [];

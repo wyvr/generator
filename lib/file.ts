@@ -143,4 +143,11 @@ export class File {
 
         return result;
     }
+    static is_file(path: string) {
+        const stat = fs.statSync(path);
+        if(!stat) {
+            return false;
+        }
+        return !stat.isDirectory();
+    }
 }

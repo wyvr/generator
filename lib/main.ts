@@ -325,7 +325,14 @@ export class Main {
         await Plugin.before('scripts', [this.entrypoints, Dependency.cache]);
         Dir.clear('gen/js');
 
-        const list = Object.keys(this.entrypoints).map((key) => ({ file: this.entrypoints[key], dependency: Dependency.cache }));
+        // @TODO add static components to the client bundle
+        // console.log(Dependency.cache);
+        // console.log(this.entrypoints);
+
+        const list = Object.keys(this.entrypoints).map((key) => {
+            // find static resources
+            return { file: this.entrypoints[key], dependency: Dependency.cache };
+        });
         const result = await this.process_in_workers('scripts', WorkerAction.scripts, list, 1);
         await Plugin.after('scripts', [result]);
         return result;
@@ -420,18 +427,19 @@ export class Main {
         this.perf.end('build');
 
         // check if the execution should stop after the build
-        const collected_client_files = collected_files.client.map((file) => file.path.replace('gen/', ''))    
-        const exec_scripts = !is_regenerating || changed_files.some((file) => {
-            if (!file.rel_path.match(/^src\//)) {
-                return false;
-            }
-            return collected_client_files.indexOf(file.rel_path) > -1;
-        });
+        const collected_client_files = collected_files.client.map((file) => file.path.replace('gen/', ''));
+        const exec_scripts =
+            !is_regenerating ||
+            changed_files.some((file) => {
+                if (!file.rel_path.match(/^src\//)) {
+                    return false;
+                }
+                return collected_client_files.indexOf(file.rel_path) > -1;
+            });
 
         if (exec_scripts) {
             this.perf.start('dependencies');
-            const dep_folder = ['doc', 'layout', 'page'];
-            Dependency.build(dep_folder);
+            Dependency.build();
             this.perf.end('dependencies');
 
             this.perf.start('scripts');

@@ -27,7 +27,6 @@ export class Client {
             fs.writeFileSync(join(cwd, 'gen', 'js', `${entry.name}.js`), '');
             return null;
         }
-        console.log(Env.is_dev())
         const script_partials = {
             hydrate: fs.readFileSync(join(cwd, 'wyvr/resource/hydrate.js'), { encoding: 'utf-8' }),
             props: fs.readFileSync(join(cwd, 'wyvr/resource/props.js'), { encoding: 'utf-8' }),

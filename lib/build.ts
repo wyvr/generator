@@ -5,6 +5,8 @@ import { Client } from './client';
 import { Env } from './env';
 
 register();
+// fix intl global
+(<any>global).Intl = require('intl');
 // onServer Server implementation
 (<any>global).onServer = async (callback: Function) => {
     if (callback && typeof callback == 'function') {

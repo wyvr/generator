@@ -8,7 +8,79 @@ export class WyvrFile {
     props?: string[];
     constructor(public path: string) {
         if (path) {
-            this.name = basename(path).replace(new RegExp(`${extname(path).replace('.', '\\.')}$`), '');
+            let name = basename(path).replace(new RegExp(`${extname(path).replace('.', '\\.')}$`), '');
+            // avoid reserved keywords
+            if (
+                [
+                    'abstract',
+                    'arguments',
+                    'await',
+                    'boolean',
+                    'break',
+                    'byte',
+                    'case',
+                    'catch',
+                    'char',
+                    'class',
+                    'const',
+                    'continue',
+                    'debugger',
+                    'default',
+                    'delete',
+                    'do',
+                    'double',
+                    'else',
+                    'enum',
+                    'eval',
+                    'export',
+                    'extends',
+                    'false',
+                    'final',
+                    'finally',
+                    'float',
+                    'for',
+                    'function',
+                    'goto',
+                    'if',
+                    'implements',
+                    'import',
+                    'in',
+                    'instanceof',
+                    'int',
+                    'interface',
+                    'let',
+                    'long',
+                    'native',
+                    'new',
+                    'null',
+                    'package',
+                    'private',
+                    'protected',
+                    'public',
+                    'return',
+                    'short',
+                    'static',
+                    'super',
+                    'switch',
+                    'synchronized',
+                    'this',
+                    'throw',
+                    'throws',
+                    'transient',
+                    'true',
+                    'try',
+                    'typeof',
+                    'var',
+                    'void',
+                    'volatile',
+                    'while',
+                    'with',
+                    'yield',
+                ].indexOf(name.toLowerCase()) > -1
+            ) {
+                name = `_${name}`;
+            }
+            this.name = name;
         }
     }
 }

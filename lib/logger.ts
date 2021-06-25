@@ -36,6 +36,9 @@ export class Logger {
     static warning(...values) {
         this.output(color.yellow, '⚠', values.join(' '));
     }
+    static improve(...values) {
+        this.output(color.magenta, '⚡️', values.join(' '));
+    }
     static error(...values) {
         this.output(color.red, '✘', ...values);
     }

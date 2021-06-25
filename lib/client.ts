@@ -16,7 +16,7 @@ import { Error } from '@lib/error';
 
 export class Client {
     static async create_bundle(cwd: string, entry: any, hydrate_files: WyvrFile[]) {
-        //HydrateFileEntry[]) {
+        Env.set(process.env.WYVR_ENV);
         const client_root = join(cwd, 'gen', 'client');
 
         const input_file = join(client_root, `${entry.name}.js`);
@@ -27,11 +27,13 @@ export class Client {
             fs.writeFileSync(join(cwd, 'gen', 'js', `${entry.name}.js`), '');
             return null;
         }
+        console.log(Env.is_dev())
         const script_partials = {
             hydrate: fs.readFileSync(join(cwd, 'wyvr/resource/hydrate.js'), { encoding: 'utf-8' }),
             props: fs.readFileSync(join(cwd, 'wyvr/resource/props.js'), { encoding: 'utf-8' }),
             portal: fs.readFileSync(join(cwd, 'wyvr/resource/portal.js'), { encoding: 'utf-8' }),
             lazy: fs.readFileSync(join(cwd, 'wyvr/resource/hydrate_lazy.js'), { encoding: 'utf-8' }),
+            debug: Env.is_dev() ? fs.readFileSync(join(cwd, 'wyvr/resource/debug.js'), { encoding: 'utf-8' }) : '',
         };
         const content = await Promise.all(
             hydrate_files.map(async (file) => {
@@ -76,6 +78,7 @@ export class Client {
         const entrypoint_content = [script_partials.hydrate];
         entrypoint_content.push(script_partials.props);
         entrypoint_content.push(script_partials.portal);
+        entrypoint_content.push(script_partials.debug);
         if (lazy_input_files.length > 0) {
             entrypoint_content.push(script_partials.lazy);
         }

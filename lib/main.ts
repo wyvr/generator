@@ -344,7 +344,11 @@ export class Main {
                                     Client.replace_slots_client(fs.readFileSync(join(this.cwd, 'gen', 'src', dep_file), { encoding: 'utf-8' }))
                                 )
                             );
-                            Logger.debug('make the static file', dep_file, 'hydrateable because it is used inside the hydrateable file', file_path);
+                            if(Env.is_dev()) {
+                                Logger.warning('make the static file', dep_file, 'hydrateable because it is used inside the hydrateable file', file_path);
+                            } else {
+                                Logger.debug('make the static file', dep_file, 'hydrateable because it is used inside the hydrateable file', file_path);
+                            }
                         }
                     });
                 }

@@ -199,8 +199,10 @@ export class Client {
         return config;
     }
     static transform_hydrateable_svelte_files(files: WyvrFile[]) {
-        //HydrateFileEntry[]) {
         return files.map((entry) => {
+            if (!entry.config) {
+                return entry;
+            }
             if (entry.config.render == WyvrFileRender.hydrate) {
                 // split svelte file apart to inject markup for the hydration
                 let content = fs.readFileSync(entry.path, { encoding: 'utf-8' });

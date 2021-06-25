@@ -130,7 +130,7 @@ export class Worker {
                 case WorkerAction.scripts:
                     WorkerHelper.send_status(WorkerStatus.busy);
                     const svelte_files = File.collect_svelte_files('gen/client');
-                    // @todo get all svelte components which should be hydrated
+                    // get all svelte components which should be hydrated
                     const files = Client.get_hydrateable_svelte_files(svelte_files);
 
                     await Promise.all(
@@ -151,10 +151,10 @@ export class Worker {
                                 }
                             });
                             try {
-                                await Client.create_bundle(this.cwd, entrypoint.file, dep_files);
+                                const [error, result] = await Client.create_bundle(this.cwd, entrypoint.file, dep_files);
                             } catch (e) {
                                 // svelte error messages
-                                WorkerHelper.log(LogType.error, '[svelte]', e);
+                                WorkerHelper.log(LogType.error, Error.get(e, entrypoint.file.path, 'worker scripts'));
                             }
                             return null;
                         })

@@ -232,9 +232,7 @@ export class Main {
     }
     async collect() {
         const themes = Config.get('themes');
-        await Plugin.before('collect', [
-            themes
-        ]);
+        await Plugin.before('collect', [themes]);
         if (themes) {
             let config = {};
             Dir.create('gen/raw');
@@ -248,16 +246,11 @@ export class Main {
             });
         }
         fs.copySync('gen/raw', 'gen/src');
-        await Plugin.after('collect', [
-            themes
-        ]);
+        await Plugin.after('collect', [themes]);
         return true;
     }
     async routes(file_list: any[], enhance_data: boolean = true) {
-        await Plugin.before('routes', [
-            file_list, 
-            enhance_data
-        ]);
+        await Plugin.before('routes', [file_list, enhance_data]);
         const routes = Routes.collect_routes();
         if (!routes || routes.length == 0) {
             return file_list;
@@ -281,19 +274,14 @@ export class Main {
         );
 
         this.worker_controller.events.off('emit', 'global', on_global_index);
-        await Plugin.after('routes', [
-            file_list, 
-            enhance_data
-        ]);
+        await Plugin.after('routes', [file_list, enhance_data]);
         // Logger.info('routes amount', routes_urls.length);
         // return [].concat(file_list, routes_urls);
         return file_list;
     }
     async transform() {
         const svelte_files = File.collect_svelte_files('gen/src');
-        await Plugin.before('transform', [
-            svelte_files
-        ]);
+        await Plugin.before('transform', [svelte_files]);
         // combine svelte files
         svelte_files.map((file) => {
             const raw_content = fs.readFileSync(file.path, { encoding: 'utf-8' });
@@ -318,9 +306,7 @@ export class Main {
 
         // @todo replace global in the svelte components which should be hydrated
         const transformed_files = Client.transform_hydrateable_svelte_files(hydrateable_files);
-        await Plugin.after('transform', [
-            transformed_files
-        ]);
+        await Plugin.after('transform', [transformed_files]);
         return {
             src: svelte_files,
             client: transformed_files,
@@ -328,29 +314,20 @@ export class Main {
     }
     async build(list: string[]): Promise<boolean> {
         fs.mkdirSync('gen/src', { recursive: true });
-        await Plugin.before('build', [
-            list
-        ]);
+        await Plugin.before('build', [list]);
         Logger.info('build datasets', list.length);
 
         const result = await this.process_in_workers('build', WorkerAction.build, list, 100);
-        await Plugin.after('build', [
-            result
-        ]);
+        await Plugin.after('build', [result]);
         return result;
     }
     async scripts(): Promise<boolean> {
-        await Plugin.before('scripts', [
-            this.entrypoints,
-            Dependency.cache
-        ]);
+        await Plugin.before('scripts', [this.entrypoints, Dependency.cache]);
         Dir.clear('gen/js');
 
         const list = Object.keys(this.entrypoints).map((key) => ({ file: this.entrypoints[key], dependency: Dependency.cache }));
         const result = await this.process_in_workers('scripts', WorkerAction.scripts, list, 1);
-        await Plugin.after('scripts', [
-            result
-        ]);
+        await Plugin.after('scripts', [result]);
         return result;
     }
     ticks: number = 0;
@@ -419,10 +396,14 @@ export class Main {
         await this.collect();
         this.perf.end('collect');
 
-        // get the route files
-        this.perf.start('routes');
-        await this.routes(file_list, !is_regenerating);
-        this.perf.end('routes');
+        if (!is_regenerating) {
+            // get the route files
+            this.perf.start('routes');
+            await this.routes(file_list, !is_regenerating);
+            this.perf.end('routes');
+        } else {
+            Logger.improve('routes, will not be regenerated');
+        }
 
         this.perf.start('transform');
         const collected_files = await this.transform();
@@ -439,20 +420,15 @@ export class Main {
         this.perf.end('build');
 
         // check if the execution should stop after the build
-        const only_build =
-            is_regenerating &&
-            changed_files.every((file) => {
-                if (!file.rel_path.match(/^src\//)) {
-                    return false;
-                }
-                const client_file = collected_files.client.find((c_file) => c_file.path.indexOf(File.to_extension(file.rel_path, 'svelte')) > -1);
-                if (client_file) {
-                    return false;
-                }
-                return true;
-            });
+        const collected_client_files = collected_files.client.map((file) => file.path.replace('gen/', ''))    
+        const exec_scripts = !is_regenerating || changed_files.some((file) => {
+            if (!file.rel_path.match(/^src\//)) {
+                return false;
+            }
+            return collected_client_files.indexOf(file.rel_path) > -1;
+        });
 
-        if (!only_build) {
+        if (exec_scripts) {
             this.perf.start('dependencies');
             const dep_folder = ['doc', 'layout', 'page'];
             Dependency.build(dep_folder);
@@ -461,6 +437,8 @@ export class Main {
             this.perf.start('scripts');
             const build_scripts = await this.scripts();
             this.perf.end('scripts');
+        } else {
+            Logger.improve('scripts, will not be regenerated');
         }
 
         this.perf.start('sitemap');

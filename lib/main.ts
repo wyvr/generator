@@ -129,6 +129,7 @@ export class Main {
         // symlink the "static" folders to pub
         Link.to_pub('gen/assets', 'assets');
         Link.to_pub('gen/js', 'js');
+        Link.to_pub('gen/css', 'css');
 
         // save config fo debugging
         fs.writeFileSync('gen/config.json', JSON.stringify(Config.get(), null, 4));

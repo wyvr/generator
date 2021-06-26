@@ -1,4 +1,5 @@
 import * as fs from 'fs-extra';
+import { join, dirname } from 'path';
 import { compile, preprocess } from 'svelte/compiler';
 import register from 'svelte/register';
 import { Client } from './client';
@@ -60,8 +61,14 @@ export class Build {
         } catch (e) {
             return [e, null];
         }
+        // write css file
+        const css_file_path = join('gen', 'css', `${props._wyvr.entrypoint}.css`);
+        if (!fs.existsSync(css_file_path)) {
+            fs.mkdirSync(dirname(css_file_path), { recursive: true });
+            fs.writeFileSync(css_file_path, svelte_render_item.result.css.code);
+        }
         // inject css
-        svelte_render_item.result.html = svelte_render_item.result.html.replace('</head>', `<style>${svelte_render_item.result.css.code}</style></head>`);
+        // svelte_render_item.result.html = svelte_render_item.result.html.replace('</head>', `<style>${svelte_render_item.result.css.code}</style></head>`);
         return [null, svelte_render_item];
     }
     // precompile the components to check whether there is only global data used

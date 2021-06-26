@@ -12,6 +12,7 @@
         "browser-sync": "^2.26.14",
         "chokidar": "^3.5.2",
         "circular": "^1.0.5",
+        "critical": "^4.0.0",
         "deepmerge": "^4.2.2",
         "fs-extra": "^10.0.0",
         "http-server": "^0.12.3",

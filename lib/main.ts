@@ -470,9 +470,13 @@ export class Main {
         await this.link();
         this.perf.end('link');
 
-        this.perf.start('optimize');
-        await this.optimize(css_parents);
-        this.perf.end('optimize');
+        if (Env.is_dev()) {
+            Logger.improve('optimize will not be executed in dev mode');
+        } else {
+            this.perf.start('optimize');
+            await this.optimize(css_parents);
+            this.perf.end('optimize');
+        }
 
         this.perf.start('publish');
         await this.publish();
@@ -509,10 +513,6 @@ export class Main {
     }
 
     async optimize(entrypoint_list: any[]) {
-        if (Env.is_dev()) {
-            Logger.improve('optimize will not be executed in dev mode');
-            return null;
-        }
         // add contenthash to the generated files
         const replace_hash_files = [];
         const [hash_list, file_list] = Optimize.get_hashed_files();

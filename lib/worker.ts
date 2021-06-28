@@ -5,7 +5,7 @@ import { File } from '@lib/file';
 import { Build } from '@lib/build';
 import { Dir } from '@lib/dir';
 import { join, dirname, resolve } from 'path';
-import * as fs from 'fs-extra';
+import { readFileSync, writeFileSync } from 'fs-extra';
 import { LogType } from './model/log';
 import { Client } from '@lib/client';
 import { Routes } from '@lib/routes';
@@ -13,6 +13,7 @@ import { Config } from '@lib/config';
 import { Generate } from '@lib/generate';
 import { RequireCache } from '@lib/require_cache';
 import { Error } from '@lib/error';
+import { Optimize } from '@lib/optimize';
 
 export class Worker {
     private config = null;
@@ -123,7 +124,7 @@ export class Worker {
                             }
 
                             Dir.create(dirname(path));
-                            fs.writeFileSync(path, rendered.result.html);
+                            writeFileSync(path, rendered.result.html);
 
                             return path;
                         })
@@ -164,7 +165,7 @@ export class Worker {
                                 const [error, result] = await Client.create_bundle(this.cwd, entrypoint.file, dep_files);
                             } catch (e) {
                                 // svelte error messages
-                                WorkerHelper.log(LogType.error, Error.get(e, entrypoint.file.path, 'worker scripts'));
+                                WorkerHelper.log(LogType.error, Error.get(e, entrypoint.file.name, 'worker scripts'));
                             }
                             return null;
                         })
@@ -181,6 +182,7 @@ export class Worker {
                     WorkerHelper.send_status(WorkerStatus.busy);
                     const critical = require('critical');
                     const minify = require('html-minifier').minify;
+                    // create above the fold inline css
                     let { css } = await critical.generate({
                         inline: false, // generates CSS
                         base: 'pub',
@@ -197,9 +199,13 @@ export class Worker {
                     if (!css) {
                         css = '';
                     }
+
                     value[0].files.forEach((file) => {
                         const css_tag = `<style>${css}</style>`;
-                        let content = fs.readFileSync(file, { encoding: 'utf-8' }).replace(/<style data-critical-css><\/style>/, css_tag);
+                        let content = readFileSync(file, { encoding: 'utf-8' }).replace(/<style data-critical-css><\/style>/, css_tag);
+                        // replacve hashed files in the content
+                        content = Optimize.replace_hashed_files(content, value[0].hash_list);
+                        // minify the html output
                         try {
                             content = minify(content, {
                                 collapseBooleanAttributes: true,
@@ -210,13 +216,13 @@ export class Worker {
                                 removeComments: true,
                                 removeScriptTypeAttributes: true,
                                 removeStyleLinkTypeAttributes: true,
-                                useShortDoctype: true
+                                useShortDoctype: true,
                             });
-                        } catch(e) {
+                        } catch (e) {
                             WorkerHelper.log(LogType.error, Error.get(e, file, 'worker optimize minify'));
                         }
 
-                        fs.writeFileSync(file, content);
+                        writeFileSync(file, content);
                     });
                     WorkerHelper.send_status(WorkerStatus.done);
                     WorkerHelper.send_status(WorkerStatus.idle);

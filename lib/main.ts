@@ -1,4 +1,4 @@
-import * as fs from 'fs-extra';
+import { readFileSync, writeFileSync, existsSync, copySync, mkdirSync } from 'fs-extra';
 
 import { v4 } from 'uuid';
 
@@ -24,6 +24,7 @@ import { Watch } from '@lib/watch';
 import merge from 'deepmerge';
 import { Dependency } from '@lib/dependency';
 import { Plugin } from './plugin';
+import { Optimize } from './optimize';
 
 export class Main {
     worker_controller: WorkerController = null;
@@ -67,7 +68,7 @@ export class Main {
         const importer = new Importer();
 
         const import_global_path = Config.get('import.global');
-        if (fs.existsSync(import_global_path)) {
+        if (existsSync(import_global_path)) {
             try {
                 this.global_data = File.read_json(import_global_path);
             } catch (e) {
@@ -78,7 +79,7 @@ export class Main {
         this.global_data.url = Config.get('url');
         const import_main_path = Config.get('import.main');
         const default_values = Config.get('default_values');
-        if (import_main_path && fs.existsSync(import_main_path)) {
+        if (import_main_path && existsSync(import_main_path)) {
             try {
                 datasets_total = await importer.import(
                     import_main_path,
@@ -125,7 +126,7 @@ export class Main {
         await this.execute(importer.get_import_list());
 
         // save config fo debugging
-        fs.writeFileSync('gen/config.json', JSON.stringify(Config.get(), null, 4));
+        writeFileSync('gen/config.json', JSON.stringify(Config.get(), null, 4));
 
         const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
         Logger.stop('initial total', timeInMs);
@@ -164,7 +165,7 @@ export class Main {
                 if (theme_config) {
                     config = Config.merge(config, theme_config);
                 }
-                if (fs.existsSync(theme.path)) {
+                if (existsSync(theme.path)) {
                     available_themes.push(theme);
                     return;
                 }
@@ -205,8 +206,8 @@ export class Main {
             themes.forEach((theme) => {
                 // copy the files from the theme to the project
                 ['assets', 'routes', 'plugins'].forEach((part) => {
-                    if (fs.existsSync(join(theme.path, part))) {
-                        fs.copySync(join(theme.path, part), join(this.cwd, 'gen', part));
+                    if (existsSync(join(theme.path, part))) {
+                        copySync(join(theme.path, part), join(this.cwd, 'gen', part));
                     }
                 });
             });
@@ -215,10 +216,10 @@ export class Main {
         const assets = Config.get('assets');
         if (assets) {
             assets.forEach((entry) => {
-                if (entry.src && fs.existsSync(entry.src)) {
+                if (entry.src && existsSync(entry.src)) {
                     const target = join(this.cwd, 'gen/assets', entry.target);
                     Logger.debug('copy asset from', entry.src, 'to', target);
-                    fs.copySync(entry.src, target);
+                    copySync(entry.src, target);
                 } else {
                     Logger.warning('can not copy asset', entry.src, 'empty or not existing');
                 }
@@ -234,13 +235,13 @@ export class Main {
             themes.forEach((theme) => {
                 // copy the files from the theme to the project gen/raw
                 ['src'].forEach((part) => {
-                    if (fs.existsSync(join(theme.path, part))) {
-                        fs.copySync(join(theme.path, part), join(this.cwd, 'gen/raw'));
+                    if (existsSync(join(theme.path, part))) {
+                        copySync(join(theme.path, part), join(this.cwd, 'gen/raw'));
                     }
                 });
             });
         }
-        fs.copySync('gen/raw', 'gen/src');
+        copySync('gen/raw', 'gen/src');
         await Plugin.after('collect', themes);
         return true;
     }
@@ -279,10 +280,10 @@ export class Main {
         await Plugin.before('transform', svelte_files);
         // combine svelte files
         svelte_files.map((file) => {
-            const raw_content = fs.readFileSync(file.path, { encoding: 'utf-8' });
+            const raw_content = readFileSync(file.path, { encoding: 'utf-8' });
             const combined_content = Client.insert_splits(file.path, raw_content);
             const content = Client.replace_global(combined_content, this.global_data);
-            fs.writeFileSync(file.path, content);
+            writeFileSync(file.path, content);
         });
         // search for hydrateable files
         const hydrateable_files = Client.get_hydrateable_svelte_files(svelte_files);
@@ -292,8 +293,8 @@ export class Main {
         hydrateable_files.map((file) => {
             const source_path = file.path;
             const path = file.path.replace(/^gen\/src/, 'gen/client');
-            fs.mkdirSync(dirname(path), { recursive: true });
-            fs.writeFileSync(path, Client.remove_on_server(Client.replace_slots_client(fs.readFileSync(source_path, { encoding: 'utf-8' }))));
+            mkdirSync(dirname(path), { recursive: true });
+            writeFileSync(path, Client.remove_on_server(Client.replace_slots_client(readFileSync(source_path, { encoding: 'utf-8' }))));
             return file;
         });
         // correct the import paths in the static files
@@ -308,7 +309,7 @@ export class Main {
         };
     }
     async build(list: string[]): Promise<[string[], string[]]> {
-        fs.mkdirSync('gen/src', { recursive: true });
+        mkdirSync('gen/src', { recursive: true });
         await Plugin.before('build', list);
         Logger.info('build datasets', list.length);
         const paths = [];
@@ -348,11 +349,11 @@ export class Main {
                         if (hydrateable_files.indexOf(dep_file) == -1) {
                             // this dependency file is not hydrateable and must be copied to the client folder
                             const path = join(this.cwd, 'gen', 'client', dep_file);
-                            fs.mkdirSync(dirname(path), { recursive: true });
-                            fs.writeFileSync(
+                            mkdirSync(dirname(path), { recursive: true });
+                            writeFileSync(
                                 path,
                                 Client.remove_on_server(
-                                    Client.replace_slots_client(fs.readFileSync(join(this.cwd, 'gen', 'src', dep_file), { encoding: 'utf-8' }))
+                                    Client.replace_slots_client(readFileSync(join(this.cwd, 'gen', 'src', dep_file), { encoding: 'utf-8' }))
                                 )
                             );
                             if (Env.is_dev()) {
@@ -496,7 +497,7 @@ export class Main {
             if (!file || !file.name || !file.entries) {
                 return;
             }
-            fs.writeFileSync(join('pub', file.name), JSON.stringify(file.entries, null, 4));
+            writeFileSync(join('pub', file.name), JSON.stringify(file.entries, null, 4));
         });
         return files;
     }
@@ -512,7 +513,13 @@ export class Main {
             Logger.improve('optimize will not be executed in dev mode');
             return null;
         }
-        const [error_before, entrypoint_list_before] = await Plugin.before('optimize', entrypoint_list);
+        // add contenthash to the generated files
+        const replace_hash_files = [];
+        const [hash_list, file_list] = Optimize.get_hashed_files();
+        // replace in the files itself
+        Optimize.replace_hashed_files_in_files(file_list, hash_list);
+
+        const [error_before, entrypoint_list_before, replace_hash_files_before] = await Plugin.before('optimize', entrypoint_list, replace_hash_files);
         if (error_before) {
             Logger.error(error_before);
             this.fail();
@@ -522,6 +529,7 @@ export class Main {
             if (!indexed[entry.entrypoint]) {
                 indexed[entry.entrypoint] = entry;
                 indexed[entry.entrypoint].files = [];
+                indexed[entry.entrypoint].hash_list = hash_list;
             }
             indexed[entry.entrypoint].files.push(entry.path);
         });

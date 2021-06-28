@@ -3,8 +3,8 @@ import { dirname } from 'path';
 export class Link {
     /**
      * links the given source_dir_name to the destination_name folder
-     * @param source_dir_name directory name in the root folder which gets symlinked into the pub folder
-     * @param destination_name optional set the target name in the pub folder
+     * @param source_dir_name directory name in the root folder which gets symlinked to the destination
+     * @param destination_name set the target folder
      * @returns whether the given parameter is correct or not
      */
     static to(source_dir_name: string, destination_name: string = null): boolean {
@@ -19,7 +19,7 @@ export class Link {
         const trimmed_destination = destination_name.replace(/^\//, '');
         const source = `${cwd}/${trimmed_soure}`;
         const destination = `${cwd}/${trimmed_destination}`;
-        // create pub folder when not exists
+        // create destination folder when not exists
         mkdirSync(dirname(destination), { recursive: true });
         // when the destination exists delete it
         removeSync(destination);

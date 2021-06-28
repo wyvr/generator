@@ -180,6 +180,7 @@ export class Worker {
                     }
                     WorkerHelper.send_status(WorkerStatus.busy);
                     const critical = require('critical');
+                    const minify = require('html-minifier').minify;
                     let { css } = await critical.generate({
                         inline: false, // generates CSS
                         base: 'pub',
@@ -198,8 +199,24 @@ export class Worker {
                     }
                     value[0].files.forEach((file) => {
                         const css_tag = `<style>${css}</style>`;
-                        const content = fs.readFileSync(file, { encoding: 'utf-8' });
-                        fs.writeFileSync(file, content.replace(/<style data-critical-css><\/style>/, css_tag));
+                        let content = fs.readFileSync(file, { encoding: 'utf-8' }).replace(/<style data-critical-css><\/style>/, css_tag);
+                        try {
+                            content = minify(content, {
+                                collapseBooleanAttributes: true,
+                                collapseInlineTagWhitespace: true,
+                                collapseWhitespace: true,
+                                continueOnParseError: true,
+                                removeAttributeQuotes: true,
+                                removeComments: true,
+                                removeScriptTypeAttributes: true,
+                                removeStyleLinkTypeAttributes: true,
+                                useShortDoctype: true
+                            });
+                        } catch(e) {
+                            WorkerHelper.log(LogType.error, Error.get(e, file, 'worker optimize minify'));
+                        }
+
+                        fs.writeFileSync(file, content);
                     });
                     WorkerHelper.send_status(WorkerStatus.done);
                     WorkerHelper.send_status(WorkerStatus.idle);

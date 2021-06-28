@@ -105,24 +105,34 @@ export class Worker {
                                 WorkerHelper.log(LogType.error, '[svelte]', data.url, Error.get(compile_error, filename, 'build'));
                                 return;
                             }
-                            const [render_error, rendered] = Build.render(compiled, data);
+                            const [render_error, rendered, css_parent] = Build.render(compiled, data);
                             if (render_error) {
                                 // svelte error messages
                                 WorkerHelper.log(LogType.error, '[svelte]', data.url, Error.get(render_error, filename, 'render'));
                                 return;
                             }
-
                             // change extension when set
                             const extension = data._wyvr?.extension;
                             const path = File.to_extension(filename.replace(join(this.cwd, 'imported', 'data'), 'pub'), extension);
+                            if (css_parent) {
+                                css_parent.path = path;
+                                WorkerHelper.send_action(WorkerAction.emit, {
+                                    type: 'css_parent',
+                                    data: css_parent,
+                                });
+                            }
 
                             Dir.create(dirname(path));
                             fs.writeFileSync(path, rendered.result.html);
 
-                            return filename;
+                            return path;
                         })
                     );
 
+                    WorkerHelper.send_action(WorkerAction.emit, {
+                        type: 'build',
+                        data: build_result,
+                    });
                     // console.log('result', result);
                     WorkerHelper.send_status(WorkerStatus.done);
                     WorkerHelper.send_status(WorkerStatus.idle);
@@ -160,6 +170,37 @@ export class Worker {
                         })
                     );
 
+                    WorkerHelper.send_status(WorkerStatus.done);
+                    WorkerHelper.send_status(WorkerStatus.idle);
+                    break;
+                case WorkerAction.optimize:
+                    if (value.length > 1) {
+                        WorkerHelper.log(LogType.error, 'more then 1 entry in crititcal css extraction is not allowed');
+                        return;
+                    }
+                    WorkerHelper.send_status(WorkerStatus.busy);
+                    const critical = require('critical');
+                    let { css } = await critical.generate({
+                        inline: false, // generates CSS
+                        base: 'pub',
+                        src: value[0].path,
+                        dimensions: [
+                            { width: 320, height: 568 },
+                            { width: 360, height: 720 },
+                            { width: 480, height: 800 },
+                            { width: 1024, height: 768 },
+                            { width: 1280, height: 1024 },
+                            { width: 1920, height: 1080 },
+                        ],
+                    });
+                    if (!css) {
+                        css = '';
+                    }
+                    value[0].files.forEach((file) => {
+                        const css_tag = `<style>${css}</style>`;
+                        const content = fs.readFileSync(file, { encoding: 'utf-8' });
+                        fs.writeFileSync(file, content.replace(/<style data-critical-css><\/style>/, css_tag));
+                    });
                     WorkerHelper.send_status(WorkerStatus.done);
                     WorkerHelper.send_status(WorkerStatus.idle);
                     break;

@@ -19,9 +19,11 @@ export class Events {
         return id;
     }
     off(scope: string, name: string | number, index: number) {
-        this.listeners[scope][this.to_string(name)] = this.listeners[scope][this.to_string(name)].filter((listener) => {
-            return listener.id != index;
-        });
+        if(Array.isArray(this.listeners[scope][this.to_string(name)])) {
+            this.listeners[scope][this.to_string(name)] = this.listeners[scope][this.to_string(name)].filter((listener) => {
+                return listener.id != index;
+            });
+        }
     }
     emit(scope: string, name: string | number, data: any = null) {
         if (this.listeners[scope][this.to_string(name)]) {

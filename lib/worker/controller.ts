@@ -137,7 +137,7 @@ export class WorkerController {
                 }
                 break;
             case WorkerAction.emit:
-                if (data.type && ['entrypoint', 'route', 'global'].indexOf(data.type) > -1) {
+                if (data.type && ['entrypoint', 'route', 'global', 'build', 'css_parent'].indexOf(data.type) > -1) {
                     this.events.emit('emit', data.type, data);
                 }
                 break;

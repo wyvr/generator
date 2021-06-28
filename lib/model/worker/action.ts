@@ -8,4 +8,5 @@ export enum WorkerAction {
     build = 1 << 6,
     scripts = 1 << 7,
     cleanup = 1 << 8,
+    optimize = 1 << 9,
 }

@@ -126,11 +126,6 @@ export class Main {
         // execute
         await this.execute(importer.get_import_list());
 
-        // symlink the "static" folders to pub
-        Link.to_pub('gen/assets', 'assets');
-        Link.to_pub('gen/js', 'js');
-        Link.to_pub('gen/css', 'css');
-
         // save config fo debugging
         fs.writeFileSync('gen/config.json', JSON.stringify(Config.get(), null, 4));
 
@@ -313,14 +308,30 @@ export class Main {
             client: transformed_files,
         };
     }
-    async build(list: string[]): Promise<boolean> {
+    async build(list: string[]): Promise<[string[], string[]]> {
         fs.mkdirSync('gen/src', { recursive: true });
         await Plugin.before('build', [list]);
         Logger.info('build datasets', list.length);
+        const paths = [];
+        const css_parents = [];
+        const on_build_index = this.worker_controller.events.on('emit', 'build', (data) => {
+            // add the results to the build file list
+            if (data) {
+                paths.push(...data.data);
+            }
+        });
+        const on_css_index = this.worker_controller.events.on('emit', 'css_parent', (data) => {
+            // add the results to the build file list
+            if (data) {
+                css_parents.push(data.data);
+            }
+        });
 
         const result = await this.process_in_workers('build', WorkerAction.build, list, 100);
-        await Plugin.after('build', [result]);
-        return result;
+        this.worker_controller.events.off('emit', 'build', on_build_index);
+        this.worker_controller.events.off('emit', 'css_parent', on_css_index);
+        await Plugin.after('build', [result, paths]);
+        return [paths, css_parents];
     }
     async scripts(): Promise<boolean> {
         await Plugin.before('scripts', [this.entrypoints, Dependency.cache]);
@@ -345,7 +356,7 @@ export class Main {
                                     Client.replace_slots_client(fs.readFileSync(join(this.cwd, 'gen', 'src', dep_file), { encoding: 'utf-8' }))
                                 )
                             );
-                            if(Env.is_dev()) {
+                            if (Env.is_dev()) {
                                 Logger.warning('make the static file', dep_file, 'hydrateable because it is used inside the hydrateable file', file_path);
                             } else {
                                 Logger.debug('make the static file', dep_file, 'hydrateable because it is used inside the hydrateable file', file_path);
@@ -449,7 +460,7 @@ export class Main {
         // read all imported files
         const files = File.collect_files(join(this.cwd, 'imported', 'data'), 'json');
         // build static files
-        const build_pages = await this.build(files);
+        const [build_pages, css_parents] = await this.build(files);
         this.perf.end('build');
 
         // check if the execution should stop after the build
@@ -478,6 +489,14 @@ export class Main {
         this.perf.start('sitemap');
         await this.sitemap();
         this.perf.end('sitemap');
+
+        this.perf.start('link');
+        await this.link();
+        this.perf.end('link');
+
+        this.perf.start('optimize');
+        await this.optimize(build_pages, collected_files, css_parents);
+        this.perf.end('optimize');
 
         this.worker_controller.cleanup();
         this.is_executing = false;
@@ -546,5 +565,29 @@ export class Main {
                 }
             });
         });
+    }
+    async optimize(files: any[], collected_files: any, entrypoint_list: any[]) {
+        if(Env.is_dev()) {
+            Logger.improve('optimize will not be executed in dev mode');
+            return null;
+        }
+        const indexed = {};
+        entrypoint_list.forEach((entry) => {
+            if (!indexed[entry.entrypoint]) {
+                indexed[entry.entrypoint] = entry;
+                indexed[entry.entrypoint].files = [];
+            }
+            indexed[entry.entrypoint].files.push(entry.path);
+        });
+        const list = Object.keys(indexed).map((key) => indexed[key]);
+
+        const result = await this.process_in_workers('optimize', WorkerAction.optimize, list, 1);
+        return result;
+    }
+    async link() {
+        // symlink the "static" folders to pub
+        Link.to_pub('gen/assets', 'assets');
+        Link.to_pub('gen/js', 'js');
+        Link.to_pub('gen/css', 'css');
     }
 }

@@ -5,8 +5,10 @@ import { Error } from '@lib/error';
 
 export class Plugin {
     static cache: any = {};
-    static async init(plugin_files: string[]) {
+    static config: any = null;
+    static async init(plugin_files: string[], config: any) {
         Logger.info('found', plugin_files.length, 'plugins');
+        this.config = config;
         await Promise.all(
             plugin_files.map(async (file_path) => {
                 let plugin = null;
@@ -58,11 +60,11 @@ export class Plugin {
     static async build_listeners(name: string, type: PluginType, ...args): Promise<Function> {
         if (!name || !this.cache || !this.cache[name] || !this.cache[name][type] || this.cache[name][type].length == 0) {
             return async (...args) => {
-                return [null, ...args];
+                return [null, this.config, ...args];
             };
         }
         return async (...args) => {
-            let result = [null, ...args];
+            let result = [null, this.config, ...args];
             const listeners = this.cache[name][type];
             // after plugins gets executed in reversed order
             if (type == PluginType.after) {

@@ -25,6 +25,7 @@ import merge from 'deepmerge';
 import { Dependency } from '@lib/dependency';
 import { Plugin } from './plugin';
 import { Optimize } from './optimize';
+import { Publish } from './publish';
 
 export class Main {
     worker_controller: WorkerController = null;
@@ -34,25 +35,32 @@ export class Main {
     entrypoints: any = {};
     is_executing: boolean = false;
     cwd = process.cwd();
+    uniq_id = v4().split('-')[0];
+    release_path = null;
+
     constructor() {
         Env.set(process.env.WYVR_ENV);
         this.init();
     }
     async init() {
         const hr_start = process.hrtime();
-        const uniq_id = v4().split('-')[0];
         const pid = process.pid;
         process.title = `wyvr main ${pid}`;
         Logger.logo();
         Logger.present('PID', pid, Logger.color.dim(`"${process.title}"`));
         Logger.present('cwd', this.cwd);
-        Logger.present('build', uniq_id);
+        Logger.present('build', this.uniq_id);
         Logger.present('env', EnvModel[Env.get()]);
 
         this.perf = Config.get('import.measure_performance') ? new Performance_Measure() : new Performance_Measure_Blank();
 
         Dir.clear('gen');
-        Dir.create('pub');
+        Dir.create('releases');
+        const keep = Config.get('releases.keep') ?? 0;
+        const deleted_releases = Publish.cleanup(keep);
+        Logger.info(`keep ${keep} release(s), deleted ${deleted_releases.length}`);
+        this.release_path = `releases/${this.uniq_id}`;
+        Dir.create(this.release_path);
 
         Logger.stop('config', hrtime_to_ms(process.hrtime(hr_start)));
 
@@ -107,7 +115,7 @@ export class Main {
 
         this.perf.start('worker');
 
-        this.worker_controller = new WorkerController(this.global_data);
+        this.worker_controller = new WorkerController(this.global_data, this.release_path);
         this.worker_amount = this.worker_controller.get_worker_amount();
         Logger.present('workers', this.worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));
         const workers = this.worker_controller.create_workers(this.worker_amount);
@@ -212,7 +220,7 @@ export class Main {
                 });
             });
         }
-        // copy configured assets into pub
+        // copy configured assets into release
         const assets = Config.get('assets');
         if (assets) {
             assets.forEach((entry) => {
@@ -486,7 +494,7 @@ export class Main {
         this.is_executing = false;
     }
     async sitemap() {
-        const [error, files] = await Plugin.before('sitemap', [
+        const [error, config, files] = await Plugin.before('sitemap', [
             {
                 name: 'sitemap.xml',
                 entries: [],
@@ -501,13 +509,15 @@ export class Main {
             if (!file || !file.name || !file.entries) {
                 return;
             }
-            writeFileSync(join('pub', file.name), JSON.stringify(file.entries, null, 4));
+            writeFileSync(join(this.release_path, file.name), JSON.stringify(file.entries, null, 4));
         });
         return files;
     }
     async plugins() {
         const plugin_files = File.collect_files(join('gen', 'plugins'));
-        await Plugin.init(plugin_files);
+        await Plugin.init(plugin_files, {
+            release_path: this.release_path
+        });
 
         return null;
     }
@@ -519,7 +529,7 @@ export class Main {
         // replace in the files itself
         Optimize.replace_hashed_files_in_files(file_list, hash_list);
 
-        const [error_before, entrypoint_list_before, replace_hash_files_before] = await Plugin.before('optimize', entrypoint_list, replace_hash_files);
+        const [error_before, config_before, entrypoint_list_before, replace_hash_files_before] = await Plugin.before('optimize', entrypoint_list, replace_hash_files);
         if (error_before) {
             Logger.error(error_before);
             this.fail();
@@ -537,7 +547,7 @@ export class Main {
 
         const result = await this.worker_controller.process_in_workers('optimize', WorkerAction.optimize, list, 1);
 
-        const [error_after, list_after] = await Plugin.after('optimize', list);
+        const [error_after, config_after, list_after] = await Plugin.after('optimize', list);
         if (error_after) {
             Logger.error(error_after);
             this.fail();
@@ -545,20 +555,29 @@ export class Main {
         return result;
     }
     async link() {
-        const [error_before] = await Plugin.before('optimize');
+        const [error_before] = await Plugin.before('link');
         if (error_before) {
             Logger.error(error_before);
             this.fail();
         }
-        // symlink the "static" folders to pub
-        Link.to_pub('gen/assets', 'assets');
-        Link.to_pub('gen/js', 'js');
-        Link.to_pub('gen/css', 'css');
-        const [error_after] = await Plugin.after('optimize');
+        // symlink the "static" folders to release
+        if(Env.is_dev()) {
+            Link.to('gen/assets', `releases/${this.uniq_id}/assets`);
+            Link.to('gen/js', `releases/${this.uniq_id}/js`);
+            Link.to('gen/css', `releases/${this.uniq_id}/css`);
+        } else {
+            // in production copy the static folders
+            copySync('gen/assets', `releases/${this.uniq_id}/assets`);
+            copySync('gen/js', `releases/${this.uniq_id}/js`);
+            copySync('gen/css', `releases/${this.uniq_id}/css`);
+        }
+        const [error_after] = await Plugin.after('link');
         if (error_after) {
             Logger.error(error_after);
             this.fail();
         }
     }
-    async publish() {}
+    async publish() {
+        Publish.release(this.uniq_id);
+    }
 }

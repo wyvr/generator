@@ -25,7 +25,7 @@ export class WorkerController {
     private queue: Queue = null;
     private worker_amount: number = null;
 
-    constructor(public global_data: any) {
+    constructor(public global_data: any, public release_path: string) {
         Env.set(process.env.WYVR_ENV);
         this.worker_amount = this.get_worker_amount();
     }
@@ -201,6 +201,7 @@ export class WorkerController {
             config: Config.get(),
             env: Env.get(),
             cwd: this.cwd,
+            release_path: this.release_path,
             global_data: this.global_data,
         });
     }

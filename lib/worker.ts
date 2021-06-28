@@ -21,6 +21,7 @@ export class Worker {
     private cwd = process.cwd();
     private global_data: any = null;
     private root_template_paths = [join(this.cwd, 'gen', 'src', 'doc'), join(this.cwd, 'gen', 'src', 'layout'), join(this.cwd, 'gen', 'src', 'page')];
+    private release_path = null;
     constructor() {
         this.init();
     }
@@ -43,6 +44,7 @@ export class Worker {
                     this.env = value?.env;
                     this.cwd = value?.cwd;
                     this.global_data = value?.global_data;
+                    this.release_path = value?.release_path;
                     // only when everything is configured set the worker idle
                     if ((!this.config && this.env == null) || !this.cwd) {
                         WorkerHelper.log(LogType.warning, 'invalid configure value', value);
@@ -114,7 +116,7 @@ export class Worker {
                             }
                             // change extension when set
                             const extension = data._wyvr?.extension;
-                            const path = File.to_extension(filename.replace(join(this.cwd, 'imported', 'data'), 'pub'), extension);
+                            const path = File.to_extension(filename.replace(join(this.cwd, 'imported', 'data'), this.release_path), extension);
                             if (css_parent) {
                                 css_parent.path = path;
                                 WorkerHelper.send_action(WorkerAction.emit, {
@@ -185,7 +187,7 @@ export class Worker {
                     // create above the fold inline css
                     let { css } = await critical.generate({
                         inline: false, // generates CSS
-                        base: 'pub',
+                        base: this.release_path,
                         src: value[0].path,
                         dimensions: [
                             { width: 320, height: 568 },

@@ -8,8 +8,8 @@ WYVR_COMPILE=npx tsc
 WYVR_BUILD=node ./wyvr/index.js
 WYVR_TEST=npx mocha -R dot './test/**/*.ts'
 WYVR_COVERAGE=npx nyc -x 'config/**/*' -x 'test/**/*' -x 'gen/**/*' -x 'imported/**/*' -x 'wyvr.js' -x 'pub' $(WYVR_TEST)
-WYVR_CLEAN=rm -rf imported coverage wyvr pub gen
-WYVR_FOLDERS=mkdir imported coverage wyvr pub gen
+WYVR_CLEAN=rm -rf imported coverage wyvr pub gen releases
+WYVR_FOLDERS=mkdir imported coverage wyvr pub gen releases
 
 help: ## Show this help
 	@echo "Usage: make [TARGET ...]"
@@ -34,6 +34,7 @@ watch: ## Start watcher and make dev builds
 		--ignore pub \
 		--ignore wyvr \
 		--ignore gen \
+		--ignore releases \
 		-e js,ts,svelte,css \
 		--verbose \
 		--exec '$(WYVR_COMPILE) && $(WYVR_BUILD)'

@@ -23,17 +23,18 @@ export class Client {
         const lazy_input_files = [];
 
         // create empty file because it is required as entrypoint
-        if (hydrate_files.length == 0) {
-            fs.writeFileSync(join(cwd, 'gen', 'js', `${entry.name}.js`), '');
-            return [null, null];
-        }
         const script_partials = {
             hydrate: fs.readFileSync(join(cwd, 'wyvr/resource/hydrate.js'), { encoding: 'utf-8' }),
             props: fs.readFileSync(join(cwd, 'wyvr/resource/props.js'), { encoding: 'utf-8' }),
             portal: fs.readFileSync(join(cwd, 'wyvr/resource/portal.js'), { encoding: 'utf-8' }),
             lazy: fs.readFileSync(join(cwd, 'wyvr/resource/hydrate_lazy.js'), { encoding: 'utf-8' }),
+            env: fs.readFileSync(join(cwd, 'wyvr/resource/env.js'), { encoding: 'utf-8' }),
             debug: '',//Env.is_dev() ? fs.readFileSync(join(cwd, 'wyvr/resource/debug.js'), { encoding: 'utf-8' }) : 
         };
+        if (hydrate_files.length == 0) {
+            fs.writeFileSync(join(cwd, 'gen', 'js', `${entry.name}.js`), script_partials.env);
+            return [null, null];
+        }
         const content = await Promise.all(
             hydrate_files.map(async (file) => {
                 const import_path = join(cwd, file.path);
@@ -78,6 +79,7 @@ export class Client {
         entrypoint_content.push(script_partials.props);
         entrypoint_content.push(script_partials.portal);
         entrypoint_content.push(script_partials.debug);
+        entrypoint_content.push(script_partials.env);
         if (lazy_input_files.length > 0) {
             entrypoint_content.push(script_partials.lazy);
         }

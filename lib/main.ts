@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, existsSync, copySync, mkdirSync } from 'fs-extra';
+import { readFileSync, writeFileSync, existsSync, copySync, mkdirSync, removeSync } from 'fs-extra';
 
 import { v4 } from 'uuid';
 
@@ -148,6 +148,8 @@ export class Main {
         try {
             const watch = new Watch(async (changed_files: any[]) => {
                 Plugin.clear();
+                // clear css files otherwise these will not be regenerated
+                removeSync(join('gen', 'css'))
                 await this.execute(importer.get_import_list(), changed_files);
             });
         } catch (e) {
@@ -424,7 +426,8 @@ export class Main {
         await this.collect();
         this.perf.end('collect');
 
-        if (!is_regenerating) {
+        const contains_routes = changed_files.find((file) => file.rel_path.match(/^routes\//)) != null;
+        if (!is_regenerating || contains_routes) {
             // get the route files
             this.perf.start('routes');
             await this.routes(file_list, !is_regenerating);

@@ -1,30 +1,30 @@
-import * as fs from 'fs-extra';
-
+import { mkdirSync, removeSync, symlinkSync, existsSync, lstatSync } from 'fs-extra';
+import { dirname } from 'path';
 export class Link {
     /**
-     * links the given source_dir_name to the pub folder
+     * links the given source_dir_name to the destination_name folder
      * @param source_dir_name directory name in the root folder which gets symlinked into the pub folder
      * @param destination_name optional set the target name in the pub folder
      * @returns whether the given parameter is correct or not
      */
-    static to_pub(source_dir_name: string, destination_name: string = null): boolean {
+    static to(source_dir_name: string, destination_name: string = null): boolean {
         const cwd = process.cwd();
         if (!source_dir_name || typeof source_dir_name != 'string') {
             return false;
         }
-        if(!destination_name) {
-            destination_name = source_dir_name;
+        if (!destination_name) {
+            return false;
         }
         const trimmed_soure = source_dir_name.replace(/^\//, '');
         const trimmed_destination = destination_name.replace(/^\//, '');
         const source = `${cwd}/${trimmed_soure}`;
-        const destination = `${cwd}/pub/${trimmed_destination}`;
+        const destination = `${cwd}/${trimmed_destination}`;
         // create pub folder when not exists
-        fs.mkdirSync(`${cwd}/pub`, { recursive: true });
+        mkdirSync(dirname(destination), { recursive: true });
         // when the destination exists delete it
-        fs.removeSync(destination);
+        removeSync(destination);
         // symlink from destination to source
-        fs.symlinkSync(source, destination);
+        symlinkSync(source, destination);
         return true;
     }
     /**
@@ -33,10 +33,10 @@ export class Link {
      * @returns whether the given path is a symlink or not
      */
     static is_symlink(path: string): boolean {
-        if (!fs.existsSync(path)) {
+        if (!existsSync(path)) {
             return false;
         }
-        const stats = fs.lstatSync(path, { throwIfNoEntry: false });
+        const stats = lstatSync(path, { throwIfNoEntry: false });
         return stats.isSymbolicLink();
     }
 }

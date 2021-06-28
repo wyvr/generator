@@ -495,8 +495,12 @@ export class Main {
         this.perf.end('link');
 
         this.perf.start('optimize');
-        await this.optimize(build_pages, collected_files, css_parents);
+        await this.optimize(css_parents);
         this.perf.end('optimize');
+
+        this.perf.start('publish');
+        await this.publish();
+        this.perf.end('publish');
 
         this.worker_controller.cleanup();
         this.is_executing = false;
@@ -566,13 +570,18 @@ export class Main {
             });
         });
     }
-    async optimize(files: any[], collected_files: any, entrypoint_list: any[]) {
+    async optimize(entrypoint_list: any[]) {
         if(Env.is_dev()) {
             Logger.improve('optimize will not be executed in dev mode');
             return null;
         }
+        const [error_before, entrypoint_list_before] = await Plugin.before('optimize', entrypoint_list);
+        if (error_before) {
+            Logger.error(error_before);
+            this.fail();
+        }
         const indexed = {};
-        entrypoint_list.forEach((entry) => {
+        entrypoint_list_before.forEach((entry) => {
             if (!indexed[entry.entrypoint]) {
                 indexed[entry.entrypoint] = entry;
                 indexed[entry.entrypoint].files = [];
@@ -580,14 +589,32 @@ export class Main {
             indexed[entry.entrypoint].files.push(entry.path);
         });
         const list = Object.keys(indexed).map((key) => indexed[key]);
-
+        
         const result = await this.process_in_workers('optimize', WorkerAction.optimize, list, 1);
+
+        const [error_after, list_after] = await Plugin.after('optimize', list);
+        if (error_after) {
+            Logger.error(error_after);
+            this.fail();
+        }
         return result;
     }
     async link() {
+        const [error_before] = await Plugin.before('optimize');
+        if (error_before) {
+            Logger.error(error_before);
+            this.fail();
+        }
         // symlink the "static" folders to pub
         Link.to_pub('gen/assets', 'assets');
         Link.to_pub('gen/js', 'js');
         Link.to_pub('gen/css', 'css');
+        const [error_after] = await Plugin.after('optimize');
+        if (error_after) {
+            Logger.error(error_after);
+            this.fail();
+        }
+    }
+    async publish() {
     }
 }

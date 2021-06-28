@@ -11,7 +11,7 @@ export class Error {
                 });
             }
         }
-        return `${Logger.color.bold('@' + scope ?? '')}\n[${Logger.color.bold(e.code)}] ${e.message}\n${Logger.color.dim('in')} ${e.requireStack[0]}\n${Logger.color.dim(
+        return `${Logger.color.bold('@' + scope ?? '')}\n[${Logger.color.bold(e.code)}] ${e.message ?? '-'}\n${Logger.color.dim('in')} ${e.requireStack ? e.requireStack[0] : '-'}\n${Logger.color.dim(
             'source file'
         )} ${filename}`;
     }

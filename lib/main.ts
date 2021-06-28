@@ -12,7 +12,6 @@ import { WorkerController } from '@lib/worker/controller';
 import { Config } from '@lib/config';
 import { Env } from '@lib/env';
 import { EnvModel } from '@lib/model/env';
-import { Queue } from '@lib/queue';
 import { WorkerAction } from '@lib/model/worker/action';
 import { WorkerStatus } from '@lib/model/worker/status';
 import { IPerformance_Measure, Performance_Measure, Performance_Measure_Blank } from '@lib/performance_measure';
@@ -27,7 +26,6 @@ import { Dependency } from '@lib/dependency';
 import { Plugin } from './plugin';
 
 export class Main {
-    queue: Queue = null;
     worker_controller: WorkerController = null;
     perf: IPerformance_Measure;
     worker_amount: number;
@@ -260,7 +258,7 @@ export class Main {
             }
         });
 
-        const result = await this.process_in_workers(
+        const result = await this.worker_controller.process_in_workers(
             'routes',
             WorkerAction.route,
             routes.map((route_path) => ({
@@ -328,7 +326,7 @@ export class Main {
             }
         });
 
-        const result = await this.process_in_workers('build', WorkerAction.build, list, 100);
+        const result = await this.worker_controller.process_in_workers('build', WorkerAction.build, list, 100);
         this.worker_controller.events.off('emit', 'build', on_build_index);
         this.worker_controller.events.off('emit', 'css_parent', on_css_index);
         await Plugin.after('build', result, paths);
@@ -371,33 +369,9 @@ export class Main {
         const list = Object.keys(this.entrypoints).map((key) => {
             return { file: this.entrypoints[key], dependency: Dependency.cache };
         });
-        const result = await this.process_in_workers('scripts', WorkerAction.scripts, list, 1);
+        const result = await this.worker_controller.process_in_workers('scripts', WorkerAction.scripts, list, 1);
         await Plugin.after('scripts', result);
         return result;
-    }
-    ticks: number = 0;
-    tick(queue: Queue): boolean {
-        const workers = this.worker_controller.get_idle_workers();
-        Logger.debug('tick', this.ticks, 'idle workers', workers.length, 'queue', queue.length);
-        this.ticks++;
-        if (workers.length == this.worker_amount && queue.length == 0) {
-            return true;
-        }
-        if (queue.length > 0) {
-            // get all idle workers
-            if (workers.length > 0) {
-                workers.forEach((worker) => {
-                    const queue_entry = queue.take();
-                    if (queue_entry != null) {
-                        // set worker busy otherwise the same worker gets multiple actions send
-                        worker.status = WorkerStatus.busy;
-                        // send the data to the worker
-                        this.worker_controller.send_action(worker.pid, queue_entry.action, queue_entry.data);
-                    }
-                });
-            }
-        }
-        return false;
     }
 
     generate(data, ignore_global: boolean = false, default_values: any = null) {
@@ -532,47 +506,9 @@ export class Main {
 
         return null;
     }
-    async process_in_workers(name: string, action: WorkerAction, list: any[], batch_size: number = 10): Promise<boolean> {
-        const amount = list.length;
-        Logger.info('process', amount, 'items, batch size', Logger.color.cyan(batch_size.toString()));
-        // create new queue
-        this.queue = new Queue();
 
-        let iterations = Math.ceil(amount / batch_size);
-        Logger.debug('process iterations', iterations);
-
-        for (let i = 0; i < iterations; i++) {
-            const queue_data = {
-                action,
-                data: list.slice(i * batch_size, (i + 1) * batch_size),
-            };
-            this.queue.push(queue_data);
-        }
-        const size = this.queue.length;
-        let done = 0;
-        return new Promise((resolve, reject) => {
-            const idle = this.worker_controller.get_idle_workers();
-            const listener_id = this.worker_controller.events.on('worker_status', WorkerStatus.idle, () => {
-                if (this.tick(this.queue)) {
-                    this.worker_controller.events.off('worker_status', WorkerStatus.idle, listener_id);
-                    resolve(true);
-                }
-            });
-            // when all workers are idle, emit on first
-            if (idle.length > 0 && idle.length == this.worker_controller.get_worker_amount()) {
-                this.worker_controller.livecycle(idle[0]);
-            }
-            const done_listener_id = this.worker_controller.events.on('worker_status', WorkerStatus.done, () => {
-                done++;
-                Logger.text(name, Logger.color.dim('...'), `${Math.round((100 / size) * done)}%`, Logger.color.dim(`${done}/${size}`));
-                if (done == size) {
-                    this.worker_controller.events.off('worker_status', WorkerStatus.done, done_listener_id);
-                }
-            });
-        });
-    }
     async optimize(entrypoint_list: any[]) {
-        if(Env.is_dev()) {
+        if (Env.is_dev()) {
             Logger.improve('optimize will not be executed in dev mode');
             return null;
         }
@@ -590,8 +526,8 @@ export class Main {
             indexed[entry.entrypoint].files.push(entry.path);
         });
         const list = Object.keys(indexed).map((key) => indexed[key]);
-        
-        const result = await this.process_in_workers('optimize', WorkerAction.optimize, list, 1);
+
+        const result = await this.worker_controller.process_in_workers('optimize', WorkerAction.optimize, list, 1);
 
         const [error_after, list_after] = await Plugin.after('optimize', list);
         if (error_after) {
@@ -616,6 +552,5 @@ export class Main {
             this.fail();
         }
     }
-    async publish() {
-    }
+    async publish() {}
 }

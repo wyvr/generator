@@ -8,7 +8,8 @@ import { WorkerModel } from '@lib/model/worker/worker';
 import { File } from '@lib/file';
 import { LogType } from '@lib/model/log';
 import { Events } from '@lib/events';
-import { Error } from '../error';
+import { Error } from '@lib/error';
+import { Queue } from '@lib/queue';
 
 export class WorkerController {
     private cwd = process.cwd();
@@ -21,12 +22,18 @@ export class WorkerController {
     private on_entrypoint_callbacks: Function[] = [];
     private on_route_callbacks: Function[] = [];
     public events: Events = new Events();
+    private queue: Queue = null;
+    private worker_amount: number = null;
 
     constructor(public global_data: any) {
         Env.set(process.env.WYVR_ENV);
+        this.worker_amount = this.get_worker_amount();
     }
 
     get_worker_amount(): number {
+        if (this.worker_amount) {
+            return this.worker_amount;
+        }
         if (this.max_cores) {
             return this.max_cores;
         }
@@ -195,6 +202,69 @@ export class WorkerController {
             env: Env.get(),
             cwd: this.cwd,
             global_data: this.global_data,
+        });
+    }
+    ticks: number = 0;
+    tick(queue: Queue): boolean {
+        const workers = this.get_idle_workers();
+        Logger.debug('tick', this.ticks, 'idle workers', workers.length, 'queue', queue.length);
+        this.ticks++;
+        if (workers.length == this.worker_amount && queue.length == 0) {
+            return true;
+        }
+        if (queue.length > 0) {
+            // get all idle workers
+            if (workers.length > 0) {
+                workers.forEach((worker) => {
+                    const queue_entry = queue.take();
+                    if (queue_entry != null) {
+                        // set worker busy otherwise the same worker gets multiple actions send
+                        worker.status = WorkerStatus.busy;
+                        // send the data to the worker
+                        this.send_action(worker.pid, queue_entry.action, queue_entry.data);
+                    }
+                });
+            }
+        }
+        return false;
+    }
+    async process_in_workers(name: string, action: WorkerAction, list: any[], batch_size: number = 10): Promise<boolean> {
+        const amount = list.length;
+        Logger.info('process', amount, 'items, batch size', Logger.color.cyan(batch_size.toString()));
+        // create new queue
+        this.queue = new Queue();
+
+        let iterations = Math.ceil(amount / batch_size);
+        Logger.debug('process iterations', iterations);
+
+        for (let i = 0; i < iterations; i++) {
+            const queue_data = {
+                action,
+                data: list.slice(i * batch_size, (i + 1) * batch_size),
+            };
+            this.queue.push(queue_data);
+        }
+        const size = this.queue.length;
+        let done = 0;
+        return new Promise((resolve, reject) => {
+            const idle = this.get_idle_workers();
+            const listener_id = this.events.on('worker_status', WorkerStatus.idle, () => {
+                if (this.tick(this.queue)) {
+                    this.events.off('worker_status', WorkerStatus.idle, listener_id);
+                    resolve(true);
+                }
+            });
+            // when all workers are idle, emit on first
+            if (idle.length > 0 && idle.length == this.get_worker_amount()) {
+                this.livecycle(idle[0]);
+            }
+            const done_listener_id = this.events.on('worker_status', WorkerStatus.done, () => {
+                done++;
+                Logger.text(name, Logger.color.dim('...'), `${Math.round((100 / size) * done)}%`, Logger.color.dim(`${done}/${size}`));
+                if (done == size) {
+                    this.events.off('worker_status', WorkerStatus.done, done_listener_id);
+                }
+            });
         });
     }
 }

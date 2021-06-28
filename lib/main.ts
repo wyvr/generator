@@ -213,6 +213,7 @@ export class Main {
                 });
             });
         }
+        // copy configured assets into pub
         const assets = Config.get('assets');
         if (assets) {
             assets.forEach((entry) => {
@@ -228,7 +229,7 @@ export class Main {
     }
     async collect() {
         const themes = Config.get('themes');
-        await Plugin.before('collect', [themes]);
+        await Plugin.before('collect', themes);
         if (themes) {
             let config = {};
             Dir.create('gen/raw');
@@ -242,11 +243,11 @@ export class Main {
             });
         }
         fs.copySync('gen/raw', 'gen/src');
-        await Plugin.after('collect', [themes]);
+        await Plugin.after('collect', themes);
         return true;
     }
     async routes(file_list: any[], enhance_data: boolean = true) {
-        await Plugin.before('routes', [file_list, enhance_data]);
+        await Plugin.before('routes', file_list, enhance_data);
         const routes = Routes.collect_routes();
         if (!routes || routes.length == 0) {
             return file_list;
@@ -270,14 +271,14 @@ export class Main {
         );
 
         this.worker_controller.events.off('emit', 'global', on_global_index);
-        await Plugin.after('routes', [file_list, enhance_data]);
+        await Plugin.after('routes', file_list, enhance_data);
         // Logger.info('routes amount', routes_urls.length);
         // return [].concat(file_list, routes_urls);
         return file_list;
     }
     async transform() {
         const svelte_files = File.collect_svelte_files('gen/src');
-        await Plugin.before('transform', [svelte_files]);
+        await Plugin.before('transform', svelte_files);
         // combine svelte files
         svelte_files.map((file) => {
             const raw_content = fs.readFileSync(file.path, { encoding: 'utf-8' });
@@ -302,7 +303,7 @@ export class Main {
 
         // @todo replace global in the svelte components which should be hydrated
         const transformed_files = Client.transform_hydrateable_svelte_files(hydrateable_files);
-        await Plugin.after('transform', [transformed_files]);
+        await Plugin.after('transform', transformed_files);
         return {
             src: svelte_files,
             client: transformed_files,
@@ -310,7 +311,7 @@ export class Main {
     }
     async build(list: string[]): Promise<[string[], string[]]> {
         fs.mkdirSync('gen/src', { recursive: true });
-        await Plugin.before('build', [list]);
+        await Plugin.before('build', list);
         Logger.info('build datasets', list.length);
         const paths = [];
         const css_parents = [];
@@ -330,11 +331,11 @@ export class Main {
         const result = await this.process_in_workers('build', WorkerAction.build, list, 100);
         this.worker_controller.events.off('emit', 'build', on_build_index);
         this.worker_controller.events.off('emit', 'css_parent', on_css_index);
-        await Plugin.after('build', [result, paths]);
+        await Plugin.after('build', result, paths);
         return [paths, css_parents];
     }
     async scripts(): Promise<boolean> {
-        await Plugin.before('scripts', [this.entrypoints, Dependency.cache]);
+        await Plugin.before('scripts', this.entrypoints, Dependency.cache);
         Dir.clear('gen/js');
 
         // copy static component which are imported into hydrated components into the gen/client folder to avoid errors
@@ -371,7 +372,7 @@ export class Main {
             return { file: this.entrypoints[key], dependency: Dependency.cache };
         });
         const result = await this.process_in_workers('scripts', WorkerAction.scripts, list, 1);
-        await Plugin.after('scripts', [result]);
+        await Plugin.after('scripts', result);
         return result;
     }
     ticks: number = 0;

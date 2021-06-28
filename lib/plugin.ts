@@ -70,7 +70,7 @@ export class Plugin {
                     try {
                         result = await listeners[i].fn(...result);
                     } catch (e) {
-                        Logger.error('error in plugin for', name, PluginType[type], Error.get(e, listeners[i].source, 'plugin'));
+                        Logger.error('error in plugin for', Logger.color.bold(name), Logger.color.bold(PluginType[type]), Error.get(e, listeners[i].source, 'plugin'));
                     }
                 }
                 return result;
@@ -79,7 +79,7 @@ export class Plugin {
                 try {
                     result = await listeners[i].fn(...result);
                 } catch (e) {
-                    Logger.error('error in plugin for', name, PluginType[type], Error.get(e, listeners[i].source, 'plugin'));
+                    Logger.error('error in plugin for', Logger.color.bold(name), Logger.color.bold(PluginType[type]), Error.get(e, listeners[i].source, 'plugin'));
                 }
             }
             return result;

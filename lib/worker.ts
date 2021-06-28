@@ -14,6 +14,7 @@ import { Generate } from '@lib/generate';
 import { RequireCache } from '@lib/require_cache';
 import { Error } from '@lib/error';
 import { Optimize } from '@lib/optimize';
+import { addTrailingSlash } from 'snowpack/vendor/types/esinstall/util';
 
 export class Worker {
     private config = null;
@@ -22,6 +23,7 @@ export class Worker {
     private global_data: any = null;
     private root_template_paths = [join(this.cwd, 'gen', 'src', 'doc'), join(this.cwd, 'gen', 'src', 'layout'), join(this.cwd, 'gen', 'src', 'page')];
     private release_path = null;
+    private entrypoints = {};
     constructor() {
         this.init();
     }
@@ -56,8 +58,8 @@ export class Worker {
                 case WorkerAction.route:
                     WorkerHelper.send_status(WorkerStatus.busy);
 
-                    const list = [];
                     const default_values = Config.get('default_values');
+                    let global_data = {};
                     const route_result = await Promise.all(
                         value.map(async (entry) => {
                             const filename = entry.route;
@@ -75,22 +77,23 @@ export class Worker {
                                 if (!entry.add_to_global) {
                                     return data;
                                 }
-                                const global_data = Generate.add_to_global(data, {});
-                                WorkerHelper.send_action(WorkerAction.emit, {
-                                    type: 'global',
-                                    data: global_data,
-                                });
+                                global_data = Generate.add_to_global(data, global_data);
+                                
                                 return result.data;
                             });
-                            list.push(filename);
                             return filename;
                         })
                     );
+                    WorkerHelper.send_action(WorkerAction.emit, {
+                        type: 'global',
+                        data: global_data,
+                    });
                     WorkerHelper.send_status(WorkerStatus.done);
                     WorkerHelper.send_status(WorkerStatus.idle);
                     break;
                 case WorkerAction.build:
                     WorkerHelper.send_status(WorkerStatus.busy);
+                    let css_parents = [];
                     const build_result = await Promise.all(
                         value.map(async (filename) => {
                             const data = File.read_json(filename);
@@ -119,10 +122,7 @@ export class Worker {
                             const path = File.to_extension(filename.replace(join(this.cwd, 'imported', 'data'), this.release_path), extension);
                             if (css_parent) {
                                 css_parent.path = path;
-                                WorkerHelper.send_action(WorkerAction.emit, {
-                                    type: 'css_parent',
-                                    data: css_parent,
-                                });
+                                css_parents.push(css_parent);
                             }
 
                             Dir.create(dirname(path));
@@ -131,7 +131,10 @@ export class Worker {
                             return path;
                         })
                     );
-
+                    WorkerHelper.send_action(WorkerAction.emit, {
+                        type: 'css_parent',
+                        data: css_parents,
+                    });
                     WorkerHelper.send_action(WorkerAction.emit, {
                         type: 'build',
                         data: build_result,
@@ -247,24 +250,26 @@ export class Worker {
             process.exit(1);
         });
     }
-    emit_entrypoint(data: any) {
+    emit_entrypoint(data: any): any {
         const doc_file_name = File.find_file(join(this.cwd, 'gen', 'src', 'doc'), data._wyvr.template.doc);
         const layout_file_name = File.find_file(join(this.cwd, 'gen', 'src', 'layout'), data._wyvr.template.layout);
         const page_file_name = File.find_file(join(this.cwd, 'gen', 'src', 'page'), data._wyvr.template.page);
 
         const entrypoint = Client.get_entrypoint_name(this.root_template_paths, doc_file_name, layout_file_name, page_file_name);
-        // add the entrypoint to the wyvr object
-        data._wyvr.entrypoint = entrypoint;
         const result = {
             type: 'entrypoint',
             entrypoint,
             doc: doc_file_name,
             layout: layout_file_name,
             page: page_file_name,
-            data: null,
         };
-        WorkerHelper.send_action(WorkerAction.emit, result);
-        result.data = data;
+        if (!this.entrypoints[entrypoint]) {
+            this.entrypoints[entrypoint] = true;
+            WorkerHelper.send_action(WorkerAction.emit, entrypoint);
+        }
+        // add the entrypoint to the wyvr object
+        data._wyvr.entrypoint = entrypoint;
+        (<any>result).data = data;
         return result;
     }
 }

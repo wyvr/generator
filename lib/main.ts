@@ -149,7 +149,7 @@ export class Main {
             const watch = new Watch(async (changed_files: any[]) => {
                 Plugin.clear();
                 // clear css files otherwise these will not be regenerated
-                removeSync(join('gen', 'css'))
+                removeSync(join('gen', 'css'));
                 await this.execute(importer.get_import_list(), changed_files);
             });
         } catch (e) {
@@ -332,7 +332,11 @@ export class Main {
         });
         const on_css_index = this.worker_controller.events.on('emit', 'css_parent', (data) => {
             // add the results to the build file list
-            if (data) {
+            if (data && data.data) {
+                if (Array.isArray(data.data)) {
+                    css_parents.push(...data.data);
+                    return;
+                }
                 css_parents.push(data.data);
             }
         });
@@ -519,7 +523,7 @@ export class Main {
     async plugins() {
         const plugin_files = File.collect_files(join('gen', 'plugins'));
         await Plugin.init(plugin_files, {
-            release_path: this.release_path
+            release_path: this.release_path,
         });
 
         return null;
@@ -532,7 +536,11 @@ export class Main {
         // replace in the files itself
         Optimize.replace_hashed_files_in_files(file_list, hash_list);
 
-        const [error_before, config_before, entrypoint_list_before, replace_hash_files_before] = await Plugin.before('optimize', entrypoint_list, replace_hash_files);
+        const [error_before, config_before, entrypoint_list_before, replace_hash_files_before] = await Plugin.before(
+            'optimize',
+            entrypoint_list,
+            replace_hash_files
+        );
         if (error_before) {
             Logger.error(error_before);
             this.fail();
@@ -564,7 +572,7 @@ export class Main {
             this.fail();
         }
         // symlink the "static" folders to release
-        if(Env.is_dev()) {
+        if (Env.is_dev()) {
             Link.to('gen/assets', `releases/${this.uniq_id}/assets`);
             Link.to('gen/js', `releases/${this.uniq_id}/js`);
             Link.to('gen/css', `releases/${this.uniq_id}/css`);

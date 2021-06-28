@@ -70,18 +70,34 @@ export class Plugin {
             if (type == PluginType.after) {
                 for (let i = listeners.length - 1; i >= 0; i--) {
                     try {
-                        result = await listeners[i].fn(...result);
+                        const partial_result = await listeners[i].fn(...result);
+                        if (partial_result && Array.isArray(partial_result) && partial_result.length >= result.length) {
+                            result = partial_result;
+                        }
                     } catch (e) {
-                        Logger.error('error in plugin for', Logger.color.bold(name), Logger.color.bold(PluginType[type]), Error.get(e, listeners[i].source, 'plugin'));
+                        Logger.error(
+                            'error in plugin for',
+                            Logger.color.bold(name),
+                            Logger.color.bold(PluginType[type]),
+                            Error.get(e, listeners[i].source, 'plugin')
+                        );
                     }
                 }
                 return result;
             }
             for (let i = 0, len = listeners.length; i < len; i++) {
                 try {
-                    result = await listeners[i].fn(...result);
+                    const partial_result = await listeners[i].fn(...result);
+                    if (partial_result && Array.isArray(partial_result) && partial_result.length >= result.length) {
+                        result = partial_result;
+                    }
                 } catch (e) {
-                    Logger.error('error in plugin for', Logger.color.bold(name), Logger.color.bold(PluginType[type]), Error.get(e, listeners[i].source, 'plugin'));
+                    Logger.error(
+                        'error in plugin for',
+                        Logger.color.bold(name),
+                        Logger.color.bold(PluginType[type]),
+                        Error.get(e, listeners[i].source, 'plugin')
+                    );
                 }
             }
             return result;

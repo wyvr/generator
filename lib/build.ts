@@ -1,6 +1,6 @@
 import * as fs from 'fs-extra';
 import { join, dirname } from 'path';
-import { compile, preprocess } from 'svelte/compiler';
+import { compile } from 'svelte/compiler';
 import register from 'svelte/register';
 import { Client } from './client';
 import { Env } from './env';
@@ -15,11 +15,10 @@ register();
     }
 };
 export class Build {
-    static preprocess(content: string) {
-        return preprocess(content, null, { filename: 'test' });
-    }
     static compile(content: string): [any, any] {
-        // process.exit();
+        if(!content || typeof content != 'string') {
+            return [new Error('content has to be a string'), null];
+        }
         try {
             const compiled = compile(content, {
                 dev: Env.is_dev(),
@@ -34,12 +33,6 @@ export class Build {
         } catch (e) {
             return [e, null];
         }
-    }
-    static compile_file(filename: string): [any, any] {
-        const content = fs.readFileSync(filename).toString();
-        const result: [any, any] = this.compile(content);
-        // result.filename = filename;
-        return result;
     }
     static render(svelte_render_item, props) {
         const propNames = Object.keys(props);

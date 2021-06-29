@@ -6,7 +6,7 @@ SHELL := /bin/bash
 # base commands
 WYVR_COMPILE=npx tsc
 WYVR_BUILD=node ./wyvr/index.js
-WYVR_TEST=npx mocha -R dot './test/**/*.ts'
+WYVR_TEST=npx mocha -R dot './test/**/*.js'
 WYVR_COVERAGE=npx nyc -x 'config/**/*' -x 'test/**/*' -x 'gen/**/*' -x 'imported/**/*' -x 'wyvr.js' -x 'pub' $(WYVR_TEST)
 WYVR_CLEAN=rm -rf imported coverage wyvr pub gen releases
 WYVR_FOLDERS=mkdir imported coverage wyvr pub gen releases

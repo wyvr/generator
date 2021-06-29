@@ -4,7 +4,9 @@ describe('Lib/Env', () => {
     const assert = require('assert');
     const { Env } = require('@lib/env');
     const { EnvModel } = require('@lib/model/env');
-
+    before(()=>{
+        Env.set(EnvModel.prod)
+    })
     describe('get', () => {
         it('default value', () => {
             assert.strictEqual(Env.get(), EnvModel.prod);

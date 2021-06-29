@@ -3,6 +3,7 @@ require('module-alias/register');
 describe('Lib/File', () => {
     const assert = require('assert');
     const { File } = require('@lib/file');
+    const { WyvrFile } = require('@lib/model/wyvr/file');
     const fs = require('fs-extra');
     const { v4 } = require('uuid');
     const path = require('path');
@@ -108,5 +109,121 @@ describe('Lib/File', () => {
             assert.strictEqual(fs.existsSync(path.dirname(name)), true);
             fs.removeSync(name.split('/')[0]);
         });
+    });
+    describe('read_json', () => {
+        it('valid', () => {
+            const test_file = 'test/lib/file/valid.json';
+            assert.deepStrictEqual(File.read_json(test_file), { key: 'value' });
+        });
+        it('invalid', () => {
+            const test_file = 'test/lib/file/invalid.json';
+            const log = console.log;
+            console.log = () => {};
+            assert.deepStrictEqual(File.read_json(test_file), null);
+            console.log = log;
+        });
+        it('non existing', () => {
+            const test_file = 'test/lib/file/unknown.json';
+            assert.deepStrictEqual(File.read_json(test_file), null);
+        });
+        it('empty', () => {
+            const test_file = 'test/lib/file/empty.json';
+            assert.deepStrictEqual(File.read_json(test_file), null);
+        });
+    });
+    describe('find_file', () => {
+        it('no value', () => {
+            assert.deepStrictEqual(File.find_file('test/lib/file', null), null);
+        });
+        it('empty value', () => {
+            assert.deepStrictEqual(File.find_file('test/lib/file', []), null);
+        });
+        it('wrong value', () => {
+            assert.deepStrictEqual(File.find_file('test/lib/file', 'valid.json'), null);
+            assert.deepStrictEqual(File.find_file('test/lib/file', 1), null);
+            assert.deepStrictEqual(File.find_file('test/lib/file', true), null);
+            assert.deepStrictEqual(File.find_file('test/lib/file', NaN), null);
+        });
+        it('single', () => {
+            assert.deepStrictEqual(File.find_file('test/lib/file', ['valid.json']), 'test/lib/file/valid.json');
+        });
+        it('first', () => {
+            assert.deepStrictEqual(File.find_file('test/lib/file', ['valid.json', 'invalid.json']), 'test/lib/file/valid.json');
+        });
+        it('second', () => {
+            assert.deepStrictEqual(File.find_file('test/lib/file', ['unknown.json', 'valid.json', 'invalid.json']), 'test/lib/file/valid.json');
+        });
+        it('null/empty', () => {
+            assert.deepStrictEqual(File.find_file('test/lib/file', [null, '', 'valid.json', 'invalid.json']), 'test/lib/file/valid.json');
+        });
+        it('not found', () => {
+            assert.deepStrictEqual(File.find_file('test/lib/file', [null, '', 'unknown.json']), null);
+        });
+    });
+    describe('collect_svelte_files', () => {
+        it('default folder', () => {
+            assert.deepStrictEqual(File.collect_svelte_files(), []);
+            assert.deepStrictEqual(File.collect_svelte_files(''), []);
+        });
+        it('unknown folder', () => {
+            assert.deepStrictEqual(File.collect_svelte_files('unknown_folder'), []);
+        });
+        it('partial unknown folder', () => {
+            assert.deepStrictEqual(File.collect_svelte_files('test/lib/file/unknown_folder'), []);
+        });
+        it('valid', () => {
+            assert.deepStrictEqual(File.collect_svelte_files('test/lib/file'), [
+                new WyvrFile('test/lib/file/svelte/a.svelte'),
+                new WyvrFile('test/lib/file/svelte/b/b.svelte'),
+            ]);
+        });
+    });
+    describe('collect_files', () => {
+        it('default folder', () => {
+            assert.deepStrictEqual(File.collect_files(), []);
+            assert.deepStrictEqual(File.collect_files(''), []);
+            assert.deepStrictEqual(File.collect_files('', null), []);
+            assert.deepStrictEqual(File.collect_files(null, null), []);
+            assert.deepStrictEqual(File.collect_files('test/lib/file/svelte', 'txt'), []);
+        });
+        it('unknown folder', () => {
+            assert.deepStrictEqual(File.collect_files('unknown_folder', 'txt'), []);
+            assert.deepStrictEqual(File.collect_files('unknown_folder', '.txt'), []);
+        });
+        it('partial unknown folder', () => {
+            assert.deepStrictEqual(File.collect_files('test/lib/file/unknown_folder', 'txt'), []);
+            assert.deepStrictEqual(File.collect_files('test/lib/file/unknown_folder', '.txt'), []);
+        });
+        it('valid', () => {
+            assert.deepStrictEqual(File.collect_files('test/lib/file/svelte', null), [
+                'test/lib/file/svelte/a.svelte',
+                'test/lib/file/svelte/b/b.svelte',
+            ]);
+            assert.deepStrictEqual(File.collect_files('test/lib/file', 'svelte'), [
+                'test/lib/file/svelte/a.svelte',
+                'test/lib/file/svelte/b/b.svelte',
+            ]);
+            assert.deepStrictEqual(File.collect_files('test/lib/file', '.svelte'), [
+                'test/lib/file/svelte/a.svelte',
+                'test/lib/file/svelte/b/b.svelte',
+            ]);
+        });
+    });
+    describe('is_file', () => {
+        it('no file', () => {
+            assert.strictEqual(File.is_file(), false);
+            assert.strictEqual(File.is_file(null), false);
+            assert.strictEqual(File.is_file(undefined), false);
+            assert.strictEqual(File.is_file(1), false);
+            assert.strictEqual(File.is_file(true), false);
+            assert.strictEqual(File.is_file(''), false);
+            assert.strictEqual(File.is_file('test/lib/link/link'), false);
+            assert.strictEqual(File.is_file('test'), false);
+            assert.strictEqual(File.is_file('test/lib/file'), false);
+        });
+        it('file', () => {
+            assert.strictEqual(File.is_file('test/lib/file/svelte/a.svelte'), true);
+        });
+        
     });
 });

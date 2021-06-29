@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import { mkdirSync, existsSync, readFileSync, readdirSync, statSync } from 'fs';
 import { extname } from 'path';
 
 import { dirname, join } from 'path';
@@ -16,7 +16,7 @@ export class File {
             return '';
         }
         // avoid wrong types of extension
-        if(typeof extension != 'string') {
+        if (typeof extension != 'string') {
             return filename;
         }
         // create new extension
@@ -25,12 +25,12 @@ export class File {
             extension = extension.replace(/^\./, '');
         }
         // only add dot when something is set
-        if(extension) {
+        if (extension) {
             extension = `.${extension}`;
         }
         // remove old extension
         const ext = extname(filename);
-        if(ext) {
+        if (ext) {
             const regex = new RegExp(`${ext.replace(/^\./, '\\.')}$`);
             return filename.replace(regex, extension);
         }
@@ -44,7 +44,7 @@ export class File {
      */
     static create_dir(filename: string): void {
         const dir_path = dirname(filename);
-        fs.mkdirSync(dir_path, { recursive: true });
+        mkdirSync(dir_path, { recursive: true });
     }
     /**
      * adds the path part index.html to the filename when it is a folder
@@ -84,10 +84,10 @@ export class File {
      * @returns the data of the file
      */
     static read_json(filename: string): any {
-        if (!filename || !fs.existsSync(filename)) {
+        if (!filename || !existsSync(filename)) {
             return null;
         }
-        const content = fs.readFileSync(filename, { encoding: 'utf8', flag: 'r' });
+        const content = readFileSync(filename, { encoding: 'utf8', flag: 'r' });
         if (!content) {
             return null;
         }
@@ -100,18 +100,32 @@ export class File {
         }
         return data;
     }
-    static find_file(in_dir: string, possible_files: string[]) {
+    /**
+     * search for one file out of multiple possible files, to depict hierachy of file overrides
+     * @param in_dir root directory to search in
+     * @param possible_files
+     * @returns path of the found file
+     */
+    static find_file(in_dir: string, possible_files: string[]): string {
         if (!possible_files || !Array.isArray(possible_files) || possible_files.length == 0) {
             return null;
         }
         const found = possible_files.find((file) => {
-            return fs.existsSync(join(in_dir, file));
+            if(!file) {
+                return false;
+            }
+            return existsSync(join(in_dir, file));
         });
         if (!found) {
             return null;
         }
         return join(in_dir, found);
     }
+    /**
+     * performs a recursive search in the given dir to find all svelte files
+     * @param dir root directory to search in
+     * @returns list of the paths
+     */
     static collect_svelte_files(dir: string = null) {
         if (!dir) {
             dir = join(process.cwd(), 'src');
@@ -119,19 +133,25 @@ export class File {
         const result = this.collect_files(dir, 'svelte').map((path) => new WyvrFile(path));
         return result;
     }
-    static collect_files(dir: string, extension: string = null) {
-        if (!dir || !fs.existsSync(dir)) {
+    /**
+     * performs a recursive search in the given dir to find all files with the given extension or all files
+     * @param dir root directory to search in
+     * @param extension optional extension
+     * @returns list of the paths
+     */
+    static collect_files(dir: string, extension: string = null): string[] {
+        if (!dir || !existsSync(dir)) {
             return [];
         }
-        const entries = fs.readdirSync(dir);
+        const entries = readdirSync(dir);
         const result = [];
         let regex = /./;
-        if (extension) {
+        if (extension && typeof extension == 'string') {
             regex = new RegExp(`\.${extension}$`);
         }
         entries.forEach((entry) => {
             const path = join(dir, entry);
-            const stat = fs.statSync(path);
+            const stat = statSync(path);
             if (stat.isDirectory()) {
                 result.push(...this.collect_files(path, extension));
                 return;
@@ -143,11 +163,16 @@ export class File {
 
         return result;
     }
-    static is_file(path: string) {
-        const stat = fs.statSync(path);
-        if(!stat) {
+    /**
+     * check if a given path is a file
+     * @param path path to a file
+     * @returns
+     */
+    static is_file(path: string): boolean {
+        if(!path || typeof path != 'string') {
             return false;
         }
+        const stat = statSync(path);
         return !stat.isDirectory();
     }
 }

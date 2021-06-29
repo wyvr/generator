@@ -61,6 +61,7 @@ describe('Lib/Dir', () => {
             // validate result
             assert.strictEqual(fs.existsSync(name), true);
             assert.strictEqual(fs.existsSync(file_path), false);
+            fs.removeSync(name)
         });
         it('deep', () => {
             // create the test case
@@ -76,6 +77,7 @@ describe('Lib/Dir', () => {
             assert.strictEqual(fs.existsSync(name.split('/')[0]), true);
             assert.strictEqual(fs.existsSync(name), false);
             assert.strictEqual(fs.existsSync(file_path), false);
+            fs.removeSync(name.split('/')[0])
         });
     });
 });

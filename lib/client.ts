@@ -22,7 +22,7 @@ export class Client {
         const input_file = join(client_root, `${entry.name}.js`);
         const lazy_input_files = [];
 
-        // create empty file because it is required as entrypoint
+        // create empty file because it is required as identifier
         const script_partials = {
             hydrate: fs.readFileSync(join(cwd, 'wyvr/resource/hydrate.js'), { encoding: 'utf-8' }),
             props: fs.readFileSync(join(cwd, 'wyvr/resource/props.js'), { encoding: 'utf-8' }),
@@ -75,17 +75,17 @@ export class Client {
                     `;
             })
         );
-        const entrypoint_content = [script_partials.hydrate];
-        entrypoint_content.push(script_partials.props);
-        entrypoint_content.push(script_partials.portal);
-        entrypoint_content.push(script_partials.debug);
-        entrypoint_content.push(script_partials.env);
+        const script_content = [script_partials.hydrate];
+        script_content.push(script_partials.props);
+        script_content.push(script_partials.portal);
+        script_content.push(script_partials.debug);
+        script_content.push(script_partials.env);
         if (lazy_input_files.length > 0) {
-            entrypoint_content.push(script_partials.lazy);
+            script_content.push(script_partials.lazy);
         }
-        entrypoint_content.push(content.join('\n'));
+        script_content.push(content.join('\n'));
 
-        fs.writeFileSync(input_file, entrypoint_content.join('\n'));
+        fs.writeFileSync(input_file, script_content.join('\n'));
 
         const [error, result] = await this.process_bundle(input_file, entry.name, cwd);
         if (error) {
@@ -253,11 +253,11 @@ export class Client {
             result,
         };
     }
-    static get_entrypoint_name(root_paths: string[], ...parts: string[]): string {
+    static get_identifier_name(root_paths: string[], ...parts: string[]): string {
         const replace_pattern = new RegExp(`^${root_paths.map((path) => path.replace(/\//g, '/') + '/').join('|')}`);
         return parts
             .map((part) => {
-                // remove the root paths to get shorter entrypoints
+                // remove the root paths to get shorter identifiers
                 return part
                     .replace(replace_pattern, '')
                     .replace(/\.svelte$/, '')

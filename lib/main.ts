@@ -32,7 +32,7 @@ export class Main {
     perf: IPerformance_Measure;
     worker_amount: number;
     global_data: any = null;
-    entrypoints: any = {};
+    identifiers: any = {};
     is_executing: boolean = false;
     cwd = process.cwd();
     uniq_id = v4().split('-')[0];
@@ -120,9 +120,10 @@ export class Main {
         Logger.present('workers', this.worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));
         const workers = this.worker_controller.create_workers(this.worker_amount);
         const gen_src_folder = join(this.cwd, 'gen', 'src');
-        this.worker_controller.events.on('emit', 'entrypoint', (data: any) => {
-            this.entrypoints[data.entrypoint] = {
-                name: data.entrypoint.replace(gen_src_folder + '/', ''),
+        // watcher when worker sends identifier content
+        this.worker_controller.events.on('emit', 'identifier', (data: any) => {
+            this.identifiers[data.identifier] = {
+                name: data.identifier.replace(gen_src_folder + '/', ''),
                 doc: data.doc.replace(gen_src_folder + '/', ''),
                 layout: data.layout.replace(gen_src_folder + '/', ''),
                 page: data.page.replace(gen_src_folder + '/', ''),
@@ -348,7 +349,7 @@ export class Main {
         return [paths, css_parents];
     }
     async scripts(): Promise<boolean> {
-        await Plugin.before('scripts', this.entrypoints, Dependency.cache);
+        await Plugin.before('scripts', this.identifiers, Dependency.cache);
         Dir.clear('gen/js');
 
         // copy static component which are imported into hydrated components into the gen/client folder to avoid errors
@@ -381,8 +382,8 @@ export class Main {
             }
         });
 
-        const list = Object.keys(this.entrypoints).map((key) => {
-            return { file: this.entrypoints[key], dependency: Dependency.cache };
+        const list = Object.keys(this.identifiers).map((key) => {
+            return { file: this.identifiers[key], dependency: Dependency.cache };
         });
         const result = await this.worker_controller.process_in_workers('scripts', WorkerAction.scripts, list, 1);
         await Plugin.after('scripts', result);
@@ -529,30 +530,31 @@ export class Main {
         return null;
     }
 
-    async optimize(entrypoint_list: any[]) {
+    async optimize(identifier_list: any[]) {
         // add contenthash to the generated files
         const replace_hash_files = [];
         const [hash_list, file_list] = Optimize.get_hashed_files();
         // replace in the files itself
         Optimize.replace_hashed_files_in_files(file_list, hash_list);
 
-        const [error_before, config_before, entrypoint_list_before, replace_hash_files_before] = await Plugin.before(
+        const [error_before, config_before, identifier_list_before, replace_hash_files_before] = await Plugin.before(
             'optimize',
-            entrypoint_list,
+            identifier_list,
             replace_hash_files
         );
         if (error_before) {
             Logger.error(error_before);
             this.fail();
         }
+        // create the list of files with there hashed identifier elements css/js
         const indexed = {};
-        entrypoint_list_before.forEach((entry) => {
-            if (!indexed[entry.entrypoint]) {
-                indexed[entry.entrypoint] = entry;
-                indexed[entry.entrypoint].files = [];
-                indexed[entry.entrypoint].hash_list = hash_list;
+        identifier_list_before.forEach((entry) => {
+            if (!indexed[entry.identifier]) {
+                indexed[entry.identifier] = entry;
+                indexed[entry.identifier].files = [];
+                indexed[entry.identifier].hash_list = hash_list;
             }
-            indexed[entry.entrypoint].files.push(entry.path);
+            indexed[entry.identifier].files.push(entry.path);
         });
         const list = Object.keys(indexed).map((key) => indexed[key]);
 

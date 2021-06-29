@@ -23,7 +23,7 @@ export class Worker {
     private global_data: any = null;
     private root_template_paths = [join(this.cwd, 'gen', 'src', 'doc'), join(this.cwd, 'gen', 'src', 'layout'), join(this.cwd, 'gen', 'src', 'page')];
     private release_path = null;
-    private entrypoints = {};
+    private identifiers_cache = {};
     constructor() {
         this.init();
     }
@@ -72,7 +72,7 @@ export class Worker {
                                 // enhance the data from the pages
                                 // set default values when the key is not available in the given data
                                 data = Generate.set_default_values(Generate.enhance_data(data), default_values);
-                                const result = this.emit_entrypoint(data);
+                                const result = this.emit_identifier(data);
 
                                 if (!entry.add_to_global) {
                                     return data;
@@ -101,7 +101,7 @@ export class Worker {
                                 WorkerHelper.log(LogType.error, 'broken/missing/empty file', filename);
                                 return;
                             }
-                            const result = this.emit_entrypoint(data);
+                            const result = this.emit_identifier(data);
 
                             const page_code = Build.get_page_code(result.data, result.doc, result.layout, result.page);
                             const [compile_error, compiled] = Build.compile(page_code);
@@ -131,10 +131,14 @@ export class Worker {
                             return path;
                         })
                     );
+                    // clear cache
+                    this.identifiers_cache = {};
+                    // bulk sending the css root elements
                     WorkerHelper.send_action(WorkerAction.emit, {
                         type: 'css_parent',
                         data: css_parents,
                     });
+                    // bulk sending the build paths
                     WorkerHelper.send_action(WorkerAction.emit, {
                         type: 'build',
                         data: build_result,
@@ -150,13 +154,12 @@ export class Worker {
                     const files = Client.get_hydrateable_svelte_files(svelte_files);
 
                     await Promise.all(
-                        value.map(async (entrypoint) => {
+                        value.map(async (identifier) => {
                             let dep_files = [];
                             ['doc', 'layout', 'page'].map((type) => {
-                                // console.log(type, entrypoint.file[type], entrypoint.dependency[type], !!entrypoint.dependency[type][entrypoint.file[type]])
-                                if (entrypoint.file[type] && entrypoint.dependency[type] && entrypoint.dependency[type][entrypoint.file[type]]) {
+                                if (identifier.file[type] && identifier.dependency[type] && identifier.dependency[type][identifier.file[type]]) {
                                     dep_files.push(
-                                        ...entrypoint.dependency[type][entrypoint.file[type]]
+                                        ...identifier.dependency[type][identifier.file[type]]
                                             .map((path) => {
                                                 const client_path = join('gen/client', path);
                                                 const match = files.find((file) => file.path == client_path);
@@ -167,10 +170,10 @@ export class Worker {
                                 }
                             });
                             try {
-                                const [error, result] = await Client.create_bundle(this.cwd, entrypoint.file, dep_files);
+                                const [error, result] = await Client.create_bundle(this.cwd, identifier.file, dep_files);
                             } catch (e) {
                                 // svelte error messages
-                                WorkerHelper.log(LogType.error, Error.get(e, entrypoint.file.name, 'worker scripts'));
+                                WorkerHelper.log(LogType.error, Error.get(e, identifier.file.name, 'worker scripts'));
                             }
                             return null;
                         })
@@ -250,25 +253,26 @@ export class Worker {
             process.exit(1);
         });
     }
-    emit_entrypoint(data: any): any {
+    emit_identifier(data: any): any {
         const doc_file_name = File.find_file(join(this.cwd, 'gen', 'src', 'doc'), data._wyvr.template.doc);
         const layout_file_name = File.find_file(join(this.cwd, 'gen', 'src', 'layout'), data._wyvr.template.layout);
         const page_file_name = File.find_file(join(this.cwd, 'gen', 'src', 'page'), data._wyvr.template.page);
 
-        const entrypoint = Client.get_entrypoint_name(this.root_template_paths, doc_file_name, layout_file_name, page_file_name);
+        const identifier = Client.get_identifier_name(this.root_template_paths, doc_file_name, layout_file_name, page_file_name);
         const result = {
-            type: 'entrypoint',
-            entrypoint,
+            type: 'identifier',
+            identifier,
             doc: doc_file_name,
             layout: layout_file_name,
             page: page_file_name,
         };
-        if (!this.entrypoints[entrypoint]) {
-            this.entrypoints[entrypoint] = true;
+        // emit identifier only when it was not added to the cache
+        if (!this.identifiers_cache[identifier]) {
+            this.identifiers_cache[identifier] = true;
             WorkerHelper.send_action(WorkerAction.emit, result);
         }
-        // add the entrypoint to the wyvr object
-        data._wyvr.entrypoint = entrypoint;
+        // add the identifier to the wyvr object
+        data._wyvr.identifier = identifier;
         (<any>result).data = data;
         return result;
     }

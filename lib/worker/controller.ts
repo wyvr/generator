@@ -16,11 +16,6 @@ export class WorkerController {
     private workers: WorkerModel[] = [];
     private worker_ratio = Config.get('worker.ratio');
     private max_cores: number;
-    private listeners_status: any = {};
-    private listeners_emit: any = {};
-    private listener_auto_increment = 0;
-    private on_entrypoint_callbacks: Function[] = [];
-    private on_route_callbacks: Function[] = [];
     public events: Events = new Events();
     private queue: Queue = null;
     private worker_amount: number = null;
@@ -144,7 +139,7 @@ export class WorkerController {
                 }
                 break;
             case WorkerAction.emit:
-                if (data.type && ['entrypoint', 'route', 'global', 'build', 'css_parent'].indexOf(data.type) > -1) {
+                if (data.type && ['identifier', 'route', 'global', 'build', 'css_parent'].indexOf(data.type) > -1) {
                     this.events.emit('emit', data.type, data);
                 }
                 break;

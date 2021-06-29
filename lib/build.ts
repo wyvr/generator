@@ -62,8 +62,8 @@ export class Build {
             return [e, null];
         }
         // write css file
-        const css_file_path = join('gen', 'css', `${props._wyvr.entrypoint}.css`);
-        let css_parent = { url: props.url, entrypoint: props._wyvr.entrypoint, extension: props._wyvr.extension };
+        const css_file_path = join('gen', 'css', `${props._wyvr.identifier}.css`);
+        let css_parent = { url: props.url, identifier: props._wyvr.identifier, extension: props._wyvr.extension };
         if (!fs.existsSync(css_file_path)) {
             fs.mkdirSync(dirname(css_file_path), { recursive: true });
             fs.writeFileSync(css_file_path, svelte_render_item.result.css.code);
@@ -94,7 +94,7 @@ export class Build {
         </Doc>`;
         return code;
     }
-    static get_entrypoint_code(doc_file_name: string, layout_file_name: string, page_file_name: string) {
+    static get_identifier_code(doc_file_name: string, layout_file_name: string, page_file_name: string) {
         const code = `<script>
             import { onMount } from 'svelte';
             import Doc from '${doc_file_name}';

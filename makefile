@@ -24,6 +24,9 @@ prod: ## Start production build
 dev: ## Start development build
 	@$(WYVR_COMPILE) && $(WYVR_TEST) && env WYVR_ENV=dev $(WYVR_BUILD)
 
+debug: ## Start debug build
+	@$(WYVR_COMPILE) && $(WYVR_TEST) && env WYVR_ENV=debug $(WYVR_BUILD)
+
 watch: ## Start watcher and make dev builds
 	@$(WYVR_CLEAN)
 	@$(WYVR_FOLDERS)

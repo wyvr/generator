@@ -2,16 +2,27 @@ const pkg = require('@root/package.json');
 const circular = require('circular');
 import * as color from 'ansi-colors';
 import ora from 'ora';
-const env = process.env.WYVR_ENV || 'development';
+import { EnvModel } from './model/env';
 
 export class Logger {
     static color = color;
     static spinner = null;
     static last_text = null;
+    static env = process.env.WYVR_ENV || 'development';
+    static set_env(env: string) {
+        if (['development', 'debug', 'production'].indexOf(env) == -1) {
+            return;
+        }
+        this.env = env;
+    }
+    static create_spinner(name: string) {
+        return ora(name).start();
+    }
 
     static output(color_fn: Function | null, char: string, ...values: any[]) {
         const text = values
             .map(this.stringify)
+            .filter((x) => x)
             .map((v) => (color_fn ? color_fn(v) : v))
             .join(' ');
         const symbol = color_fn ? color_fn(char) : char;
@@ -34,29 +45,29 @@ export class Logger {
         this.output(null, color.green('✓'), key, color.green(values.shift()), ...values);
     }
     static warning(...values) {
-        this.output(color.yellow, '⚠', values.join(' '));
-    }
-    static improve(...values) {
-        this.output(color.magenta, '⚡️', values.join(' '));
+        this.output(color.yellow, '⚠', ...values);
     }
     static error(...values) {
         this.output(color.red, '✘', ...values);
     }
+    static improve(...values) {
+        this.output(color.magenta, '⚡️', ...values);
+    }
     static debug(...values) {
-        if (env != 'debug') {
+        if (this.env != 'debug') {
             return;
         }
         this.output(color.dim, '~', ...values);
     }
     static start(name: string) {
-        if (env != 'production') {
+        if (this.env != 'production') {
             this.last_text = name || '';
             this.output(color.dim, '>', name);
-            this.spinner = ora(name).start();
+            this.spinner = this.create_spinner(name);
         }
     }
     static text(...values) {
-        if(this.spinner) {
+        if (this.spinner) {
             const text = values.map(this.stringify).join(' ');
             this.last_text = text;
             this.spinner.text = text;
@@ -66,11 +77,11 @@ export class Logger {
         let duration_text = Math.round(duration_in_ms).toString();
         const spaces = new Array(35 - duration_text.length - name.length).fill('.').join('');
         const message = `${color.green(name)}${color.dim(spaces)}${duration_text} ${color.dim('ms')}`;
-        if (env == 'production') {
+        if (this.env == 'production') {
             this.log(null, `${color.green('✓')} ${message}`);
         } else {
             if (!this.spinner) {
-                this.spinner = ora(name).start();
+                this.spinner = this.create_spinner(name);
             }
             this.spinner.succeed(message);
             this.spinner = null;

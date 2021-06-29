@@ -9,10 +9,7 @@ export class Link {
      */
     static to(source_dir_name: string, destination_name: string = null): boolean {
         const cwd = process.cwd();
-        if (!source_dir_name || typeof source_dir_name != 'string') {
-            return false;
-        }
-        if (!destination_name) {
+        if (!source_dir_name || typeof source_dir_name != 'string' || !destination_name) {
             return false;
         }
         const trimmed_soure = source_dir_name.replace(/^\//, '');

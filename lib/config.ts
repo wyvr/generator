@@ -6,17 +6,10 @@ export class Config {
     // cached troughout the whole process
     private static cache = null;
     /**
-     * get the local config of the project
-     * @returns the local config
-     */
-    static load_from_local() {
-        return this.load_from_path('');
-    }
-     /**
-     * get the config of the path
+     * get the config of the path based on the current project
      * @returns the config
      */
-    static load_from_path(path: string) {
+    static load_from_path(path: string = ''): any | null {
         const config_path = join(process.cwd(), path, 'wyvr.js');
         if (fs.existsSync(config_path)) {
             const config = require(config_path);
@@ -32,11 +25,12 @@ export class Config {
      */
     static get(config_segment: string | null = null): any | null {
         if (!this.cache) {
-            const local_config = this.load_from_local();
+            const local_config = this.load_from_path();
             const default_config = require('@config/config');
             if (local_config) {
                 this.cache = merge(default_config, local_config);
             } else {
+                // when no wyvr.js is present in the current project use default config
                 this.cache = default_config;
             }
         }
@@ -59,21 +53,32 @@ export class Config {
      * @param value object structure to replace the current config with
      * @returns
      */
-    static set(value: any) {
+    static set(value: any): boolean {
         if (value) {
             this.cache = merge(this.cache, value);
             return true;
         }
         return false;
     }
-    static replace(value: any){
+    /**
+     * replaces the whole config with the given value
+     * @param value new config
+     * @returns
+     */
+    static replace(value: any): boolean {
         if (value) {
             this.cache = value;
             return true;
         }
         return false;
     }
-    static merge(config1:any, config2:any) {
+    /**
+     * merge configs together
+     * @param config1 base config
+     * @param config2 config with higher priority
+     * @returns 
+     */
+    static merge(config1: any, config2: any) {
         return merge(config1, config2);
     }
 }

@@ -75,6 +75,26 @@ describe('Lib/Config', () => {
             assert.deepStrictEqual(Config.cache, cache);
         });
     });
+    describe('replace', () => {
+        it('unchanged', () => {
+            Config.cache = set_cache();
+            assert.deepStrictEqual(Config.replace(null), false);
+            assert.deepStrictEqual(Config.cache, set_cache());
+        });
+        it('changed', () => {
+            Config.cache = set_cache();
+            assert.deepStrictEqual(Config.replace({ replaced: true }), true);
+            assert.deepStrictEqual(Config.cache, { replaced: true });
+        });
+    });
+    describe('merge', () => {
+        it('changed', () => {
+            const cache = set_cache();
+            cache.key = 'changed';
+            cache.merged = true;
+            assert.deepStrictEqual(Config.merge(set_cache(), { key: 'changed', merged: true }), cache);
+        });
+    });
 });
 
 function set_cache() {

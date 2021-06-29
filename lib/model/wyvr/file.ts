@@ -6,8 +6,12 @@ export class WyvrFile {
     scripts?: string[];
     styles?: string[];
     props?: string[];
-    constructor(public path: string) {
-        if (path) {
+    path: string = null;
+    constructor(path: string = null) {
+        if(path && typeof path == 'string') {
+            this.path = path;
+        }
+        if (this.path) {
             let name = basename(path).replace(new RegExp(`${extname(path).replace('.', '\\.')}$`), '');
             // avoid reserved keywords
             if (

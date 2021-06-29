@@ -14,6 +14,11 @@ describe('Lib/Model/Wyvr/File', () => {
         it('invalid constructor', () => {
             assert.deepStrictEqual(new WyvrFile(true).path, null);
         });
+        it('name', () => {
+            const file = new WyvrFile('demo.txt');
+            assert.deepStrictEqual(file.path, 'demo.txt');
+            assert.deepStrictEqual(file.name, 'demo');
+        });
         it('reserved keyword', () => {
             const file = new WyvrFile('abstract.svelte');
             assert.deepStrictEqual(file.path, 'abstract.svelte');

@@ -265,7 +265,7 @@ export class Worker {
         };
         if (!this.entrypoints[entrypoint]) {
             this.entrypoints[entrypoint] = true;
-            WorkerHelper.send_action(WorkerAction.emit, entrypoint);
+            WorkerHelper.send_action(WorkerAction.emit, result);
         }
         // add the entrypoint to the wyvr object
         data._wyvr.entrypoint = entrypoint;

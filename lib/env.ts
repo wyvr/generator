@@ -7,7 +7,7 @@ export class Env {
         if (!value) {
             return this.get();
         }
-        let env = value;
+        let env = null;
         // string to enum
         if (typeof value == 'string' && EnvModel[value] != null) {
             env = EnvModel[value];

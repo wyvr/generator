@@ -6,7 +6,6 @@ pnpm-lock.yaml
 .DS_Store
 /.nyc_output
 /coverage
-/state
 /wyvr
 /logs
 /gen

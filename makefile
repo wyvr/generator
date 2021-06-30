@@ -57,6 +57,7 @@ test-coverage: ## Get test coverage result
 clean: ## Removes generated folders for a clean setup
 	@$(WYVR_CLEAN)
 	@$(WYVR_FOLDERS)
+
 serve: ## start simple http server after production build
 	@$(WYVR_COMPILE) && $(WYVR_TEST) && $(WYVR_BUILD)
 	@echo ""

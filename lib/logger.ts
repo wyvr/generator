@@ -92,7 +92,7 @@ export class Logger {
             `__  __  __  __  __  ____`,
             `\\ \\/ /\\/ /\\/ /\\/ /\\/ /_/`,
             ` \\/_/\\/_/\\/ /\\/_/\\/_/`,
-            `         /_/ generator ${color.dim('v')}${pkg.version}`,
+            `         /_/ generator ${color.dim(pkg.version)}`,
         ].join('\n');
         console.log(color.cyan(logo));
         console.log('');

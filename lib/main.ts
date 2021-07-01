@@ -368,10 +368,14 @@ export class Main {
                         if (hydrateable_files.indexOf(dep_file) == -1) {
                             // this dependency file is not hydrateable and must be copied to the client folder
                             const path = join(this.cwd, 'gen', 'client', dep_file);
+                            if (!existsSync(path)) {
+                                Logger.warning('dependency', dep_file, 'does not exist');
+                                return;
+                            }
                             mkdirSync(dirname(path), { recursive: true });
                             writeFileSync(
                                 path,
-                                Client.remove_on_server( 
+                                Client.remove_on_server(
                                     Client.replace_slots_client(readFileSync(join(this.cwd, 'gen', 'src', dep_file), { encoding: 'utf-8' }))
                                 )
                             );

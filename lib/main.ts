@@ -301,6 +301,10 @@ export class Main {
 
         // copy the hydrateable files into the gen/client folder
         Dir.clear('gen/client');
+        // copy js files to client, because stores and additional logic is "hidden" there
+        File.collect_files('gen/src', '.js').map((js_file) => {
+            copySync(js_file, js_file.replace(/^gen\/src/, 'gen/client'));
+        });
         hydrateable_files.map((file) => {
             const source_path = file.path;
             const path = file.path.replace(/^gen\/src/, 'gen/client');
@@ -367,15 +371,11 @@ export class Main {
                             mkdirSync(dirname(path), { recursive: true });
                             writeFileSync(
                                 path,
-                                Client.remove_on_server(
+                                Client.remove_on_server( 
                                     Client.replace_slots_client(readFileSync(join(this.cwd, 'gen', 'src', dep_file), { encoding: 'utf-8' }))
                                 )
                             );
-                            if (Env.is_dev()) {
-                                Logger.warning('make the static file', dep_file, 'hydrateable because it is used inside the hydrateable file', file_path);
-                            } else {
-                                Logger.debug('make the static file', dep_file, 'hydrateable because it is used inside the hydrateable file', file_path);
-                            }
+                            Logger.debug('make the static file', dep_file, 'hydrateable because it is used inside the hydrateable file', file_path);
                         }
                     });
                 }

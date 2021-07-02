@@ -29,7 +29,7 @@ export class Client {
             portal: fs.readFileSync(join(cwd, 'wyvr/resource/portal.js'), { encoding: 'utf-8' }),
             lazy: fs.readFileSync(join(cwd, 'wyvr/resource/hydrate_lazy.js'), { encoding: 'utf-8' }),
             env: fs.readFileSync(join(cwd, 'wyvr/resource/env.js'), { encoding: 'utf-8' }),
-            debug: '',//Env.is_dev() ? fs.readFileSync(join(cwd, 'wyvr/resource/debug.js'), { encoding: 'utf-8' }) : 
+            debug: '', //Env.is_dev() ? fs.readFileSync(join(cwd, 'wyvr/resource/debug.js'), { encoding: 'utf-8' }) :
         };
         if (hydrate_files.length == 0) {
             fs.writeFileSync(join(cwd, 'gen', 'js', `${entry.name}.js`), script_partials.env);
@@ -270,7 +270,10 @@ export class Client {
             })
             .join('_');
     }
-    static replace_global(content: string, global_data: any = null) {
+    static replace_global(content: string, global_data: any = null): string {
+        if (!content || typeof content != 'string') {
+            return '';
+        }
         return content.replace(/getGlobal\(['"]([^'"]+)['"](?:,\s*([^\)]+))?\)/g, (matched, key, fallback) => {
             // getGlobal('nav.header')
             // getGlobal("nav.header")
@@ -279,7 +282,7 @@ export class Client {
             // getGlobal('nav.header', true)
             // getGlobal('nav.header', 'test')
             try {
-                fallback = JSON.parse(fallback);
+                fallback = JSON.parse(fallback.replace(/'/g, '"'));
             } catch (e) {
                 fallback = null;
             }
@@ -323,27 +326,41 @@ export class Client {
     }
     static extract_props_from_scripts(scripts: string[]): string[] {
         const props = [];
+        if (!scripts || !Array.isArray(scripts) || !scripts.every((item) => typeof item == 'string')) {
+            return props;
+        }
         scripts.forEach((script) => {
             //export let price = null;
-            script.replace(/export let ([^ =]*)\s*=.*/g, (_, prop) => {
+            //export let price;
+            //export let price
+            script.replace(/export let ([^ =;\n]*)/g, (_, prop) => {
                 props.push(prop);
                 return '';
             });
         });
-        return props;
+        return props.filter((prop, index) => props.indexOf(prop) == index);
     }
-    static replace_slots_static(content: string): string {
+    static replace_slots(content: string, fn: (name: string, slot: string) => string): string {
+        if (!content || typeof content != 'string') {
+            return '';
+        }
         const content_replaced = content.replace(/(<slot[^>/]*>.*?<\/slot>|<slot[^>]*\/>)/g, (_, slot) => {
             const match = slot.match(/name="(.*)"/);
             let name = null;
             if (match) {
                 name = match[1];
             }
-            return `<span data-slot="${name || 'default'}">${slot}</span>`;
+            return fn(name || 'default', slot);
         });
         return content_replaced;
     }
+    static replace_slots_static(content: string): string {
+        return this.replace_slots(content, (name: string, slot: string) => `<span data-slot="${name}">${slot}</span>`);
+    }
     static remove_on_server(content: string) {
+        if (!content || typeof content != 'string') {
+            return '';
+        }
         const search_string = 'onServer(';
         let start_index = content.indexOf(search_string);
         if (start_index == -1) {
@@ -376,15 +393,7 @@ export class Client {
         return content;
     }
     static replace_slots_client(content: string): string {
-        const content_replaced = content.replace(/(<slot[^>/]*>.*?<\/slot>|<slot[^>]*\/>)/g, (_, slot) => {
-            const match = slot.match(/name="(.*)"/);
-            let name = null;
-            if (match) {
-                name = match[1];
-            }
-            return `<div data-client-slot="${name || 'default'}">${slot}</div>`;
-        });
-        return content_replaced;
+        return this.replace_slots(content, (name: string, slot: string) => `<div data-client-slot="${name}">${slot}</div>`);
     }
     static insert_splits(file_path: string, content: string): string {
         const css_file = File.to_extension(file_path, 'css');
@@ -411,7 +420,10 @@ export class Client {
         }
         return content;
     }
-    static css_hash({ hash, css, name, filename }) {
-        return `wyvr-${hash(css)}`;
+    static css_hash(data: { hash; css; name; filename }) {
+        if (!data || !data.hash || !data.css) {
+            return 'wyvr';
+        }
+        return `wyvr-${data.hash(data.css)}`;
     }
 }

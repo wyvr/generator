@@ -3,6 +3,7 @@ require('module-alias/register');
 describe('Lib/Client', () => {
     const assert = require('assert');
     const { Client } = require('@lib/client');
+    const cwd = process.cwd();
 
     before(() => {});
     describe('create_bundle', () => {
@@ -27,7 +28,52 @@ describe('Lib/Client', () => {
         // it('', ()=>{})
     });
     describe('get_identifier_name', () => {
-        // it('', ()=>{})
+        const root_template_paths = [cwd + '/gen/src/doc', cwd + '/gen/src/layout', cwd + '/gen/src/page'];
+        it('undefined', () => {
+            assert.strictEqual(Client.get_identifier_name(), 'default');
+        });
+        it('null', () => {
+            assert.strictEqual(Client.get_identifier_name(null), 'default');
+        });
+        it('empty', () => {
+            assert.strictEqual(Client.get_identifier_name([]), 'default');
+        });
+        it('root, undefined', () => {
+            assert.strictEqual(Client.get_identifier_name(root_template_paths), 'default');
+        });
+        it('root, null', () => {
+            assert.strictEqual(Client.get_identifier_name(root_template_paths, null), 'default');
+        });
+        it('root, doc, undefined', () => {
+            assert.strictEqual(Client.get_identifier_name(root_template_paths, cwd + '/gen/src/doc/Default.svelte'), 'default');
+        });
+        it('root, doc, null', () => {
+            assert.strictEqual(Client.get_identifier_name(root_template_paths, cwd + '/gen/src/doc/Default.svelte', null), 'default');
+        });
+        it('root, doc, layout, undefined', () => {
+            assert.strictEqual(
+                Client.get_identifier_name(root_template_paths, cwd + '/gen/src/doc/Default.svelte', cwd + '/gen/src/layout/Default.svelte'),
+                'default_default'
+            );
+        });
+        it('root, doc, layout, null', () => {
+            assert.strictEqual(
+                Client.get_identifier_name(root_template_paths, cwd + '/gen/src/doc/Default.svelte', cwd + '/gen/src/layout/Default.svelte', null),
+                'default_default'
+            );
+        });
+        it('root, doc, layout, page', () => {
+            assert.strictEqual(
+                Client.get_identifier_name(root_template_paths, cwd + '/gen/src/doc/Default.svelte', cwd + '/gen/src/layout/Default.svelte', cwd + '/gen/src/page/Default.svelte', null),
+                'default_default_default'
+            );
+        });
+        it('complex identifier', () => {
+            assert.strictEqual(
+                Client.get_identifier_name(root_template_paths, cwd + '/gen/src/doc/DocTest/DocTest.svelte', cwd + '/gen/src/layout/LayoutTest/LayoutTest.svelte', cwd + '/gen/src/page/PageTest/PageTest.svelte', null),
+                'doctest-doctest_layouttest-layouttest_pagetest-pagetest'
+            );
+        });
     });
     describe('replace_global', () => {
         // it('', ()=>{})
@@ -119,6 +165,16 @@ describe('Lib/Client', () => {
         });
     });
     describe('get_global', () => {
+        const global = {
+            nav: {
+                header: [
+                    {
+                        url: 'https://wyvr.dev',
+                    },
+                ],
+            },
+            list: ['a', 'b'],
+        };
         // it('', ()=>{})
         it('undefined', () => {
             assert.deepStrictEqual(Client.get_global(), null);
@@ -128,6 +184,26 @@ describe('Lib/Client', () => {
         });
         it('empty', () => {
             assert.deepStrictEqual(Client.get_global(''), null);
+        });
+        it('fallback', () => {
+            assert.deepStrictEqual(Client.get_global('', true), true);
+        });
+        it('list', () => {
+            assert.deepStrictEqual(Client.get_global('list', true, global), ['a', 'b']);
+        });
+        it('first list entry', () => {
+            assert.deepStrictEqual(Client.get_global('list[0]', true, global), 'a');
+        });
+        it('deep unknown', () => {
+            assert.deepStrictEqual(Client.get_global('nav.footer', true, global), true);
+        });
+        it('deep search', () => {
+            assert.deepStrictEqual(Client.get_global('nav.header[0]', null, global), {
+                url: 'https://wyvr.dev',
+            });
+        });
+        it('deep search property', () => {
+            assert.deepStrictEqual(Client.get_global('nav.header[0].url', null, global), 'https://wyvr.dev');
         });
     });
     describe('extract_props_from_scripts', () => {

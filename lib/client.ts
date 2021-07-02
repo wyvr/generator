@@ -254,8 +254,13 @@ export class Client {
         };
     }
     static get_identifier_name(root_paths: string[], ...parts: string[]): string {
+        const default_sign = 'default';
+        if (!root_paths || root_paths.length == 0 || !parts || parts.length == 0) {
+            return default_sign;
+        }
         const replace_pattern = new RegExp(`^${root_paths.map((path) => path.replace(/\//g, '/') + '/').join('|')}`);
-        return parts
+        const result = parts
+            .filter((x) => x)
             .map((part) => {
                 // remove the root paths to get shorter identifiers
                 return part
@@ -264,11 +269,11 @@ export class Client {
                     .toLowerCase()
                     .replace(/\//, '-');
             })
-            .filter((p, i, arr) => {
-                // remove duplicate entries
-                return arr.indexOf(p) == i;
-            })
             .join('_');
+        if (!result) {
+            return default_sign;
+        }
+        return result;
     }
     static replace_global(content: string, global_data: any = null): string {
         if (!content || typeof content != 'string') {
@@ -308,15 +313,16 @@ export class Client {
             }
             if (i == 0) {
                 value = global_data[step];
+
                 if (value !== undefined && index != null && Array.isArray(value)) {
                     value = value[index];
                 }
                 continue;
             }
-            if (value === undefined || (!value && !value[step])) {
+            value = value[step];
+            if (value === undefined) {
                 return fallback;
             }
-            value = value[step];
             if (value !== undefined && index != null && Array.isArray(value)) {
                 value = value[index];
             }

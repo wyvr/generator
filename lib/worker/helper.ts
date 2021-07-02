@@ -31,11 +31,11 @@ export class WorkerHelper {
     }
     static get_status(status) {
         let enum_status: any = WorkerStatus[status];
-        if (!enum_status) {
+        if (enum_status == null) {
             enum_status = WorkerStatus.exists;
         }
         if (typeof enum_status == 'string') {
-            enum_status = WorkerStatus[enum_status];
+            return WorkerStatus[enum_status];
         }
         return enum_status;
     }

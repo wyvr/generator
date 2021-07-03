@@ -75,11 +75,7 @@ export class Client {
                     `;
             })
         );
-        const script_content = [script_partials.hydrate];
-        script_content.push(script_partials.props);
-        script_content.push(script_partials.portal);
-        script_content.push(script_partials.debug);
-        script_content.push(script_partials.env);
+        const script_content = [script_partials.hydrate, script_partials.props, script_partials.portal, script_partials.debug, script_partials.env];
         if (lazy_input_files.length > 0) {
             script_content.push(script_partials.lazy);
         }
@@ -172,31 +168,26 @@ export class Client {
         if (!content) {
             return config;
         }
-        const match = content.match(/wyvr:\s+(\{[^}]+\})/);
+        const match = content.match(/wyvr:\s+(\{[^}]*\})/);
         if (match) {
-            try {
-                config = new WyvrFileConfig();
-                match[1].split('\n').forEach((row) => {
-                    const cfg_string = row.match(/(\w+): '(\w+)'/);
-                    if (cfg_string) {
-                        config[cfg_string[1]] = cfg_string[2];
-                        return;
-                    }
-                    const cfg_bool = row.match(/(\w+): (true|false)/);
-                    if (cfg_bool) {
-                        config[cfg_bool[1]] = cfg_bool[2] === 'true';
-                        return;
-                    }
-                    const cfg_number = row.match(/(\w+): (\d+)/);
-                    if (cfg_number) {
-                        config[cfg_number[1]] = parseFloat(cfg_number[2]);
-                        return;
-                    }
-                });
-            } catch (e) {
-                // add error object
-                config.error = e;
-            }
+            config = new WyvrFileConfig();
+            match[1].split('\n').forEach((row) => {
+                const cfg_string = row.match(/(\w+): ['"](\w+)['"]/);
+                if (cfg_string) {
+                    config[cfg_string[1]] = cfg_string[2];
+                    return;
+                }
+                const cfg_bool = row.match(/(\w+): (true|false)/);
+                if (cfg_bool) {
+                    config[cfg_bool[1]] = cfg_bool[2] === 'true';
+                    return;
+                }
+                const cfg_number = row.match(/(\w+): ([\d,.]+)/);
+                if (cfg_number) {
+                    config[cfg_number[1]] = parseFloat(cfg_number[2]);
+                    return;
+                }
+            });
         }
 
         return config;
@@ -230,6 +221,12 @@ export class Client {
         });
     }
     static extract_tags_from_content(content: string, tag: string): { content: string; result: string[] } {
+        if (!content || typeof content != 'string' || !tag || typeof tag != 'string') {
+            return {
+                content: content || '',
+                result: [],
+            };
+        }
         let search_tag = true;
         tag = tag.toLowerCase().trim();
         const result = [];
@@ -402,6 +399,9 @@ export class Client {
         return this.replace_slots(content, (name: string, slot: string) => `<div data-client-slot="${name}">${slot}</div>`);
     }
     static insert_splits(file_path: string, content: string): string {
+        if (!file_path || !fs.existsSync(file_path) || !content || typeof content != 'string') {
+            return '';
+        }
         const css_file = File.to_extension(file_path, 'css');
         if (fs.existsSync(css_file)) {
             const css_content = fs.readFileSync(css_file);

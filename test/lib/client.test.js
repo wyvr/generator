@@ -1,8 +1,11 @@
+const { readFileSync } = require('fs');
+
 require('module-alias/register');
 
 describe('Lib/Client', () => {
     const assert = require('assert');
     const { Client } = require('@lib/client');
+    const { WyvrFileConfig } = require('@lib/model/wyvr/file');
     const cwd = process.cwd();
 
     before(() => {});
@@ -19,13 +22,106 @@ describe('Lib/Client', () => {
         // it('', ()=>{})
     });
     describe('parse_wyvr_config', () => {
-        // it('', ()=>{})
+        const empty_config = new WyvrFileConfig();
+        it('undefined', () => {
+            assert.deepStrictEqual(Client.parse_wyvr_config(), null);
+        });
+        it('null', () => {
+            assert.deepStrictEqual(Client.parse_wyvr_config(null), null);
+        });
+        it('empty', () => {
+            assert.deepStrictEqual(Client.parse_wyvr_config(''), null);
+        });
+        it('no config', () => {
+            assert.deepStrictEqual(
+                Client.parse_wyvr_config(`{
+                prop: {
+                    loading: 'lazy
+                }
+            }`),
+                null
+            );
+        });
+        it('config found', () => {
+            assert.deepStrictEqual(Client.parse_wyvr_config(`wyvr: {}`), empty_config);
+        });
+        it('config found, space', () => {
+            assert.deepStrictEqual(Client.parse_wyvr_config(`wyvr: { }`), empty_config);
+        });
+        it('string single quote', () => {
+            const string_config = new WyvrFileConfig();
+            string_config.string = 'test';
+            assert.deepStrictEqual(Client.parse_wyvr_config(`wyvr: { string: 'test'}`), string_config);
+        });
+        it('string double quote', () => {
+            const string_config = new WyvrFileConfig();
+            string_config.string = 'test';
+            assert.deepStrictEqual(Client.parse_wyvr_config(`wyvr: { string: "test"}`), string_config);
+        });
+        it('bool', () => {
+            const bool_config = new WyvrFileConfig();
+            bool_config.bool = true;
+            assert.deepStrictEqual(Client.parse_wyvr_config(`wyvr: { bool: true}`), bool_config);
+        });
+        it('number float', () => {
+            const number_config = new WyvrFileConfig();
+            number_config.number = 10.5;
+            assert.deepStrictEqual(Client.parse_wyvr_config(`wyvr: { number: 10.5 }`), number_config);
+        });
+        it('number int', () => {
+            const number_config = new WyvrFileConfig();
+            number_config.int = 10;
+            assert.deepStrictEqual(Client.parse_wyvr_config(`wyvr: { int: 10 }`), number_config);
+        });
+        it('number invalid', () => {
+            const number_config = new WyvrFileConfig();
+            number_config.number = 1;
+            assert.deepStrictEqual(Client.parse_wyvr_config(`wyvr: { number: 1..5 }`), number_config);
+        });
     });
     describe('transform_hydrateable_svelte_files', () => {
         // it('', ()=>{})
     });
     describe('extract_tags_from_content', () => {
-        // it('', ()=>{})
+        it('undefined', () => {
+            assert.deepStrictEqual(Client.extract_tags_from_content(), { content: '', result: [] });
+        });
+        it('null', () => {
+            assert.deepStrictEqual(Client.extract_tags_from_content(null), { content: '', result: [] });
+        });
+        it('empty', () => {
+            assert.deepStrictEqual(Client.extract_tags_from_content(''), { content: '', result: [] });
+        });
+        it('content but undefined tag', () => {
+            assert.deepStrictEqual(Client.extract_tags_from_content('<a></a>'), { content: '<a></a>', result: [] });
+        });
+        it('content but null tag', () => {
+            assert.deepStrictEqual(Client.extract_tags_from_content('<a></a>', null), { content: '<a></a>', result: [] });
+        });
+        it('content but empty tag', () => {
+            assert.deepStrictEqual(Client.extract_tags_from_content('<a></a>', ''), { content: '<a></a>', result: [] });
+        });
+        it('content & tag', () => {
+            assert.deepStrictEqual(Client.extract_tags_from_content('before <a>test</a> after', 'a'), { content: 'before  after', result: ['<a>test</a>'] });
+        });
+        it('content & tag with attributes', () => {
+            assert.deepStrictEqual(Client.extract_tags_from_content('before <a href="#" download>test</a> after', 'a'), {
+                content: 'before  after',
+                result: ['<a href="#" download>test</a>'],
+            });
+        });
+        it('content & multiple tags', () => {
+            assert.deepStrictEqual(Client.extract_tags_from_content('before <a>test1</a> <a>test2</a> after', 'a'), {
+                content: 'before   after',
+                result: ['<a>test1</a>', '<a>test2</a>'],
+            });
+        });
+        it('content & multiple tags with attributes', () => {
+            assert.deepStrictEqual(
+                Client.extract_tags_from_content('before <a href="#1" download>test1</a> <a href="#2" rel="noopener">test2</a> after', 'a'),
+                { content: 'before   after', result: ['<a href="#1" download>test1</a>', '<a href="#2" rel="noopener">test2</a>'] }
+            );
+        });
     });
     describe('get_identifier_name', () => {
         const root_template_paths = [cwd + '/gen/src/doc', cwd + '/gen/src/layout', cwd + '/gen/src/page'];
@@ -64,13 +160,25 @@ describe('Lib/Client', () => {
         });
         it('root, doc, layout, page', () => {
             assert.strictEqual(
-                Client.get_identifier_name(root_template_paths, cwd + '/gen/src/doc/Default.svelte', cwd + '/gen/src/layout/Default.svelte', cwd + '/gen/src/page/Default.svelte', null),
+                Client.get_identifier_name(
+                    root_template_paths,
+                    cwd + '/gen/src/doc/Default.svelte',
+                    cwd + '/gen/src/layout/Default.svelte',
+                    cwd + '/gen/src/page/Default.svelte',
+                    null
+                ),
                 'default_default_default'
             );
         });
         it('complex identifier', () => {
             assert.strictEqual(
-                Client.get_identifier_name(root_template_paths, cwd + '/gen/src/doc/DocTest/DocTest.svelte', cwd + '/gen/src/layout/LayoutTest/LayoutTest.svelte', cwd + '/gen/src/page/PageTest/PageTest.svelte', null),
+                Client.get_identifier_name(
+                    root_template_paths,
+                    cwd + '/gen/src/doc/DocTest/DocTest.svelte',
+                    cwd + '/gen/src/layout/LayoutTest/LayoutTest.svelte',
+                    cwd + '/gen/src/page/PageTest/PageTest.svelte',
+                    null
+                ),
                 'doctest-doctest_layouttest-layouttest_pagetest-pagetest'
             );
         });
@@ -375,7 +483,45 @@ describe('Lib/Client', () => {
         });
     });
     describe('insert_splits', () => {
-        // it('', ()=>{})
+        it('file undefined', () => {
+            assert.strictEqual(Client.insert_splits(), '');
+        });
+        it('file null', () => {
+            assert.strictEqual(Client.insert_splits(null), '');
+        });
+        it('file empty', () => {
+            assert.strictEqual(Client.insert_splits(''), '');
+        });
+        it('file, undefined', () => {
+            assert.strictEqual(Client.insert_splits('test/lib/client/insert_splits/empty.svelte'), '');
+        });
+        it('file, null', () => {
+            assert.strictEqual(Client.insert_splits('test/lib/client/insert_splits/empty.svelte', null), '');
+        });
+        it('file, empty', () => {
+            assert.strictEqual(Client.insert_splits('test/lib/client/insert_splits/empty.svelte', ''), '');
+        });
+        it('non existing file', () => {
+            assert.strictEqual(Client.insert_splits('test/lib/client/insert_splits/ghost.svelte', 'hello'), '');
+        });
+        it('merge css', () => {
+            assert.strictEqual(
+                Client.insert_splits(
+                    'test/lib/client/insert_splits/css.svelte',
+                    readFileSync('test/lib/client/insert_splits/css.svelte', { encoding: 'utf-8' })
+                ),
+                readFileSync('test/lib/client/insert_splits/css_result.svelte', { encoding: 'utf-8' })
+            );
+        });
+        it('merge js', () => {
+            assert.strictEqual(
+                Client.insert_splits(
+                    'test/lib/client/insert_splits/js.svelte',
+                    readFileSync('test/lib/client/insert_splits/js.svelte', { encoding: 'utf-8' })
+                ),
+                readFileSync('test/lib/client/insert_splits/js_result.svelte', { encoding: 'utf-8' })
+            );
+        });
     });
     describe('css_hash', () => {
         it('undefined', () => {

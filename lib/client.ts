@@ -193,32 +193,40 @@ export class Client {
         return config;
     }
     static transform_hydrateable_svelte_files(files: WyvrFile[]) {
-        return files.map((entry) => {
-            if (!entry.config) {
-                return entry;
+        return files.map((file) => {
+            if (!file.config) {
+                return file;
             }
-            if (entry.config.render == WyvrFileRender.hydrate) {
+            if (file.config.render == WyvrFileRender.hydrate) {
                 // split svelte file apart to inject markup for the hydration
-                let content = fs.readFileSync(entry.path, { encoding: 'utf-8' });
-                // extract scripts
-                const script_result = this.extract_tags_from_content(content, 'script');
-                entry.scripts = script_result.result;
-                content = script_result.content;
-                entry.props = this.extract_props_from_scripts(script_result.result);
-                const props_include = `data-props="${entry.props.map((prop) => `'${prop}':{JSON.stringify(${prop}).replace(/"/g, "'")}`).join(',')}"`;
-                const portal = entry.config.portal ? `data-portal="${entry.config.portal}"` : '';
-                // extract styles
-                const style_result = this.extract_tags_from_content(content, 'style');
-                entry.styles = style_result.result;
-                content = style_result.content;
-                // add hydrate tag
-                const hydrate_tag = entry.config.display == 'inline' ? 'span' : 'div';
-                content = `<${hydrate_tag} data-hydrate="${entry.name}" ${props_include} ${portal}>${content}</${hydrate_tag}>`;
-                content = this.replace_slots_static(content);
-                fs.writeFileSync(entry.path, `${entry.scripts.join('')}\n${entry.styles.join('')}\n${content}`);
+                const content = this.transform_content_to_hydrate(fs.readFileSync(file.path, { encoding: 'utf-8' }), file);
+                fs.writeFileSync(file.path, `${file.scripts.join('')}\n${file.styles.join('')}\n${content}`);
             }
-            return entry;
+            return file;
         });
+    }
+    static transform_content_to_hydrate(content: string, file: WyvrFile) {
+        if (!content || typeof content != 'string' || !file) {
+            return '';
+        }
+        // extract scripts
+        const script_result = this.extract_tags_from_content(content, 'script');
+        file.scripts = script_result.result;
+        content = script_result.content;
+        file.props = this.extract_props_from_scripts(script_result.result);
+        // create props which gets hydrated
+        const props_include = `data-props="${file.props.map((prop) => `'${prop}':{JSON.stringify(${prop}).replace(/"/g, "'")}`).join(',')}"`;
+        // add portal when set
+        const portal = file.config.portal ? `data-portal="${file.config.portal}"` : '';
+        // extract styles
+        const style_result = this.extract_tags_from_content(content, 'style');
+        file.styles = style_result.result;
+        content = style_result.content;
+        // add hydrate tag
+        const hydrate_tag = file.config.display == 'inline' ? 'span' : 'div';
+        content = `<${hydrate_tag} data-hydrate="${file.name}" ${props_include} ${portal}>${content}</${hydrate_tag}>`;
+        content = this.replace_slots_static(content);
+        return content;
     }
     static extract_tags_from_content(content: string, tag: string): { content: string; result: string[] } {
         if (!content || typeof content != 'string' || !tag || typeof tag != 'string') {

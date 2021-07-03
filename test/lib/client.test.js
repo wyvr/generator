@@ -5,7 +5,7 @@ require('module-alias/register');
 describe('Lib/Client', () => {
     const assert = require('assert');
     const { Client } = require('@lib/client');
-    const { WyvrFileConfig } = require('@lib/model/wyvr/file');
+    const { WyvrFile, WyvrFileConfig } = require('@lib/model/wyvr/file');
     const cwd = process.cwd();
 
     before(() => {});
@@ -81,6 +81,28 @@ describe('Lib/Client', () => {
     });
     describe('transform_hydrateable_svelte_files', () => {
         // it('', ()=>{})
+    });
+    describe('transform_content_to_hydrate', () => {
+        const hydrate_content = readFileSync('test/lib/client/transform_content_to_hydrate/hydrate.svelte', { encoding: 'utf-8' });
+        const file = new WyvrFile('test/lib/client/transform_content_to_hydrate/hydrate.svelte');
+        const config = new WyvrFileConfig();
+        config.render = 'hydrate';
+        file.config = config;
+        it('undefined', () => {
+            assert.strictEqual(Client.transform_content_to_hydrate(), '');
+        });
+        it('null', () => {
+            assert.strictEqual(Client.transform_content_to_hydrate(null), '');
+        });
+        it('empty', () => {
+            assert.strictEqual(Client.transform_content_to_hydrate(''), '');
+        });
+        it('hydrate', () => {
+            assert.strictEqual(
+                Client.transform_content_to_hydrate(hydrate_content, file),
+                readFileSync('test/lib/client/transform_content_to_hydrate/hydrate_result.svelte', { encoding: 'utf-8' })
+            );
+        });
     });
     describe('extract_tags_from_content', () => {
         it('undefined', () => {
@@ -515,10 +537,7 @@ describe('Lib/Client', () => {
         });
         it('merge js', () => {
             assert.strictEqual(
-                Client.insert_splits(
-                    'test/lib/client/insert_splits/js.svelte',
-                    readFileSync('test/lib/client/insert_splits/js.svelte', { encoding: 'utf-8' })
-                ),
+                Client.insert_splits('test/lib/client/insert_splits/js.svelte', readFileSync('test/lib/client/insert_splits/js.svelte', { encoding: 'utf-8' })),
                 readFileSync('test/lib/client/insert_splits/js_result.svelte', { encoding: 'utf-8' })
             );
         });

@@ -1,5 +1,5 @@
 <script>
-    import Counter from '/Users/patrick/wyvr/generator/gen/src/component/Counter';
+    import Counter from '@src/component/Counter';
 </script>
 
 <Counter />

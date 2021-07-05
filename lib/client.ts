@@ -139,8 +139,10 @@ export class Client {
     }
 
     static correct_svelte_file_import_paths(svelte_files: WyvrFile[]): WyvrFile[] {
+        if(!svelte_files || !Array.isArray(svelte_files)) {
+            return [];
+        }
         //HydrateFileEntry[] {
-
         return svelte_files.map((file) => {
             const content = fs.readFileSync(file.path, { encoding: 'utf-8' });
             if (content) {
@@ -202,7 +204,7 @@ export class Client {
             return file;
         });
     }
-    static transform_content_to_hydrate(content: string, file: WyvrFile) {
+    static transform_content_to_hydrate(content: string, file: WyvrFile): string {
         if (!content || typeof content != 'string' || !file) {
             return '';
         }

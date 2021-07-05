@@ -1,4 +1,4 @@
-const { readFileSync } = require('fs');
+const { readFileSync, copyFileSync } = require('fs');
 
 require('module-alias/register');
 
@@ -16,7 +16,25 @@ describe('Lib/Client', () => {
         // it('', ()=>{})
     });
     describe('correct_svelte_file_import_paths', () => {
-        // it('', ()=>{})
+        it('undefined', () => {
+            assert.deepStrictEqual(Client.correct_svelte_file_import_paths(), []);
+        });
+        it('null', () => {
+            assert.deepStrictEqual(Client.correct_svelte_file_import_paths(null), []);
+        });
+        it('empty', () => {
+            assert.deepStrictEqual(Client.correct_svelte_file_import_paths([]), []);
+        });
+
+        it('should replace only in import statements', () => {
+            const source_file_path = 'test/lib/client/correct_svelte_file_import_paths/test_base.svelte';
+            const file_path = 'test/lib/client/correct_svelte_file_import_paths/test.svelte';
+            const file = new WyvrFile();
+            file.path = file_path;
+            copyFileSync(source_file_path, file_path);
+            assert.deepStrictEqual(Client.correct_svelte_file_import_paths([file]), [file]);
+            assert.strictEqual(readFileSync(file_path, { encoding: 'utf-8' }), readFileSync(source_file_path, { encoding: 'utf-8' }));
+        });
     });
     describe('get_hydrateable_svelte_files', () => {
         // it('', ()=>{})

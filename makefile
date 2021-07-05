@@ -42,6 +42,21 @@ watch: ## Start watcher and make dev builds
 		--verbose \
 		--exec '$(WYVR_COMPILE) && $(WYVR_BUILD)'
 
+compile-watch: ## Start watcher and make dev builds
+	@$(WYVR_CLEAN)
+	@$(WYVR_FOLDERS)
+	@env WYVR_ENV=dev npx nodemon \
+		--ignore test \
+		--ignore imported \
+		--ignore data \
+		--ignore pub \
+		--ignore wyvr \
+		--ignore gen \
+		--ignore releases \
+		-e js,ts,svelte,css \
+		--verbose \
+		--exec '$(WYVR_COMPILE)'
+
 test-exec: ## Executes the tests
 	@$(WYVR_COMPILE) && $(WYVR_TEST)
 

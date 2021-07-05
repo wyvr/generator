@@ -60,7 +60,7 @@ describe('Lib/Client', () => {
             result_file.config.display = 'inline';
             result_file.config.portal = 'portal';
 
-            assert.deepStrictEqual(Client.get_hydrateable_svelte_files([file, {}, null]), [result_file]);
+            assert.deepStrictEqual(Client.get_hydrateable_svelte_files([file, { path: false }, null]), [result_file]);
         });
     });
     describe('parse_wyvr_config', () => {
@@ -120,6 +120,26 @@ describe('Lib/Client', () => {
             number_config.number = 1;
             assert.deepStrictEqual(Client.parse_wyvr_config(`wyvr: { number: 1..5 }`), number_config);
         });
+    });
+    describe('preprocess_content', () => {
+        it('undefined', ()=>{
+            assert.strictEqual(Client.preprocess_content(), '');
+        })
+        it('null', ()=>{
+            assert.strictEqual(Client.preprocess_content(null), '');
+        })
+        it('empty', ()=>{
+            assert.strictEqual(Client.preprocess_content(''), '');
+        })
+        it('nothing to preprocess', ()=>{
+            assert.strictEqual(Client.preprocess_content(readFileSync('test/lib/client/preprocess_content/default.svelte', { encoding: 'utf-8' })), readFileSync('test/lib/client/preprocess_content/default_result.svelte', { encoding: 'utf-8' }));
+        })
+        it('replace scss', ()=>{
+            assert.strictEqual(Client.preprocess_content(readFileSync('test/lib/client/preprocess_content/scss.svelte', { encoding: 'utf-8' })), readFileSync('test/lib/client/preprocess_content/scss_result.svelte', { encoding: 'utf-8' }));
+        })
+        it('replace scss with partial', ()=>{
+            assert.strictEqual(Client.preprocess_content(readFileSync('test/lib/client/preprocess_content/scss_import.svelte', { encoding: 'utf-8' })), readFileSync('test/lib/client/preprocess_content/scss_import_result.svelte', { encoding: 'utf-8' }));
+        })
     });
     describe('transform_hydrateable_svelte_files', () => {
         // it('', ()=>{})

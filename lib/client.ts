@@ -13,6 +13,7 @@ import { Env } from '@lib/env';
 import { WorkerHelper } from '@lib/worker/helper';
 import { LogType } from '@lib/model/log';
 import { Error } from '@lib/error';
+import sass from 'sass';
 
 export class Client {
     static async create_bundle(cwd: string, entry: any, hydrate_files: WyvrFile[]) {
@@ -154,7 +155,8 @@ export class Client {
                     fs.writeFileSync(file.path, corrected_imports);
                 }
                 return file;
-            }).filter((x) => x);
+            })
+            .filter((x) => x);
     }
     static get_hydrateable_svelte_files(svelte_files: WyvrFile[]): WyvrFile[] {
         if (!svelte_files || !Array.isArray(svelte_files)) {
@@ -203,6 +205,26 @@ export class Client {
         }
 
         return config;
+    }
+    static preprocess_content(content: string): string {
+        if (!content || typeof content != 'string') {
+            return '';
+        }
+        const style_result = this.extract_tags_from_content(content, 'style');
+        if (
+            style_result &&
+            style_result.result &&
+            style_result.result.some((entry) => entry.indexOf('type="text/scss"') > -1 || entry.indexOf('lang="sass"') > -1)
+        ) {
+            const sass_result = sass.renderSync({
+                data: style_result.result.map((entry) => entry.replace(/<style[^>]*>/g, '').replace(/<\/style>/g, '')).join('\n'),
+            });
+            if (sass_result) {
+                return `${style_result.content}<style>${sass_result.css.toString()}</style>`;
+            }
+        }
+
+        return content;
     }
     static transform_hydrateable_svelte_files(files: WyvrFile[]) {
         return files.map((file) => {

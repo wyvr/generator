@@ -144,10 +144,9 @@ export class Client {
         }
         //HydrateFileEntry[] {
         return svelte_files
-            .filter((x) => x)
             .map((file) => {
-                if (!file.path) {
-                    return file;
+                if (!file || !file.path) {
+                    return null;
                 }
                 const content = fs.readFileSync(file.path, { encoding: 'utf-8' });
                 if (content) {
@@ -155,15 +154,17 @@ export class Client {
                     fs.writeFileSync(file.path, corrected_imports);
                 }
                 return file;
-            });
+            }).filter((x) => x);
     }
     static get_hydrateable_svelte_files(svelte_files: WyvrFile[]): WyvrFile[] {
         if (!svelte_files || !Array.isArray(svelte_files)) {
             return [];
         }
         return svelte_files
-            .filter((x) => x)
             .map((file) => {
+                if (!file || !file.path) {
+                    return null;
+                }
                 const content = fs.readFileSync(file.path, { encoding: 'utf-8' });
                 const config = this.parse_wyvr_config(content);
                 if (config) {

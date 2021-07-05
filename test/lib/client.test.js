@@ -49,7 +49,7 @@ describe('Lib/Client', () => {
         it('empty entries', () => {
             assert.deepStrictEqual(Client.get_hydrateable_svelte_files([null, null]), []);
         });
-        it('should replace only in import statements', () => {
+        it('read config from file', () => {
             const file_path = 'test/lib/client/get_hydrateable_svelte_files/test.svelte';
             const file = new WyvrFile();
             file.path = file_path;
@@ -58,9 +58,9 @@ describe('Lib/Client', () => {
             result_file.config = new WyvrFileConfig();
             result_file.config.render = 'hydrate';
             result_file.config.display = 'inline';
-            result_file.config.portal = '#test';
+            result_file.config.portal = 'portal';
 
-            assert.deepStrictEqual(Client.correct_svelte_file_import_paths([file, null]), [file]);
+            assert.deepStrictEqual(Client.get_hydrateable_svelte_files([file, {}, null]), [result_file]);
         });
     });
     describe('parse_wyvr_config', () => {

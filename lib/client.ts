@@ -139,21 +139,30 @@ export class Client {
     }
 
     static correct_svelte_file_import_paths(svelte_files: WyvrFile[]): WyvrFile[] {
-        if(!svelte_files || !Array.isArray(svelte_files)) {
+        if (!svelte_files || !Array.isArray(svelte_files)) {
             return [];
         }
         //HydrateFileEntry[] {
-        return svelte_files.map((file) => {
-            const content = fs.readFileSync(file.path, { encoding: 'utf-8' });
-            if (content) {
-                const corrected_imports = content.replace(/'@src\//g, `'${process.cwd()}/gen/src/`);
-                fs.writeFileSync(file.path, corrected_imports);
-            }
-            return file;
-        });
+        return svelte_files
+            .filter((x) => x)
+            .map((file) => {
+                if (!file.path) {
+                    return file;
+                }
+                const content = fs.readFileSync(file.path, { encoding: 'utf-8' });
+                if (content) {
+                    const corrected_imports = content.replace(/(['"])@src\//g, `$1${process.cwd()}/gen/src/`);
+                    fs.writeFileSync(file.path, corrected_imports);
+                }
+                return file;
+            });
     }
     static get_hydrateable_svelte_files(svelte_files: WyvrFile[]): WyvrFile[] {
+        if (!svelte_files || !Array.isArray(svelte_files)) {
+            return [];
+        }
         return svelte_files
+            .filter((x) => x)
             .map((file) => {
                 const content = fs.readFileSync(file.path, { encoding: 'utf-8' });
                 const config = this.parse_wyvr_config(content);

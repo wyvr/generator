@@ -25,19 +25,43 @@ describe('Lib/Client', () => {
         it('empty', () => {
             assert.deepStrictEqual(Client.correct_svelte_file_import_paths([]), []);
         });
-
         it('should replace only in import statements', () => {
             const source_file_path = 'test/lib/client/correct_svelte_file_import_paths/test_base.svelte';
             const file_path = 'test/lib/client/correct_svelte_file_import_paths/test.svelte';
+            const result_file_path = 'test/lib/client/correct_svelte_file_import_paths/test_result.svelte';
             const file = new WyvrFile();
             file.path = file_path;
             copyFileSync(source_file_path, file_path);
             assert.deepStrictEqual(Client.correct_svelte_file_import_paths([file]), [file]);
-            assert.strictEqual(readFileSync(file_path, { encoding: 'utf-8' }), readFileSync(source_file_path, { encoding: 'utf-8' }));
+            assert.strictEqual(readFileSync(file_path, { encoding: 'utf-8' }), readFileSync(result_file_path, { encoding: 'utf-8' }));
         });
     });
     describe('get_hydrateable_svelte_files', () => {
-        // it('', ()=>{})
+        it('undefined', () => {
+            assert.deepStrictEqual(Client.get_hydrateable_svelte_files(), []);
+        });
+        it('null', () => {
+            assert.deepStrictEqual(Client.get_hydrateable_svelte_files(null), []);
+        });
+        it('empty', () => {
+            assert.deepStrictEqual(Client.get_hydrateable_svelte_files([]), []);
+        });
+        it('empty entries', () => {
+            assert.deepStrictEqual(Client.get_hydrateable_svelte_files([null, null]), []);
+        });
+        it('should replace only in import statements', () => {
+            const file_path = 'test/lib/client/get_hydrateable_svelte_files/test.svelte';
+            const file = new WyvrFile();
+            file.path = file_path;
+            const result_file = new WyvrFile();
+            result_file.path = file_path;
+            result_file.config = new WyvrFileConfig();
+            result_file.config.render = 'hydrate';
+            result_file.config.display = 'inline';
+            result_file.config.portal = '#test';
+
+            assert.deepStrictEqual(Client.correct_svelte_file_import_paths([file, null]), [file]);
+        });
     });
     describe('parse_wyvr_config', () => {
         const empty_config = new WyvrFileConfig();

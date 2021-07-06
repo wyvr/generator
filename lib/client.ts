@@ -224,9 +224,12 @@ export class Client {
         ) {
             let sass_result = null;
             try {
-                sass.renderSync({
+                sass_result = sass.renderSync({
                     data: style_result.result
-                        .map((entry) => this.correct_import_paths(entry.replace(/<style[^>]*>/g, '').replace(/<\/style>/g, '')))
+                        .map((entry) => {
+                            const raw = entry.replace(/<style[^>]*>/g, '').replace(/<\/style>/g, '');
+                            return this.correct_import_paths(raw);
+                        })
                         .join('\n'),
                 });
             } catch (e) {

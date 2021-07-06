@@ -122,24 +122,33 @@ describe('Lib/Client', () => {
         });
     });
     describe('preprocess_content', () => {
-        it('undefined', ()=>{
-            assert.strictEqual(Client.preprocess_content(), '');
-        })
-        it('null', ()=>{
-            assert.strictEqual(Client.preprocess_content(null), '');
-        })
-        it('empty', ()=>{
-            assert.strictEqual(Client.preprocess_content(''), '');
-        })
-        it('nothing to preprocess', ()=>{
-            assert.strictEqual(Client.preprocess_content(readFileSync('test/lib/client/preprocess_content/default.svelte', { encoding: 'utf-8' })), readFileSync('test/lib/client/preprocess_content/default_result.svelte', { encoding: 'utf-8' }));
-        })
-        it('replace scss', ()=>{
-            assert.strictEqual(Client.preprocess_content(readFileSync('test/lib/client/preprocess_content/scss.svelte', { encoding: 'utf-8' })), readFileSync('test/lib/client/preprocess_content/scss_result.svelte', { encoding: 'utf-8' }));
-        })
-        it('replace scss with partial', ()=>{
-            assert.strictEqual(Client.preprocess_content(readFileSync('test/lib/client/preprocess_content/scss_import.svelte', { encoding: 'utf-8' })), readFileSync('test/lib/client/preprocess_content/scss_import_result.svelte', { encoding: 'utf-8' }));
-        })
+        it('undefined', () => {
+            assert.deepStrictEqual(Client.preprocess_content(), [null, '']);
+        });
+        it('null', () => {
+            assert.deepStrictEqual(Client.preprocess_content(null), [null, '']);
+        });
+        it('empty', () => {
+            assert.deepStrictEqual(Client.preprocess_content(''), [null, '']);
+        });
+        it('nothing to preprocess', () => {
+            assert.deepStrictEqual(Client.preprocess_content(readFileSync('test/lib/client/preprocess_content/default.svelte', { encoding: 'utf-8' })), [
+                null,
+                readFileSync('test/lib/client/preprocess_content/default_result.svelte', { encoding: 'utf-8' }),
+            ]);
+        });
+        it('replace scss', () => {
+            assert.deepStrictEqual(Client.preprocess_content(readFileSync('test/lib/client/preprocess_content/scss.svelte', { encoding: 'utf-8' })), [
+                null,
+                readFileSync('test/lib/client/preprocess_content/scss_result.svelte', { encoding: 'utf-8' }),
+            ]);
+        });
+        it('replace scss with partial', () => {
+            assert.deepStrictEqual(Client.preprocess_content(readFileSync('test/lib/client/preprocess_content/scss_import.svelte', { encoding: 'utf-8' })), [
+                null,
+                readFileSync('test/lib/client/preprocess_content/scss_import_result.svelte', { encoding: 'utf-8' }),
+            ]);
+        });
     });
     describe('transform_hydrateable_svelte_files', () => {
         // it('', ()=>{})

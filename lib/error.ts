@@ -52,7 +52,7 @@ export class Error {
         }
         // sass error
         if (e.formatted) {
-            object.stack = e.formatted.split('/n');
+            object.stack = e.formatted.split('\n');
         }
 
         return object;

@@ -70,6 +70,40 @@ describe('Lib/Error', () => {
                 stack: [`src/test/store.js:1`],
             });
         });
+        it('SASS error', () => {
+            const error = {
+                message: 'Undefined variable.',
+                formatted:
+                    'Error: Undefined variable.\n' +
+                    '  ╷\n' +
+                    '3 │ @mixin button($color: $primary) {\n' +
+                    '  │                       ^^^^^^^^\n' +
+                    '  ╵\n' +
+                    '  gen/src/test/_test.scss 3:23  button()\n' +
+                    '  stdin 8:9                     root stylesheet',
+                line: 3,
+                column: 23,
+                file: '/Users/patrick/wyvr/generator/gen/src/test/_test.scss',
+                status: 1,
+            };
+            assert.deepStrictEqual(Error.extract(error, join(cwd, 'gen', 'src')), {
+                code: null,
+                filename: '/Users/patrick/wyvr/generator/gen/src/test/_test.scss',
+                hint: null,
+                message: 'Undefined variable.',
+                name: null,
+                source: 'gen/src',
+                stack: [
+                    'Error: Undefined variable.',
+                    '  ╷',
+                    '3 │ @mixin button($color: $primary) {',
+                    '  │                       ^^^^^^^^',
+                    '  ╵',
+                    '  gen/src/test/_test.scss 3:23  button()',
+                    '  stdin 8:9                     root stylesheet',
+                ],
+            });
+        });
         it('source', () => {
             const error = {
                 name: 'SyntaxError',
@@ -239,7 +273,7 @@ describe('Lib/Error', () => {
             };
             assert.deepStrictEqual(
                 Error.get(error, 'file', 'test'),
-`\x1B[1m@test\x1B[22m
+                `\x1B[1m@test\x1B[22m
 [\x1B[1mSyntaxError\x1B[22m] -
 \x1B[2mstack\x1B[22m
 \x1B[2m-\x1B[22m src/test/at
@@ -247,12 +281,8 @@ describe('Lib/Error', () => {
             );
         });
         it('minimal', () => {
-            const error = {
-            };
-            assert.deepStrictEqual(
-                Error.get(error, null, 'test'),
-`\x1B[1m@test\x1B[22m\n[] -`
-            );
+            const error = {};
+            assert.deepStrictEqual(Error.get(error, null, 'test'), `\x1B[1m@test\x1B[22m\n[] -`);
         });
     });
 });

@@ -23,13 +23,14 @@ export class Client {
         const input_file = join(client_root, `${entry.name}.js`);
         const lazy_input_files = [];
 
+        const resouce_folder = join(__dirname, 'resource');
         // create empty file because it is required as identifier
         const script_partials = {
-            hydrate: fs.readFileSync(join(cwd, 'wyvr/resource/hydrate.js'), { encoding: 'utf-8' }),
-            props: fs.readFileSync(join(cwd, 'wyvr/resource/props.js'), { encoding: 'utf-8' }),
-            portal: fs.readFileSync(join(cwd, 'wyvr/resource/portal.js'), { encoding: 'utf-8' }),
-            lazy: fs.readFileSync(join(cwd, 'wyvr/resource/hydrate_lazy.js'), { encoding: 'utf-8' }),
-            env: fs.readFileSync(join(cwd, 'wyvr/resource/env.js'), { encoding: 'utf-8' }),
+            hydrate: fs.readFileSync(join(resouce_folder, 'hydrate.js'), { encoding: 'utf-8' }),
+            props: fs.readFileSync(join(resouce_folder, 'props.js'), { encoding: 'utf-8' }),
+            portal: fs.readFileSync(join(resouce_folder, 'portal.js'), { encoding: 'utf-8' }),
+            lazy: fs.readFileSync(join(resouce_folder, 'hydrate_lazy.js'), { encoding: 'utf-8' }),
+            env: fs.readFileSync(join(resouce_folder, 'env.js'), { encoding: 'utf-8' }),
             debug: '', //Env.is_dev() ? fs.readFileSync(join(cwd, 'wyvr/resource/debug.js'), { encoding: 'utf-8' }) :
         };
         if (hydrate_files.length == 0) {

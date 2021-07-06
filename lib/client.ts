@@ -151,12 +151,18 @@ export class Client {
                 }
                 const content = fs.readFileSync(file.path, { encoding: 'utf-8' });
                 if (content) {
-                    const corrected_imports = content.replace(/(['"])@src\//g, `$1${process.cwd()}/gen/src/`);
+                    const corrected_imports = this.correct_import_paths(content);
                     fs.writeFileSync(file.path, corrected_imports);
                 }
                 return file;
             })
             .filter((x) => x);
+    }
+    static correct_import_paths(content: string): string {
+        if (!content || typeof content != 'string') {
+            return '';
+        }
+        return content.replace(/(['"])@src\//g, `$1${process.cwd()}/gen/src/`);
     }
     static get_hydrateable_svelte_files(svelte_files: WyvrFile[]): WyvrFile[] {
         if (!svelte_files || !Array.isArray(svelte_files)) {
@@ -206,9 +212,9 @@ export class Client {
 
         return config;
     }
-    static preprocess_content(content: string): string {
+    static preprocess_content(content: string): [any, string] {
         if (!content || typeof content != 'string') {
-            return '';
+            return [null, ''];
         }
         const style_result = this.extract_tags_from_content(content, 'style');
         if (
@@ -216,15 +222,22 @@ export class Client {
             style_result.result &&
             style_result.result.some((entry) => entry.indexOf('type="text/scss"') > -1 || entry.indexOf('lang="sass"') > -1)
         ) {
-            const sass_result = sass.renderSync({
-                data: style_result.result.map((entry) => entry.replace(/<style[^>]*>/g, '').replace(/<\/style>/g, '')).join('\n'),
-            });
+            let sass_result = null;
+            try {
+                sass.renderSync({
+                    data: style_result.result
+                        .map((entry) => this.correct_import_paths(entry.replace(/<style[^>]*>/g, '').replace(/<\/style>/g, '')))
+                        .join('\n'),
+                });
+            } catch (e) {
+                return [Error.get(e, e.file, 'sass'), content];
+            }
             if (sass_result) {
-                return `${style_result.content}<style>${sass_result.css.toString()}</style>`;
+                return [null, `${style_result.content}<style>${sass_result.css.toString()}</style>`];
             }
         }
 
-        return content;
+        return [null, content];
     }
     static transform_hydrateable_svelte_files(files: WyvrFile[]) {
         return files.map((file) => {

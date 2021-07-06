@@ -16,6 +16,10 @@ export class Error {
         if (source) {
             object.source = source.replace(root_dir + '/', '');
         }
+        // sass error
+        if(e.file) {
+            object.filename = e.file;
+        }
         const gen_dir = join(root_dir, 'gen');
         let stack = null;
         if (e.stack) {
@@ -45,6 +49,10 @@ export class Error {
         }
         if (e.message) {
             object.message = e.message.split('\n')[0];
+        }
+        // sass error
+        if (e.formatted) {
+            object.stack = e.formatted.split('/n');
         }
 
         return object;

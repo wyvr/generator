@@ -292,8 +292,11 @@ export class Main {
         // combine svelte files
         svelte_files.map((file) => {
             const raw_content = readFileSync(file.path, { encoding: 'utf-8' });
-            const preprocessed_content = Client.preprocess_content(raw_content);
-            const combined_content = Client.insert_splits(file.path, preprocessed_content);
+            const [pre_error, preprocessed_content] = Client.preprocess_content(raw_content);
+            if(pre_error) {
+                Logger.error(pre_error);
+            }
+            const combined_content = Client.insert_splits(file.path, pre_error ? raw_content : preprocessed_content);
             const content = Client.replace_global(combined_content, this.global_data);
             writeFileSync(file.path, content);
         });

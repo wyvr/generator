@@ -293,7 +293,7 @@ export class Main {
         svelte_files.map((file) => {
             const raw_content = readFileSync(file.path, { encoding: 'utf-8' });
             const [pre_error, preprocessed_content] = Client.preprocess_content(raw_content);
-            if(pre_error) {
+            if (pre_error) {
                 Logger.error(pre_error);
             }
             const combined_content = Client.insert_splits(file.path, pre_error ? raw_content : preprocessed_content);
@@ -502,6 +502,10 @@ export class Main {
             this.perf.end('optimize');
         }
 
+        this.perf.start('release');
+        await this.release();
+        this.perf.end('release');
+
         this.perf.start('publish');
         await this.publish();
         this.perf.end('publish');
@@ -582,17 +586,30 @@ export class Main {
             this.fail();
         }
         // symlink the "static" folders to release
-        if (Env.is_dev()) {
-            Link.to('gen/assets', `releases/${this.uniq_id}/assets`);
-            Link.to('gen/js', `releases/${this.uniq_id}/js`);
-            Link.to('gen/css', `releases/${this.uniq_id}/css`);
-        } else {
-            // in production copy the static folders
-            copySync('gen/assets', `releases/${this.uniq_id}/assets`);
-            copySync('gen/js', `releases/${this.uniq_id}/js`);
-            copySync('gen/css', `releases/${this.uniq_id}/css`);
-        }
+        Link.to('gen/assets', `releases/${this.uniq_id}/assets`);
+        Link.to('gen/js', `releases/${this.uniq_id}/js`);
+        Link.to('gen/css', `releases/${this.uniq_id}/css`);
+
         const [error_after] = await Plugin.after('link');
+        if (error_after) {
+            Logger.error(error_after);
+            this.fail();
+        }
+    }
+    async release() {
+        const [error_before] = await Plugin.before('release');
+        if (error_before) {
+            Logger.error(error_before);
+            this.fail();
+        }
+        if (Env.is_prod()) {
+            // in production copy the static folders
+            ['assets', 'js', 'css'].forEach((folder) => {
+                removeSync(`releases/${this.uniq_id}/${folder}`);
+                copySync(`gen/${folder}`, `releases/${this.uniq_id}/${folder}`);
+            });
+        }
+        const [error_after] = await Plugin.after('release');
         if (error_after) {
             Logger.error(error_after);
             this.fail();

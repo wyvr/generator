@@ -1,6 +1,7 @@
 import { readdirSync, statSync, existsSync, readlinkSync, removeSync } from 'fs-extra';
 import { join } from 'path';
 import { Link } from '@lib/link';
+import { Dir } from './dir';
 
 export class Publish {
     static cleanup(keep: number = 0) {
@@ -31,6 +32,7 @@ export class Publish {
     static release(release: string) {
         const release_path = join('releases', release);
         if (existsSync(release_path)) {
+            Dir.delete('pub');
             Link.to(release_path, 'pub');
         }
     }

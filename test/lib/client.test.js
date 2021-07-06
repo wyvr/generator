@@ -36,6 +36,14 @@ describe('Lib/Client', () => {
             assert.strictEqual(readFileSync(file_path, { encoding: 'utf-8' }), readFileSync(result_file_path, { encoding: 'utf-8' }));
         });
     });
+    describe('correct_import_paths', () => {
+        it('undefined', () => {
+            assert.strictEqual(Client.correct_import_paths(), '');
+        });
+        it('null', () => {
+            assert.strictEqual(Client.correct_import_paths(null), '');
+        });
+    });
     describe('get_hydrateable_svelte_files', () => {
         it('undefined', () => {
             assert.deepStrictEqual(Client.get_hydrateable_svelte_files(), []);

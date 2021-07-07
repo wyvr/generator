@@ -116,6 +116,9 @@ export class WorkerController {
                             if (index == 0) {
                                 return Logger.color.dim(message);
                             }
+                            if(message == null) {
+                                return message;
+                            }
                             // ssr errors
                             if (typeof message == 'object' && message.code == 'parse-error' && message.frame && message.start && message.name) {
                                 return `\n${message.name} ${Logger.color.dim('Line:')}${message.start.line}${Logger.color.dim(' Col:')}${

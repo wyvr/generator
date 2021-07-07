@@ -5,7 +5,10 @@ module.exports = {
     import: {
         global: '../website/data/global.json',
     },
-    themes: [
+    worker: {
+        ratio: 0,
+    },
+    packages: [
         {
             name: 'Example',
             path: '../theme-example',
@@ -29,6 +32,6 @@ module.exports = {
         meta_description: 'Static sites made different',
         author: pkg.author,
         version: pkg.version,
-        date: new Date()
-    }
+        date: new Date(),
+    },
 };

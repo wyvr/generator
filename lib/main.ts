@@ -64,10 +64,10 @@ export class Main {
 
         Logger.stop('config', hrtime_to_ms(process.hrtime(hr_start)));
 
-        // collect configured themes
-        this.perf.start('themes');
-        const themes = await this.themes();
-        this.perf.end('themes');
+        // collect configured package
+        this.perf.start('packages');
+        const packages = await this.packages();
+        this.perf.end('packages');
         Logger.debug('project_config', JSON.stringify(Config.get(), null, 4));
 
         // import the data source
@@ -158,67 +158,67 @@ export class Main {
             this.fail();
         }
     }
-    async themes() {
-        const themes = Config.get('themes');
-        const disabled_themes = [];
-        const available_themes = [];
-        if (themes && Array.isArray(themes)) {
+    async packages() {
+        const packages = Config.get('packages');
+        const disabled_packages = [];
+        const available_packages = [];
+        if (packages && Array.isArray(packages)) {
             let config: any = {};
             // reset the config
-            Config.set({ themes: null });
-            themes.forEach((theme, index) => {
+            Config.set({ packages: null });
+            packages.forEach((pkg, index) => {
                 // set default name for the config
-                if (!theme.name) {
-                    theme.name = '#' + index;
+                if (!pkg.name) {
+                    pkg.name = '#' + index;
                 }
-                // load the theme config
-                const theme_config = Config.load_from_path(theme.path);
-                if (theme_config) {
-                    config = Config.merge(config, theme_config);
+                // load the package config
+                const package_config = Config.load_from_path(pkg.path);
+                if (package_config) {
+                    config = Config.merge(config, package_config);
                 }
-                if (existsSync(theme.path)) {
-                    available_themes.push(theme);
+                if (existsSync(pkg.path)) {
+                    available_packages.push(pkg);
                     return;
                 }
 
-                disabled_themes.push(theme);
+                disabled_packages.push(pkg);
             });
             // update config, but keep the main config values
             Config.replace(Config.merge(config, Config.get()));
-            // update the themes in the config
-            const new_config = { themes: available_themes };
-            Logger.debug('update themes', JSON.stringify(new_config));
+            // update the packages in the config
+            const new_config = { packages: available_packages };
+            Logger.debug('update packages', JSON.stringify(new_config));
             Config.set(new_config);
         }
         Logger.present(
-            'themes',
-            available_themes
-                ?.map((theme) => {
-                    return `${theme.name}@${Logger.color.dim(theme.path)}`;
+            'packages',
+            available_packages
+                ?.map((pkg) => {
+                    return `${pkg.name}@${Logger.color.dim(pkg.path)}`;
                 })
                 .join(' ')
         );
-        if (disabled_themes.length) {
+        if (disabled_packages.length) {
             Logger.warning(
-                'disabled themes',
-                disabled_themes
-                    .map((theme) => {
-                        return `${theme.name}@${Logger.color.dim(theme.path)}`;
+                'disabled packages',
+                disabled_packages
+                    .map((pkg) => {
+                        return `${pkg.name}@${Logger.color.dim(pkg.path)}`;
                     })
                     .join(' ')
             );
         }
 
-        return themes;
+        return packages;
     }
     copy_static_files() {
-        const themes = Config.get('themes');
-        if (themes) {
-            themes.forEach((theme) => {
-                // copy the files from the theme to the project
+        const packages = Config.get('packages');
+        if (packages) {
+            packages.forEach((pkg) => {
+                // copy the files from the package to the project
                 ['assets', 'routes', 'plugins'].forEach((part) => {
-                    if (existsSync(join(theme.path, part))) {
-                        copySync(join(theme.path, part), join(this.cwd, 'gen', part));
+                    if (existsSync(join(pkg.path, part))) {
+                        copySync(join(pkg.path, part), join(this.cwd, 'gen', part));
                     }
                 });
             });
@@ -238,22 +238,22 @@ export class Main {
         }
     }
     async collect() {
-        const themes = Config.get('themes');
-        await Plugin.before('collect', themes);
-        if (themes) {
+        const packages = Config.get('packages');
+        await Plugin.before('collect', packages);
+        if (packages) {
             let config = {};
             Dir.create('gen/raw');
-            themes.forEach((theme) => {
-                // copy the files from the theme to the project gen/raw
+            packages.forEach((pkg) => {
+                // copy the files from the package to the project gen/raw
                 ['src'].forEach((part) => {
-                    if (existsSync(join(theme.path, part))) {
-                        copySync(join(theme.path, part), join(this.cwd, 'gen/raw'));
+                    if (existsSync(join(pkg.path, part))) {
+                        copySync(join(pkg.path, part), join(this.cwd, 'gen/raw'));
                     }
                 });
             });
         }
         copySync('gen/raw', 'gen/src');
-        await Plugin.after('collect', themes);
+        await Plugin.after('collect', packages);
         return true;
     }
     async routes(file_list: any[], enhance_data: boolean = true) {

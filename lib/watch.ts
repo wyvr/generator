@@ -19,9 +19,9 @@ export class Watch {
         this.init();
     }
     private init() {
-        const themes = Config.get('themes');
-        if (!themes || !Array.isArray(themes) || themes.length == 0) {
-            throw 'no themes to watch';
+        const packages = Config.get('packages');
+        if (!packages || !Array.isArray(packages) || packages.length == 0) {
+            throw 'no packages to watch';
         }
 
         // start reloader
@@ -40,7 +40,7 @@ export class Watch {
         let debounce = null;
         chokidar
             .watch(
-                themes.map((theme) => theme.path),
+                packages.map((pkg) => pkg.path),
                 {
                     ignoreInitial: true,
                 }
@@ -49,38 +49,38 @@ export class Watch {
                 if (path.indexOf('/.git/') > -1 || path.indexOf('wyvr.js') > -1 || event == 'addDir' || event == 'unlinkDir') {
                     return;
                 }
-                // find the theme of the changed file
-                let theme_index = -1;
-                const theme = themes.find((t) => {
-                    const cur_theme_index = path.indexOf(t.path);
-                    if (cur_theme_index > -1) {
-                        theme_index = cur_theme_index;
+                // find the pkg of the changed file
+                let pkg_index = -1;
+                const pkg = packages.find((t) => {
+                    const cur_pkg_index = path.indexOf(t.path);
+                    if (cur_pkg_index > -1) {
+                        pkg_index = cur_pkg_index;
                         return true;
                     }
                     return false;
                 });
                 let rel_path = path;
-                if (theme) {
-                    rel_path = path.replace(theme.path + '/', '');
-                    // check if the changed file gets overwritten in another theme
-                    if (event != 'unlink' && theme_index > -1 && theme_index < themes.length - 1) {
-                        for (let i = theme_index + 1; i < themes.length; i++) {
-                            const theme_path = join(themes[i].path, rel_path);
-                            if (fs.existsSync(theme_path) && theme_path != path) {
+                if (pkg) {
+                    rel_path = path.replace(pkg.path + '/', '');
+                    // check if the changed file gets overwritten in another pkg
+                    if (event != 'unlink' && pkg_index > -1 && pkg_index < packages.length - 1) {
+                        for (let i = pkg_index + 1; i < packages.length; i++) {
+                            const pkg_path = join(packages[i].path, rel_path);
+                            if (fs.existsSync(pkg_path) && pkg_path != path) {
                                 Logger.warning(
                                     'ignore',
                                     `${event}@${Logger.color.dim(path)}`,
-                                    'because it gets overwritten by theme',
-                                    Logger.color.bold(themes[i].name),
-                                    Logger.color.dim(theme_path)
+                                    'because it gets overwritten by pkg',
+                                    Logger.color.bold(packages[i].name),
+                                    Logger.color.dim(pkg_path)
                                 );
                                 return;
                             }
                         }
                     }
-                    Logger.info('detect', `${event} ${theme.name}@${Logger.color.dim(rel_path)}`);
+                    Logger.info('detect', `${event} ${pkg.name}@${Logger.color.dim(rel_path)}`);
                 } else {
-                    Logger.warning('detect', `${event}@${Logger.color.dim(path)}`, 'from unknown theme');
+                    Logger.warning('detect', `${event}@${Logger.color.dim(path)}`, 'from unknown pkg');
                 }
                 // check if the file is empty >= ignore it for now
                 if (event != 'unlink' && fs.readFileSync(path, { encoding: 'utf-8' }).trim() == '') {
@@ -111,6 +111,6 @@ export class Watch {
                     this.is_executing = false;
                 }, 500);
             });
-        Logger.info('watching', themes.length, 'themes');
+        Logger.info('watching', packages.length, 'packages');
     }
 }

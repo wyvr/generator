@@ -15,6 +15,7 @@ import { RequireCache } from '@lib/require_cache';
 import { Error } from '@lib/error';
 import { Optimize } from '@lib/optimize';
 import { addTrailingSlash } from 'snowpack/vendor/types/esinstall/util';
+import { EnvModel } from './model/env';
 
 export class Worker {
     private config = null;
@@ -78,7 +79,7 @@ export class Worker {
                                     return data;
                                 }
                                 global_data = Generate.add_to_global(data, global_data);
-                                
+
                                 return result.data;
                             });
                             return filename;
@@ -119,6 +120,17 @@ export class Worker {
                             }
                             // change extension when set
                             const extension = data._wyvr?.extension;
+                            // add debug data
+                            if (extension.match(/html|htm|php/) && (this.env == EnvModel.debug || this.env == EnvModel.dev)) {
+                                rendered.result.html = rendered.result.html.replace(
+                                    /<\/body>/,
+                                    `<script>function wyvr_debug_inspect_data() {
+                                        window.data = ${JSON.stringify(data)};
+                                        console.log(window.data);
+                                        console.log('now available inside "data"')
+                                    }</script></body>`
+                                );
+                            }
                             const path = File.to_extension(filename.replace(join(this.cwd, 'imported', 'data'), this.release_path), extension);
                             if (css_parent) {
                                 css_parent.path = path;

@@ -31,10 +31,14 @@ export class Client {
             portal: fs.readFileSync(join(resouce_folder, 'portal.js'), { encoding: 'utf-8' }),
             lazy: fs.readFileSync(join(resouce_folder, 'hydrate_lazy.js'), { encoding: 'utf-8' }),
             env: fs.readFileSync(join(resouce_folder, 'env.js'), { encoding: 'utf-8' }),
-            debug: '', //Env.is_dev() ? fs.readFileSync(join(cwd, 'wyvr/resource/debug.js'), { encoding: 'utf-8' }) :
+            debug: '',
         };
+        if (Env.is_dev()) {
+            script_partials.debug = fs.readFileSync(join(resouce_folder, 'debug.js'), { encoding: 'utf-8' });
+        }
+        // when no  hydrateable files are available create minimal bundle
         if (hydrate_files.length == 0) {
-            fs.writeFileSync(join(cwd, 'gen', 'js', `${entry.name}.js`), script_partials.env);
+            fs.writeFileSync(join(cwd, 'gen', 'js', `${entry.name}.js`), [script_partials.env, script_partials.debug].join(''));
             return [null, null];
         }
         const content = await Promise.all(

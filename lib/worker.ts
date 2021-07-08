@@ -127,7 +127,7 @@ export class Worker {
                                     `<script>function wyvr_debug_inspect_data() {
                                         window.data = ${JSON.stringify(data)};
                                         console.log(window.data);
-                                        console.log('now available inside "data"')
+                                        console.info('now available inside "data"')
                                     }</script></body>`
                                 );
                             }

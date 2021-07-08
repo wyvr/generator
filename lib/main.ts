@@ -17,7 +17,7 @@ import { WorkerStatus } from '@lib/model/worker/status';
 import { IPerformance_Measure, Performance_Measure, Performance_Measure_Blank } from '@lib/performance_measure';
 import { File } from '@lib/file';
 import { Client } from '@lib/client';
-import { dirname, join } from 'path';
+import { dirname, join, sep } from 'path';
 import { hrtime_to_ms } from '@lib/converter/time';
 import { Routes } from '@lib/routes';
 import { Watch } from '@lib/watch';
@@ -37,6 +37,7 @@ export class Main {
     cwd = process.cwd();
     uniq_id = v4().split('-')[0];
     release_path = null;
+    package_tree = {};
 
     constructor() {
         Env.set(process.env.WYVR_ENV);
@@ -218,6 +219,13 @@ export class Main {
                 // copy the files from the package to the project
                 ['assets', 'routes', 'plugins'].forEach((part) => {
                     if (existsSync(join(pkg.path, part))) {
+                        // store the info which file comes from which package
+                        const pkg_part_path = join(pkg.path, part);
+                        File.collect_files(pkg_part_path)
+                            .map((file) => file.replace(pkg.path + sep, ''))
+                            .forEach((file) => {
+                                this.package_tree[file] = pkg;
+                            });
                         copySync(join(pkg.path, part), join(this.cwd, 'gen', part));
                     }
                 });
@@ -247,6 +255,13 @@ export class Main {
                 // copy the files from the package to the project gen/raw
                 ['src'].forEach((part) => {
                     if (existsSync(join(pkg.path, part))) {
+                        // store the info which file comes from which package
+                        const pkg_part_path = join(pkg.path, part);
+                        File.collect_files(pkg_part_path)
+                            .map((file) => file.replace(pkg.path + sep, ''))
+                            .forEach((file) => {
+                                this.package_tree[file] = pkg;
+                            });
                         copySync(join(pkg.path, part), join(this.cwd, 'gen/raw'));
                     }
                 });
@@ -258,7 +273,7 @@ export class Main {
     }
     async routes(file_list: any[], enhance_data: boolean = true) {
         await Plugin.before('routes', file_list, enhance_data);
-        const routes = Routes.collect_routes();
+        const routes = Routes.collect_routes(null, this.package_tree);
         if (!routes || routes.length == 0) {
             return file_list;
         }

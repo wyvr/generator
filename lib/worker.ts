@@ -62,8 +62,8 @@ export class Worker {
                     let global_data = {};
                     const route_result = await Promise.all(
                         value.map(async (entry) => {
-                            const filename = entry.route;
-                            const [error, route_result] = await Routes.execute_route(filename, this.global_data);
+                            const filename = entry.route.path;
+                            const [error, route_result] = await Routes.execute_route(entry.route, this.global_data);
                             if (error) {
                                 WorkerHelper.log(LogType.error, 'route error', Error.get(error, filename, 'route'));
                                 return null;

@@ -63,5 +63,4 @@ describe('Lib/Build', () => {
     describe('render', () => {});
     describe('precompile_components', () => {});
     describe('get_page_code', () => {});
-    describe('get_identifier_code', () => {});
 });

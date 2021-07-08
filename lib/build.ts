@@ -16,7 +16,7 @@ register();
 };
 export class Build {
     static compile(content: string): [any, any] {
-        if(!content || typeof content != 'string') {
+        if (!content || typeof content != 'string') {
             return [new Error('content has to be a string'), null];
         }
         try {
@@ -82,24 +82,6 @@ export class Build {
             <Layout data={data}>
                 <Page data={data}>
                 ${data.content || ''}
-                </Page>
-            </Layout>
-        </Doc>`;
-        return code;
-    }
-    static get_identifier_code(doc_file_name: string, layout_file_name: string, page_file_name: string) {
-        const code = `<script>
-            import { onMount } from 'svelte';
-            import Doc from '${doc_file_name}';
-            import Layout from '${layout_file_name}';
-            import Page from '${page_file_name}';
-            const data = null;
-        </script>
-
-        <Doc data={data}>
-            <Layout data={data}>
-                <Page data={data}>
-                here
                 </Page>
             </Layout>
         </Doc>`;

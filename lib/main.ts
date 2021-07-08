@@ -150,8 +150,6 @@ export class Main {
         try {
             const watch = new Watch(async (changed_files: any[]) => {
                 Plugin.clear();
-                // clear css files otherwise these will not be regenerated
-                removeSync(join('gen', 'css'));
                 await this.execute(importer.get_import_list(), changed_files);
             });
         } catch (e) {
@@ -343,6 +341,9 @@ export class Main {
         };
     }
     async build(list: string[]): Promise<[string[], string[]]> {
+        // clear css files otherwise these will not be regenerated, because the build step only creates the file when it is not present already
+        removeSync(join('gen', 'css'));
+
         mkdirSync('gen/src', { recursive: true });
         await Plugin.before('build', list);
         Logger.info('build datasets', list.length);
@@ -449,6 +450,7 @@ export class Main {
             this.is_executing = false;
             return;
         }
+
         // collect the files for the generation
         this.perf.start('collect');
         await this.collect();

@@ -474,6 +474,10 @@ export class Main {
         this.perf.end('transform');
 
         this.perf.start('build');
+        if(Env.is_dev()) {
+            // write global data to release
+            writeFileSync(join(this.release_path, '_global.json'), JSON.stringify(this.global_data));
+        }
         // read all imported files
         const files = File.collect_files(join(this.cwd, 'imported', 'data'), 'json');
         // build static files

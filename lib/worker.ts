@@ -4,8 +4,8 @@ import { WorkerAction } from '@lib/model/worker/action';
 import { File } from '@lib/file';
 import { Build } from '@lib/build';
 import { Dir } from '@lib/dir';
-import { join, dirname, resolve } from 'path';
-import { readFileSync, writeFileSync } from 'fs-extra';
+import { join, dirname, resolve, sep } from 'path';
+import { readFileSync, writeFileSync, mkdirSync } from 'fs-extra';
 import { LogType } from './model/log';
 import { Client } from '@lib/client';
 import { Routes } from '@lib/routes';
@@ -120,18 +120,38 @@ export class Worker {
                             }
                             // change extension when set
                             const extension = data._wyvr?.extension;
+                            const path = File.to_extension(filename.replace(join(this.cwd, 'imported', 'data'), this.release_path), extension);
                             // add debug data
                             if (extension.match(/html|htm|php/) && (this.env == EnvModel.debug || this.env == EnvModel.dev)) {
+                                const data_path = File.to_extension(path, 'json');
                                 rendered.result.html = rendered.result.html.replace(
                                     /<\/body>/,
-                                    `<script>function wyvr_debug_inspect_data() {
-                                        window.data = ${JSON.stringify(data)};
+                                    `<script>
+                                    async function wyvr_fetch(path) {
+                                        try {
+                                            const response = await fetch(path);
+                                            const data = await response.json();
+                                            return data;
+                                        } catch(e){
+                                            console.error(e);
+                                            return null;
+                                        }
+                                    }
+                                    async function wyvr_debug_inspect_data() {
+                                        window.data = await wyvr_fetch('${data_path.replace(this.release_path, '')}');
                                         console.log(window.data);
                                         console.info('now available inside "data"')
-                                    }</script></body>`
+                                    }
+                                    async function wyvr_debug_inspect_global_data() {
+                                        window.global_data = await wyvr_fetch('/_global.json');
+                                        console.log(window.global_data);
+                                        console.info('now available inside "global_data"')
+                                    }
+                                    </script></body>`
                                 );
+                                mkdirSync(dirname(data_path), { recursive: true });
+                                writeFileSync(data_path, JSON.stringify(data));
                             }
-                            const path = File.to_extension(filename.replace(join(this.cwd, 'imported', 'data'), this.release_path), extension);
                             if (css_parent) {
                                 css_parent.path = path;
                                 css_parents.push(css_parent);

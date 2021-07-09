@@ -474,7 +474,7 @@ export class Main {
         this.perf.end('transform');
 
         this.perf.start('build');
-        if(Env.is_dev()) {
+        if (Env.is_dev()) {
             // write global data to release
             writeFileSync(join(this.release_path, '_global.json'), JSON.stringify(this.global_data));
         }
@@ -498,6 +498,34 @@ export class Main {
         if (exec_scripts) {
             this.perf.start('dependencies');
             Dependency.build();
+            if(Env.is_dev()) {
+                // build structure based on the identifiers
+                Object.keys(this.identifiers).forEach((id) => {
+                    const identifier = this.identifiers[id];
+                    const structure: any = {
+                        file: identifier.doc,
+                        pkg: this.package_tree[`src/${identifier.doc}`],
+                        components: (Dependency.cache.doc[identifier.doc] || []).map((component) => {
+                            return { file: component, pkg: this.package_tree[`src/${component}`] };
+                        }),
+                        layout: {
+                            file: identifier.layout,
+                            pkg: this.package_tree[`src/${identifier.layout}`],
+                            components: (Dependency.cache.layout[identifier.layout] || []).map((component) => {
+                                return { file: component, pkg: this.package_tree[`src/${component}`] };
+                            }),
+                            page: {
+                                file: identifier.page,
+                                pkg: this.package_tree[`src/${identifier.page}`],
+                                components: (Dependency.cache.page[identifier.page] || []).map((component) => {
+                                    return { file: component, pkg: this.package_tree[`src/${component}`] };
+                                }),
+                            },
+                        },
+                    };
+                    writeFileSync(join(this.release_path, `${id}.json`), JSON.stringify(structure));
+                });
+            }
             this.perf.end('dependencies');
 
             this.perf.start('scripts');

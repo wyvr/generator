@@ -147,6 +147,11 @@ export class Worker {
                                         console.log(window.global_data);
                                         console.info('now available inside "global_data"')
                                     }
+                                    async function wyvr_debug_inspect_structure_data() {
+                                        window.structure = await wyvr_fetch('/${data._wyvr?.identifier}.json');
+                                        console.log(window.structure);
+                                        console.info('now available inside "structure"')
+                                    }
                                     </script></body>`
                                 );
                                 mkdirSync(dirname(data_path), { recursive: true });

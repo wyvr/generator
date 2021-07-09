@@ -66,7 +66,12 @@ export class Routes {
                 delete data.attributes;
                 // add required url
                 if (!data.url) {
-                    data.url = File.to_extension(route.rel_path.replace(/^routes\//, '/'), 'html');
+                    let url = File.to_extension(route.rel_path.replace(/^routes\//, '/'), 'html');
+                    // remove unneeded index.html
+                    if(url.indexOf('index.htm') > -1) {
+                        url = url.replace(/index\.htm[l]$/, '')
+                    }
+                    data.url = url;
                 }
                 return [null, [data]];
             } catch (e) {

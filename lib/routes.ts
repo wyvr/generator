@@ -1,5 +1,7 @@
-import * as fs from 'fs';
+import { readFileSync, mkdirSync, writeFileSync, existsSync, readdirSync, statSync } from 'fs';
 import { join, dirname, resolve } from 'path';
+import marked from 'marked';
+import fm from 'front-matter';
 import { File } from '@lib/file';
 import { Build } from '@lib/build';
 import { Client } from '@lib/client';
@@ -11,19 +13,23 @@ export class Routes {
         if (!dir) {
             dir = join(process.cwd(), 'gen/routes');
         }
-        if (!fs.existsSync(dir)) {
+        if (!existsSync(dir)) {
             return [];
         }
-        const entries = fs.readdirSync(dir);
+        const entries = readdirSync(dir);
         const result = [];
         entries.forEach((entry) => {
             const path = join(dir, entry);
-            const stat = fs.statSync(path);
+            const stat = statSync(path);
             if (stat.isDirectory()) {
                 result.push(...this.collect_routes(path, package_tree));
                 return;
             }
-            if (stat.isFile() && entry.match(/\.js$/)) {
+            // route has to be a physical file
+            if (!stat.isFile()) {
+                return;
+            }
+            if (entry.match(/\.js|\.md$/)) {
                 const rel_path = path.replace(/.*?\/routes\//, 'routes/');
                 const pkg = package_tree && package_tree[rel_path] ? package_tree[rel_path] : null;
                 const route = {
@@ -32,15 +38,42 @@ export class Routes {
                     pkg,
                 };
                 result.push(route);
+                return;
             }
         });
         return result;
     }
-    static async execute_route(route: { path: string; rel_path: string, pkg: any }, global_data: any) {
-        if (route.path.match(/\.js$/)) {
+    static async execute_route(route: { path: string; rel_path: string; pkg: any }, global_data: any) {
+        if (!(<any>global).getGlobal || typeof (<any>global).getGlobal != 'function') {
             (<any>global).getGlobal = (key, fallback) => {
                 return Client.get_global(key, fallback || null, global_data);
             };
+        }
+        if (route.path.match(/\.md$/)) {
+            const content = readFileSync(route.path, { encoding: 'utf-8' });
+            if (!content) {
+                return [null, null];
+            }
+            try {
+                const data: any = fm(content);
+                if (data.body) {
+                    data.content = marked(data.body);
+                }
+                // unfold attributes
+                Object.keys(data.attributes).forEach((key) => {
+                    data[key] = data.attributes[key];
+                });
+                delete data.attributes;
+                // add required url
+                if (!data.url) {
+                    data.url = File.to_extension(route.rel_path.replace(/^routes\//, '/'), 'html');
+                }
+                return [null, [data]];
+            } catch (e) {
+                return [e, null];
+            }
+        }
+        if (route.path.match(/\.js$/)) {
             let route_module = null;
             try {
                 route_module = await require(route.path);
@@ -78,8 +111,8 @@ export class Routes {
                 route = hook_before_process(route);
             }
             const path = File.to_extension(File.to_index(join(process.cwd(), 'imported/data', url), 'json'), 'json');
-            fs.mkdirSync(dirname(path), { recursive: true });
-            fs.writeFileSync(path, JSON.stringify(route));
+            mkdirSync(dirname(path), { recursive: true });
+            writeFileSync(path, JSON.stringify(route));
             return path;
         });
     }

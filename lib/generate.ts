@@ -18,7 +18,8 @@ export class Generate {
                 url: data.url,
                 name: null,
                 scope: null,
-                visible: true
+                visible: true,
+                order: 0,
             },
             extension: 'html',
             language: 'en',
@@ -53,6 +54,7 @@ export class Generate {
                 wyvr_prop.nav.visible = visible;
                 wyvr_prop.nav.name = data._wyvr.nav.name;
                 wyvr_prop.nav.scope = data._wyvr.nav.scope || null;
+                wyvr_prop.nav.order = data._wyvr.nav.order || 0;
             }
         }
         // add extension to the template paths
@@ -110,5 +112,29 @@ export class Generate {
             prop_value = [prop_value];
         }
         return [].concat(prop_value, default_value).filter((x, index, arr) => arr.indexOf(x) == index);
+    }
+    static sort_nav(global: any) {
+        if(!global) {
+            return null;
+        }
+        if(!global.nav) {
+            return global;
+        }
+        const new_global = JSON.parse(JSON.stringify(global));
+        Object.keys(new_global.nav).forEach((key)=>{
+            if(!new_global.nav[key] || !Array.isArray(new_global.nav[key])) {
+                return;    
+            }
+            new_global.nav[key] = new_global.nav[key].sort((a, b)=>{
+                if(a.order > b.order){
+                    return -1;
+                }
+                if(a.order < b.order){
+                    return 1;
+                }
+                return 0;
+            })
+        })
+        return new_global;
     }
 }

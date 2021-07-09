@@ -302,6 +302,7 @@ export class Main {
     async transform() {
         const svelte_files = File.collect_svelte_files('gen/src');
         await Plugin.before('transform', svelte_files);
+        this.global_data = Generate.sort_nav(this.global_data);
         // combine svelte files
         svelte_files.map((file) => {
             const raw_content = readFileSync(file.path, { encoding: 'utf-8' });

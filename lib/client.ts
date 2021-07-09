@@ -130,7 +130,7 @@ export class Client {
         const output_options: any = {
             // dir: `gen/js`,
             file: join(cwd, 'gen', 'js', `${name}.js`),
-            // sourcemap: true,
+            //sourcemap: true,
             format: 'iife',
             name: 'app',
         };
@@ -348,7 +348,8 @@ export class Client {
             } catch (e) {
                 fallback = null;
             }
-            return JSON.stringify(this.get_global(key, fallback || null, global_data));
+            const glob = this.get_global(key, fallback || null, global_data);
+            return JSON.stringify(glob);
         });
     }
     static get_global(key: string, fallback: any = null, global_data: any = null) {

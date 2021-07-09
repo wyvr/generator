@@ -24,7 +24,7 @@ export class Routes {
                 return;
             }
             if (stat.isFile() && entry.match(/\.js$/)) {
-                const rel_path = path.replace(/.*\/routes\//, 'routes/');
+                const rel_path = path.replace(/.*?\/routes\//, 'routes/');
                 const pkg = package_tree && package_tree[rel_path] ? package_tree[rel_path] : null;
                 const route = {
                     path,

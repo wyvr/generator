@@ -96,15 +96,21 @@ export class Watch {
                 if (debounce) {
                     clearTimeout(debounce);
                 }
-                const files = this.changed_files.filter((f) => f);
-                // reset the files
-                this.changed_files = [];
                 debounce = setTimeout(async () => {
+                    const files = this.changed_files.filter((f) => f);
+                    // reset the files
+                    this.changed_files = [];
                     this.is_executing = true;
                     const hr_start = process.hrtime();
                     await this.callback(files);
-                    bs.reload();
-                    
+                    // reload only whole page when no static asset is given
+                    const reload_files = files
+                        .map((f) => f.rel_path)
+                        .filter((p) => {
+                            return p.match(/^(assets|css|js)\//);
+                        });
+                    bs.reload(reload_files.length > 0 ? reload_files : undefined);
+
                     RequireCache.clear();
                     const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
                     Logger.stop('watch total', timeInMs);

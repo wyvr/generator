@@ -83,6 +83,10 @@ export class Main {
             Logger.info('rebuild', this.cron_state.length, 'routes');
             this.perf.end('cron');
         }
+        if(!Config.get('packages')) {
+            Logger.warning('no packages available, please configure wyvr.js file')
+            return;
+        }
         // remove old releases
         this.helper.cleanup_releases(this.mode, Config.get('releases.keep') ?? 0);
         // create release folder
@@ -111,6 +115,9 @@ export class Main {
                 } catch (e) {
                     Logger.warning('import global file does not exist', import_global_path);
                 }
+            }
+            if(!this.global_data) {
+                this.global_data = {};
             }
             this.global_data.env = EnvModel[Env.get()];
             this.global_data.url = Config.get('url');

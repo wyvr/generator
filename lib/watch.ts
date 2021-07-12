@@ -52,7 +52,7 @@ export class Watch {
                 // find the pkg of the changed file
                 let pkg_index = -1;
                 const pkg = packages.find((t) => {
-                    const cur_pkg_index = path.indexOf(t.path);
+                    const cur_pkg_index = path.indexOf(t.path.replace(/^\.\//, ''));
                     if (cur_pkg_index > -1) {
                         pkg_index = cur_pkg_index;
                         return true;

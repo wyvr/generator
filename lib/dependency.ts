@@ -59,6 +59,17 @@ export class Dependency {
                 }
             });
 
+            // ensure that the base elements are available
+            if(!this.cache.doc) {
+                this.cache.doc = {};
+            }
+            if(!this.cache.layout) {
+                this.cache.layout = {};
+            }
+            if(!this.cache.page) {
+                this.cache.page = {};
+            }
+
             return files;
         });
         return [].concat(...folder_files).filter((x) => x);

@@ -61,6 +61,7 @@ export class Worker {
 
                     const default_values = Config.get('default_values');
                     let global_data = {};
+                    let route_data = [];
                     const route_result = await Promise.all(
                         value.map(async (entry) => {
                             const filename = entry.route.path;
@@ -82,9 +83,14 @@ export class Worker {
 
                                 return result.data;
                             });
+                            route_data = [].concat(route_data, route_url);
                             return filename;
                         })
                     );
+                    WorkerHelper.send_action(WorkerAction.emit, {
+                        type: 'route',
+                        data: route_data,
+                    });
                     WorkerHelper.send_action(WorkerAction.emit, {
                         type: 'global',
                         data: global_data,

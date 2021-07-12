@@ -84,10 +84,7 @@ export class File {
      * @returns the data of the file
      */
     static read_json(filename: string): any {
-        if (!filename || !existsSync(filename)) {
-            return null;
-        }
-        const content = readFileSync(filename, { encoding: 'utf8', flag: 'r' });
+        const content = this.read_file(filename);
         if (!content) {
             return null;
         }
@@ -99,6 +96,21 @@ export class File {
             return null;
         }
         return data;
+    }
+    /**
+     * read the content of an file as plain text
+     * @param filename
+     * @returns the content of the file
+     */
+    static read_file(filename: string): any {
+        if (!filename || !existsSync(filename)) {
+            return null;
+        }
+        const content = readFileSync(filename, { encoding: 'utf8', flag: 'r' });
+        if (!content) {
+            return null;
+        }
+        return content;
     }
     /**
      * search for one file out of multiple possible files, to depict hierachy of file overrides

@@ -1,5 +1,5 @@
 {
-    "name": "wyvr-generator",
+    "name": "@wyvr/generator",
     "version": "0.0.0",
     "description": "",
     "main": "wyvr/index.js",

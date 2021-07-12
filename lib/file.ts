@@ -1,8 +1,9 @@
-import { mkdirSync, existsSync, readFileSync, readdirSync, statSync } from 'fs';
+import { mkdirSync, existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'fs';
 import { extname } from 'path';
 
 import { dirname, join } from 'path';
 import { WyvrFile } from '@lib/model/wyvr/file';
+import { stringify } from 'flatted';
 
 export class File {
     /**
@@ -113,6 +114,19 @@ export class File {
         return content;
     }
     /**
+     * write a json file
+     * @param filename
+     * @returns void
+     */
+    static write_json(filename: string, data: any = null): void {
+        if (!filename) {
+            return;
+        }
+        // create containing folder
+        mkdirSync(dirname(filename), { recursive: true });
+        writeFileSync(filename, JSON.stringify(data, null, process.env.WYVR_ENV == 'prod' ? undefined : 4));
+    }
+    /**
      * search for one file out of multiple possible files, to depict hierachy of file overrides
      * @param in_dir root directory to search in
      * @param possible_files
@@ -123,7 +137,7 @@ export class File {
             return null;
         }
         const found = possible_files.find((file) => {
-            if(!file) {
+            if (!file) {
                 return false;
             }
             return existsSync(join(in_dir, file));
@@ -181,7 +195,7 @@ export class File {
      * @returns
      */
     static is_file(path: string): boolean {
-        if(!path || typeof path != 'string') {
+        if (!path || typeof path != 'string') {
             return false;
         }
         const stat = statSync(path);

@@ -1,5 +1,6 @@
 import * as fs from 'fs-extra';
 import { File } from '@lib/file';
+import arrayToTree from 'array-to-tree';
 
 export class Generate {
     static enhance_data(data: any): any {
@@ -14,16 +15,17 @@ export class Generate {
                 layout: ['Default'],
                 page: ['Default'],
             },
-            nav: {
+            nav: [],
+            extension: 'html',
+            language: 'en',
+        };
+        /*{
                 url: data.url,
                 name: null,
                 scope: null,
                 visible: true,
                 order: 0,
-            },
-            extension: 'html',
-            language: 'en',
-        };
+            }*/
 
         if (data._wyvr) {
             if (data._wyvr.template) {
@@ -47,14 +49,21 @@ export class Generate {
                 }
             }
             if (data._wyvr.nav) {
-                let visible = data._wyvr.nav.visible;
-                if (visible == null) {
-                    visible = true;
-                }
-                wyvr_prop.nav.visible = visible;
-                wyvr_prop.nav.name = data._wyvr.nav.name;
-                wyvr_prop.nav.scope = data._wyvr.nav.scope || null;
-                wyvr_prop.nav.order = data._wyvr.nav.order || 0;
+                // allow to add multiple nav entries per page
+                const nav = Array.isArray(data._wyvr.nav) ? data._wyvr.nav : [data._wyvr.nav];
+                wyvr_prop.nav = nav
+                    .filter((x) => x)
+                    .map((nav) => {
+                        let visible = nav.visible;
+                        if (visible == null) {
+                            visible = true;
+                        }
+                        nav.url = data.url;
+                        nav.visible = visible;
+                        nav.scope = nav.scope || null;
+                        nav.order = nav.order || 0;
+                        return nav;
+                    });
             }
         }
         // add extension to the template paths
@@ -71,11 +80,11 @@ export class Generate {
         return data;
     }
     static add_to_global(data: any, global: any) {
-        if(!global || !data) {
+        if (!global || !data) {
             return global;
         }
         // extract navigation data
-        const nav_result = data._wyvr?.nav;
+        let nav_result = data._wyvr?.nav;
 
         if (!nav_result) {
             return global;
@@ -84,17 +93,17 @@ export class Generate {
         if (!global.nav) {
             global.nav = {};
         }
-        if (!global.nav.all) {
-            global.nav.all = [];
+        if (!Array.isArray(nav_result)) {
+            return global;
         }
-
-        if (nav_result.scope) {
-            if (!global.nav[nav_result.scope]) {
-                global.nav[nav_result.scope] = [];
+        nav_result.forEach((nav) => {
+            if (nav.scope) {
+                if (!global.nav[nav.scope]) {
+                    global.nav[nav.scope] = [];
+                }
+                global.nav[nav.scope].push(nav);
             }
-            global.nav[nav_result.scope].push(nav_result);
-        }
-        global.nav.all.push(nav_result);
+        });
         return global;
     }
     static set_default_values(data: any, default_values: any) {
@@ -113,28 +122,39 @@ export class Generate {
         }
         return [].concat(prop_value, default_value).filter((x, index, arr) => arr.indexOf(x) == index);
     }
-    static sort_nav(global: any) {
-        if(!global) {
+    static build_nav(global: any) {
+        if (!global) {
             return null;
         }
-        if(!global.nav) {
+        if (!global.nav) {
             return global;
         }
         const new_global = JSON.parse(JSON.stringify(global));
-        Object.keys(new_global.nav).forEach((key)=>{
-            if(!new_global.nav[key] || !Array.isArray(new_global.nav[key])) {
-                return;    
-            }
-            new_global.nav[key] = new_global.nav[key].sort((a, b)=>{
-                if(a.order > b.order){
-                    return -1;
-                }
-                if(a.order < b.order){
-                    return 1;
-                }
-                return 0;
-            })
-        })
+
+        Object.keys(new_global.nav).forEach((key) => {
+            const tree = arrayToTree(
+                new_global.nav[key]
+                    // sort the nav by the field order
+                    .sort((a, b) => {
+                        if (a.order > b.order) {
+                            return -1;
+                        }
+                        if (a.order < b.order) {
+                            return 1;
+                        }
+                        return 0;
+                    })
+                    // make the nav deep, by url
+                    .map((nav) => {
+                        const hierachy = nav.url.split('/').filter((x) => x);
+                        nav.id = hierachy.join('/');
+                        nav.parent_id = hierachy.reverse().slice(1).reverse().join('/');
+                        return nav;
+                    })
+            );
+            new_global.nav[key] = tree;
+        });
+
         return new_global;
     }
 }

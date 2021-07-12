@@ -272,7 +272,7 @@ export class Main {
         }
 
         this.perf.start('transform');
-        this.global_data = Generate.sort_nav(this.global_data);
+        this.global_data = Generate.build_nav(this.global_data);
         const collected_files = await this.helper.transform(this.global_data);
         if (!collected_files) {
             this.helper.fail('no collected files');

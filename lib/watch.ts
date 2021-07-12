@@ -107,7 +107,7 @@ export class Watch {
                     const reload_files = files
                         .map((f) => f.rel_path)
                         .filter((p) => {
-                            return p.match(/^(assets|css|js)\//);
+                            return p.match(/^(assets|css|js|md)\//);
                         });
                     bs.reload(reload_files.length > 0 ? reload_files : undefined);
 

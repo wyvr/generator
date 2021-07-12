@@ -1,5 +1,5 @@
 const pkg = require('@root/package.json');
-const circular = require('circular');
+import { stringify } from 'flatted';
 import * as color from 'ansi-colors';
 import ora from 'ora';
 import { EnvModel } from './model/env';
@@ -102,6 +102,6 @@ export class Logger {
         if (typeof data == 'string' || typeof data == 'number' || typeof data == 'bigint') {
             return data.toString();
         }
-        return JSON.stringify(data, circular());
+        return stringify(data);
     }
 }

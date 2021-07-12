@@ -23,11 +23,13 @@ import { Routes } from '@lib/routes';
 import { Watch } from '@lib/watch';
 import merge from 'deepmerge';
 import { Dependency } from '@lib/dependency';
-import { Plugin } from './plugin';
-import { Optimize } from './optimize';
-import { Publish } from './publish';
+import { Plugin } from '@lib/plugin';
+import { Optimize } from '@lib/optimize';
+import { Publish } from '@lib/publish';
+import { WyvrMode } from '@lib/model/wyvr/mode';
 
 export class Main {
+    mode: WyvrMode = WyvrMode.build;
     worker_controller: WorkerController = null;
     perf: IPerformance_Measure;
     worker_amount: number;
@@ -38,9 +40,15 @@ export class Main {
     uniq_id = v4().split('-')[0];
     release_path = null;
     package_tree = {};
+    cron_state = [];
+    cron_config = [];
 
     constructor() {
         Env.set(process.env.WYVR_ENV);
+        const args = process.argv.slice(2).map((arg) => arg.toLowerCase().trim());
+        if (args.indexOf('cron') > -1) {
+            this.mode = WyvrMode.cron;
+        }
         this.init();
     }
     async init() {
@@ -52,65 +60,97 @@ export class Main {
         Logger.present('cwd', this.cwd);
         Logger.present('build', this.uniq_id);
         Logger.present('env', EnvModel[Env.get()]);
+        Logger.present('mode', WyvrMode[this.mode]);
 
         this.perf = Config.get('import.measure_performance') ? new Performance_Measure() : new Performance_Measure_Blank();
+        const uniq_id_file = join('gen', 'uniq.txt');
+        if (this.mode == WyvrMode.build) {
+            Dir.clear('gen');
+            writeFileSync(uniq_id_file, this.uniq_id);
+        }
+        if (this.mode == WyvrMode.cron) {
+            this.perf.start('cron');
+            if (!existsSync(uniq_id_file)) {
+                Logger.warning('no previous version found in', uniq_id_file);
+                process.exit(1);
+                return;
+            }
+            // get the configs
+            this.uniq_id = readFileSync(uniq_id_file, { encoding: 'utf-8' });
+            Config.set(File.read_json(join('gen', 'config.json')));
+            this.cron_state = File.read_json(join('gen', 'cron.json'));
+            this.package_tree = File.read_json(join('gen', 'package_tree.json'));
 
-        Dir.clear('gen');
-        Dir.create('releases');
-        const keep = Config.get('releases.keep') ?? 0;
-        const deleted_releases = Publish.cleanup(keep);
-        Logger.info(`keep ${keep} release(s), deleted ${deleted_releases.length}`);
+            if (this.cron_state) {
+                const current = new Date().getTime();
+                this.cron_state = this.cron_state.filter((state) => {
+                    return state.last_execution + state.every * 60 * 1000 < new Date().getTime();
+                });
+            }
+            Logger.info('rebuild', this.cron_state.length, 'routes');
+            this.perf.end('cron');
+        }
+        if (this.mode == WyvrMode.build) {
+            // delete old releases on new build
+            Dir.create('releases');
+            const keep = Config.get('releases.keep') ?? 0;
+            const deleted_releases = Publish.cleanup(keep);
+            Logger.info(`keep ${keep} release(s), deleted ${deleted_releases.length}`);
+        }
         this.release_path = `releases/${this.uniq_id}`;
         Dir.create(this.release_path);
 
         Logger.stop('config', hrtime_to_ms(process.hrtime(hr_start)));
 
         // collect configured package
-        this.perf.start('packages');
-        const packages = await this.packages();
-        this.perf.end('packages');
-        Logger.debug('project_config', JSON.stringify(Config.get(), null, 4));
-
+        if (this.mode == WyvrMode.build) {
+            this.perf.start('packages');
+            const packages = await this.packages();
+            this.perf.end('packages');
+            Logger.debug('project_config', JSON.stringify(Config.get(), null, 4));
+        }
         // import the data source
         let datasets_total = null;
         let is_imported = false;
         const importer = new Importer();
 
-        const import_global_path = Config.get('import.global');
-        if (existsSync(import_global_path)) {
-            try {
-                this.global_data = File.read_json(import_global_path);
-            } catch (e) {
-                Logger.warning('import global file does not exist', import_global_path);
+        if (this.mode == WyvrMode.build) {
+            const import_global_path = Config.get('import.global');
+            if (existsSync(import_global_path)) {
+                try {
+                    this.global_data = File.read_json(import_global_path);
+                } catch (e) {
+                    Logger.warning('import global file does not exist', import_global_path);
+                }
             }
-        }
-        this.global_data.env = EnvModel[Env.get()];
-        this.global_data.url = Config.get('url');
-        const import_main_path = Config.get('import.main');
-        const default_values = Config.get('default_values');
-        if (import_main_path && existsSync(import_main_path)) {
-            try {
-                datasets_total = await importer.import(
-                    import_main_path,
-                    (data: { key: number; value: any }) => {
-                        data.value = this.generate(data.value, false, default_values);
-                        return data;
-                    },
-                    () => {
-                        is_imported = true;
-                        importer.set_global(this.global_data);
-                    }
-                );
-            } catch (e) {
-                Logger.error(e);
-                return;
-            }
-            if (!datasets_total) {
-                Logger.error('no datasets found');
-                return;
-            }
-            if (!is_imported) {
-                this.global_data = await importer.get_global();
+            this.global_data.env = EnvModel[Env.get()];
+            this.global_data.url = Config.get('url');
+            const import_main_path = Config.get('import.main');
+            const default_values = Config.get('default_values');
+            if (import_main_path && existsSync(import_main_path)) {
+                try {
+                    datasets_total = await importer.import(
+                        import_main_path,
+                        (data: { key: number; value: any }) => {
+                            data.value = this.generate(data.value, false, default_values);
+                            return data;
+                        },
+                        () => {
+                            is_imported = true;
+                            importer.set_global(this.global_data);
+                        }
+                    );
+                } catch (e) {
+                    Logger.error(e);
+                    return;
+                }
+                if (!datasets_total) {
+                    Logger.error('no datasets found');
+                    return;
+                }
+                if (!is_imported) {
+                    this.global_data = await importer.get_global();
+                }
             }
         }
 
@@ -132,29 +172,82 @@ export class Main {
         });
         this.perf.end('worker');
 
-        // execute
-        await this.execute(importer.get_import_list());
+        if (this.mode == WyvrMode.cron) {
+            // execute the routes
+            this.perf.start('routes');
+            const [route_files, cron_routes] = await this.routes(null, true, this.cron_state);
+            this.perf.end('routes');
 
-        // save config fo debugging
-        writeFileSync('gen/config.json', JSON.stringify(Config.get(), null, 4));
+            // avoid empty build
+            if (!cron_routes || cron_routes.length == 0) {
+                Logger.info('no routes to rebuild');
+                this.fail();
+                return;
+            }
+            // build the cron routes
+            this.perf.start('build');
+            // build static files
+            const [build_pages, css_parents] = await this.build(cron_routes);
+            this.perf.end('build');
 
-        const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
-        Logger.stop('initial total', timeInMs);
+            if (Env.is_dev()) {
+                Logger.improve('optimize will not be executed in dev mode');
+            } else {
+                this.perf.start('optimize');
+                await this.optimize(css_parents);
+                this.perf.end('optimize');
+            }
 
-        if (Env.is_prod()) {
+            // update last execution time in cron file
+            const state_ids = this.cron_state.map((state) => state.id);
+            const new_cron_config = Config.get('cron').map((entry) => {
+                const index = state_ids.indexOf(entry.id);
+                if (index > -1) {
+                    entry.last_execution = new Date().getTime();
+                }
+            });
+            const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
+            Logger.stop('cron total', timeInMs);
+        }
+        if (this.mode == WyvrMode.build) {
+            // execute
+            await this.execute(importer.get_import_list());
+
+            // save config for cron and debugging
+            File.write_json('gen/config.json', Config.get());
+
+            const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
+            Logger.stop('initial total', timeInMs);
+        }
+
+        // save cron file
+        const cron = Config.get('cron');
+        if (cron) {
+            File.write_json(
+                'gen/cron.json',
+                cron.map((entry) => {
+                    entry.last_execution = new Date().getTime();
+                    return entry;
+                })
+            );
+        }
+
+        if (Env.is_prod() || this.mode == WyvrMode.cron) {
             Logger.success('shutdown');
             process.exit(0);
             return;
         }
-        // watch for file changes
-        try {
-            const watch = new Watch(async (changed_files: any[]) => {
-                Plugin.clear();
-                await this.execute(importer.get_import_list(), changed_files);
-            });
-        } catch (e) {
-            Logger.warning(e);
-            this.fail();
+        if (this.mode == WyvrMode.build) {
+            // watch for file changes
+            try {
+                const watch = new Watch(async (changed_files: any[]) => {
+                    Plugin.clear();
+                    await this.execute(importer.get_import_list(), changed_files);
+                });
+            } catch (e) {
+                Logger.warning(e);
+                this.fail();
+            }
         }
     }
     async packages() {
@@ -266,16 +359,29 @@ export class Main {
             });
         }
         copySync('gen/raw', 'gen/src');
+        File.write_json(join('gen', 'package_tree.json'), this.package_tree);
         await Plugin.after('collect', packages);
         return true;
     }
-    async routes(file_list: any[], enhance_data: boolean = true) {
+    async routes(file_list: any[], enhance_data: boolean = true, cron_state: any[] = null) {
         await Plugin.before('routes', file_list, enhance_data);
-        const routes = Routes.collect_routes(null, this.package_tree);
+        let routes = Routes.collect_routes(null, this.package_tree);
         if (!routes || routes.length == 0) {
-            return file_list;
+            return [file_list, null];
         }
-
+        // rebuild only specific routes based on cron config
+        if (cron_state && cron_state.length > 0) {
+            const cron_paths = cron_state.map((state) => state.route);
+            routes = routes.filter((route: { path; rel_path; pkg }) => {
+                return cron_paths.indexOf(route.rel_path) > -1;
+            });
+        }
+        // collect generated routes
+        const route_urls = [];
+        const on_route_index = this.worker_controller.events.on('emit', 'route', (data) => {
+            // append the routes
+            route_urls.push(...data.data);
+        });
         const on_global_index = this.worker_controller.events.on('emit', 'global', (data) => {
             // add the results to the global data
             if (data) {
@@ -292,12 +398,12 @@ export class Main {
             })),
             1
         );
-
+        this.worker_controller.events.off('emit', 'route', on_route_index);
         this.worker_controller.events.off('emit', 'global', on_global_index);
         await Plugin.after('routes', file_list, enhance_data);
         // Logger.info('routes amount', routes_urls.length);
         // return [].concat(file_list, routes_urls);
-        return file_list;
+        return [file_list, route_urls.length > 0 ? route_urls : null];
     }
     async transform() {
         const svelte_files = File.collect_svelte_files('gen/src');
@@ -461,7 +567,7 @@ export class Main {
         if (!is_regenerating || contains_routes) {
             // get the route files
             this.perf.start('routes');
-            await this.routes(file_list, !is_regenerating);
+            await this.routes(file_list, !is_regenerating, null);
             this.perf.end('routes');
         } else {
             Logger.improve('routes, will not be regenerated');
@@ -499,7 +605,7 @@ export class Main {
         if (exec_scripts) {
             this.perf.start('dependencies');
             Dependency.build();
-            if(Env.is_dev()) {
+            if (Env.is_dev()) {
                 // build structure based on the identifiers
                 Object.keys(this.identifiers).forEach((id) => {
                     const identifier = this.identifiers[id];

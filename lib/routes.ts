@@ -57,7 +57,11 @@ export class Routes {
             try {
                 const data: any = fm(content);
                 if (data.body) {
-                    data.content = marked(data.body);
+                    data.content = marked(data.body, {
+                        breaks: false,
+                    }).replace(/<code[^>]*>([\s\S]*?)<\/code>/g, (match, inner) => {
+                        return match.replace(/\{/g, '&lbrace;').replace(/\}/g, '&rbrace;');
+                    });
                 }
                 // unfold attributes
                 Object.keys(data.attributes).forEach((key) => {
@@ -68,8 +72,8 @@ export class Routes {
                 if (!data.url) {
                     let url = File.to_extension(route.rel_path.replace(/^routes\//, '/'), 'html');
                     // remove unneeded index.html
-                    if(url.indexOf('index.htm') > -1) {
-                        url = url.replace(/index\.htm[l]$/, '')
+                    if (url.indexOf('index.htm') > -1) {
+                        url = url.replace(/index\.htm[l]$/, '');
                     }
                     data.url = url;
                 }

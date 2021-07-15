@@ -132,26 +132,28 @@ export class Generate {
         const new_global = JSON.parse(JSON.stringify(global));
 
         Object.keys(new_global.nav).forEach((key) => {
-            const tree = arrayToTree(
-                new_global.nav[key]
-                    // sort the nav by the field order
-                    .sort((a, b) => {
-                        if (a.order > b.order) {
-                            return -1;
-                        }
-                        if (a.order < b.order) {
-                            return 1;
-                        }
-                        return 0;
-                    })
-                    // make the nav deep, by url
-                    .map((nav) => {
-                        const hierachy = nav.url.split('/').filter((x) => x);
-                        nav.id = hierachy.join('/');
-                        nav.parent_id = hierachy.reverse().slice(1).reverse().join('/');
-                        return nav;
-                    })
-            );
+            if (!Array.isArray(new_global.nav[key])) {
+                return;
+            }
+            const data = new_global.nav[key]
+                // sort the nav by the field order
+                .sort((a, b) => {
+                    if (a.order > b.order) {
+                        return -1;
+                    }
+                    if (a.order < b.order) {
+                        return 1;
+                    }
+                    return 0;
+                })
+                // make the nav deep, by url
+                .map((nav) => {
+                    const hierachy = nav.url.split('/').filter((x) => x);
+                    nav.id = hierachy.join('/');
+                    nav.parent_id = hierachy.reverse().slice(1).reverse().join('/');
+                    return nav;
+                });
+            const tree = arrayToTree(data);
             new_global.nav[key] = tree;
         });
 

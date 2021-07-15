@@ -4,25 +4,27 @@ describe('Lib/Generate', () => {
     const assert = require('assert');
     const { Generate } = require('@lib/generate');
 
-    describe('sort_nav', () => {
+    describe('build_nav', () => {
         it('undefined', () => {
-            assert.deepStrictEqual(Generate.sort_nav(), null);
+            assert.deepStrictEqual(Generate.build_nav(), null);
         });
         it('null', () => {
-            assert.deepStrictEqual(Generate.sort_nav(null), null);
+            assert.deepStrictEqual(Generate.build_nav(null), null);
         });
         it('invalid', () => {
-            assert.deepStrictEqual(Generate.sort_nav({ a: 'b' }), { a: 'b' });
+            assert.deepStrictEqual(Generate.build_nav({ a: 'b' }), { a: 'b' });
         });
         it('empty nav', () => {
-            assert.deepStrictEqual(Generate.sort_nav({ nav: [] }), { nav: [] });
+            assert.deepStrictEqual(Generate.build_nav({ nav: [] }), { nav: [] });
         });
         it('nav without order', () => {
-            assert.deepStrictEqual(Generate.sort_nav({ nav: [{ url: 'a' }, { url: 'b' }] }), { nav: [{ url: 'a' }, { url: 'b' }] });
+            assert.deepStrictEqual(Generate.build_nav({ nav: [{ url: 'a' }, { url: 'b' }] }), {
+                nav: [{ url: 'a' }, { url: 'b' }],
+            });
         });
         it('nav with order', () => {
             assert.deepStrictEqual(
-                Generate.sort_nav({
+                Generate.build_nav({
                     nav: {
                         test: [
                             { url: 'b', order: 0 },
@@ -34,9 +36,9 @@ describe('Lib/Generate', () => {
                 {
                     nav: {
                         test: [
-                            { url: 'a', order: 5 },
-                            { url: 'b', order: 0 },
-                            { url: 'c', order: 0 },
+                            { url: 'a', order: 5, parent_id: '', id: 'a' },
+                            { url: 'b', order: 0, parent_id: '', id: 'b' },
+                            { url: 'c', order: 0, parent_id: '', id: 'c' },
                         ],
                     },
                 }
@@ -44,7 +46,7 @@ describe('Lib/Generate', () => {
         });
         it('nav with order and all', () => {
             assert.deepStrictEqual(
-                Generate.sort_nav({
+                Generate.build_nav({
                     nav: {
                         test: [
                             { url: 'b', order: 0 },
@@ -61,14 +63,14 @@ describe('Lib/Generate', () => {
                 {
                     nav: {
                         test: [
-                            { url: 'a', order: 5 },
-                            { url: 'b', order: 0 },
-                            { url: 'c', order: 0 },
+                            { url: 'a', order: 5, parent_id: '', id: 'a' },
+                            { url: 'b', order: 0, parent_id: '', id: 'b' },
+                            { url: 'c', order: 0, parent_id: '', id: 'c' },
                         ],
                         all: [
-                            { url: 'c', order: 10 },
-                            { url: 'b', order: 5 },
-                            { url: 'a', order: 0 },
+                            { url: 'c', order: 10, parent_id: '', id: 'c' },
+                            { url: 'b', order: 5, parent_id: '', id: 'b' },
+                            { url: 'a', order: 0, parent_id: '', id: 'a' },
                         ],
                     },
                 }

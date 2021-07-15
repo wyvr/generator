@@ -3,7 +3,7 @@ import { extname } from 'path';
 
 import { dirname, join } from 'path';
 import { WyvrFile } from '@lib/model/wyvr/file';
-import { stringify } from 'flatted';
+const circular = require('circular');
 
 export class File {
     /**
@@ -124,7 +124,7 @@ export class File {
         }
         // create containing folder
         mkdirSync(dirname(filename), { recursive: true });
-        writeFileSync(filename, JSON.stringify(data, null, process.env.WYVR_ENV == 'prod' ? undefined : 4));
+        writeFileSync(filename, JSON.stringify(data, circular(), process.env.WYVR_ENV == 'prod' ? undefined : 4));
     }
     /**
      * search for one file out of multiple possible files, to depict hierachy of file overrides

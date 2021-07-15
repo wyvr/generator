@@ -54,6 +54,10 @@ export class Error {
         if (e.formatted) {
             object.stack = e.formatted.split('\n');
         }
+        // svelte frame
+        if (e.frame) {
+            object.stack = e.frame.split('\n');
+        }
 
         return object;
     }

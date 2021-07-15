@@ -59,9 +59,12 @@ export class Routes {
                 if (data.body) {
                     data.content = marked(data.body, {
                         breaks: false,
-                    }).replace(/<code[^>]*>([\s\S]*?)<\/code>/g, (match, inner) => {
-                        return match.replace(/\{/g, '&lbrace;').replace(/\}/g, '&rbrace;');
+                    }).replace(/<code[^>]*>[\s\S]*?<\/code>/g, (match) => {
+                        const replaced = match.replace(/\{/g, '&lbrace;').replace(/\}/g, '&rbrace;');
+                        return replaced;
                     });
+                    // remove the original markdown code because it breaks the injection of data
+                    delete data.body;
                 }
                 // unfold attributes
                 Object.keys(data.attributes).forEach((key) => {

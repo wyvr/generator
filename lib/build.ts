@@ -75,7 +75,7 @@ export class Build {
             import Doc from '${doc_file_name}';
             import Layout from '${layout_file_name}';
             import Page from '${page_file_name}';
-            const data = ${JSON.stringify(data)};
+            const data = ${JSON.stringify(data, null, process.env.WYVR_ENV == 'prod' ? undefined : 4)};
         </script>
 
         <Doc data={data}>

@@ -46,7 +46,15 @@ export class Watch {
                 }
             )
             .on('all', (event, path) => {
-                if (path.indexOf('/.git/') > -1 || path.indexOf('wyvr.js') > -1 || event == 'addDir' || event == 'unlinkDir') {
+                if (
+                    path.indexOf('package.json') > -1 ||
+                    path.indexOf('package-lock.json') > -1 ||
+                    path.indexOf('/node_modules') > -1 ||
+                    path.indexOf('/.git/') > -1 ||
+                    path.indexOf('wyvr.js') > -1 ||
+                    event == 'addDir' ||
+                    event == 'unlinkDir'
+                ) {
                     return;
                 }
                 // find the pkg of the changed file

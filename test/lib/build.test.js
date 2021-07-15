@@ -51,7 +51,7 @@ describe('Lib/Build', () => {
             assert.match(result[1].compiled.js.code, /"wyvr"/);
             assert.match(result[1].compiled.css.code, /color:red/);
         });
-        it('broken tempalte', () => {
+        it('broken template', () => {
             const result = Build.compile(`
             <script>let n=wyvr;</script>
             <p>Hello {nam}</p>

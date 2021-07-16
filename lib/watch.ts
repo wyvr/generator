@@ -18,6 +18,9 @@ export class Watch {
         RequireCache.clear();
         this.init();
     }
+    private restart() {
+        process.kill(process.pid, 'SIGUSR2');
+    }
     private init() {
         const packages = Config.get('packages');
         if (!packages || !Array.isArray(packages) || packages.length == 0) {
@@ -38,24 +41,28 @@ export class Watch {
         );
         // watch for file changes
         let debounce = null;
+        const watch_folder = packages.map((pkg) => pkg.path);
+        watch_folder.push(join(process.cwd(), 'wyvr.js'));
         chokidar
-            .watch(
-                packages.map((pkg) => pkg.path),
-                {
-                    ignoreInitial: true,
-                }
-            )
+            .watch(watch_folder, {
+                ignoreInitial: true,
+            })
             .on('all', (event, path) => {
                 if (
                     path.indexOf('package.json') > -1 ||
                     path.indexOf('package-lock.json') > -1 ||
                     path.indexOf('/node_modules') > -1 ||
                     path.indexOf('/.git/') > -1 ||
-                    path.indexOf('wyvr.js') > -1 ||
                     event == 'addDir' ||
                     event == 'unlinkDir'
                 ) {
                     return;
+                }
+                // when config file is changed restart
+                if (path.indexOf('wyvr.js') > -1) {
+                    Logger.info('config file has changed', path, 'restarting');
+
+                    return this.restart();
                 }
                 // find the pkg of the changed file
                 let pkg_index = -1;

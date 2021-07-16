@@ -58,7 +58,7 @@ export class MainHelper {
                     if (!pkg.path) {
                         pkg.path = Object.keys(package_json.dependencies || {})
                             .map((package_name) => {
-                                if(package_name != pkg.name) {
+                                if (package_name != pkg.name) {
                                     return null;
                                 }
                                 return package_json.dependencies[package_name].match(/file:(.*)/)[1];
@@ -274,6 +274,24 @@ export class MainHelper {
         worker_controller.events.off('emit', 'css_parent', on_css_index);
         await Plugin.after('build', result, paths);
         return [paths, css_parents];
+    }
+    async inject(list: string[]) {
+        await Promise.all(
+            list.map(async (file) => {
+                const content = readFileSync(file, { encoding: 'utf-8' });
+                const head = [],
+                    body = [];
+                const [err_after, config, file_after, content_after, head_after, body_after] = await Plugin.after('inject', file, content, head, body);
+                if (err_after) {
+                    this.fail(err_after);
+                }
+                const injected_content = content_after
+                    .replace(/<\/head>/, `${head_after.join('')}</head>`)
+                    .replace(/<\/body>/, `${body_after.join('')}</body>`);
+                writeFileSync(file, injected_content);
+                return file;
+            })
+        );
     }
     async scripts(worker_controller: WorkerController, identifiers: any): Promise<boolean> {
         await Plugin.before('scripts', identifiers, Dependency.cache);

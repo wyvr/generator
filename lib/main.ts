@@ -83,8 +83,8 @@ export class Main {
             Logger.info('rebuild', this.cron_state.length, 'routes');
             this.perf.end('cron');
         }
-        if(!Config.get('packages')) {
-            Logger.warning('no packages available, please configure wyvr.js file')
+        if (!Config.get('packages')) {
+            Logger.warning('no packages available, please configure wyvr.js file');
             return;
         }
         // remove old releases
@@ -116,7 +116,7 @@ export class Main {
                     Logger.warning('import global file does not exist', import_global_path);
                 }
             }
-            if(!this.global_data) {
+            if (!this.global_data) {
                 this.global_data = {};
             }
             this.global_data.env = EnvModel[Env.get()];
@@ -296,6 +296,11 @@ export class Main {
         // build static files
         const [build_pages, css_parents] = await this.helper.build(this.worker_controller, files);
         this.perf.end('build');
+
+        // inject data into the pages
+        this.perf.start('inject');
+        await this.helper.inject(build_pages);
+        this.perf.end('inject');
 
         // check if the execution should stop after the build
         const collected_client_files = collected_files.client.map((file) => file.path.replace('gen/', ''));

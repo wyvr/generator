@@ -93,7 +93,7 @@ export class Watch {
                             }
                         }
                     }
-                    Logger.info('detect', `${event} ${pkg.name}@${Logger.color.dim(rel_path)}`);
+                    Logger.info('detect', `${event} ${pkg.name} ${Logger.color.dim(rel_path)}`);
                 } else {
                     Logger.warning('detect', `${event}@${Logger.color.dim(path)}`, 'from unknown pkg');
                 }

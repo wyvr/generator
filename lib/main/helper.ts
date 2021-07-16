@@ -16,7 +16,8 @@ import { Generate } from '@lib/generate';
 import { Config } from '@lib/config';
 import { Routes } from '@lib/routes';
 import { Client } from '@lib/client';
-import { Dependency } from '../dependency';
+import { Dependency } from '@lib/dependency';
+import { Error } from '@lib/error';
 
 export class MainHelper {
     cwd = process.cwd();
@@ -27,6 +28,14 @@ export class MainHelper {
         return Generate.set_default_values(Generate.enhance_data(data), default_values);
     }
     async packages() {
+        let package_json = null;
+        if (!package_json && existsSync('package.json')) {
+            try {
+                package_json = JSON.parse(readFileSync('package.json', { encoding: 'utf-8' }));
+            } catch (e) {
+                Logger.error(Error.extract(e, 'package.json'));
+            }
+        }
         const packages = Config.get('packages');
         const disabled_packages = [];
         const available_packages = [];
@@ -39,12 +48,31 @@ export class MainHelper {
                 if (!pkg.name) {
                     pkg.name = '#' + index;
                 }
+
+                // search inside the node_modules folder
+                if (package_json && pkg.name && !pkg.path) {
+                    if (existsSync(join('node_modules', pkg.name))) {
+                        pkg.path = join('node_modules', pkg.name);
+                    }
+                    // search if the package is linked in the package json
+                    if (!pkg.path) {
+                        pkg.path = Object.keys(package_json.dependencies || {})
+                            .map((package_name) => {
+                                if(package_name != pkg.name) {
+                                    return null;
+                                }
+                                return package_json.dependencies[package_name].match(/file:(.*)/)[1];
+                            })
+                            .find((x) => x);
+                    }
+                }
                 // load the package config
                 const package_config = Config.load_from_path(pkg.path);
                 if (package_config) {
                     config = Config.merge(config, package_config);
                 }
-                if (existsSync(pkg.path)) {
+                // check if the package is outside the node_modules folder
+                if (pkg.path && existsSync(pkg.path)) {
                     available_packages.push(pkg);
                     return;
                 }
@@ -62,16 +90,16 @@ export class MainHelper {
             'packages',
             available_packages
                 ?.map((pkg) => {
-                    return `${pkg.name}@${Logger.color.dim(pkg.path)}`;
+                    return `${pkg.name}`;
                 })
-                .join(' ')
+                .join(', ')
         );
         if (disabled_packages.length) {
             Logger.warning(
                 'disabled packages',
                 disabled_packages
                     .map((pkg) => {
-                        return `${pkg.name}@${Logger.color.dim(pkg.path)}`;
+                        return `${pkg.name}${Logger.color.dim('@' + pkg.path)}`;
                     })
                     .join(' ')
             );

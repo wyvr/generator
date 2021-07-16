@@ -2,6 +2,9 @@ SHELL := /bin/bash
 # @see https://victoria.dev/blog/how-to-create-a-self-documenting-makefile/
 .POSIX:
 
+# if a target is existing as folder, add to phony to avoid make from thinking it is "up to date"
+# @see https://stackoverflow.com/questions/3931741/why-does-make-think-the-target-is-up-to-date
+.PHONY: test coverage
 # @see https://spin.atomicobject.com/2021/03/22/makefiles-vs-package-json-scripts/
 # base commands
 WYVR_COMPILE=npx tsc
@@ -57,7 +60,7 @@ compile-watch: ## Start watcher and make dev builds
 		--verbose \
 		--exec '$(WYVR_COMPILE)'
 
-test-exec: ## Executes the tests
+test: ## Executes the tests
 	@$(WYVR_COMPILE) && $(WYVR_TEST)
 
 test-watch: ## Watches changes in the tests
@@ -66,7 +69,7 @@ test-watch: ## Watches changes in the tests
 init: ## Install and prepare setup
 	@npm install
 
-test-coverage: ## Get test coverage result
+coverage: ## Get test coverage result
 	@$(WYVR_COVERAGE)
 
 clean: ## Removes generated folders for a clean setup

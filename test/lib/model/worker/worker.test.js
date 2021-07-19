@@ -5,15 +5,6 @@ describe('Lib/Model/Worker/Worker', () => {
     const { WorkerModel } = require('@lib/model/worker/worker');
     const { WorkerStatus } = require('@lib/model/worker/status');
 
-    /*
-public status: WorkerStatus = WorkerStatus.undefined;
-    public pid: number = 0;
-    public process: any = null;
-    constructor() {
-        const instance = fork();
-        this.process = instance.process;
-        this.pid = instance.process.pid;
-    } */
     const fork = () => {
         return {
             process: {
@@ -21,13 +12,6 @@ public status: WorkerStatus = WorkerStatus.undefined;
             },
         };
     };
-    // before(() => {
-    //     _fork = fork;
-    //
-    // });
-    // after(() => {
-    //     fork = _fork;
-    // });
 
     describe('WorkerModel', () => {
         it('constructor', () => {

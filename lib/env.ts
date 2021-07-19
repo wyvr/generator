@@ -33,4 +33,10 @@ export class Env {
     static is_prod() {
         return this.get() == EnvModel.prod;
     }
+    static json_spaces(env) {
+        if(env?.WYVR_ENV === 'prod') {
+            return undefined;
+        }
+        return 4;
+    }
 }

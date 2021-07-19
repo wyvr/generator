@@ -2,8 +2,8 @@ import * as fs from 'fs-extra';
 import { join, dirname } from 'path';
 import { compile } from 'svelte/compiler';
 import register from 'svelte/register';
-import { Client } from './client';
-import { Env } from './env';
+import { Client } from '@lib/client';
+import { Env } from '@lib/env';
 
 register();
 // fix intl global
@@ -75,7 +75,7 @@ export class Build {
             import Doc from '${doc_file_name}';
             import Layout from '${layout_file_name}';
             import Page from '${page_file_name}';
-            const data = ${JSON.stringify(data, null, process.env.WYVR_ENV == 'prod' ? undefined : 4)};
+            const data = ${JSON.stringify(data, null, Env.json_spaces(process.env))};
         </script>
 
         <Doc data={data}>

@@ -3,6 +3,7 @@ import { extname } from 'path';
 
 import { dirname, join } from 'path';
 import { WyvrFile } from '@lib/model/wyvr/file';
+import { Env } from '@lib/env';
 const circular = require('circular');
 
 export class File {
@@ -118,13 +119,15 @@ export class File {
      * @param filename
      * @returns void
      */
-    static write_json(filename: string, data: any = null): void {
+    static write_json(filename: string, data: any = null): boolean {
         if (!filename) {
-            return;
+            return false;
         }
         // create containing folder
         mkdirSync(dirname(filename), { recursive: true });
-        writeFileSync(filename, JSON.stringify(data, circular(), process.env.WYVR_ENV == 'prod' ? undefined : 4));
+        const spaces = Env.json_spaces(process.env);
+        writeFileSync(filename, JSON.stringify(data, circular(), spaces));
+        return true;
     }
     /**
      * search for one file out of multiple possible files, to depict hierachy of file overrides
@@ -200,5 +203,21 @@ export class File {
         }
         const stat = statSync(path);
         return !stat.isDirectory();
+    }
+
+    static get_folder(folder: string): { name: string; path: string }[] {
+        if (!folder || typeof folder != 'string' || !existsSync(folder)) {
+            return null;
+        }
+        return readdirSync(folder)
+            .map((entry) => {
+                return {
+                    name: entry,
+                    path: join(folder, entry),
+                };
+            })
+            .filter((entry) => {
+                return !this.is_file(entry.path);
+            });
     }
 }

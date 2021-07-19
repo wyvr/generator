@@ -2,7 +2,11 @@ import { join } from 'path';
 import { Logger } from '@lib/logger';
 
 export class RequireCache {
-    static clear() {
+    /**
+     * Removes wyvr elements from the node.js require cache
+     * @returns amount of removed entries from require cache
+     */
+    static clear(): number {
         let amount = 0;
         Object.keys(require.cache).forEach((cache_file) => {
             if (this.matches(cache_file)) {
@@ -11,8 +15,14 @@ export class RequireCache {
             }
         });
         Logger.debug('require cache cleared', amount, 'entries');
+        return amount;
     }
-    static matches(cache_file: string) {
+    /**
+     * Returns whether the file should be removed from the cache or not
+     * @param cache_file absolute path of an cache file(key)
+     * @returns boolean
+     */
+    static matches(cache_file: string): boolean {
         return cache_file.indexOf(join(process.cwd(), 'gen')) > -1 || cache_file.indexOf(join(process.cwd(), 'imported')) > -1;
     }
 }

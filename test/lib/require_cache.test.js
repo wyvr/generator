@@ -9,7 +9,9 @@ describe('Lib/RequireCache', () => {
     before(() => {});
     describe('clear', () => {
         it('contains gen files', () => {
-            RequireCache.clear();
+            require.cache[join(process.cwd(), 'gen/test')] = true;
+            require.cache[join(process.cwd(), 'imported/test')] = true;
+            assert(RequireCache.clear() == 2);
             assert(Object.keys(require.cache).find((cache_file) => cache_file.indexOf('/gen/') > -1) == null);
         });
     });

@@ -4,9 +4,9 @@ describe('Lib/Env', () => {
     const assert = require('assert');
     const { Env } = require('@lib/env');
     const { EnvModel } = require('@lib/model/env');
-    before(()=>{
-        Env.set(EnvModel.prod)
-    })
+    before(() => {
+        Env.set(EnvModel.prod);
+    });
     describe('get', () => {
         it('default value', () => {
             assert.strictEqual(Env.get(), EnvModel.prod);
@@ -91,6 +91,33 @@ describe('Lib/Env', () => {
         });
     });
 
-    describe('is_dev', () => {});
-    describe('is_prod', () => {});
+    describe('json_spaces', () => {
+        it('empty', () => {
+            assert.strictEqual(Env.json_spaces(), 4);
+        });
+        it('null', () => {
+            assert.strictEqual(Env.json_spaces(null), 4);
+        });
+        it('string', () => {
+            assert.strictEqual(Env.json_spaces('prod'), 4);
+        });
+        it('bool', () => {
+            assert.strictEqual(Env.json_spaces(true), 4);
+        });
+        it('number', () => {
+            assert.strictEqual(Env.json_spaces(1), 4);
+        });
+        it('empty object', () => {
+            assert.strictEqual(Env.json_spaces({}), 4);
+        });
+        it('dev', () => {
+            assert.strictEqual(Env.json_spaces({ WYVR_ENV: 'dev' }), 4);
+        });
+        it('prod', () => {
+            assert.strictEqual(Env.json_spaces({ WYVR_ENV: 'prod' }), undefined);
+        });
+        it('process.env', () => {
+            assert.strictEqual(Env.json_spaces(process.env), 4);
+        });
+    });
 });

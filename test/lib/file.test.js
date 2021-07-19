@@ -131,6 +131,28 @@ describe('Lib/File', () => {
             assert.deepStrictEqual(File.read_json(test_file), null);
         });
     });
+    describe('write_json', () => {
+        it('no filename', () => {
+            assert.deepStrictEqual(File.write_json(), false);
+        });
+        it('null', () => {
+            assert.deepStrictEqual(File.write_json('test/lib/file/null'), true);
+            assert.deepStrictEqual(File.read_file('test/lib/file/null'), 'null');
+        });
+        it('check content', () => {
+            assert.deepStrictEqual(
+                File.write_json('test/lib/file/check_content.json', {
+                    test: [
+                        {
+                            a: true,
+                        },
+                    ],
+                }),
+                true
+            );
+            assert.deepStrictEqual(File.read_file('test/lib/file/check_content.json'), File.read_file('test/lib/file/check_content_result.json'));
+        });
+    });
     describe('find_file', () => {
         it('no value', () => {
             assert.deepStrictEqual(File.find_file('test/lib/file', null), null);
@@ -195,18 +217,9 @@ describe('Lib/File', () => {
             assert.deepStrictEqual(File.collect_files('test/lib/file/unknown_folder', '.txt'), []);
         });
         it('valid', () => {
-            assert.deepStrictEqual(File.collect_files('test/lib/file/svelte', null), [
-                'test/lib/file/svelte/a.svelte',
-                'test/lib/file/svelte/b/b.svelte',
-            ]);
-            assert.deepStrictEqual(File.collect_files('test/lib/file', 'svelte'), [
-                'test/lib/file/svelte/a.svelte',
-                'test/lib/file/svelte/b/b.svelte',
-            ]);
-            assert.deepStrictEqual(File.collect_files('test/lib/file', '.svelte'), [
-                'test/lib/file/svelte/a.svelte',
-                'test/lib/file/svelte/b/b.svelte',
-            ]);
+            assert.deepStrictEqual(File.collect_files('test/lib/file/svelte', null), ['test/lib/file/svelte/a.svelte', 'test/lib/file/svelte/b/b.svelte']);
+            assert.deepStrictEqual(File.collect_files('test/lib/file', 'svelte'), ['test/lib/file/svelte/a.svelte', 'test/lib/file/svelte/b/b.svelte']);
+            assert.deepStrictEqual(File.collect_files('test/lib/file', '.svelte'), ['test/lib/file/svelte/a.svelte', 'test/lib/file/svelte/b/b.svelte']);
         });
     });
     describe('is_file', () => {
@@ -224,6 +237,23 @@ describe('Lib/File', () => {
         it('file', () => {
             assert.strictEqual(File.is_file('test/lib/file/svelte/a.svelte'), true);
         });
-        
+    });
+    describe('get_folder', () => {
+        it('null', () => {
+            assert.strictEqual(File.get_folder(), null);
+            assert.strictEqual(File.get_folder(null), null);
+            assert.strictEqual(File.get_folder(undefined), null);
+            assert.strictEqual(File.get_folder(1), null);
+            assert.strictEqual(File.get_folder(true), null);
+        });
+        it('non existing', () => {
+            assert.strictEqual(File.get_folder('test/lib/file/nonexisting'), null);
+        });
+        it('existing', () => {
+            assert.deepStrictEqual(File.get_folder('test/lib/file/folder'), [{ name: '1', path: 'test/lib/file/folder/1' }]);
+        });
+        it('existing empty', () => {
+            assert.deepStrictEqual(File.get_folder('test/lib/file/folder/1'), []);
+        });
     });
 });

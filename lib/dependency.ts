@@ -1,5 +1,5 @@
 import { readdirSync, existsSync, readFileSync } from 'fs';
-import { join, extname } from 'path';
+import { join, extname, dirname, resolve } from 'path';
 import { Logger } from '@lib/logger';
 import { File } from '@lib/file';
 
@@ -8,70 +8,80 @@ export class Dependency {
     static new_cache() {
         return {};
     }
-    // static get_list() {
-    //     if (!this.cache) {
-    //         return [];
-    //     }
-    //     const list = [];
-    //     Object.keys(this.cache).map((key) => {
-    //         Object.keys(this.cache[key]).forEach((parent_file) => {
-    //             list.push(parent_file);
-    //             list.push(...this.cache[key][parent_file]);
-    //         });
-    //     });
-    //     return list;
-    // }
-    static build() {
-        this.cache = this.new_cache();
-        const raw_folder = join(process.cwd(), 'gen', 'raw');
-        const folders = readdirSync(raw_folder).filter((entry) => {
-            return !File.is_file(join(raw_folder, entry));
-        });
-        const folder_files = folders.map((folder) => {
-            const folder_path = join(raw_folder, folder);
-            if (!existsSync(folder_path)) {
-                Logger.warning('can not build dependencies', folder, 'does not exist');
-                return null;
-            }
-            const files = File.collect_svelte_files(folder_path)
-                .map((file) => file.path)
-                .filter((x) => x);
+    static build(source_folder: string) {
+        if (!existsSync(source_folder)) {
+            return null;
+        }
+        // add minimum structure to clear cache
+        this.cache = this.prepare(this.new_cache());
+        // will contain all files that where found inside the given folder
+        const all_files = File.collect_svelte_files(source_folder).map((file) => file.path);
 
-            files.forEach((filepath: string) => {
-                //
-                const content = readFileSync(filepath, { encoding: 'utf-8' });
-                const matches = [...content.matchAll(/import (.*?) from ['"]@src\/([^'"]*)['"]/g)];
-                if (matches && matches.length > 0) {
-                    const parent = filepath.replace(raw_folder + '/', '');
-                    matches.forEach((match) => {
-                        if (!this.cache[folder]) {
-                            this.cache[folder] = {};
-                        }
-                        if (!this.cache[folder][parent]) {
-                            this.cache[folder][parent] = [];
-                        }
-                        let file = match[2];
-                        if (!extname(file)) {
-                            file += '.js';
-                        }
-                        this.cache[folder][parent].push(file);
-                    });
+        File.get_folder(source_folder).forEach((folder) => {
+            all_files
+                .filter((file_path: string) => {
+                    return file_path.indexOf(folder.path) > -1;
+                })
+                .forEach((file_path: string) => {
+                    const content = File.read_file(file_path);
+                    if (content) {
+                        this.extract_from_content(folder.name, file_path.replace(source_folder + '/', ''), content);
+                    }
+                });
+        });
+        // console.log(this.cache);
+        return all_files;
+    }
+
+    static extract_from_content(root: string, parent: string, content: string) {
+        if (!root || !parent || !content) {
+            return;
+        }
+        const matches = [...content.matchAll(/import (.*?) from ['"](?:@src\/)?([^'"]*)['"]/g)];
+        // ensure that cache is available
+        if (!this.cache) {
+            this.cache = this.new_cache();
+        }
+        if (matches && matches.length > 0) {
+            matches.forEach((match) => {
+                // when no extension is used, it must be js
+                let file = match[2];
+                if (!extname(file)) {
+                    file += '.js';
                 }
+                // fix path of file, when relative
+                if (file.indexOf('./') == 0 || file.indexOf('../') == 0) {
+                    file = join(dirname(parent), file);
+                }
+                // add root when not existing
+                if (!this.cache[root]) {
+                    this.cache[root] = {};
+                }
+                // add parent in root when not existing
+                if (!this.cache[root][parent]) {
+                    this.cache[root][parent] = [];
+                }
+                // add file to parent
+                this.cache[root][parent].push(file);
             });
+        }
+    }
 
-            // ensure that the base elements are available
-            if(!this.cache.doc) {
-                this.cache.doc = {};
-            }
-            if(!this.cache.layout) {
-                this.cache.layout = {};
-            }
-            if(!this.cache.page) {
-                this.cache.page = {};
-            }
-
-            return files;
-        });
-        return [].concat(...folder_files).filter((x) => x);
+    static prepare(cache: any): any {
+        // when the structure is not correct create new cache
+        if (!cache || typeof cache != 'object' || Array.isArray(cache)) {
+            cache = this.new_cache();
+        }
+        // ensure that the base elements are available
+        if (!cache.doc) {
+            cache.doc = {};
+        }
+        if (!cache.layout) {
+            cache.layout = {};
+        }
+        if (!cache.page) {
+            cache.page = {};
+        }
+        return cache;
     }
 }

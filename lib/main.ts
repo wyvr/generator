@@ -315,7 +315,8 @@ export class Main {
 
         if (exec_scripts) {
             this.perf.start('dependencies');
-            Dependency.build();
+            const dep_source_folder = join(process.cwd(), 'gen', 'raw');
+            Dependency.build(dep_source_folder);
             if (Env.is_dev()) {
                 // build structure based on the identifiers
                 Object.keys(this.identifiers).forEach((id) => {

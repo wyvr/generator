@@ -25,10 +25,6 @@ export class Routes {
                 result.push(...this.collect_routes(path, package_tree));
                 return;
             }
-            // route has to be a physical file
-            if (!stat.isFile()) {
-                return;
-            }
             if (entry.match(/\.js|\.md$/)) {
                 const rel_path = path.replace(/.*?\/routes\//, 'routes/');
                 const pkg = package_tree && package_tree[rel_path] ? package_tree[rel_path] : null;
@@ -44,6 +40,9 @@ export class Routes {
         return result;
     }
     static async execute_route(route: { path: string; rel_path: string; pkg: any }, global_data: any) {
+        if (!route || !route.path) {
+            return [`broken route ${JSON.stringify(route)}`, null];
+        }
         if (!(<any>global).getGlobal || typeof (<any>global).getGlobal != 'function') {
             (<any>global).getGlobal = (key, fallback) => {
                 return Client.get_global(key, fallback || null, global_data);

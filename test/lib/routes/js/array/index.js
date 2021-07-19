@@ -1,7 +1,5 @@
-module.exports = () => {
-    return [
-        {
-            url: '/js/array',
-        },
-    ];
-};
+module.exports = [
+    {
+        url: '/js/array',
+    },
+];

@@ -55,7 +55,7 @@ export class Routes {
             }
             try {
                 const data: any = fm(content);
-                if (data.body) {
+                if (typeof data.body == 'string') {
                     data.content = marked(data.body, {
                         breaks: false,
                     }).replace(/<code[^>]*>[\s\S]*?<\/code>/g, (match) => {
@@ -69,6 +69,9 @@ export class Routes {
                 Object.keys(data.attributes).forEach((key) => {
                     data[key] = data.attributes[key];
                 });
+                if (data.frontmatter) {
+                    delete data.frontmatter;
+                }
                 delete data.attributes;
                 // add required url
                 if (!data.url) {
@@ -110,21 +113,27 @@ export class Routes {
         return [null, null];
     }
     static write_routes(route_entries: any[], hook_before_process: Function = null) {
-        if (!route_entries) {
+        if (!Array.isArray(route_entries)) {
             return null;
         }
-        return route_entries.map((route: any) => {
-            if (!route || !route.url) {
-                return null;
-            }
-            const url = route.url;
-            if (hook_before_process && typeof hook_before_process == 'function') {
-                route = hook_before_process(route);
-            }
-            const path = File.to_extension(File.to_index(join(process.cwd(), 'imported/data', url), 'json'), 'json');
-            mkdirSync(dirname(path), { recursive: true });
-            writeFileSync(path, JSON.stringify(route));
-            return path;
-        });
+        return route_entries
+            .map((route: any) => {
+                if (!route || !route.url) {
+                    return null;
+                }
+                const url = route.url;
+                if (hook_before_process && typeof hook_before_process == 'function') {
+                    // replace route with hook result
+                    route = hook_before_process(route);
+                }
+                if (!route) {
+                    return null;
+                }
+                const path = File.to_extension(File.to_index(join(process.cwd(), 'imported/data', url), 'json'), 'json');
+                mkdirSync(dirname(path), { recursive: true });
+                writeFileSync(path, JSON.stringify(route));
+                return path;
+            })
+            .filter((x) => x);
     }
 }

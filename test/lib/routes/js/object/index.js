@@ -1,5 +1,3 @@
-module.exports = () => {
-    return {
-        url: '/js/object'
-    };
+module.exports = {
+    url: '/js/object',
 };

@@ -278,6 +278,10 @@ export class MainHelper {
     async inject(list: string[]) {
         await Promise.all(
             list.map(async (file) => {
+                // because of an compilation error the page can be non existing
+                if(!file || !existsSync(file)) {
+                    return null;
+                }
                 const content = readFileSync(file, { encoding: 'utf-8' });
                 const head = [],
                     body = [];

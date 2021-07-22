@@ -343,6 +343,7 @@ export class MainHelper {
             Logger.improve('optimize will not be executed in dev mode');
             return;
         }
+        await Plugin.before('optimize', identifier_list);
         // add contenthash to the generated files
         const replace_hash_files = [];
         const [hash_list, file_list] = Optimize.get_hashed_files();

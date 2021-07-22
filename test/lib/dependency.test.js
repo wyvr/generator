@@ -90,6 +90,11 @@ describe('Lib/Dependency', () => {
             Dependency.extract_from_content('root', 'parent', 'a');
             assert.deepStrictEqual(Dependency.cache, {});
         });
+        it('ignore node_modules', () => {
+            Dependency.extract_from_content('root', 'parent', `import { onMount } from 'svelte';
+            import axios from 'axios';`);
+            assert.deepStrictEqual(Dependency.cache, {});
+        });
         it('import found @src', () => {
             Dependency.extract_from_content('root', 'parent', `import A from '@src/a.svelte'`);
             assert.deepStrictEqual(Dependency.cache, {

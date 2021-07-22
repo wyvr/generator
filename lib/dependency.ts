@@ -5,6 +5,7 @@ import { File } from '@lib/file';
 
 export class Dependency {
     static cache: any = null;
+    static pkg_dep: any = null;
     static new_cache() {
         return {};
     }
@@ -32,6 +33,27 @@ export class Dependency {
         // console.log(this.cache);
         return all_files;
     }
+    static get_pkg_dependencies() {
+        if(this.pkg_dep) {
+            return this.pkg_dep;
+        }
+        const pkg_path = join(process.cwd(), 'package.json');
+        if(!existsSync(pkg_path)) {
+            return [];
+        }
+        const pkg = require(pkg_path);
+        if(!pkg) {
+            return [];
+        }
+        this.pkg_dep = [];
+        if(pkg.dependencies) {
+            this.pkg_dep.push(...Object.keys(pkg.dependencies))
+        }
+        if(pkg.devDependencies) {
+            this.pkg_dep.push(...Object.keys(pkg.devDependencies))
+        }
+        return this.pkg_dep;
+    }
 
     static extract_from_content(root: string, parent: string, content: string) {
         if (!root || !parent || !content) {
@@ -43,7 +65,10 @@ export class Dependency {
             this.cache = this.new_cache();
         }
         if (matches && matches.length > 0) {
-            matches.forEach((match) => {
+            matches.filter((match)=>{
+                // ignore package.json files
+                return this.get_pkg_dependencies().indexOf(match[2]) == -1;
+            }).forEach((match) => {
                 // when no extension is used, it must be js
                 let file = match[2];
                 if (!extname(file)) {

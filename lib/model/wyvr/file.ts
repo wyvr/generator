@@ -107,4 +107,5 @@ export enum WyvrFileRender {
 export enum WyvrFileLoading {
     instant = 'instant',
     lazy = 'lazy',
+    idle = 'idle',
 }

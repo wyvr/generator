@@ -22,6 +22,7 @@ export class Client {
 
         const input_file = join(client_root, `${entry.name}.js`);
         const lazy_input_files = [];
+        const idle_input_files = [];
 
         const resouce_folder = join(__dirname, 'resource');
         // create empty file because it is required as identifier
@@ -30,6 +31,7 @@ export class Client {
             props: fs.readFileSync(join(resouce_folder, 'props.js'), { encoding: 'utf-8' }),
             portal: fs.readFileSync(join(resouce_folder, 'portal.js'), { encoding: 'utf-8' }),
             lazy: fs.readFileSync(join(resouce_folder, 'hydrate_lazy.js'), { encoding: 'utf-8' }),
+            idle: fs.readFileSync(join(resouce_folder, 'hydrate_idle.js'), { encoding: 'utf-8' }),
             env: fs.readFileSync(join(resouce_folder, 'env.js'), { encoding: 'utf-8' }),
             debug: '',
         };
@@ -45,10 +47,19 @@ export class Client {
             hydrate_files.map(async (file) => {
                 const import_path = join(cwd, file.path);
                 const var_name = file.name.toLowerCase().replace(/\s/g, '_');
-                if (file.config?.loading == WyvrFileLoading.lazy) {
-                    lazy_input_files.push(file);
-                    const lazy_input_path = join(client_root, `${File.to_extension(file.path, '').replace(join('gen', 'client') + '/', '')}.js`);
-                    const lazy_input_name = File.to_extension(lazy_input_path, '').replace(client_root + '/', '');
+
+                const lazy_input_path = join(client_root, `${File.to_extension(file.path, '').replace(join('gen', 'client') + '/', '')}.js`);
+                const lazy_input_name = File.to_extension(lazy_input_path, '').replace(client_root + '/', '');
+                const is_lazy = [WyvrFileLoading.lazy, WyvrFileLoading.idle].indexOf(file.config?.loading) > -1;
+                if (is_lazy) {
+                    // add to the list of lazy type
+                    if (file.config?.loading == WyvrFileLoading.lazy) {
+                        lazy_input_files.push(file);
+                    }
+                    if (file.config?.loading == WyvrFileLoading.idle) {
+                        idle_input_files.push(file);
+                    }
+                    // write the lazy file fro the component
                     if (!fs.existsSync(lazy_input_path)) {
                         fs.writeFileSync(
                             lazy_input_path,
@@ -67,23 +78,33 @@ export class Client {
                             WorkerHelper.log(LogType.error, '[svelte]', error);
                         }
                     }
-                    return `
-                        const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
-                        wyvr_hydrate_lazy('/js/${lazy_input_name}.js', ${var_name}_target, '${file.name}', '${var_name}');
-                    `;
                 }
-                // WyvrFileLoading.instant
-                return `
-                        import ${var_name} from '${import_path}';
 
-                        const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
-                        wyvr_hydrate(${var_name}_target, ${var_name})
-                    `;
+                switch (file.config?.loading) {
+                    case WyvrFileLoading.lazy:
+                    case WyvrFileLoading.idle:
+                        return `
+                            const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
+                            wyvr_hydrate_${file.config.loading}('/js/${lazy_input_name}.js', ${var_name}_target, '${file.name}', '${var_name}');
+                            `;
+
+                    //case WyvrFileLoading.instant:
+                    default:
+                        return `
+                            import ${var_name} from '${import_path}';
+
+                            const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
+                            wyvr_hydrate(${var_name}_target, ${var_name})
+                            `;
+                }
             })
         );
         const script_content = [script_partials.hydrate, script_partials.props, script_partials.portal, script_partials.debug, script_partials.env];
         if (lazy_input_files.length > 0) {
             script_content.push(script_partials.lazy);
+        }
+        if (idle_input_files.length > 0) {
+            script_content.push(script_partials.idle);
         }
         script_content.push(content.join('\n'));
 

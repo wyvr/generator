@@ -346,6 +346,12 @@ describe('Lib/Client', () => {
                 })
             );
         });
+        it('replace unknown key', () => {
+            assert.strictEqual(
+                Client.replace_global(`getGlobal('faker.text')`, global),
+                'null'
+            );
+        });
         it('valid with fallback', () => {
             assert.strictEqual(
                 Client.replace_global(`getGlobal('nav.header', [])`, global),
@@ -400,19 +406,41 @@ describe('Lib/Client', () => {
         it('list', () => {
             assert.deepStrictEqual(Client.get_global('list', true, global), ['a', 'b']);
         });
+        it('list on null', () => {
+            assert.deepStrictEqual(Client.get_global('list', true, null), true);
+        });
         it('first list entry', () => {
-            assert.deepStrictEqual(Client.get_global('list[0]', true, global), 'a');
+            assert.strictEqual(Client.get_global('list[0]', true, global), 'a');
+        });
+        it('first list entry on null', () => {
+            assert.strictEqual(Client.get_global('list[0]', true, null), true);
         });
         it('deep unknown', () => {
-            assert.deepStrictEqual(Client.get_global('nav.footer', true, global), true);
+            assert.strictEqual(Client.get_global('nav.footer', true, global), true);
+        });
+        it('deep unknown on null', () => {
+            assert.strictEqual(Client.get_global('nav.footer', true, null), true);
         });
         it('deep search', () => {
             assert.deepStrictEqual(Client.get_global('nav.header[0]', null, global), {
                 url: 'https://wyvr.dev',
             });
         });
+        it('deep search on null', () => {
+            assert.strictEqual(Client.get_global('nav.header[0]', true, null), true);
+        });
         it('deep search property', () => {
-            assert.deepStrictEqual(Client.get_global('nav.header[0].url', null, global), 'https://wyvr.dev');
+            assert.strictEqual(Client.get_global('nav.header[0].url', null, global), 'https://wyvr.dev');
+        });
+        it('deep search property on null', () => {
+            assert.strictEqual(Client.get_global('nav.header[0].url', true, null), true);
+        });
+        it('deep unknown search property', () => {
+            assert.strictEqual(Client.get_global('nonexisting.this.is.an.test', true, null), true);
+        });
+        it('deep unknown search property', () => {
+            console.log()
+            assert.strictEqual(Client.get_global('nonexisting.this.is.an.test', undefined, null), null);
         });
     });
     describe('extract_props_from_scripts', () => {

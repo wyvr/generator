@@ -371,6 +371,9 @@ export class Client {
             }
             if (i == 0) {
                 value = global_data[step];
+                if (value === undefined) {
+                    return fallback;
+                }
 
                 if (value !== undefined && index != null && Array.isArray(value)) {
                     value = value[index];

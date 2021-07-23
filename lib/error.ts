@@ -27,20 +27,20 @@ export class Error {
         }
         if (stack) {
             object.stack = stack
-                .map((entry) => {
-                    // when line starts with "- <cwd>/gen"
-                    const match = entry.match(/^- (.*?\/gen\/.*)$/);
-                    if (match) {
-                        return match[1].replace(gen_dir + '/', '');
-                    }
-                    // when line contains " at /" and the "<cwd>/gen"
-                    if (entry.indexOf(gen_dir) > -1 && entry.indexOf(' at /') > -1) {
-                        return entry.replace(/.*?at /, '').replace(gen_dir + '/', '');
-                    }
-
-                    return null;
-                })
-                .filter((x) => x);
+            .map((entry) => {
+                // when line starts with "- <cwd>/gen"
+                const match = entry.match(/^- (.*?\/gen\/.*)$/);
+                if (match) {
+                    return match[1].replace(gen_dir + '/', '');
+                }
+                // when line contains " at /" and the "<cwd>/gen"
+                if (entry.indexOf(gen_dir) > -1 && entry.indexOf(' at ') > -1) {
+                    return entry.replace(/\s*?at /, '').replace(gen_dir + '/', '');
+                }
+                
+                return null;
+            })
+            .filter((x) => x);
             // svelte errors
             if (object.stack.length == 0 && stack[3] && stack[3].trim() == '') {
                 object.stack = [stack[0].trim().replace(gen_dir + '/', '')];
@@ -48,7 +48,8 @@ export class Error {
             }
         }
         if (e.message) {
-            object.message = e.message.split('\n')[0];
+            const splitted_message = e.message.split('\n');
+            object.message = splitted_message.shift();
         }
         // sass error
         if (e.formatted) {

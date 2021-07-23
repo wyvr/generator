@@ -25,7 +25,7 @@ export class Routes {
                 result.push(...this.collect_routes(path, package_tree));
                 return;
             }
-            if (entry.match(/\.js|\.md$/)) {
+            if (!entry.match(/^_/) && entry.match(/\.js|\.md$/)) {
                 const rel_path = path.replace(/.*?\/routes\//, 'routes/');
                 const pkg = package_tree && package_tree[rel_path] ? package_tree[rel_path] : null;
                 const route = {

@@ -128,6 +128,11 @@ describe('Lib/Client', () => {
             number_config.number = 1;
             assert.deepStrictEqual(Client.parse_wyvr_config(`wyvr: { number: 1..5 }`), number_config);
         });
+        it('media', () => {
+            const media_config = new WyvrFileConfig();
+            media_config.media = 'max-width: 768px';
+            assert.deepStrictEqual(Client.parse_wyvr_config(`wyvr: { media: 'max-width: 768px' }`), media_config);
+        });
     });
     describe('preprocess_content', () => {
         it('undefined', () => {
@@ -347,10 +352,7 @@ describe('Lib/Client', () => {
             );
         });
         it('replace unknown key', () => {
-            assert.strictEqual(
-                Client.replace_global(`getGlobal('faker.text')`, global),
-                'null'
-            );
+            assert.strictEqual(Client.replace_global(`getGlobal('faker.text')`, global), 'null');
         });
         it('valid with fallback', () => {
             assert.strictEqual(
@@ -439,7 +441,7 @@ describe('Lib/Client', () => {
             assert.strictEqual(Client.get_global('nonexisting.this.is.an.test', true, null), true);
         });
         it('deep unknown search property', () => {
-            console.log()
+            console.log();
             assert.strictEqual(Client.get_global('nonexisting.this.is.an.test', undefined, null), null);
         });
     });

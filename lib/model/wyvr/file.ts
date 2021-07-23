@@ -8,7 +8,7 @@ export class WyvrFile {
     props?: string[];
     path: string = null;
     constructor(path: string = null) {
-        if(path && typeof path == 'string') {
+        if (path && typeof path == 'string') {
             this.path = path;
         }
         if (this.path) {
@@ -94,6 +94,7 @@ export class WyvrFileConfig {
     loading: WyvrFileLoading = WyvrFileLoading.instant;
     error: any;
     portal: string;
+    media: string = 'all';
     [key: string]: any;
 }
 export enum WyvrHydrateDisplay {
@@ -108,4 +109,5 @@ export enum WyvrFileLoading {
     instant = 'instant',
     lazy = 'lazy',
     idle = 'idle',
+    media = 'media',
 }

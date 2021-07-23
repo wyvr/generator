@@ -23,6 +23,7 @@ export class Client {
         const input_file = join(client_root, `${entry.name}.js`);
         const lazy_input_files = [];
         const idle_input_files = [];
+        const media_input_files = [];
 
         const resouce_folder = join(__dirname, 'resource');
         // create empty file because it is required as identifier
@@ -32,6 +33,7 @@ export class Client {
             portal: fs.readFileSync(join(resouce_folder, 'portal.js'), { encoding: 'utf-8' }),
             lazy: fs.readFileSync(join(resouce_folder, 'hydrate_lazy.js'), { encoding: 'utf-8' }),
             idle: fs.readFileSync(join(resouce_folder, 'hydrate_idle.js'), { encoding: 'utf-8' }),
+            media: fs.readFileSync(join(resouce_folder, 'hydrate_media.js'), { encoding: 'utf-8' }),
             env: fs.readFileSync(join(resouce_folder, 'env.js'), { encoding: 'utf-8' }),
             debug: '',
         };
@@ -50,7 +52,7 @@ export class Client {
 
                 const lazy_input_path = join(client_root, `${File.to_extension(file.path, '').replace(join('gen', 'client') + '/', '')}.js`);
                 const lazy_input_name = File.to_extension(lazy_input_path, '').replace(client_root + '/', '');
-                const is_lazy = [WyvrFileLoading.lazy, WyvrFileLoading.idle].indexOf(file.config?.loading) > -1;
+                const is_lazy = [WyvrFileLoading.lazy, WyvrFileLoading.idle, WyvrFileLoading.media].indexOf(file.config?.loading) > -1;
                 if (is_lazy) {
                     // add to the list of lazy type
                     if (file.config?.loading == WyvrFileLoading.lazy) {
@@ -58,6 +60,9 @@ export class Client {
                     }
                     if (file.config?.loading == WyvrFileLoading.idle) {
                         idle_input_files.push(file);
+                    }
+                    if (file.config?.loading == WyvrFileLoading.media) {
+                        media_input_files.push(file);
                     }
                     // write the lazy file fro the component
                     if (!fs.existsSync(lazy_input_path)) {
@@ -83,6 +88,7 @@ export class Client {
                 switch (file.config?.loading) {
                     case WyvrFileLoading.lazy:
                     case WyvrFileLoading.idle:
+                    case WyvrFileLoading.media:
                         return `
                             const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
                             wyvr_hydrate_${file.config.loading}('/js/${lazy_input_name}.js', ${var_name}_target, '${file.name}', '${var_name}');
@@ -105,6 +111,9 @@ export class Client {
         }
         if (idle_input_files.length > 0) {
             script_content.push(script_partials.idle);
+        }
+        if (media_input_files.length > 0) {
+            script_content.push(script_partials.media);
         }
         script_content.push(content.join('\n'));
 
@@ -218,7 +227,7 @@ export class Client {
         if (match) {
             config = new WyvrFileConfig();
             match[1].split('\n').forEach((row) => {
-                const cfg_string = row.match(/(\w+): ['"](\w+)['"]/);
+                const cfg_string = row.match(/(\w+): ['"]([^'"]*)['"]/);
                 if (cfg_string) {
                     config[cfg_string[1]] = cfg_string[2];
                     return;
@@ -291,13 +300,15 @@ export class Client {
         const props_include = `data-props="${file.props.map((prop) => `'${prop}':{JSON.stringify(${prop}).replace(/"/g, "'")}`).join(',')}"`;
         // add portal when set
         const portal = file.config.portal ? `data-portal="${file.config.portal}"` : '';
+        // add media when loading is media
+        const media = file.config.loading == WyvrFileLoading.media ? `data-media="${file.config.media}"` : '';
         // extract styles
         const style_result = this.extract_tags_from_content(content, 'style');
         file.styles = style_result.result;
         content = style_result.content;
         // add hydrate tag
         const hydrate_tag = file.config.display == 'inline' ? 'span' : 'div';
-        content = `<${hydrate_tag} data-hydrate="${file.name}" ${props_include} ${portal}>${content}</${hydrate_tag}>`;
+        content = `<${hydrate_tag} data-hydrate="${file.name}" ${props_include} ${portal} ${media}>${content}</${hydrate_tag}>`;
         content = this.replace_slots_static(content);
         return content;
     }

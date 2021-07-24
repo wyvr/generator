@@ -18,6 +18,7 @@ import { Routes } from '@lib/routes';
 import { Client } from '@lib/client';
 import { Dependency } from '@lib/dependency';
 import { Error } from '@lib/error';
+import { Route } from '@lib/model/route';
 
 export class MainHelper {
     cwd = process.cwd();
@@ -183,7 +184,7 @@ export class MainHelper {
         if (cron_state && cron_state.length > 0) {
             const cron_paths = cron_state.map((state) => state.route);
             routes = routes
-                .filter((route: { path: string; rel_path: string; pkg: any; intial: boolean }) => {
+                .filter((route: Route) => {
                     return cron_paths.indexOf(route.rel_path) > -1;
                 })
                 .map((route) => {

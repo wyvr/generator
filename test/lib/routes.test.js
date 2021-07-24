@@ -5,6 +5,7 @@ require('module-alias/register');
 describe('Lib/Routes', () => {
     const assert = require('assert');
     const { Routes } = require('@lib/routes');
+    const { Route } = require('@lib/model/route');
 
     before(() => {});
 
@@ -20,48 +21,48 @@ describe('Lib/Routes', () => {
         it('js', () => {
             const result = Routes.collect_routes('test/lib/routes/js');
             assert.deepStrictEqual(result, [
-                {
+                new Route({
                     path: 'test/lib/routes/js/array/index.js',
                     pkg: null,
                     rel_path: 'routes/js/array/index.js',
                     initial: true,
                     cron: null,
-                },
-                {
+                }),
+                new Route({
                     path: 'test/lib/routes/js/error/index.js',
                     pkg: null,
                     rel_path: 'routes/js/error/index.js',
                     initial: true,
                     cron: null,
-                },
-                {
+                }),
+                new Route({
                     path: 'test/lib/routes/js/func/index.js',
                     pkg: null,
                     rel_path: 'routes/js/func/index.js',
                     initial: true,
                     cron: null,
-                },
-                {
+                }),
+                new Route({
                     path: 'test/lib/routes/js/link/index.js',
                     pkg: null,
                     rel_path: 'routes/js/link/index.js',
                     initial: true,
                     cron: null,
-                },
-                {
+                }),
+                new Route({
                     path: 'test/lib/routes/js/null/index.js',
                     pkg: null,
                     rel_path: 'routes/js/null/index.js',
                     initial: true,
                     cron: null,
-                },
-                {
+                }),
+                new Route({
                     path: 'test/lib/routes/js/object/index.js',
                     pkg: null,
                     rel_path: 'routes/js/object/index.js',
                     initial: true,
                     cron: null,
-                },
+                }),
             ]);
         });
         it('js with package', () => {
@@ -76,7 +77,7 @@ describe('Lib/Routes', () => {
                 },
             });
             assert.deepStrictEqual(result, [
-                {
+                new Route({
                     path: 'test/lib/routes/js/array/index.js',
                     pkg: {
                         name: 'demo',
@@ -85,36 +86,36 @@ describe('Lib/Routes', () => {
                     rel_path: 'routes/js/array/index.js',
                     initial: true,
                     cron: null,
-                },
-                {
+                }),
+                new Route({
                     path: 'test/lib/routes/js/error/index.js',
                     pkg: null,
                     rel_path: 'routes/js/error/index.js',
                     initial: true,
                     cron: null,
-                },
-                {
+                }),
+                new Route({
                     path: 'test/lib/routes/js/func/index.js',
                     pkg: null,
                     rel_path: 'routes/js/func/index.js',
                     initial: true,
                     cron: null,
-                },
-                {
+                }),
+                new Route({
                     path: 'test/lib/routes/js/link/index.js',
                     pkg: null,
                     rel_path: 'routes/js/link/index.js',
                     initial: true,
                     cron: null,
-                },
-                {
+                }),
+                new Route({
                     path: 'test/lib/routes/js/null/index.js',
                     pkg: null,
                     rel_path: 'routes/js/null/index.js',
                     initial: true,
                     cron: null,
-                },
-                {
+                }),
+                new Route({
                     path: 'test/lib/routes/js/object/index.js',
                     pkg: {
                         name: 'demo',
@@ -123,40 +124,40 @@ describe('Lib/Routes', () => {
                     rel_path: 'routes/js/object/index.js',
                     initial: true,
                     cron: null,
-                },
+                }),
             ]);
         });
         it('md', () => {
             const result = Routes.collect_routes('test/lib/routes/md');
             assert.deepStrictEqual(result, [
-                {
+                new Route({
                     path: 'test/lib/routes/md/attributes/index.md',
                     pkg: null,
                     rel_path: 'routes/md/attributes/index.md',
                     initial: true,
                     cron: null,
-                },
-                {
+                }),
+                new Route({
                     path: 'test/lib/routes/md/code/index.md',
                     pkg: null,
                     rel_path: 'routes/md/code/index.md',
                     initial: true,
                     cron: null,
-                },
-                {
+                }),
+                new Route({
                     path: 'test/lib/routes/md/empty/index.md',
                     pkg: null,
                     rel_path: 'routes/md/empty/index.md',
                     initial: true,
                     cron: null,
-                },
-                {
+                }),
+                new Route({
                     path: 'test/lib/routes/md/file/index.md',
                     pkg: null,
                     rel_path: 'routes/md/file/index.md',
                     initial: true,
                     cron: null,
-                },
+                }),
             ]);
         });
     });

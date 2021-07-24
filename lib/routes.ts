@@ -7,6 +7,7 @@ import { Build } from '@lib/build';
 import { Client } from '@lib/client';
 import { Logger } from '@lib/logger';
 import { WyvrFile } from '@lib/model/wyvr/file';
+import { Route } from '@lib/model/route';
 
 export class Routes {
     static collect_routes(dir: string = null, package_tree: any = null) {
@@ -17,7 +18,7 @@ export class Routes {
             return [];
         }
         const entries = readdirSync(dir);
-        const result = [];
+        const result: Route[] = [];
         entries.forEach((entry) => {
             const path = join(dir, entry);
             const stat = statSync(path);
@@ -28,20 +29,18 @@ export class Routes {
             if (!entry.match(/^_/) && entry.match(/\.js|\.md$/)) {
                 const rel_path = path.replace(/.*?\/routes\//, 'routes/');
                 const pkg = package_tree && package_tree[rel_path] ? package_tree[rel_path] : null;
-                const route = {
+                const route = new Route({
                     path,
                     rel_path,
-                    pkg,
-                    initial: true,
-                    cron: null,
-                };
+                    pkg
+                });
                 result.push(route);
                 return;
             }
         });
         return result;
     }
-    static async execute_route(route: { path: string; rel_path: string; pkg: any }, global_data: any) {
+    static async execute_route(route: Route, global_data: any) {
         if (!route || !route.path) {
             return [`broken route ${JSON.stringify(route)}`, null];
         }

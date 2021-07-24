@@ -36,7 +36,7 @@ describe('Lib/Error', () => {
                 message: 'The "path" argument must be of type string or an instance of Buffer or URL. Received null',
                 name: 'TypeError',
                 source: null,
-                stack: [`plugins/wyvr/example/index.js:26:36`],
+                stack: ['plugins/wyvr/example/index.js:26:36', 'Object.after [as fn] (plugins/wyvr/example/index.js:25:19)'],
             });
         });
         it('svelte error', () => {

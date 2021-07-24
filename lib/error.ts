@@ -17,7 +17,7 @@ export class Error {
             object.source = source.replace(root_dir + '/', '');
         }
         // sass error
-        if(e.file) {
+        if (e.file) {
             object.filename = e.file;
         }
         const gen_dir = join(root_dir, 'gen');
@@ -27,22 +27,22 @@ export class Error {
         }
         if (stack) {
             object.stack = stack
-            .map((entry) => {
-                // when line starts with "- <cwd>/gen"
-                const match = entry.match(/^- (.*?\/gen\/.*)$/);
-                if (match) {
-                    return match[1].replace(gen_dir + '/', '');
-                }
-                // when line contains " at /" and the "<cwd>/gen"
-                if (entry.indexOf(gen_dir) > -1 && entry.indexOf(' at ') > -1) {
-                    return entry.replace(/\s*?at /, '').replace(gen_dir + '/', '');
-                }
-                
-                return null;
-            })
-            .filter((x) => x);
+                .map((entry) => {
+                    // when line starts with "- <cwd>/gen"
+                    const match = entry.match(/^- (.*?\/gen\/.*)$/);
+                    if (match) {
+                        return match[1].replace(gen_dir + '/', '');
+                    }
+                    // when line contains " at /" and the "<cwd>/gen"
+                    if (entry.indexOf(gen_dir) > -1 && entry.indexOf(' at ') > -1) {
+                        return entry.replace(/.*?at /, '').replace(gen_dir + '/', '');
+                    }
+
+                    return null;
+                })
+                .filter((x) => x);
             // svelte errors
-            if (object.stack.length == 0 && stack[3] && stack[3].trim() == '') {
+            if (stack.length > 4 && stack[0].indexOf(gen_dir) > -1 && stack[2].indexOf('^') > -1 && stack[3].trim() == '') {
                 object.stack = [stack[0].trim().replace(gen_dir + '/', '')];
                 object.hint = stack.slice(1, 3).join('\n');
             }

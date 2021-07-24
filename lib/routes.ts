@@ -32,6 +32,8 @@ export class Routes {
                     path,
                     rel_path,
                     pkg,
+                    initial: true,
+                    cron: null,
                 };
                 result.push(route);
                 return;

@@ -172,12 +172,24 @@ export class MainHelper {
         if (!routes || routes.length == 0) {
             return [file_list, null];
         }
+        // add meta data to the route
+        if (!enhance_data) {
+            routes.forEach((route) => {
+                route.initial = false;
+            });
+        }
+
         // rebuild only specific routes based on cron config
         if (cron_state && cron_state.length > 0) {
             const cron_paths = cron_state.map((state) => state.route);
-            routes = routes.filter((route: { path; rel_path; pkg }) => {
-                return cron_paths.indexOf(route.rel_path) > -1;
-            });
+            routes = routes
+                .filter((route: { path: string; rel_path: string; pkg: any; intial: boolean }) => {
+                    return cron_paths.indexOf(route.rel_path) > -1;
+                })
+                .map((route) => {
+                    route.cron = cron_state.find((state) => state.route == route.rel_path);
+                    return route;
+                });
         }
         // collect generated routes
         const route_urls = [];
@@ -189,8 +201,8 @@ export class MainHelper {
         const result = await worker_controller.process_in_workers(
             'routes',
             WorkerAction.route,
-            routes.map((route_path) => ({
-                route: route_path,
+            routes.map((route) => ({
+                route,
                 add_to_global: !!enhance_data,
             })),
             1
@@ -279,7 +291,7 @@ export class MainHelper {
         await Promise.all(
             list.map(async (file) => {
                 // because of an compilation error the page can be non existing
-                if(!file || !existsSync(file)) {
+                if (!file || !existsSync(file)) {
                     return null;
                 }
                 const content = readFileSync(file, { encoding: 'utf-8' });

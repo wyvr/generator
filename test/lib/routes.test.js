@@ -24,31 +24,43 @@ describe('Lib/Routes', () => {
                     path: 'test/lib/routes/js/array/index.js',
                     pkg: null,
                     rel_path: 'routes/js/array/index.js',
+                    initial: true,
+                    cron: null,
                 },
                 {
                     path: 'test/lib/routes/js/error/index.js',
                     pkg: null,
                     rel_path: 'routes/js/error/index.js',
+                    initial: true,
+                    cron: null,
                 },
                 {
                     path: 'test/lib/routes/js/func/index.js',
                     pkg: null,
                     rel_path: 'routes/js/func/index.js',
+                    initial: true,
+                    cron: null,
                 },
                 {
                     path: 'test/lib/routes/js/link/index.js',
                     pkg: null,
                     rel_path: 'routes/js/link/index.js',
+                    initial: true,
+                    cron: null,
                 },
                 {
                     path: 'test/lib/routes/js/null/index.js',
                     pkg: null,
                     rel_path: 'routes/js/null/index.js',
+                    initial: true,
+                    cron: null,
                 },
                 {
                     path: 'test/lib/routes/js/object/index.js',
                     pkg: null,
                     rel_path: 'routes/js/object/index.js',
+                    initial: true,
+                    cron: null,
                 },
             ]);
         });
@@ -71,26 +83,36 @@ describe('Lib/Routes', () => {
                         path: '.',
                     },
                     rel_path: 'routes/js/array/index.js',
+                    initial: true,
+                    cron: null,
                 },
                 {
                     path: 'test/lib/routes/js/error/index.js',
                     pkg: null,
                     rel_path: 'routes/js/error/index.js',
+                    initial: true,
+                    cron: null,
                 },
                 {
                     path: 'test/lib/routes/js/func/index.js',
                     pkg: null,
                     rel_path: 'routes/js/func/index.js',
+                    initial: true,
+                    cron: null,
                 },
                 {
                     path: 'test/lib/routes/js/link/index.js',
                     pkg: null,
                     rel_path: 'routes/js/link/index.js',
+                    initial: true,
+                    cron: null,
                 },
                 {
                     path: 'test/lib/routes/js/null/index.js',
                     pkg: null,
                     rel_path: 'routes/js/null/index.js',
+                    initial: true,
+                    cron: null,
                 },
                 {
                     path: 'test/lib/routes/js/object/index.js',
@@ -99,6 +121,8 @@ describe('Lib/Routes', () => {
                         path: '.',
                     },
                     rel_path: 'routes/js/object/index.js',
+                    initial: true,
+                    cron: null,
                 },
             ]);
         });
@@ -109,21 +133,29 @@ describe('Lib/Routes', () => {
                     path: 'test/lib/routes/md/attributes/index.md',
                     pkg: null,
                     rel_path: 'routes/md/attributes/index.md',
+                    initial: true,
+                    cron: null,
                 },
                 {
                     path: 'test/lib/routes/md/code/index.md',
                     pkg: null,
                     rel_path: 'routes/md/code/index.md',
+                    initial: true,
+                    cron: null,
                 },
                 {
                     path: 'test/lib/routes/md/empty/index.md',
                     pkg: null,
                     rel_path: 'routes/md/empty/index.md',
+                    initial: true,
+                    cron: null,
                 },
                 {
                     path: 'test/lib/routes/md/file/index.md',
                     pkg: null,
                     rel_path: 'routes/md/file/index.md',
+                    initial: true,
+                    cron: null,
                 },
             ]);
         });
@@ -140,6 +172,8 @@ describe('Lib/Routes', () => {
                 path: 'test/lib/routes/unknown.file',
                 pkg: null,
                 rel_path: 'routes/unknown.file',
+                initial: true,
+                cron: null,
             });
             assert.deepStrictEqual(error, null);
             assert.deepStrictEqual(result, null);
@@ -151,6 +185,8 @@ describe('Lib/Routes', () => {
                     path: 'test/lib/routes/md/file/index.md',
                     pkg: null,
                     rel_path: 'routes/md/file/index.md',
+                    initial: true,
+                    cron: null,
                 },
                 null
             );
@@ -169,6 +205,8 @@ describe('Lib/Routes', () => {
                     path: 'test/lib/routes/md/empty/index.md',
                     pkg: null,
                     rel_path: 'routes/md/empty/index.md',
+                    initial: true,
+                    cron: null,
                 },
                 null
             );
@@ -181,6 +219,8 @@ describe('Lib/Routes', () => {
                     path: 'test/lib/routes/md/attributes/index.md',
                     pkg: null,
                     rel_path: 'routes/md/attributes/index.md',
+                    initial: true,
+                    cron: null,
                 },
                 null
             );
@@ -201,6 +241,8 @@ describe('Lib/Routes', () => {
                     path: 'test/lib/routes/md/code/index.md',
                     pkg: null,
                     rel_path: 'routes/md/code/index.md',
+                    initial: true,
+                    cron: null,
                 },
                 null
             );
@@ -220,6 +262,8 @@ describe('Lib/Routes', () => {
                     path: 'test/lib/routes/md/file/index.md',
                     pkg: null,
                     rel_path: 'routes/md/file/index.md',
+                    initial: true,
+                    cron: null,
                 },
                 {
                     a: { b: { c: 'found' } },
@@ -233,6 +277,8 @@ describe('Lib/Routes', () => {
                     path: process.cwd() + '/test/lib/routes/js/null/index.js',
                     pkg: null,
                     rel_path: 'routes/js/null/index.js',
+                    initial: true,
+                    cron: null,
                 },
                 null
             );
@@ -245,6 +291,8 @@ describe('Lib/Routes', () => {
                     path: process.cwd() + '/test/lib/routes/js/object/index.js',
                     pkg: null,
                     rel_path: 'routes/js/object/index.js',
+                    initial: true,
+                    cron: null,
                 },
                 null
             );
@@ -257,6 +305,8 @@ describe('Lib/Routes', () => {
                     path: process.cwd() + '/test/lib/routes/js/array/index.js',
                     pkg: null,
                     rel_path: 'routes/js/array/index.js',
+                    initial: true,
+                    cron: null,
                 },
                 null
             );
@@ -269,6 +319,8 @@ describe('Lib/Routes', () => {
                     path: process.cwd() + '/test/lib/routes/js/error/index.js',
                     pkg: null,
                     rel_path: 'routes/js/error/index.js',
+                    initial: true,
+                    cron: null,
                 },
                 null
             );
@@ -281,6 +333,8 @@ describe('Lib/Routes', () => {
                     path: process.cwd() + '/test/lib/routes/js/func/index.js',
                     pkg: null,
                     rel_path: 'routes/js/func/index.js',
+                    initial: true,
+                    cron: null,
                 },
                 null
             );
@@ -291,6 +345,8 @@ describe('Lib/Routes', () => {
                         path: process.cwd() + '/test/lib/routes/js/func/index.js',
                         pkg: null,
                         rel_path: 'routes/js/func/index.js',
+                        initial: true,
+                        cron: null,
                     },
                     url: '/js/func',
                 },

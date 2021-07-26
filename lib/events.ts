@@ -3,31 +3,33 @@ export class Events {
     auto_increment: number = 0;
     constructor() {}
     on(scope: string, name: string | number, fn: Function): number {
-        if (!scope || typeof scope != 'string') {
-            scope = '_';
+        const _scope = this.get_scope(scope);
+        const _name = this.to_string(name);
+        if (!this.listeners[_scope]) {
+            this.listeners[_scope] = {};
         }
-        name = this.to_string(name);
-        if (!this.listeners[scope]) {
-            this.listeners[scope] = {};
-        }
-        if (!this.listeners[scope][name]) {
-            this.listeners[scope][name] = [];
+        if (!this.listeners[_scope][_name]) {
+            this.listeners[_scope][_name] = [];
         }
 
         const id = this.auto_increment++;
-        this.listeners[scope][name].push({ id, fn });
+        this.listeners[_scope][_name].push({ id, fn });
         return id;
     }
     off(scope: string, name: string | number, index: number) {
-        if (Array.isArray(this.listeners[scope][this.to_string(name)])) {
-            this.listeners[scope][this.to_string(name)] = this.listeners[scope][this.to_string(name)].filter((listener) => {
+        const _scope = this.get_scope(scope);
+        const _name = this.to_string(name);
+        if (this.listeners[_scope] && this.listeners[_scope][_name] && Array.isArray(this.listeners[_scope][_name])) {
+            this.listeners[_scope][_name] = this.listeners[_scope][_name].filter((listener) => {
                 return listener.id != index;
             });
         }
     }
     emit(scope: string, name: string | number, data: any = null) {
-        if (this.listeners[scope] && this.listeners[scope][this.to_string(name)]) {
-            this.listeners[scope][this.to_string(name)].forEach((listener) => {
+        const _scope = this.get_scope(scope);
+        const _name = this.to_string(name);
+        if (this.listeners[_scope] && this.listeners[_scope][_name] && Array.isArray(this.listeners[_scope][_name])) {
+            this.listeners[_scope][_name].forEach((listener) => {
                 if (!listener || typeof listener.fn != 'function') {
                     return;
                 }
@@ -36,12 +38,23 @@ export class Events {
         }
     }
     once(scope: string, name: string | number, fn: Function) {
-        const index = this.on(scope, name, (...props) => {
+        if (!fn || typeof fn != 'function') {
+            return;
+        }
+        const _scope= this.get_scope(scope);
+        const _name = this.to_string(name);
+        const index = this.on(_scope, _name, (...props) => {
             fn(...props);
-            this.off(scope, name, index);
+            this.off(_scope, _name, index);
         });
     }
     to_string(name: string | number) {
         return name + '';
+    }
+    get_scope(scope: string) {
+        if (!scope || typeof scope != 'string') {
+            return '_';
+        }
+        return scope;
     }
 }

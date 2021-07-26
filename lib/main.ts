@@ -35,6 +35,7 @@ export class Main {
     package_tree = {};
     cron_state = [];
     cron_config = [];
+    identifier_data_list = [];
 
     constructor() {
         Env.set(process.env.WYVR_ENV);
@@ -183,11 +184,11 @@ export class Main {
             // build the cron routes
             this.perf.start('build');
             // build static files
-            const [build_pages, css_parents] = await this.helper.build(this.worker_controller, cron_routes);
+            const [build_pages, identifier_data_list] = await this.helper.build(this.worker_controller, cron_routes, null, null);
             this.perf.end('build');
 
             this.perf.start('optimize');
-            await this.helper.optimize(css_parents, this.worker_controller);
+            await this.helper.optimize(identifier_data_list, this.worker_controller);
             this.perf.end('optimize');
 
             // update last execution time in cron file
@@ -293,8 +294,12 @@ export class Main {
         }
         // read all imported files
         const files = File.collect_files(join(this.cwd, 'gen', 'data'), 'json');
+
         // build static files
-        const [build_pages, css_parents] = await this.helper.build(this.worker_controller, files);
+        const [build_pages, identifier_data_list] = await this.helper.build(this.worker_controller, files, changed_files, this.identifier_data_list);
+        if(this.identifier_data_list.length == 0) {
+            this.identifier_data_list = identifier_data_list;
+        }
         this.perf.end('build');
 
         // inject data into the pages
@@ -363,7 +368,7 @@ export class Main {
         this.perf.end('link');
 
         this.perf.start('optimize');
-        await this.helper.optimize(css_parents, this.worker_controller);
+        await this.helper.optimize(identifier_data_list, this.worker_controller);
         this.perf.end('optimize');
 
         this.perf.start('release');

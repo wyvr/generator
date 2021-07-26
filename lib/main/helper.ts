@@ -23,6 +23,7 @@ import { Global } from '@lib/global';
 
 export class MainHelper {
     cwd = process.cwd();
+    root_template_paths = [join(this.cwd, 'gen', 'src', 'doc'), join(this.cwd, 'gen', 'src', 'layout'), join(this.cwd, 'gen', 'src', 'page')];
 
     generate(data, ignore_global: boolean = false, default_values: any = null) {
         // enhance the data from the pages
@@ -233,7 +234,7 @@ export class MainHelper {
             try {
                 const content = Global.replace_global(combined_content, global_data);
                 writeFileSync(file.path, content);
-            } catch(e) {
+            } catch (e) {
                 Logger.error(Error.get(e, file.path, 'wyvr'));
             }
         });
@@ -264,37 +265,111 @@ export class MainHelper {
             client: transformed_files,
         };
     }
-    async build(worker_controller: WorkerController, list: string[]): Promise<[string[], string[]]> {
-        // clear css files otherwise these will not be regenerated, because the build step only creates the file when it is not present already
-        removeSync(join('gen', 'css'));
-
+    async build(
+        worker_controller: WorkerController,
+        list: string[],
+        changed_files: { event: string; path: string; rel_path: string }[] = null,
+        identifier_list: any[] = null
+    ): Promise<[string[], string[]]> {
         mkdirSync('gen/src', { recursive: true });
+
+        // rebuild ony affected resources
+        if (changed_files && changed_files.some((file)=>file.rel_path.indexOf('src/') == 0)  && identifier_list && identifier_list.length > 0 && Dependency.cache) {
+            const deps = [];
+            changed_files.forEach((file) => {
+                deps.push(...Dependency.get_dependent_identifiers(file.rel_path));
+            });
+            // add the dependet identifiers to the variants which will be exposed as matrix
+            const variants = { doc: ['*'], layout: ['*'], page: ['*'] };
+            let ignore_default = true;
+            deps.filter((val, index, arr) => {
+                return arr.indexOf(val) == index;
+            }).forEach((path) => {
+                if (path.indexOf('Default.svelte') > -1) {
+                    ignore_default = false;
+                }
+                if (path.indexOf('doc/') == 0) {
+                    variants.doc.push(path.replace('doc/', ''));
+                    return;
+                }
+                if (path.indexOf('layout/') == 0) {
+                    variants.layout.push(path.replace('layout/', ''));
+                    return;
+                }
+                if (path.indexOf('page/') == 0) {
+                    variants.page.push(path.replace('page/', ''));
+                    return;
+                }
+            });
+            // build matrix of all possible combinations
+            let dep_identifiers = [];
+            variants.doc.forEach((doc) => {
+                variants.layout.forEach((layout) => {
+                    variants.page.forEach((page) => {
+                        const di = Client.get_identifier_name(this.root_template_paths, doc, layout, page);
+                        if (ignore_default && di == '*_*_*') {
+                            return;
+                        }
+                        dep_identifiers.push(di.replace(/\*/g, '[^_]*'));
+                    });
+                });
+            });
+            // convert the dependecy identifiers to a valid regex
+            dep_identifiers = dep_identifiers
+                .map((val) => `^${val}$`)
+                .filter((val, index, arr) => {
+                    return arr.indexOf(val) == index;
+                });
+            // modify list that only affected pages gets rebuild
+            const delete_files = [];
+            list = identifier_list
+                .filter((identifier_item) => {
+                    return dep_identifiers.find((di_regex) => {
+                        const matches = identifier_item.identifier.match(new RegExp(di_regex));
+                        if (matches) {
+                            delete_files.push(identifier_item.identifier);
+                        }
+                        return matches;
+                    });
+                })
+                .map((identifier_item) => identifier_item.filename);
+            // clear css files otherwise these will not be regenerated, because the build step only creates the file when it is not present already
+            delete_files
+                .filter((val, index, arr) => arr.indexOf(val) == index)
+                .forEach((identifier) => {
+                    removeSync(join('gen', 'css', `${identifier}.css`));
+                });
+        } else {
+            // clear css files otherwise these will not be regenerated, because the build step only creates the file when it is not present already
+            removeSync(join('gen', 'css'));
+        }
+
         await Plugin.before('build', list);
         Logger.info('build datasets', list.length);
         const paths = [];
-        const css_parents = [];
+        const identifier_data_list = [];
         const on_build_index = worker_controller.events.on('emit', 'build', (data) => {
             // add the results to the build file list
             if (data) {
                 paths.push(...data.data);
             }
         });
-        const on_css_index = worker_controller.events.on('emit', 'css_parent', (data) => {
+        const on_identifier_index = worker_controller.events.on('emit', 'identifier_list', (data) => {
             // add the results to the build file list
             if (data && data.data) {
                 if (Array.isArray(data.data)) {
-                    css_parents.push(...data.data);
+                    identifier_data_list.push(...data.data);
                     return;
                 }
-                css_parents.push(data.data);
+                identifier_data_list.push(data.data);
             }
         });
 
         const result = await worker_controller.process_in_workers('build', WorkerAction.build, list, 100);
         worker_controller.events.off('emit', 'build', on_build_index);
-        worker_controller.events.off('emit', 'css_parent', on_css_index);
+        worker_controller.events.off('emit', 'identifier_list', on_identifier_index);
         await Plugin.after('build', result, paths);
-        return [paths, css_parents];
+        return [paths, identifier_data_list];
     }
     async inject(list: string[]) {
         await Promise.all(

@@ -56,14 +56,14 @@ export class Build {
         }
         // write css file
         const css_file_path = join('gen', 'css', `${props._wyvr.identifier}.css`);
-        let css_parent = { url: props.url, identifier: props._wyvr.identifier, extension: props._wyvr.extension };
+        let identifier_item = { url: props.url, identifier: props._wyvr.identifier, extension: props._wyvr.extension };
         if (!fs.existsSync(css_file_path)) {
             fs.mkdirSync(dirname(css_file_path), { recursive: true });
             fs.writeFileSync(css_file_path, svelte_render_item.result.css.code);
         }
         // inject css
         // svelte_render_item.result.html = svelte_render_item.result.html.replace('</head>', `<style>${svelte_render_item.result.css.code}</style></head>`);
-        return [null, svelte_render_item, css_parent];
+        return [null, svelte_render_item, identifier_item];
     }
     // precompile the components to check whether there is only global data used
     static precompile_components() {

@@ -100,7 +100,7 @@ export class Worker {
                     break;
                 case WorkerAction.build:
                     WorkerHelper.send_status(WorkerStatus.busy);
-                    let css_parents = [];
+                    let identifier_list = [];
                     const build_result = await Promise.all(
                         value.map(async (filename) => {
                             const data = File.read_json(filename);
@@ -118,7 +118,7 @@ export class Worker {
                                 WorkerHelper.log(LogType.error, '[svelte]', data.url, Error.get(compile_error, filename, 'build'));
                                 return;
                             }
-                            const [render_error, rendered, css_parent] = Build.render(compiled, data);
+                            const [render_error, rendered, identifier_item] = Build.render(compiled, data);
                             if (render_error) {
                                 // svelte error messages
                                 WorkerHelper.log(LogType.error, '[svelte]', data.url, Error.get(render_error, filename, 'render'));
@@ -163,9 +163,10 @@ export class Worker {
                                 mkdirSync(dirname(data_path), { recursive: true });
                                 writeFileSync(data_path, JSON.stringify(data));
                             }
-                            if (css_parent) {
-                                css_parent.path = path;
-                                css_parents.push(css_parent);
+                            if (identifier_item) {
+                                identifier_item.path = path;
+                                identifier_item.filename = filename;
+                                identifier_list.push(identifier_item);
                             }
 
                             Dir.create(dirname(path));
@@ -178,8 +179,8 @@ export class Worker {
                     this.identifiers_cache = {};
                     // bulk sending the css root elements
                     WorkerHelper.send_action(WorkerAction.emit, {
-                        type: 'css_parent',
-                        data: css_parents,
+                        type: 'identifier_list',
+                        data: identifier_list,
                     });
                     // bulk sending the build paths
                     WorkerHelper.send_action(WorkerAction.emit, {

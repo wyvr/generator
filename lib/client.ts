@@ -357,7 +357,7 @@ export class Client {
                     .replace(replace_pattern, '')
                     .replace(/\.svelte$/, '')
                     .toLowerCase()
-                    .replace(/\//, '-');
+                    .replace(/[/_]/g, '-');
             })
             .join('_');
         if (!result) {

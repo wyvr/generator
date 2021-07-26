@@ -1,6 +1,6 @@
 import { WorkerStatus } from '@lib/model/worker/status';
 import { WorkerAction } from '@lib/model/worker/action';
-import { LogType } from '../model/log';
+import { LogType } from '@lib/model/log';
 
 export class WorkerHelper {
     static send(data) {

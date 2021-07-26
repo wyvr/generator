@@ -19,6 +19,7 @@ import { Client } from '@lib/client';
 import { Dependency } from '@lib/dependency';
 import { Error } from '@lib/error';
 import { Route } from '@lib/model/route';
+import { Global } from '@lib/global';
 
 export class MainHelper {
     cwd = process.cwd();
@@ -230,7 +231,7 @@ export class MainHelper {
             }
             const combined_content = Client.insert_splits(file.path, pre_error ? raw_content : preprocessed_content);
             try {
-                const content = Client.replace_global(combined_content, global_data);
+                const content = Global.replace_global(combined_content, global_data);
                 writeFileSync(file.path, content);
             } catch(e) {
                 Logger.error(Error.get(e, file.path, 'wyvr'));

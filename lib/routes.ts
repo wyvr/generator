@@ -3,11 +3,8 @@ import { join, dirname, resolve } from 'path';
 import marked from 'marked';
 import fm from 'front-matter';
 import { File } from '@lib/file';
-import { Build } from '@lib/build';
-import { Client } from '@lib/client';
-import { Logger } from '@lib/logger';
-import { WyvrFile } from '@lib/model/wyvr/file';
 import { Route } from '@lib/model/route';
+import { Global } from '@lib/global';
 
 export class Routes {
     static collect_routes(dir: string = null, package_tree: any = null) {
@@ -46,7 +43,7 @@ export class Routes {
         }
         if (!(<any>global).getGlobal || typeof (<any>global).getGlobal != 'function') {
             (<any>global).getGlobal = (key, fallback, callback) => {
-                return Client.get_global(key, fallback || null, global_data, callback);
+                return Global.get_global(key, fallback || null, global_data, callback);
             };
         }
         if (route.path.match(/\.md$/)) {

@@ -10,9 +10,9 @@ SHELL := /bin/bash
 WYVR_COMPILE=npx tsc
 WYVR_BUILD=node ./wyvr/index.js
 WYVR_TEST=npx mocha -R dot './test/**/*.js'
-WYVR_COVERAGE=npx nyc -x 'config/**/*' -x 'test/**/*' -x 'gen/**/*' -x 'imported/**/*' -x 'wyvr.js' -x 'pub' $(WYVR_TEST)
-WYVR_CLEAN=rm -rf imported coverage wyvr pub gen releases
-WYVR_FOLDERS=mkdir imported coverage wyvr pub gen releases
+WYVR_COVERAGE=npx nyc -x 'config/**/*' -x 'test/**/*' -x 'gen/**/*' -x 'wyvr.js' -x 'pub' $(WYVR_TEST)
+WYVR_CLEAN=rm -rf coverage wyvr pub gen releases
+WYVR_FOLDERS=mkdir coverage wyvr pub gen releases
 
 help: ## Show this help
 	@echo "Usage: make [TARGET ...]"
@@ -35,7 +35,6 @@ watch: ## Start watcher and make dev builds
 	@$(WYVR_FOLDERS)
 	@env WYVR_ENV=dev npx nodemon \
 		--ignore test \
-		--ignore imported \
 		--ignore data \
 		--ignore pub \
 		--ignore wyvr \
@@ -50,7 +49,6 @@ compile-watch: ## Start watcher and make dev builds
 	@$(WYVR_FOLDERS)
 	@env WYVR_ENV=dev npx nodemon \
 		--ignore test \
-		--ignore imported \
 		--ignore data \
 		--ignore pub \
 		--ignore wyvr \

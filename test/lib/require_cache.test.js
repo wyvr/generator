@@ -10,17 +10,13 @@ describe('Lib/RequireCache', () => {
     describe('clear', () => {
         it('contains gen files', () => {
             require.cache[join(process.cwd(), 'gen/test')] = true;
-            require.cache[join(process.cwd(), 'imported/test')] = true;
-            assert(RequireCache.clear() == 2);
+            assert(RequireCache.clear() == 1);
             assert(Object.keys(require.cache).find((cache_file) => cache_file.indexOf('/gen/') > -1) == null);
         });
     });
     describe('matches', () => {
         it('gen', () => {
             assert(RequireCache.matches(join(process.cwd(), 'gen/test/a')));
-        });
-        it('imported', () => {
-            assert(RequireCache.matches(join(process.cwd(), 'imported/data/a')));
         });
     });
 });

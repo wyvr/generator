@@ -381,7 +381,7 @@ describe('Lib/Routes', () => {
         });
         it('valid', () => {
             const result = Routes.write_routes([{ url: '/route-test' }]);
-            assert.deepStrictEqual(result, [process.cwd() + '/imported/data/route-test/index.json']);
+            assert.deepStrictEqual(result, [process.cwd() + '/gen/data/route-test/index.json']);
             result.forEach((file) => {
                 assert.strictEqual(existsSync(file), true);
                 removeSync(file);

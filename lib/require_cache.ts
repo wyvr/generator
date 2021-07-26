@@ -23,6 +23,6 @@ export class RequireCache {
      * @returns boolean
      */
     static matches(cache_file: string): boolean {
-        return cache_file.indexOf(join(process.cwd(), 'gen')) > -1 || cache_file.indexOf(join(process.cwd(), 'imported')) > -1;
+        return cache_file.indexOf(join(process.cwd(), 'gen')) > -1;
     }
 }

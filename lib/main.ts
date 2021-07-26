@@ -292,7 +292,7 @@ export class Main {
             writeFileSync(join(this.release_path, '_global.json'), JSON.stringify(this.global_data));
         }
         // read all imported files
-        const files = File.collect_files(join(this.cwd, 'imported', 'data'), 'json');
+        const files = File.collect_files(join(this.cwd, 'gen', 'data'), 'json');
         // build static files
         const [build_pages, css_parents] = await this.helper.build(this.worker_controller, files);
         this.perf.end('build');

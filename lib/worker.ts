@@ -126,7 +126,7 @@ export class Worker {
                             }
                             // change extension when set
                             const extension = data._wyvr?.extension;
-                            const path = File.to_extension(filename.replace(join(this.cwd, 'imported', 'data'), this.release_path), extension);
+                            const path = File.to_extension(filename.replace(join(this.cwd, 'gen', 'data'), this.release_path), extension);
                             // add debug data
                             if (extension.match(/html|htm|php/) && (this.env == EnvModel.debug || this.env == EnvModel.dev)) {
                                 const data_path = File.to_extension(path, 'json');

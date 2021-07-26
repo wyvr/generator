@@ -13,9 +13,9 @@ const cwd = process.cwd();
 
 export class Importer {
     chunk_index = 0;
-    state_file = join(cwd, 'imported', 'import.json');
-    state_list_file = join(cwd, 'imported', 'import_list.json');
-    state_global_file = join(cwd, 'imported', 'global.json');
+    state_file = join(cwd, 'gen', 'import.json');
+    state_list_file = join(cwd, 'gen', 'import_list.json');
+    state_global_file = join(cwd, 'gen', 'global.json');
     state = null;
     list: string[] = [];
     perf: IPerformance_Measure;
@@ -23,7 +23,7 @@ export class Importer {
         this.perf = Config.get('import.measure_performance') ? new Performance_Measure() : new Performance_Measure_Blank();
     }
     /**
-     * import the datasets from the given filepath into `imported/data`
+     * import the datasets from the given filepath into `gen/data`
      * @param import_file_path path to the file which should be imported
      * @param hook_before_process the hook_before_process must return the original object or a modified version, because it will be executed before the processing of the data
      * @returns the amount of imported datasets
@@ -31,7 +31,7 @@ export class Importer {
     import(import_file_path: string, hook_before_process: Hook_Before_Process = null, hook_after_import: Function): Promise<number> {
         this.perf.start('import');
 
-        Dir.create('imported/data');
+        Dir.create('gen/data');
         if (!this.should_import(import_file_path)) {
             const state = this.load_import_state();
             if (state) {
@@ -83,7 +83,7 @@ export class Importer {
         const url = data.value.url || data.key.toString();
         const perf_mark = `import/process ${url}`;
         this.perf.start(perf_mark);
-        const filepath = File.to_extension(File.to_index(join(cwd, 'imported', 'data', url)), '.json');
+        const filepath = File.to_extension(File.to_index(join(cwd, 'gen', 'data', url)), '.json');
         File.create_dir(filepath);
         fs.writeFileSync(filepath, JSON.stringify(data.value, null, format_processed_file ? 4 : null));
 
@@ -149,7 +149,7 @@ export class Importer {
      */
     should_import(import_file_path: string): boolean {
         if (!this.state) {
-            const data_content = fs.readdirSync(join(cwd, 'imported', 'data'));
+            const data_content = fs.readdirSync(join(cwd, 'gen', 'data'));
             if (!data_content || !Array.isArray(data_content) || data_content.length == 0) {
                 Logger.info('no imported data', 'import');
                 return true;

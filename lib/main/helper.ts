@@ -274,7 +274,13 @@ export class MainHelper {
         mkdirSync('gen/src', { recursive: true });
 
         // rebuild ony affected resources
-        if (changed_files && changed_files.some((file)=>file.rel_path.indexOf('src/') == 0)  && identifier_list && identifier_list.length > 0 && Dependency.cache) {
+        if (
+            changed_files &&
+            changed_files.some((file) => file.rel_path.indexOf('src/') == 0) &&
+            identifier_list &&
+            identifier_list.length > 0 &&
+            Dependency.cache
+        ) {
             const deps = [];
             changed_files.forEach((file) => {
                 deps.push(...Dependency.get_dependent_identifiers(file.rel_path));

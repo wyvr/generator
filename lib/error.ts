@@ -59,6 +59,10 @@ export class Error {
         if (e.frame) {
             object.stack = e.frame.split('\n');
         }
+        // when stack is empty add the original stack
+        if(!object.stack && e.stack) {
+            object.stack = e.stack;
+        }
 
         return object;
     }

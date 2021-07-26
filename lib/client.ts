@@ -14,6 +14,7 @@ import { WorkerHelper } from '@lib/worker/helper';
 import { LogType } from '@lib/model/log';
 import { Error } from '@lib/error';
 import sass from 'sass';
+import { Logger } from '@lib/logger';
 
 export class Client {
     static async create_bundle(cwd: string, entry: any, hydrate_files: WyvrFile[]) {
@@ -386,6 +387,11 @@ export class Client {
     }
     static get_global(key: string, fallback: any = null, global_data: any = null) {
         if (!key || !global_data) {
+            return fallback;
+        }
+        // avoid loading to much data
+        if(key == 'nav') {
+            Logger.error('[wyvr]', 'avoid getting getGlobal("nav") because of potential risk');
             return fallback;
         }
         const steps = key.split('.');

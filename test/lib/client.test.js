@@ -325,6 +325,18 @@ describe('Lib/Client', () => {
         it('valid, fallback string', () => {
             assert.strictEqual(Client.replace_global(`getGlobal('nav.header', 'test')`), '"test"');
         });
+        it('nav can cause memory overflow, because of to much data been parsed', () => {
+            const log = console.log;
+            const output = [];
+            console.log = (...messages) => {
+                output.push(messages);
+            };
+            assert.strictEqual(Client.replace_global(`getGlobal('nav')`, global), 'null');
+            assert.deepStrictEqual(output, [
+                ['\u001b[31m✘\u001b[39m', '\u001b[31m[wyvr]\u001b[39m \u001b[31mavoid getting getGlobal("nav") because of potential risk\u001b[39m'],
+            ]);
+            console.log = log;
+        });
         it('valid without fallback', () => {
             assert.strictEqual(
                 Client.replace_global(`getGlobal('nav.header')`, global),

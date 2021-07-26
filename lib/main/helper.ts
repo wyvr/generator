@@ -218,6 +218,9 @@ export class MainHelper {
         const svelte_files = File.collect_svelte_files('gen/src');
         await Plugin.before('transform', svelte_files);
 
+        // destroy getGlobal to avoid overlapping calls
+        delete (<any>global).getGlobal;
+
         // combine svelte files
         svelte_files.map((file) => {
             const raw_content = readFileSync(file.path, { encoding: 'utf-8' });
@@ -226,8 +229,12 @@ export class MainHelper {
                 Logger.error(pre_error);
             }
             const combined_content = Client.insert_splits(file.path, pre_error ? raw_content : preprocessed_content);
-            const content = Client.replace_global(combined_content, global_data);
-            writeFileSync(file.path, content);
+            try {
+                const content = Client.replace_global(combined_content, global_data);
+                writeFileSync(file.path, content);
+            } catch(e) {
+                Logger.error(Error.get(e, file.path, 'wyvr'));
+            }
         });
         // search for hydrateable files
         const hydrateable_files = Client.get_hydrateable_svelte_files(svelte_files);

@@ -45,8 +45,8 @@ export class Routes {
             return [`broken route ${JSON.stringify(route)}`, null];
         }
         if (!(<any>global).getGlobal || typeof (<any>global).getGlobal != 'function') {
-            (<any>global).getGlobal = (key, fallback) => {
-                return Client.get_global(key, fallback || null, global_data);
+            (<any>global).getGlobal = (key, fallback, callback) => {
+                return Client.get_global(key, fallback || null, global_data, callback);
             };
         }
         if (route.path.match(/\.md$/)) {

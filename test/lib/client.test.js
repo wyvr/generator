@@ -9,6 +9,9 @@ describe('Lib/Client', () => {
     const cwd = process.cwd();
 
     before(() => {});
+    beforeEach(() => {
+        delete global.getGlobal;
+    });
     describe('create_bundle', () => {
         // it('', ()=>{})
     });
@@ -333,7 +336,7 @@ describe('Lib/Client', () => {
             };
             assert.strictEqual(Client.replace_global(`getGlobal('nav')`, global), 'null');
             assert.deepStrictEqual(output, [
-                ['\u001b[31m✘\u001b[39m', '\u001b[31m[wyvr]\u001b[39m \u001b[31mavoid getting getGlobal("nav") because of potential risk\u001b[39m'],
+                ['\u001b[31m✘\u001b[39m', '\u001b[31m[wyvr]\u001b[39m \u001b[31mavoid getting getGlobal("nav") because of potential memory leak, add a callback to shrink results\u001b[39m'],
             ]);
             console.log = log;
         });
@@ -390,6 +393,110 @@ describe('Lib/Client', () => {
                         url: 'https://wyvr.dev',
                     },
                 ])
+            );
+        });
+        it('valid with fallback object', () => {
+            assert.strictEqual(
+                Client.replace_global(
+                    `getGlobal('demo', { 
+                    'url': 'https://wyvr.dev'
+                })`,
+                    null
+                ),
+                JSON.stringify({
+                    url: 'https://wyvr.dev',
+                })
+            );
+        });
+        it('callback array', () => {
+            assert.strictEqual(
+                Client.replace_global(
+                    `getGlobal('nav.header', [], (data) => {
+                    return data.filter((item)=>{
+                        return item && item.url && item.url.indexOf('match') > -1;
+                    })
+                })`,
+                    {
+                        nav: {
+                            header: [{ url: 'match' }, { url: 'nope' }, { url: 'not' }],
+                        },
+                    }
+                ),
+                JSON.stringify([
+                    {
+                        url: 'match',
+                    },
+                ])
+            );
+        });
+        it('callback fallback array', () => {
+            assert.strictEqual(
+                Client.replace_global(
+                    `getGlobal('nav.header', [{ url: 'match' }, { url: 'nope' }, { url: 'not' }], (data) => {
+                    return data.filter((item)=>{
+                        return item && item.url && item.url.indexOf('match') > -1;
+                    })
+                })`,
+                    null
+                ),
+                JSON.stringify([
+                    {
+                        url: 'match',
+                    },
+                ])
+            );
+        });
+        it('callback object', () => {
+            assert.strictEqual(
+                Client.replace_global(
+                    `getGlobal('item', false, (data) => {
+                        data.c = true;
+                        return data
+                    })`,
+                    {
+                        item: {
+                            a: true,
+                            b: false,
+                        },
+                    }
+                ),
+                JSON.stringify({
+                    a: true,
+                    b: false,
+                    c: true
+                })
+            );
+        });
+        it('callback fallback object', () => {
+            assert.strictEqual(
+                Client.replace_global(
+                    `getGlobal('item', {
+                        "a": true,
+                        "b": false,
+                    }, (data) => {
+                        data.c = true;
+                        return data
+                    })`,
+                    null
+                ),
+                JSON.stringify({
+                    a: true,
+                    b: false,
+                    c: true
+                })
+            );
+        });
+        it('add around code', () => {
+            assert.strictEqual(
+                Client.replace_global(
+                    `const a = getGlobal('item', [1], (data) => {
+                        data.push(0);
+                        data.push(2);
+                        return data;
+                    }); a.filter((x)=>x)`,
+                    []
+                ),
+                `const a = ${JSON.stringify([1,0,2])}; a.filter((x)=>x)`
             );
         });
     });

@@ -369,30 +369,56 @@ export class Client {
         if (!content || typeof content != 'string') {
             return '';
         }
-        return content.replace(/getGlobal\(['"]([^'"]+)['"](?:,\s*([^\)]+))?\)/g, (matched, key, fallback) => {
-            // getGlobal('nav.header')
-            // getGlobal("nav.header")
-            // getGlobal('nav.header[0]')
-            // getGlobal('nav.header', [])
-            // getGlobal('nav.header', true)
-            // getGlobal('nav.header', 'test')
-            try {
-                fallback = JSON.parse(fallback.replace(/'/g, '"'));
-            } catch (e) {
-                fallback = null;
+        const search_string = 'getGlobal(';
+        let start_index = content.indexOf(search_string);
+        // when not found
+        if (start_index == -1) {
+            return content;
+        }
+        let index = start_index + search_string.length + 1;
+        let open_brackets = 1;
+        let found_closing = false;
+        const length = content.length;
+        while (index < length && open_brackets > 0) {
+            const char = content[index];
+            switch (char) {
+                case '(':
+                    open_brackets++;
+                    break;
+                case ')':
+                    open_brackets--;
+                    if (open_brackets == 0) {
+                        found_closing = true;
+                    }
+                    break;
             }
-            const glob = this.get_global(key, fallback || null, global_data);
-            return JSON.stringify(glob);
-        });
+            index++;
+        }
+        if (found_closing) {
+            // extract the function content, to execute it
+            const func_content = content.substr(start_index, index - start_index);
+            if (!(<any>global).getGlobal || typeof (<any>global).getGlobal != 'function') {
+                (<any>global).getGlobal = (key, fallback, callback) => {
+                    return this.get_global(key, fallback || null, global_data, callback);
+                };
+            }
+            let result = eval(func_content); // @NOTE throw error, must be catched outside
+
+            // insert result of getGlobal
+            const replaced = content.substr(0, start_index) + JSON.stringify(result) + content.substr(index);
+            // check if more onServer handlers are used
+            return this.replace_global(replaced, global_data);
+        }
+        return content;
     }
-    static get_global(key: string, fallback: any = null, global_data: any = null) {
+    static get_global(key: string, fallback: any = null, global_data: any = null, callback: Function = null) {
         if (!key || !global_data) {
-            return fallback;
+            return Client.apply_callback(fallback, callback);
         }
         // avoid loading to much data
-        if(key == 'nav') {
-            Logger.error('[wyvr]', 'avoid getting getGlobal("nav") because of potential risk');
-            return fallback;
+        if (key == 'nav' && (!callback || typeof callback != 'function')) {
+            Logger.error('[wyvr]', 'avoid getting getGlobal("nav") because of potential memory leak, add a callback to shrink results');
+            return Client.apply_callback(fallback, callback);
         }
         const steps = key.split('.');
         let value = fallback;
@@ -410,7 +436,7 @@ export class Client {
             if (i == 0) {
                 value = global_data[step];
                 if (value === undefined) {
-                    return fallback;
+                    return Client.apply_callback(fallback, callback);
                 }
 
                 if (value !== undefined && index != null && Array.isArray(value)) {
@@ -420,14 +446,24 @@ export class Client {
             }
             value = value[step];
             if (value === undefined) {
-                return fallback;
+                return Client.apply_callback(fallback, callback);
             }
             if (value !== undefined && index != null && Array.isArray(value)) {
                 value = value[index];
             }
         }
 
-        return value;
+        return Client.apply_callback(value, callback);
+    }
+    static apply_callback(value: any, callback: Function = null) {
+        if (!value || !callback || typeof callback != 'function') {
+            return value;
+        }
+        try {
+            return callback(value);
+        } catch (e) {
+            return value;
+        }
     }
     static extract_props_from_scripts(scripts: string[]): string[] {
         const props = [];

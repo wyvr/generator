@@ -7,6 +7,7 @@ import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
 import css from 'rollup-plugin-css-only';
 import { terser } from 'rollup-plugin-terser';
+import typescript from '@rollup/plugin-typescript';
 import { WyvrFile, WyvrFileConfig, WyvrFileLoading, WyvrFileRender } from '@lib/model/wyvr/file';
 import { File } from '@lib/file';
 import { Env } from '@lib/env';
@@ -147,7 +148,7 @@ export class Client {
                         hydratable: true,
                         dev: Env.is_dev(),
                         cssHash: Client.css_hash,
-                    },
+                    }
                 }),
                 node_resolve({ browser: true }),
                 commonjs(),
@@ -365,7 +366,7 @@ export class Client {
         }
         return result;
     }
-    
+
     static extract_props_from_scripts(scripts: string[]): string[] {
         const props = [];
         if (!scripts || !Array.isArray(scripts) || !scripts.every((item) => typeof item == 'string')) {

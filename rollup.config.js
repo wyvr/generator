@@ -34,10 +34,9 @@ export default {
                 hydratable: true,
                 immutable: true,
                 format: 'esm',
-                cssHash: ({hash, css})=>{
+                cssHash: ({ hash, css }) => {
                     return `ru-${hash(css)}`;
-                }
-
+                },
             },
         }),
         resolve({ browser: true }),

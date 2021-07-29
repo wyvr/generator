@@ -20,6 +20,7 @@ import { Dependency } from '@lib/dependency';
 import { Error } from '@lib/error';
 import { Route } from '@lib/model/route';
 import { Global } from '@lib/global';
+import { hrtime_to_ms } from '../converter/time';
 
 export class MainHelper {
     cwd = process.cwd();
@@ -166,6 +167,15 @@ export class MainHelper {
             });
         }
         copySync('gen/raw', 'gen/src');
+        // search for typescript files and compile them
+        // const loader = require('ts-node').register({ /* options */ });
+
+        // const ts_files = File.collect_files('gen/src', '.ts').map((file)=>{
+        //     return file;
+        // })
+        // console.log(ts_files)
+
+        // process.exit(1)
         await Plugin.after('collect', packages);
         return package_tree;
     }
@@ -243,10 +253,48 @@ export class MainHelper {
 
         // copy the hydrateable files into the gen/client folder
         Dir.clear('gen/client');
-        // copy js files to client, because stores and additional logic is "hidden" there
-        File.collect_files('gen/src', '.js').map((js_file) => {
-            copySync(js_file, js_file.replace(/^gen\/src/, 'gen/client'));
-        });
+        // copy js/ts files to client, because stores and additional logic is "hidden" there
+        Promise.all(
+            File.collect_files('gen/src').map(async (file) => {
+                if (file.match(/\.js/)) {
+                    copySync(file, file.replace(/^gen\/src/, 'gen/client'));
+                } else if (file.match(/\.ts/)) {
+                    const duration = process.hrtime();
+                    const js_file = File.to_extension(file, '.js');
+                    const swc = require('@swc/core');
+                    const result = await swc.transform(readFileSync(file, { encoding: 'utf-8' }), {
+                        // Some options cannot be specified in .swcrc
+                        filename: js_file,
+                        sourceMaps: true,
+                        // Input files are treated as module by default.
+                        isModule: true,
+
+                        // All options below can be configured via .swcrc
+                        jsc: {
+                            parser: {
+                                syntax: 'typescript',
+                                dynamicImport: true,
+                                decorators: true,
+                            },
+
+                            transform: {},
+                            loose: true,
+                            target: 'es2016',
+                        },
+                        module: {
+                            type: 'commonjs',
+                        },
+                    });
+                    if (result) {
+                        writeFileSync(js_file, result.code);
+                        writeFileSync(js_file + '.map', result.map);
+                    }
+                    copySync(file, file.replace(/^gen\/src/, 'gen/client'));
+                    Logger.info('compiled', file, 'to', js_file, 'in', hrtime_to_ms(process.hrtime(duration)), 'ms');
+                }
+                return null;
+            })
+        );
         hydrateable_files.map((file) => {
             const source_path = file.path;
             const path = file.path.replace(/^gen\/src/, 'gen/client');

@@ -75,7 +75,12 @@ export class Dependency {
                     // when no extension is used, it must be js
                     let file = match[2];
                     if (!extname(file)) {
-                        file += '.js';
+                        if (existsSync(join(process.cwd(), 'gen', 'src', file + '.ts'))) {
+                            file += '.ts';
+                        }
+                        if (existsSync(join(process.cwd(), 'gen', 'src', file + '.js'))) {
+                            file += '.js';
+                        }
                     }
                     // fix path of file, when relative
                     if (file.indexOf('./') == 0 || file.indexOf('../') == 0) {
@@ -118,7 +123,7 @@ export class Dependency {
         const deps = [];
         Object.keys(this.cache).forEach((root) => {
             Object.keys(this.cache[root]).forEach((parent) => {
-                if(parent.indexOf(filename) > -1) {
+                if (parent.indexOf(filename) > -1) {
                     if (['doc', 'layout', 'page'].indexOf(root) > -1) {
                         deps.push(parent);
                         return;

@@ -259,7 +259,7 @@ export class MainHelper {
                 if (file.match(/\.js/)) {
                     copySync(file, file.replace(/^gen\/src/, 'gen/client'));
                 } else if (file.match(/\.ts/)) {
-                    const duration = process.hrtime();
+                    const ts_duration = process.hrtime();
                     const js_file = File.to_extension(file, '.js');
                     const swc = require('@swc/core');
                     const result = await swc.transform(readFileSync(file, { encoding: 'utf-8' }), {
@@ -276,7 +276,6 @@ export class MainHelper {
                                 dynamicImport: true,
                                 decorators: true,
                             },
-
                             transform: {},
                             loose: true,
                             target: 'es2016',
@@ -285,12 +284,19 @@ export class MainHelper {
                             type: 'commonjs',
                         },
                     });
+                    // when swc returns a result, copy it to the client folder
+                    const target_file = file.replace(/^gen\/src/, 'gen/client');
                     if (result) {
+                        // for server side rendering
                         writeFileSync(js_file, result.code);
-                        writeFileSync(js_file + '.map', result.map);
+                        writeFileSync(`${js_file}.map`, result.map);
+                        // for hydration
+                        const js_target_file = File.to_extension(target_file, '.js');
+                        writeFileSync(js_target_file, result.code);
+                        writeFileSync(`${js_target_file}.map`, result.map);
                     }
-                    copySync(file, file.replace(/^gen\/src/, 'gen/client'));
-                    Logger.info('compiled', file, 'to', js_file, 'in', hrtime_to_ms(process.hrtime(duration)), 'ms');
+                    copySync(file, target_file);
+                    Logger.debug('compiled', file, 'to', js_file, 'in', hrtime_to_ms(process.hrtime(ts_duration)), 'ms');
                 }
                 return null;
             })

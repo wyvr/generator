@@ -74,17 +74,24 @@ export class Dependency {
                 .forEach((match) => {
                     // when no extension is used, it must be js
                     let file = match[2];
-                    if (!extname(file)) {
-                        if (existsSync(join(process.cwd(), 'gen', 'src', file + '.ts'))) {
-                            file += '.ts';
-                        }
-                        if (existsSync(join(process.cwd(), 'gen', 'src', file + '.js'))) {
-                            file += '.js';
-                        }
-                    }
                     // fix path of file, when relative
                     if (file.indexOf('./') == 0 || file.indexOf('../') == 0) {
                         file = join(dirname(parent), file);
+                    }
+                    // add extension when not supplied
+                    if (!extname(file)) {
+                        const src_folder = join(process.cwd(), 'gen', 'src');
+                        const file_with_ext = ['.ts', '.js']
+                            .map((ext) => {
+                                if (existsSync(join(src_folder, file + ext))) {
+                                    return file + ext;
+                                }
+                                return null;
+                            })
+                            .find((x) => x);
+                        if (file_with_ext) {
+                            file = file_with_ext;
+                        }
                     }
                     // add root when not existing
                     if (!this.cache[root]) {

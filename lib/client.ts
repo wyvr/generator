@@ -7,7 +7,6 @@ import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
 import css from 'rollup-plugin-css-only';
 import { terser } from 'rollup-plugin-terser';
-import typescript from '@rollup/plugin-typescript';
 import { WyvrFile, WyvrFileConfig, WyvrFileLoading, WyvrFileRender } from '@lib/model/wyvr/file';
 import { File } from '@lib/file';
 import { Env } from '@lib/env';

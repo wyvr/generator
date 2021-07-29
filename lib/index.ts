@@ -1,9 +1,9 @@
 import 'module-alias/register';
-import { isMaster } from 'cluster';
+import cluster from 'cluster';
 
 // console.log('argv', process.argv);
 (async () => {
-    if (isMaster) {
+    if (!cluster.isWorker) {
         const { Main } = require('@lib/main');
         new Main();
     } else {

@@ -14,7 +14,6 @@ import { Generate } from '@lib/generate';
 import { RequireCache } from '@lib/require_cache';
 import { Error } from '@lib/error';
 import { Optimize } from '@lib/optimize';
-import { addTrailingSlash } from 'snowpack/vendor/types/esinstall/util';
 import { EnvModel } from './model/env';
 
 export class Worker {
@@ -33,7 +32,7 @@ export class Worker {
 
         WorkerHelper.send_status(WorkerStatus.exists);
 
-        process.on('message', async (msg) => {
+        process.on('message', async (msg: any) => {
             const action = msg?.action?.key;
             const value = msg?.action?.value;
             if (!value) {

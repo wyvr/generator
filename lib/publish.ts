@@ -14,6 +14,9 @@ export class Publish {
                 pub_release = readlinkSync('pub');
             }
         }
+        if(!existsSync('releases')) {
+            return [];
+        }
         const releases_to_delete = readdirSync('releases')
             .map((release) => {
                 const { ctime } = statSync(join('releases', release), { bigint: true });
@@ -29,11 +32,16 @@ export class Publish {
 
         return releases_to_delete;
     }
-    static release(release: string) {
+    static release(release: string): boolean {
+        if(!release) {
+            return false;
+        }
         const release_path = join('releases', release);
         if (existsSync(release_path)) {
             Dir.delete('pub');
             Link.to(release_path, 'pub');
+            return true;
         }
+        return false;
     }
 }

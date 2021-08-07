@@ -36,7 +36,7 @@ describe('Lib/Client', () => {
             file.path = file_path;
             copyFileSync(source_file_path, file_path);
             assert.deepStrictEqual(Client.correct_svelte_file_import_paths([file]), [file]);
-            assert.strictEqual(readFileSync(file_path, { encoding: 'utf-8' }), readFileSync(result_file_path, { encoding: 'utf-8' }));
+            assert.strictEqual(readFileSync(file_path, { encoding: 'utf-8' }), readFileSync(result_file_path, { encoding: 'utf-8' }).replace(/\$CWD/g, process.cwd()));
         });
     });
     describe('correct_import_paths', () => {
@@ -226,10 +226,10 @@ describe('Lib/Client', () => {
             });
         });
         it('content & multiple tags with attributes', () => {
-            assert.deepStrictEqual(
-                Client.extract_tags_from_content('before <a href="#1" download>test1</a> <a href="#2" rel="noopener">test2</a> after', 'a'),
-                { content: 'before   after', result: ['<a href="#1" download>test1</a>', '<a href="#2" rel="noopener">test2</a>'] }
-            );
+            assert.deepStrictEqual(Client.extract_tags_from_content('before <a href="#1" download>test1</a> <a href="#2" rel="noopener">test2</a> after', 'a'), {
+                content: 'before   after',
+                result: ['<a href="#1" download>test1</a>', '<a href="#2" rel="noopener">test2</a>'],
+            });
         });
     });
     describe('get_identifier_name', () => {
@@ -256,10 +256,7 @@ describe('Lib/Client', () => {
             assert.strictEqual(Client.get_identifier_name(root_template_paths, cwd + '/gen/src/doc/Default.svelte', null), 'default');
         });
         it('root, doc, layout, undefined', () => {
-            assert.strictEqual(
-                Client.get_identifier_name(root_template_paths, cwd + '/gen/src/doc/Default.svelte', cwd + '/gen/src/layout/Default.svelte'),
-                'default_default'
-            );
+            assert.strictEqual(Client.get_identifier_name(root_template_paths, cwd + '/gen/src/doc/Default.svelte', cwd + '/gen/src/layout/Default.svelte'), 'default_default');
         });
         it('root, doc, layout, null', () => {
             assert.strictEqual(
@@ -378,10 +375,7 @@ describe('Lib/Client', () => {
                 Client.replace_slots_static('<slot></slot><slot></slot>'),
                 '<span data-slot="default"><slot></slot></span><span data-slot="default"><slot></slot></span>'
             );
-            assert.strictEqual(
-                Client.replace_slots_static('<slot /><slot />'),
-                '<span data-slot="default"><slot /></span><span data-slot="default"><slot /></span>'
-            );
+            assert.strictEqual(Client.replace_slots_static('<slot /><slot />'), '<span data-slot="default"><slot /></span><span data-slot="default"><slot /></span>');
         });
         it('slot with content', () => {
             assert.strictEqual(Client.replace_slots_static('<slot><img /></slot>'), '<span data-slot="default"><slot><img /></slot></span>');
@@ -439,10 +433,7 @@ describe('Lib/Client', () => {
                 Client.replace_slots_client('<slot></slot><slot></slot>'),
                 '<div data-client-slot="default"><slot></slot></div><div data-client-slot="default"><slot></slot></div>'
             );
-            assert.strictEqual(
-                Client.replace_slots_client('<slot /><slot />'),
-                '<div data-client-slot="default"><slot /></div><div data-client-slot="default"><slot /></div>'
-            );
+            assert.strictEqual(Client.replace_slots_client('<slot /><slot />'), '<div data-client-slot="default"><slot /></div><div data-client-slot="default"><slot /></div>');
         });
         it('slot with content', () => {
             assert.strictEqual(Client.replace_slots_client('<slot><img /></slot>'), '<div data-client-slot="default"><slot><img /></slot></div>');
@@ -484,10 +475,7 @@ describe('Lib/Client', () => {
         });
         it('merge css', () => {
             assert.strictEqual(
-                Client.insert_splits(
-                    'test/lib/client/insert_splits/css.svelte',
-                    readFileSync('test/lib/client/insert_splits/css.svelte', { encoding: 'utf-8' })
-                ),
+                Client.insert_splits('test/lib/client/insert_splits/css.svelte', readFileSync('test/lib/client/insert_splits/css.svelte', { encoding: 'utf-8' })),
                 readFileSync('test/lib/client/insert_splits/css_result.svelte', { encoding: 'utf-8' })
             );
         });

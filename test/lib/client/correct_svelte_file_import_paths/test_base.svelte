@@ -4,4 +4,4 @@
 
 <Counter />
 
-should be replaced => email@srcset.com
+should not be replaced => email@srcset.com

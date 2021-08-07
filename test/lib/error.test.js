@@ -10,10 +10,10 @@ describe('Lib/Error', () => {
     describe('extract', () => {
         it('structure', () => {
             const result = Error.extract(new SyntaxError('hi'));
-            assert.deepStrictEqual(Object.keys(result), ['code', 'filename', 'hint', 'message', 'name', 'source', 'stack']);
+            assert.deepStrictEqual(Object.keys(result), ['code', 'filename', 'hint', 'message', 'name', 'source', 'stack', 'debug']);
         });
         it('JS error', () => {
-            const error = {
+            const e = {
                 name: 'TypeError',
                 message: 'The "path" argument must be of type string or an instance of Buffer or URL. Received null',
                 stack: `TypeError [ERR_INVALID_ARG_TYPE]: The "path" argument must be of type string or an instance of Buffer or URL. Received null
@@ -28,19 +28,18 @@ describe('Lib/Error', () => {
                     at ${cwd}/wyvr/plugin.js:8:71
                     at new Promise (<anonymous>)`,
             };
-            assert.deepStrictEqual(Error.extract(error), {
-                code: null,
-                filename: null,
-                hint: null,
-
-                message: 'The "path" argument must be of type string or an instance of Buffer or URL. Received null',
-                name: 'TypeError',
-                source: null,
-                stack: ['plugins/wyvr/example/index.js:26:36', 'Object.after [as fn] (plugins/wyvr/example/index.js:25:19)'],
-            });
+            const error = Error.extract(e);
+            assert.strictEqual(error.code, null);
+            assert.strictEqual(error.filename, null);
+            assert.strictEqual(error.hint, null);
+            assert.strictEqual(error.message, 'The "path" argument must be of type string or an instance of Buffer or URL. Received null');
+            assert.strictEqual(error.name, 'TypeError');
+            assert.strictEqual(error.source, null);
+            assert.deepStrictEqual(error.stack, ['plugins/wyvr/example/index.js:26:36', 'Object.after [as fn] (plugins/wyvr/example/index.js:25:19)']);
+            assert(error.debug != null);
         });
         it('svelte error', () => {
-            const error = {
+            const e = {
                 name: 'SyntaxError',
                 message: 'Cannot use import statement outside a module',
                 stack: `${cwd}/gen/src/test/store.js:1
@@ -59,19 +58,22 @@ describe('Lib/Error', () => {
                         at Module._compile (internal/modules/cjs/loader.js:1200:30)
                         at Object.require.extensions.<computed> [as .svelte] (${cwd}/node_modules/svelte/register.js:49:17)`,
             };
-            assert.deepStrictEqual(Error.extract(error), {
-                code: null,
-                filename: null,
-                hint: `                    import { writable } from 'svelte/store';
-                    ^^^^^^`,
-                message: 'Cannot use import statement outside a module',
-                name: 'SyntaxError',
-                source: null,
-                stack: [`src/test/store.js:1`],
-            });
+            const error = Error.extract(e);
+            assert.strictEqual(error.code, null);
+            assert.strictEqual(error.filename, null);
+            assert.strictEqual(
+                error.hint,
+                `                    import { writable } from 'svelte/store';
+                    ^^^^^^`
+            );
+            assert.strictEqual(error.message, 'Cannot use import statement outside a module');
+            assert.strictEqual(error.name, 'SyntaxError');
+            assert.strictEqual(error.source, null);
+            assert.deepStrictEqual(error.stack, [`src/test/store.js:1`]);
+            assert(error.debug != null);
         });
         it('SASS error', () => {
-            const error = {
+            const e = {
                 message: 'Undefined variable.',
                 formatted:
                     'Error: Undefined variable.\n' +
@@ -86,55 +88,57 @@ describe('Lib/Error', () => {
                 file: '/Users/patrick/wyvr/generator/gen/src/test/_test.scss',
                 status: 1,
             };
-            assert.deepStrictEqual(Error.extract(error, join(cwd, 'gen', 'src')), {
-                code: null,
-                filename: '/Users/patrick/wyvr/generator/gen/src/test/_test.scss',
-                hint: null,
-                message: 'Undefined variable.',
-                name: null,
-                source: 'gen/src',
-                stack: [
-                    'Error: Undefined variable.',
-                    '  ╷',
-                    '3 │ @mixin button($color: $primary) {',
-                    '  │                       ^^^^^^^^',
-                    '  ╵',
-                    '  gen/src/test/_test.scss 3:23  button()',
-                    '  stdin 8:9                     root stylesheet',
-                ],
-            });
+            const error = Error.extract(e, join(cwd, 'gen', 'src'));
+            assert.strictEqual(error.code, null);
+            assert.strictEqual(error.filename, '/Users/patrick/wyvr/generator/gen/src/test/_test.scss');
+            assert.strictEqual(error.hint, null);
+            assert.strictEqual(error.message, 'Undefined variable.');
+            assert.strictEqual(error.name, null);
+            assert.strictEqual(error.source, 'gen/src');
+            assert.deepStrictEqual(error.stack, [
+                'Error: Undefined variable.',
+                '  ╷',
+                '3 │ @mixin button($color: $primary) {',
+                '  │                       ^^^^^^^^',
+                '  ╵',
+                '  gen/src/test/_test.scss 3:23  button()',
+                '  stdin 8:9                     root stylesheet',
+            ]);
+            assert(error.debug == null);
         });
         it('source', () => {
-            const error = {
+            const e = {
                 name: 'SyntaxError',
                 message: 'Cannot use import statement outside a module',
             };
-            assert.deepStrictEqual(Error.extract(error, join(cwd, 'gen', 'src')), {
-                code: null,
-                filename: null,
-                hint: null,
-                message: 'Cannot use import statement outside a module',
-                name: 'SyntaxError',
-                source: 'gen/src',
-                stack: null,
-            });
+            const error = Error.extract(e, join(cwd, 'gen', 'src'));
+
+            assert.strictEqual(error.code, null);
+            assert.strictEqual(error.filename, null);
+            assert.strictEqual(error.hint, null);
+            assert.strictEqual(error.message, 'Cannot use import statement outside a module');
+            assert.strictEqual(error.name, 'SyntaxError');
+            assert.strictEqual(error.source, 'gen/src');
+            assert.deepStrictEqual(error.stack, []);
+            assert(error.debug == null);
         });
         it('stack', () => {
-            const error = {
+            const e = {
                 name: 'SyntaxError',
                 stack: `test
 - ${cwd}/gen/src/test/minus
                 at ${cwd}/gen/src/test/at`,
             };
-            assert.deepStrictEqual(Error.extract(error), {
-                code: null,
-                filename: null,
-                hint: null,
-                message: null,
-                name: 'SyntaxError',
-                source: null,
-                stack: ['src/test/minus', 'src/test/at'],
-            });
+            const error = Error.extract(e);
+
+            assert.strictEqual(error.code, null);
+            assert.strictEqual(error.filename, null);
+            assert.strictEqual(error.hint, null);
+            assert.strictEqual(error.message, null);
+            assert.strictEqual(error.name, 'SyntaxError');
+            assert.strictEqual(error.source, null);
+            assert.deepStrictEqual(error.stack, ['src/test/minus', 'src/test/at']);
+            assert(error.debug != null);
         });
         it('RangeError', () => {
             let error = null;
@@ -144,15 +148,14 @@ describe('Lib/Error', () => {
                 error = Error.extract(e);
             }
 
-            assert.deepStrictEqual(error, {
-                code: null,
-                filename: null,
-                hint: null,
-                message: 'Invalid array length',
-                name: 'RangeError',
-                source: null,
-                stack: [],
-            });
+            assert.strictEqual(error.code, null);
+            assert.strictEqual(error.filename, null);
+            assert.strictEqual(error.hint, null);
+            assert.strictEqual(error.message, 'Invalid array length');
+            assert.strictEqual(error.name, 'RangeError');
+            assert.strictEqual(error.source, null);
+            assert.deepStrictEqual(error.stack, []);
+            assert(error.debug != null);
         });
         it('ReferenceError', () => {
             let error = null;
@@ -162,15 +165,14 @@ describe('Lib/Error', () => {
                 error = Error.extract(e);
             }
 
-            assert.deepStrictEqual(error, {
-                code: null,
-                filename: null,
-                hint: null,
-                message: 'b is not defined',
-                name: 'ReferenceError',
-                source: null,
-                stack: [],
-            });
+            assert.strictEqual(error.code, null);
+            assert.strictEqual(error.filename, null);
+            assert.strictEqual(error.hint, null);
+            assert.strictEqual(error.message, 'b is not defined');
+            assert.strictEqual(error.name, 'ReferenceError');
+            assert.strictEqual(error.source, null);
+            assert.deepStrictEqual(error.stack, []);
+            assert(error.debug != null);
         });
         it('SyntaxError', () => {
             let error = null;
@@ -180,15 +182,14 @@ describe('Lib/Error', () => {
                 error = Error.extract(e);
             }
 
-            assert.deepStrictEqual(error, {
-                code: null,
-                filename: null,
-                hint: null,
-                message: 'Unexpected identifier',
-                name: 'SyntaxError',
-                source: null,
-                stack: [],
-            });
+            assert.strictEqual(error.code, null);
+            assert.strictEqual(error.filename, null);
+            assert.strictEqual(error.hint, null);
+            assert.strictEqual(error.message, 'Unexpected identifier');
+            assert.strictEqual(error.name, 'SyntaxError');
+            assert.strictEqual(error.source, null);
+            assert.deepStrictEqual(error.stack, []);
+            assert(error.debug != null);
         });
         it('TypeError', () => {
             let error = null;
@@ -197,16 +198,14 @@ describe('Lib/Error', () => {
             } catch (e) {
                 error = Error.extract(e);
             }
-
-            assert.deepStrictEqual(error, {
-                code: null,
-                filename: null,
-                hint: null,
-                message: '"String" is not a constructor',
-                name: 'TypeError',
-                source: null,
-                stack: [],
-            });
+            assert.strictEqual(error.code, null);
+            assert.strictEqual(error.filename, null);
+            assert.strictEqual(error.hint, null);
+            assert.strictEqual(error.message, '"String" is not a constructor');
+            assert.strictEqual(error.name, 'TypeError');
+            assert.strictEqual(error.source, null);
+            assert.deepStrictEqual(error.stack, []);
+            assert(error.debug != null);
         });
         it('URIError', () => {
             let error = null;
@@ -215,16 +214,14 @@ describe('Lib/Error', () => {
             } catch (e) {
                 error = Error.extract(e);
             }
-
-            assert.deepStrictEqual(error, {
-                code: null,
-                filename: null,
-                hint: null,
-                message: 'URI malformed',
-                name: 'URIError',
-                source: null,
-                stack: [],
-            });
+            assert.strictEqual(error.code, null);
+            assert.strictEqual(error.filename, null);
+            assert.strictEqual(error.hint, null);
+            assert.strictEqual(error.message, 'URI malformed');
+            assert.strictEqual(error.name, 'URIError');
+            assert.strictEqual(error.source, null);
+            assert.deepStrictEqual(error.stack, []);
+            assert(error.debug != null);
         });
         it('Maximum call stack size exceeded', () => {
             let error = null;
@@ -236,16 +233,14 @@ describe('Lib/Error', () => {
             } catch (e) {
                 error = Error.extract(e);
             }
-
-            assert.deepStrictEqual(error, {
-                code: null,
-                filename: null,
-                hint: null,
-                message: 'Maximum call stack size exceeded',
-                name: 'RangeError',
-                source: null,
-                stack: [],
-            });
+            assert.strictEqual(error.code, null);
+            assert.strictEqual(error.filename, null);
+            assert.strictEqual(error.hint, null);
+            assert.strictEqual(error.message, 'Maximum call stack size exceeded');
+            assert.strictEqual(error.name, 'RangeError');
+            assert.strictEqual(error.source, null);
+            assert.deepStrictEqual(error.stack, []);
+            assert(error.debug != null);
         });
     });
     describe('get', () => {
@@ -282,7 +277,7 @@ describe('Lib/Error', () => {
         });
         it('minimal', () => {
             const error = {};
-            assert.deepStrictEqual(Error.get(error, null, 'test'), `\x1B[1m@test\x1B[22m\n[] -`);
+            assert.deepStrictEqual(Error.get(error, null, 'test'), `\x1B[1m@test\x1B[22m\n[] -\n\x1B[2mstack\x1B[22m`);
         });
     });
 });

@@ -12,6 +12,7 @@ export class Error {
             name: e.name || null,
             source: null,
             stack: null,
+            debug: e.stack
         };
         if (source) {
             object.source = source.replace(root_dir + '/', '');
@@ -26,7 +27,7 @@ export class Error {
             stack = e.stack.split('\n');
         }
         if (stack) {
-            object.stack = stack
+            const shrinked_stack = stack
                 .map((entry) => {
                     // when line starts with "- <cwd>/gen"
                     const match = entry.match(/^- (.*?\/gen\/.*)$/);
@@ -41,10 +42,13 @@ export class Error {
                     return null;
                 })
                 .filter((x) => x);
-            // svelte errors
-            if (stack.length > 4 && stack[0].indexOf(gen_dir) > -1 && stack[2].indexOf('^') > -1 && stack[3].trim() == '') {
-                object.stack = [stack[0].trim().replace(gen_dir + '/', '')];
-                object.hint = stack.slice(1, 3).join('\n');
+            if(shrinked_stack.length > 0) {
+                object.stack = shrinked_stack;
+                // svelte errors
+                if (stack.length > 4 && stack[0].indexOf(gen_dir) > -1 && stack[2].indexOf('^') > -1 && stack[3].trim() == '') {
+                    object.stack = [stack[0].trim().replace(gen_dir + '/', '')];
+                    object.hint = stack.slice(1, 3).join('\n');
+                }
             }
         }
         if (e.message) {
@@ -59,9 +63,9 @@ export class Error {
         if (e.frame) {
             object.stack = e.frame.split('\n');
         }
-        // when stack is empty add the original stack
-        if(!object.stack && e.stack) {
-            object.stack = e.stack;
+        // when stack is empty
+        if(!Array.isArray(object.stack)) {
+            object.stack = [];
         }
 
         return object;
@@ -73,7 +77,7 @@ export class Error {
             result.push(Logger.color.bold('@' + scope));
         }
         result.push(`[${Logger.color.bold(data.name)}] ${data.message ?? '-'}`);
-        if (data.stack) {
+        if (Array.isArray(data.stack)) {
             result.push(Logger.color.dim('stack'));
             result.push(...data.stack.map((entry) => `${Logger.color.dim('-')} ${entry}`));
         }

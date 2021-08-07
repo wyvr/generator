@@ -2,11 +2,13 @@
 export class Queue {
     private first: QueueEntry = null;
     private last: QueueEntry = null;
-    private size: number = 0;
 
-    public get length(): number {
-        return this.size;
+    // private variable
+    private _length: number = 0;
+    get length(): number {
+        return this._length;
     }
+    set length(value: number) {}
 
     /**
      * add a new entry at the end of the queue
@@ -14,7 +16,7 @@ export class Queue {
      */
     push(data: any): void {
         const entry = new QueueEntry(data);
-        if (this.size == 0) {
+        if (this._length == 0) {
             // If queue is empty, first and last will be the same.
             this.first = entry;
             this.last = entry;
@@ -23,14 +25,14 @@ export class Queue {
             this.last.next = entry;
             this.last = entry;
         }
-        this.size++;
+        this._length++;
     }
     /**
      * get the data of the first queue entry and remove it
      * @returns the data from the first queue entry
      */
     take(): any {
-        if (this.size == 0) {
+        if (this._length == 0) {
             return null;
         }
         // store data of first queue element
@@ -40,7 +42,7 @@ export class Queue {
         this.first = this.first.next;
 
         // shrink size of queue
-        this.size--;
+        this._length--;
 
         return data;
     }

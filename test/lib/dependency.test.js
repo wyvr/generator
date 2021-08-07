@@ -105,7 +105,7 @@ describe('Lib/Dependency', () => {
         });
         it('import found @src js default', () => {
             Dependency.extract_from_content('root', 'parent', `import A from '@src/a'`);
-            assert.deepStrictEqual(Dependency.cache, { root: { parent: ['a.js'] } });
+            assert.deepStrictEqual(Dependency.cache, { root: { parent: ['a'] } });
         });
         it('import found multiple @src', () => {
             Dependency.extract_from_content('root', 'parent', `import A from '@src/a.svelte', import B from '@src/b.svelte'`);

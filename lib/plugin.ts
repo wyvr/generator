@@ -23,7 +23,7 @@ export class Plugin {
                     if (!this.cache[name]) {
                         this.cache[name] = {};
                         this.cache[name][PluginType.before] = [];
-                        this.cache[name][PluginType.around] = [];
+                        // this.cache[name][PluginType.around] = [];
                         this.cache[name][PluginType.after] = [];
                     }
                     Object.keys(plugin[name]).forEach((type) => {
@@ -51,9 +51,9 @@ export class Plugin {
     static async before(name: string, ...args) {
         return (await this.build_listeners(name, PluginType.before))(...args);
     }
-    static async around(name: string, ...args) {
-        return (await this.build_listeners(name, PluginType.around))(...args);
-    }
+    // static async around(name: string, ...args) {
+    //     return (await this.build_listeners(name, PluginType.around))(...args);
+    // }
     static async after(name: string, ...args) {
         return (await this.build_listeners(name, PluginType.after))(...args);
     }
@@ -75,12 +75,7 @@ export class Plugin {
                             result = partial_result;
                         }
                     } catch (e) {
-                        Logger.error(
-                            'error in plugin for',
-                            Logger.color.bold(name),
-                            Logger.color.bold(PluginType[type]),
-                            Error.get(e, listeners[i].source, 'plugin')
-                        );
+                        Logger.error('error in plugin for', Logger.color.bold(name), Logger.color.bold(PluginType[type]), Error.get(e, listeners[i].source, 'plugin'));
                     }
                 }
                 return result;
@@ -92,30 +87,25 @@ export class Plugin {
                         result = partial_result;
                     }
                 } catch (e) {
-                    Logger.error(
-                        'error in plugin for',
-                        Logger.color.bold(name),
-                        Logger.color.bold(PluginType[type]),
-                        Error.get(e, listeners[i].source, 'plugin')
-                    );
+                    Logger.error('error in plugin for', Logger.color.bold(name), Logger.color.bold(PluginType[type]), Error.get(e, listeners[i].source, 'plugin'));
                 }
             }
             return result;
         };
     }
-    static register(name: string, type: PluginType, fn: Function) {}
-    static register_before(name: string, fn: Function) {
-        this.register(name, PluginType.before, fn);
-    }
-    static register_around(name: string, fn: Function) {
-        this.register(name, PluginType.around, fn);
-    }
-    static register_after(name: string, fn: Function) {
-        this.register(name, PluginType.after, fn);
-    }
+    // static register(name: string, type: PluginType, fn: Function) {}
+    // static register_before(name: string, fn: Function) {
+    //     this.register(name, PluginType.before, fn);
+    // }
+    // static register_around(name: string, fn: Function) {
+    //     this.register(name, PluginType.around, fn);
+    // }
+    // static register_after(name: string, fn: Function) {
+    //     this.register(name, PluginType.after, fn);
+    // }
 }
 export enum PluginType {
     before,
-    around,
+    // around,
     after,
 }

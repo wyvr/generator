@@ -4,6 +4,7 @@ import { open, Database } from 'sqlite';
 import { mkdirSync, existsSync, writeFileSync } from 'fs-extra';
 import { Dir } from './dir';
 import { dirname } from 'path';
+import merge from 'deepmerge';
 
 export class Global {
     static is_setup: boolean = false;
@@ -166,6 +167,18 @@ export class Global {
             console.log(e);
             return false;
         }
+    }
+    static async merge_global(key: string, value: any = null): Promise<boolean> {
+        if (!key || value == null) {
+            return false;
+        }
+        await this.setup();
+        const orig = await this.get_global(key);
+        // when orif not exists use the new value
+        if (orig == null || typeof value != 'object') {
+            return await this.set_global(key, value);
+        }
+        return await this.set_global(key, merge(orig, value));
     }
     static async set_global_all(data) {
         // @NOTE maybe this is slow, can be changed into a prepared statement or a hugh insert statement

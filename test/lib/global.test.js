@@ -371,12 +371,12 @@ describe('Lib/Global', async () => {
     describe('export', async () => {
         it('with filename', async () => {
             const path = join('test', 'lib', 'global');
-            if(existsSync(path)) {
+            if (existsSync(path)) {
                 removeSync(path);
             }
-            const file = join(path, 'export.json')
+            const file = join(path, 'export.json');
             Global.export(file);
-            assert(existsSync(file), true)
+            assert(existsSync(file), true);
         });
     });
     describe('set_global', async () => {
@@ -400,12 +400,51 @@ describe('Lib/Global', async () => {
             assert.strictEqual(await Global.get_global('key'), null);
         });
     });
+    describe('merge_global', async () => {
+        before(async () => {
+            await setGlobalDB();
+        });
+        after(() => {
+            removeGlobalDB();
+        });
+        it('empty', async () => {
+            assert.strictEqual(await Global.merge_global(), false);
+        });
+        it('no value', async () => {
+            assert.strictEqual(await Global.merge_global('key'), false);
+        });
+        it('string', async () => {
+            await Global.set_global('string', 'value');
+            assert.strictEqual(await Global.merge_global('string', 'new'), true);
+            assert.strictEqual(await Global.get_global('string'), 'new');
+        });
+        it('number', async () => {
+            await Global.set_global('number', 0);
+            assert.strictEqual(await Global.merge_global('number', 1), true);
+            assert.strictEqual(await Global.get_global('number'), 1);
+        });
+        it('bool', async () => {
+            await Global.set_global('bool', false);
+            assert.strictEqual(await Global.merge_global('bool', true), true);
+            assert.strictEqual(await Global.get_global('bool'), true);
+        });
+        it('array', async () => {
+            await Global.set_global('array', [1, 2]);
+            assert.strictEqual(await Global.merge_global('array', [3, 4]), true);
+            assert.deepStrictEqual(await Global.get_global('array'), [1, 2, 3, 4]);
+        });
+        it('object', async () => {
+            await Global.set_global('object', { key: false, value: 'old', arr: [0] });
+            assert.strictEqual(await Global.merge_global('object', { key: true, arr: [1, 2], insert: true }), true);
+            assert.deepStrictEqual(await Global.get_global('object'), { key: true, value: 'old', arr: [0, 1, 2], insert: true });
+        });
+    });
     describe('set_global_all', async () => {
         after(() => {
             removeGlobalDB();
         });
         it('save', async () => {
-            await Global.set_global_all({ set_global_all: true})
+            await Global.set_global_all({ set_global_all: true });
             assert.strictEqual(await Global.get_global('set_global_all'), true);
         });
     });

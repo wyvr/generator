@@ -1,13 +1,18 @@
+const { removeSync } = require('fs-extra');
+
 require('module-alias/register');
 
-describe('Lib/Global', () => {
+describe('Lib/Global', async () => {
     const assert = require('assert');
     const { Global } = require('@lib/global');
 
     beforeEach(() => {
         delete global.getGlobal;
     });
-    describe('replace_global', () => {
+    after(()=>{
+        removeSync('cache/global.db')
+    })
+    describe('replace_global', async () => {
         // it('', ()=>{})
         const global = {
             nav: {
@@ -18,37 +23,37 @@ describe('Lib/Global', () => {
                 ],
             },
         };
-        it('undefined', () => {
-            assert.deepStrictEqual(Global.replace_global(), '');
+        it('undefined', async () => {
+            assert.deepStrictEqual(await Global.replace_global(), '');
         });
-        it('null', () => {
-            assert.deepStrictEqual(Global.replace_global(null), '');
+        it('null', async () => {
+            assert.deepStrictEqual(await Global.replace_global(null), '');
         });
-        it('empty', () => {
-            assert.deepStrictEqual(Global.replace_global(''), '');
+        it('empty', async () => {
+            assert.deepStrictEqual(await Global.replace_global(''), '');
         });
-        it('nothing', () => {
-            assert.deepStrictEqual(Global.replace_global('hello', global), 'hello');
+        it('nothing', async () => {
+            assert.deepStrictEqual(await Global.replace_global('hello', global), 'hello');
         });
-        it('valid, fallback null', () => {
-            assert.strictEqual(Global.replace_global(`getGlobal('nav.header')`), 'null');
-            assert.strictEqual(Global.replace_global(`getGlobal("nav.header")`), 'null');
+        it('valid, fallback null', async () => {
+            assert.strictEqual(await Global.replace_global(`getGlobal('nav.header')`), 'null');
+            assert.strictEqual(await Global.replace_global(`getGlobal("nav.header")`), 'null');
         });
-        it('valid index select, fallback null', () => {
-            assert.strictEqual(Global.replace_global(`getGlobal('nav.header[0]')`), 'null');
+        it('valid index select, fallback null', async () => {
+            assert.strictEqual(await Global.replace_global(`getGlobal('nav.header[0]')`), 'null');
         });
-        it('valid, fallback array', () => {
-            assert.strictEqual(Global.replace_global(`getGlobal('nav.header', [])`), '[]');
+        it('valid, fallback array', async () => {
+            assert.strictEqual(await Global.replace_global(`getGlobal('nav.header', [])`), '[]');
         });
-        it('valid, fallback boolean', () => {
-            assert.strictEqual(Global.replace_global(`getGlobal('nav.header', true)`), 'true');
+        it('valid, fallback boolean', async () => {
+            assert.strictEqual(await Global.replace_global(`getGlobal('nav.header', true)`), 'true');
         });
-        it('valid, fallback string', () => {
-            assert.strictEqual(Global.replace_global(`getGlobal('nav.header', 'test')`), '"test"');
+        it('valid, fallback string', async () => {
+            assert.strictEqual(await Global.replace_global(`getGlobal('nav.header', 'test')`), '"test"');
         });
-        it('valid without fallback', () => {
+        it('valid without fallback', async () => {
             assert.strictEqual(
-                Global.replace_global(`getGlobal('nav.header')`, global),
+                await Global.replace_global(`getGlobal('nav.header')`, global),
                 JSON.stringify([
                     {
                         url: 'https://wyvr.dev',
@@ -56,7 +61,7 @@ describe('Lib/Global', () => {
                 ])
             );
             assert.strictEqual(
-                Global.replace_global(`getGlobal("nav.header")`, global),
+                await Global.replace_global(`getGlobal("nav.header")`, global),
                 JSON.stringify([
                     {
                         url: 'https://wyvr.dev',
@@ -64,20 +69,20 @@ describe('Lib/Global', () => {
                 ])
             );
         });
-        it('valid index select', () => {
+        it('valid index select', async () => {
             assert.strictEqual(
-                Global.replace_global(`getGlobal('nav.header[0]')`, global),
+                await Global.replace_global(`getGlobal('nav.header[0]')`, global),
                 JSON.stringify({
                     url: 'https://wyvr.dev',
                 })
             );
         });
-        it('replace unknown key', () => {
-            assert.strictEqual(Global.replace_global(`getGlobal('faker.text')`, global), 'null');
+        it('replace unknown key', async () => {
+            assert.strictEqual(await Global.replace_global(`getGlobal('faker.text')`, global), 'null');
         });
-        it('valid with fallback', () => {
+        it('valid with fallback', async () => {
             assert.strictEqual(
-                Global.replace_global(`getGlobal('nav.header', [])`, global),
+                await Global.replace_global(`getGlobal('nav.header', [])`, global),
                 JSON.stringify([
                     {
                         url: 'https://wyvr.dev',
@@ -85,7 +90,7 @@ describe('Lib/Global', () => {
                 ])
             );
             assert.strictEqual(
-                Global.replace_global(`getGlobal('nav.header', true)`, global),
+                await Global.replace_global(`getGlobal('nav.header', true)`, global),
                 JSON.stringify([
                     {
                         url: 'https://wyvr.dev',
@@ -93,7 +98,7 @@ describe('Lib/Global', () => {
                 ])
             );
             assert.strictEqual(
-                Global.replace_global(`getGlobal('nav.header', 'test')`, global),
+                await Global.replace_global(`getGlobal('nav.header', 'test')`, global),
                 JSON.stringify([
                     {
                         url: 'https://wyvr.dev',
@@ -101,9 +106,9 @@ describe('Lib/Global', () => {
                 ])
             );
         });
-        it('valid with fallback object', () => {
+        it('valid with fallback object', async () => {
             assert.strictEqual(
-                Global.replace_global(
+                await Global.replace_global(
                     `getGlobal('demo', { 
                     'url': 'https://wyvr.dev'
                 })`,
@@ -114,9 +119,9 @@ describe('Lib/Global', () => {
                 })
             );
         });
-        it('callback array', () => {
+        it('callback array', async () => {
             assert.strictEqual(
-                Global.replace_global(
+                await Global.replace_global(
                     `getGlobal('nav.header', [], (data) => {
                     return data.filter((item)=>{
                         return item && item.url && item.url.indexOf('match') > -1;
@@ -135,9 +140,9 @@ describe('Lib/Global', () => {
                 ])
             );
         });
-        it('callback fallback array', () => {
+        it('callback fallback array', async () => {
             assert.strictEqual(
-                Global.replace_global(
+                await Global.replace_global(
                     `getGlobal('nav.header', [{ url: 'match' }, { url: 'nope' }, { url: 'not' }], (data) => {
                     return data.filter((item)=>{
                         return item && item.url && item.url.indexOf('match') > -1;
@@ -152,9 +157,9 @@ describe('Lib/Global', () => {
                 ])
             );
         });
-        it('callback object', () => {
+        it('callback object', async () => {
             assert.strictEqual(
-                Global.replace_global(
+                await Global.replace_global(
                     `getGlobal('item', false, (data) => {
                         data.c = true;
                         return data
@@ -173,9 +178,9 @@ describe('Lib/Global', () => {
                 })
             );
         });
-        it('callback fallback object', () => {
+        it('callback fallback object', async () => {
             assert.strictEqual(
-                Global.replace_global(
+                await Global.replace_global(
                     `getGlobal('item', {
                         "a": true,
                         "b": false,
@@ -192,9 +197,9 @@ describe('Lib/Global', () => {
                 })
             );
         });
-        it('add around code', () => {
+        it('add around code', async () => {
             assert.strictEqual(
-                Global.replace_global(
+                await Global.replace_global(
                     `const a = getGlobal('item', [1], (data) => {
                         data.push(0);
                         data.push(2);
@@ -205,11 +210,11 @@ describe('Lib/Global', () => {
                 `const a = ${JSON.stringify([1, 0, 2])}; a.filter((x)=>x)`
             );
         });
-        it('avoid replacing because it has no params', () => {
-            assert.deepStrictEqual(Global.replace_global('_getGlobal()', global), '_getGlobal()');
+        it('avoid replacing because it has no params', async () => {
+            assert.deepStrictEqual(await Global.replace_global('_getGlobal()', global), '_getGlobal()');
         });
     });
-    describe('get_global', () => {
+    describe('get_global', async () => {
         const global = {
             nav: {
                 header: [
@@ -221,67 +226,67 @@ describe('Lib/Global', () => {
             list: ['a', 'b'],
         };
         // it('', ()=>{})
-        it('undefined', () => {
-            assert.deepStrictEqual(Global.get_global(), null);
+        it('undefined', async () => {
+            assert.deepStrictEqual(await Global.get_global(), null);
         });
-        it('null', () => {
-            assert.deepStrictEqual(Global.get_global(null), null);
+        it('null', async () => {
+            assert.deepStrictEqual(await Global.get_global(null), null);
         });
-        it('empty', () => {
-            assert.deepStrictEqual(Global.get_global(''), null);
+        it('empty', async () => {
+            assert.deepStrictEqual(await Global.get_global(''), null);
         });
-        it('fallback', () => {
-            assert.deepStrictEqual(Global.get_global('', true), true);
+        it('fallback', async () => {
+            assert.deepStrictEqual(await Global.get_global('', true), true);
         });
-        it('list', () => {
-            assert.deepStrictEqual(Global.get_global('list', true, global), ['a', 'b']);
+        it('list', async () => {
+            assert.deepStrictEqual(await Global.get_global('list', true, global), ['a', 'b']);
         });
-        it('list on null', () => {
-            assert.deepStrictEqual(Global.get_global('list', true, null), true);
+        it('list on null', async () => {
+            assert.deepStrictEqual(await Global.get_global('list', true, null), true);
         });
-        it('first list entry', () => {
-            assert.strictEqual(Global.get_global('list[0]', true, global), 'a');
+        it('first list entry', async () => {
+            assert.strictEqual(await Global.get_global('list[0]', true, global), 'a');
         });
-        it('first list entry on null', () => {
-            assert.strictEqual(Global.get_global('list[0]', true, null), true);
+        it('first list entry on null', async () => {
+            assert.strictEqual(await Global.get_global('list[0]', true, null), true);
         });
-        it('deep unknown', () => {
-            assert.strictEqual(Global.get_global('nav.footer', true, global), true);
+        it('deep unknown', async () => {
+            assert.strictEqual(await Global.get_global('nav.footer', true, global), true);
         });
-        it('deep unknown on null', () => {
-            assert.strictEqual(Global.get_global('nav.footer', true, null), true);
+        it('deep unknown on null', async () => {
+            assert.strictEqual(await Global.get_global('nav.footer', true, null), true);
         });
-        it('deep search', () => {
-            assert.deepStrictEqual(Global.get_global('nav.header[0]', null, global), {
+        it('deep search', async () => {
+            assert.deepStrictEqual(await Global.get_global('nav.header[0]', null, global), {
                 url: 'https://wyvr.dev',
             });
         });
-        it('deep search on null', () => {
-            assert.strictEqual(Global.get_global('nav.header[0]', true, null), true);
+        it('deep search on null', async () => {
+            assert.strictEqual(await Global.get_global('nav.header[0]', true, null), true);
         });
-        it('deep search unknown on null', () => {
-            assert.strictEqual(Global.get_global('nav.header[]', true, global), true);
+        it('deep search unknown on null', async () => {
+            assert.strictEqual(await Global.get_global('nav.header[]', true, global), true);
         });
-        it('deep search property', () => {
-            assert.strictEqual(Global.get_global('nav.header[0].url', null, global), 'https://wyvr.dev');
+        it('deep search property', async () => {
+            assert.strictEqual(await Global.get_global('nav.header[0].url', null, global), 'https://wyvr.dev');
         });
-        it('deep search property on null', () => {
-            assert.strictEqual(Global.get_global('nav.header[0].url', true, null), true);
+        it('deep search property on null', async () => {
+            assert.strictEqual(await Global.get_global('nav.header[0].url', true, null), true);
         });
-        it('deep unknown search property', () => {
-            assert.strictEqual(Global.get_global('nonexisting.this.is.an.test', true, null), true);
+        it('deep unknown search property', async () => {
+            assert.strictEqual(await Global.get_global('nonexisting.this.is.an.test', true, null), true);
         });
-        it('deep unknown search property', () => {
+        it('deep unknown search property', async () => {
             console.log();
-            assert.strictEqual(Global.get_global('nonexisting.this.is.an.test', undefined, null), null);
+            assert.strictEqual(await Global.get_global('nonexisting.this.is.an.test', undefined, null), null);
         });
-        it('nav error', () => {
+        it('nav error', async () => {
             const log = console.log;
             const output = [];
             console.log = (...messages) => {
                 output.push(messages);
             };
-            assert.strictEqual(Global.get_global('nav', null, true), null);
+            assert.strictEqual(await Global.get_global('nav', null, true), null);
             assert.deepStrictEqual(output, [
                 [
                     '\u001b[31m✘\u001b[39m',
@@ -290,14 +295,14 @@ describe('Lib/Global', () => {
             ]);
             console.log = log;
         });
-        it('nav error workaround not contained', () => {
+        it('nav error workaround not contained', async () => {
             const log = console.log;
             const output = [];
             console.log = (...messages) => {
                 output.push(messages);
             };
             assert.strictEqual(
-                Global.get_global('nav', null, true, (data) => {
+                await Global.get_global('nav', null, true, (data) => {
                     return false;
                 }),
                 null
@@ -305,14 +310,14 @@ describe('Lib/Global', () => {
             assert.deepStrictEqual(output, []);
             console.log = log;
         });
-        it('nav error workaround', () => {
+        it('nav error workaround', async () => {
             const log = console.log;
             const output = [];
             console.log = (...messages) => {
                 output.push(messages);
             };
             assert.strictEqual(
-                Global.get_global('nav', null, {nav: []}, (data) => {
+                await Global.get_global('nav', null, {nav: []}, (data) => {
                     return false;
                 }),
                 false
@@ -321,25 +326,34 @@ describe('Lib/Global', () => {
             console.log = log;
         });
     });
-    describe('apply_callback', () => {
-        it('no callback', () => {
-            assert.deepStrictEqual(Global.apply_callback(true), true);
+    describe('apply_callback', async () => {
+        it('no callback', async () => {
+            assert.deepStrictEqual(await Global.apply_callback(true), true);
         });
-        it('callback', () => {
+        it('callback', async () => {
             assert.deepStrictEqual(
-                Global.apply_callback(true, () => {
+                await Global.apply_callback(true, async () => {
                     return false;
                 }),
                 false
             );
         });
-        it('error', () => {
+        it('error', async () => {
             assert.deepStrictEqual(
-                Global.apply_callback(true, () => {
+                await Global.apply_callback(true, async () => {
                     return a;
                 }),
                 true
             );
+        });
+    });
+    describe('setup', async () => {
+        // it('', async () => {
+        // });
+    });
+    describe('set_global', async () => {
+        it('empty', async () => {
+            assert.strictEqual(await Global.set_global(), false)
         });
     });
 });

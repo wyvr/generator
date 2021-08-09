@@ -270,7 +270,7 @@ describe('Lib/Routes', () => {
                     a: { b: { c: 'found' } },
                 }
             );
-            assert.strictEqual(getGlobal('a.b.c'), 'found');
+            assert.strictEqual(await getGlobal('a.b.c'), 'found');
         });
         it('js null', async () => {
             const [error, result] = await Routes.execute_route(

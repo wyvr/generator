@@ -1,13 +1,18 @@
 import { Logger } from '@lib/logger';
+import sqlite3 from 'sqlite3';
+import { open, Database } from 'sqlite';
+import { mkdirSync, existsSync } from 'fs-extra';
 
 export class Global {
+    static is_setup: boolean = false;
+    static db: Database = null;
     /**
      * Replace the getGlobal() method and insert the result
      * @param content svelte content
      * @param global_data data which gets injected
      * @returns the content with inserted getGlobal result
      */
-    static replace_global(content: string, global_data: any = null): string {
+    static async replace_global(content: string, global_data: any = null): Promise<string> {
         if (!content || typeof content != 'string') {
             return '';
         }
@@ -40,16 +45,16 @@ export class Global {
             // extract the function content, to execute it
             const func_content = content.substr(start_index, index - start_index);
             if (!(<any>global).getGlobal || typeof (<any>global).getGlobal != 'function') {
-                (<any>global).getGlobal = (key, fallback, callback) => {
-                    return this.get_global(key, fallback || null, global_data, callback);
+                (<any>global).getGlobal = async (key, fallback, callback) => {
+                    return await this.get_global(key, fallback || null, global_data, callback);
                 };
             }
-            let result = eval(func_content); // @NOTE throw error, must be catched outside
+            let result = await eval(func_content); // @NOTE throw error, must be catched outside
 
             // insert result of getGlobal
             const replaced = content.substr(0, start_index) + JSON.stringify(result) + content.substr(index);
             // check if more onServer handlers are used
-            return this.replace_global(replaced, global_data);
+            return await this.replace_global(replaced, global_data);
         }
         return content;
     }
@@ -61,7 +66,7 @@ export class Global {
      * @param callback when defined a method to transform the given data
      * @returns json string of the result
      */
-    static get_global(key: string, fallback: any = null, global_data: any = null, callback: Function = null) {
+    static async get_global(key: string, fallback: any = null, global_data: any = null, callback: Function = null) {
         if (!key || !global_data) {
             return Global.apply_callback(fallback, callback);
         }
@@ -70,8 +75,10 @@ export class Global {
             Logger.error('[wyvr]', 'avoid getting getGlobal("nav") because of potential memory leak, add a callback to shrink results');
             return Global.apply_callback(fallback, callback);
         }
+        await this.setup();
         const steps = key.split('.');
         let value = fallback;
+        /*
         for (let i = 0; i < steps.length; i++) {
             let step = steps[i];
             let index = null;
@@ -102,8 +109,8 @@ export class Global {
                 value = value[index];
             }
         }
-
-        return Global.apply_callback(value, callback);
+        */
+        return await Global.apply_callback(value, callback);
     }
     /**
      * When callback is defined it gets applied to the given value
@@ -111,14 +118,48 @@ export class Global {
      * @param callback when defined a method to transform the given data
      * @returns the transformed value
      */
-    static apply_callback(value: any, callback: Function = null) {
+    static async apply_callback(value: any, callback: Function = null) {
         if (!value || !callback || typeof callback != 'function') {
             return value;
         }
         try {
-            return callback(value);
+            return await callback(value);
         } catch (e) {
             return value;
+        }
+    }
+    /**
+     * Create global database when not existing
+     * @returns void
+     */
+    static async setup() {
+        if (this.db) {
+            return;
+        }
+        // create the folder otherwise sqlite can not create file
+        if (!existsSync('cache')) {
+            mkdirSync('cache');
+        }
+        // save and store the connection
+        this.db = await open({
+            filename: 'cache/global.db',
+            driver: sqlite3.Database,
+        });
+        await this.db.exec(`CREATE TABLE IF NOT EXISTS global (
+            key TEXT PRIMARY KEY,
+            value TEXT
+        );`);
+    }
+    static async set_global(key: string, value: any = null): Promise<boolean> {
+        if (!key) {
+            return false;
+        }
+        await this.setup();
+        try {
+            await this.db.run('UPDATE global SET value = ? WHERE key = ?', JSON.stringify(value), key);
+            return true;
+        } catch (e) {
+            return false;
         }
     }
 }

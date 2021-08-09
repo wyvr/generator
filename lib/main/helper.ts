@@ -234,20 +234,22 @@ export class MainHelper {
         delete (<any>global).getGlobal;
 
         // combine svelte files
-        svelte_files.map((file) => {
-            const raw_content = readFileSync(file.path, { encoding: 'utf-8' });
-            const [pre_error, preprocessed_content] = Client.preprocess_content(raw_content);
-            if (pre_error) {
-                Logger.error(pre_error);
-            }
-            const combined_content = Client.insert_splits(file.path, pre_error ? raw_content : preprocessed_content);
-            try {
-                const content = Global.replace_global(combined_content);
-                writeFileSync(file.path, content);
-            } catch (e) {
-                Logger.error(Error.get(e, file.path, 'wyvr'));
-            }
-        });
+        Promise.all(
+            svelte_files.map(async (file) => {
+                const raw_content = readFileSync(file.path, { encoding: 'utf-8' });
+                const [pre_error, preprocessed_content] = Client.preprocess_content(raw_content);
+                if (pre_error) {
+                    Logger.error(pre_error);
+                }
+                const combined_content = Client.insert_splits(file.path, pre_error ? raw_content : preprocessed_content);
+                try {
+                    const content = await Global.replace_global(combined_content);
+                    writeFileSync(file.path, content);
+                } catch (e) {
+                    Logger.error(Error.get(e, file.path, 'wyvr'));
+                }
+            })
+        );
         // search for hydrateable files
         const hydrateable_files = Client.get_hydrateable_svelte_files(svelte_files);
 
@@ -328,13 +330,7 @@ export class MainHelper {
         mkdirSync('gen/src', { recursive: true });
 
         // rebuild ony affected resources
-        if (
-            changed_files &&
-            changed_files.some((file) => file.rel_path.indexOf('src/') == 0) &&
-            identifier_list &&
-            identifier_list.length > 0 &&
-            Dependency.cache
-        ) {
+        if (changed_files && changed_files.some((file) => file.rel_path.indexOf('src/') == 0) && identifier_list && identifier_list.length > 0 && Dependency.cache) {
             const deps = [];
             changed_files.forEach((file) => {
                 deps.push(...Dependency.get_dependent_identifiers(file.rel_path));
@@ -445,9 +441,7 @@ export class MainHelper {
                 if (err_after) {
                     this.fail(err_after);
                 }
-                const injected_content = content_after
-                    .replace(/<\/head>/, `${head_after.join('')}</head>`)
-                    .replace(/<\/body>/, `${body_after.join('')}</body>`);
+                const injected_content = content_after.replace(/<\/head>/, `${head_after.join('')}</head>`).replace(/<\/body>/, `${body_after.join('')}</body>`);
                 writeFileSync(file, injected_content);
                 return file;
             })
@@ -474,12 +468,7 @@ export class MainHelper {
                                 return;
                             }
                             mkdirSync(dirname(path), { recursive: true });
-                            writeFileSync(
-                                path,
-                                Client.remove_on_server(
-                                    Client.replace_slots_client(readFileSync(join(this.cwd, 'gen', 'src', dep_file), { encoding: 'utf-8' }))
-                                )
-                            );
+                            writeFileSync(path, Client.remove_on_server(Client.replace_slots_client(readFileSync(join(this.cwd, 'gen', 'src', dep_file), { encoding: 'utf-8' }))));
                             Logger.debug('make the static file', dep_file, 'hydrateable because it is used inside the hydrateable file', file_path);
                         }
                     });
@@ -506,11 +495,7 @@ export class MainHelper {
         // replace in the files itself
         Optimize.replace_hashed_files_in_files(file_list, hash_list);
 
-        const [error_before, config_before, identifier_list_before, replace_hash_files_before] = await Plugin.before(
-            'optimize',
-            identifier_list,
-            replace_hash_files
-        );
+        const [error_before, config_before, identifier_list_before, replace_hash_files_before] = await Plugin.before('optimize', identifier_list, replace_hash_files);
         if (error_before) {
             this.fail(error_before);
         }

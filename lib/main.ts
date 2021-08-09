@@ -265,7 +265,7 @@ export class Main {
         // collect the files for the generation
         this.perf.start('collect');
         this.package_tree = await this.helper.collect(this.package_tree);
-        File.write_json(join('gen', 'package_tree.json'), this.package_tree);
+        File.write_json(join('gen', 'package_tree.json'), JSON.parse(JSON.stringify(this.package_tree)));
         this.perf.end('collect');
 
         const contains_routes = changed_files.find((file) => file.rel_path.match(/^routes\//)) != null;
@@ -350,6 +350,8 @@ export class Main {
                     writeFileSync(join(this.release_path, `${id}.json`), JSON.stringify(structure));
                 });
             }
+            File.write_json(join('gen', 'dependencies.json'), JSON.parse(JSON.stringify(Dependency.cache)));
+
             this.perf.end('dependencies');
 
             this.perf.start('scripts');

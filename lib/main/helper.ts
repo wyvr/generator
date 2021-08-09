@@ -234,7 +234,7 @@ export class MainHelper {
         delete (<any>global).getGlobal;
 
         // combine svelte files
-        Promise.all(
+        await Promise.all(
             svelte_files.map(async (file) => {
                 const raw_content = readFileSync(file.path, { encoding: 'utf-8' });
                 const [pre_error, preprocessed_content] = Client.preprocess_content(raw_content);
@@ -248,6 +248,7 @@ export class MainHelper {
                 } catch (e) {
                     Logger.error(Error.get(e, file.path, 'wyvr'));
                 }
+                return null;
             })
         );
         // search for hydrateable files
@@ -256,7 +257,7 @@ export class MainHelper {
         // copy the hydrateable files into the gen/client folder
         Dir.clear('gen/client');
         // copy js/ts files to client, because stores and additional logic is "hidden" there
-        Promise.all(
+        await Promise.all(
             File.collect_files('gen/src').map(async (file) => {
                 if (file.match(/\.js/)) {
                     copySync(file, file.replace(/^gen\/src/, 'gen/client'));

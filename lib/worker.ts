@@ -15,12 +15,12 @@ import { RequireCache } from '@lib/require_cache';
 import { Error } from '@lib/error';
 import { Optimize } from '@lib/optimize';
 import { EnvModel } from './model/env';
+import { Global } from './global';
 
 export class Worker {
     private config = null;
     private env = null;
     private cwd = process.cwd();
-    private global_data: any = null;
     private root_template_paths = [join(this.cwd, 'gen', 'src', 'doc'), join(this.cwd, 'gen', 'src', 'layout'), join(this.cwd, 'gen', 'src', 'page')];
     private release_path = null;
     private identifiers_cache = {};
@@ -45,7 +45,6 @@ export class Worker {
                     this.config = value?.config;
                     this.env = value?.env;
                     this.cwd = value?.cwd;
-                    this.global_data = value?.global_data;
                     this.release_path = value?.release_path;
                     // only when everything is configured set the worker idle
                     if ((!this.config && this.env == null) || !this.cwd) {
@@ -64,7 +63,7 @@ export class Worker {
                     const route_result = await Promise.all(
                         value.map(async (entry) => {
                             const filename = entry.route.path;
-                            const [error, route_result] = await Routes.execute_route(entry.route, this.global_data);
+                            const [error, route_result] = await Routes.execute_route(entry.route);
                             if (error) {
                                 WorkerHelper.log(LogType.error, 'route error', Error.get(error, filename, 'route'));
                                 return null;
@@ -80,8 +79,11 @@ export class Worker {
                                 }
                                 global_data = Generate.add_to_global(data, global_data);
 
+                                
                                 return result.data;
                             });
+                            console.log('GLOBAL IN ROUTE')
+                            await Global.set_global_all(global_data);
                             route_data = [].concat(route_data, route_url);
                             return filename;
                         })

@@ -8,6 +8,7 @@ import { File } from '@lib/file';
 import { Config } from '@lib/config';
 import { Logger } from '@lib/logger';
 import { IPerformance_Measure, Performance_Measure, Performance_Measure_Blank } from '@lib/performance_measure';
+import { Global } from './global';
 
 const cwd = process.cwd();
 
@@ -173,7 +174,8 @@ export class Importer {
                 let global_data = {};
                 fs.createReadStream(this.state_global_file, { flags: 'r', encoding: 'utf-8' }).pipe(jsonStream.input);
 
-                jsonStream.on('data', (data: {key: string, value: any}) => {
+                jsonStream.on('data', async (data: {key: string, value: any}) => {
+                    await Global.set_global(data.key, data.value);
                     global_data[data.key] = data.value;
                 });
 
@@ -189,11 +191,6 @@ export class Importer {
                 resolve(null);
             }
         });
-    }
-    set_global(global: any) {
-        // persits the global data
-        File.create_dir(this.state_global_file);
-        fs.writeFileSync(this.state_global_file, JSON.stringify(global, null, 4));
     }
 }
 

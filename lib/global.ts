@@ -1,7 +1,9 @@
 import { Logger } from '@lib/logger';
 import sqlite3 from 'sqlite3';
 import { open, Database } from 'sqlite';
-import { mkdirSync, existsSync } from 'fs-extra';
+import { mkdirSync, existsSync, writeFileSync } from 'fs-extra';
+import { Dir } from './dir';
+import { dirname } from 'path';
 
 export class Global {
     static is_setup: boolean = false;
@@ -9,10 +11,9 @@ export class Global {
     /**
      * Replace the getGlobal() method and insert the result
      * @param content svelte content
-     * @param global_data data which gets injected
      * @returns the content with inserted getGlobal result
      */
-    static async replace_global(content: string, global_data: any = null): Promise<string> {
+    static async replace_global(content: string): Promise<string> {
         if (!content || typeof content != 'string') {
             return '';
         }
@@ -46,7 +47,7 @@ export class Global {
             const func_content = content.substr(start_index, index - start_index);
             if (!(<any>global).getGlobal || typeof (<any>global).getGlobal != 'function') {
                 (<any>global).getGlobal = async (key, fallback, callback) => {
-                    return await this.get_global(key, fallback || null, global_data, callback);
+                    return await this.get_global(key, fallback || null, callback);
                 };
             }
             let result = await eval(func_content); // @NOTE throw error, must be catched outside
@@ -54,7 +55,7 @@ export class Global {
             // insert result of getGlobal
             const replaced = content.substr(0, start_index) + JSON.stringify(result) + content.substr(index);
             // check if more onServer handlers are used
-            return await this.replace_global(replaced, global_data);
+            return await this.replace_global(replaced);
         }
         return content;
     }
@@ -62,12 +63,11 @@ export class Global {
      * get the value from the global_data
      * @param key the key path which should be get from global
      * @param fallback fallback value when the key path does not exist or global_data is not existing
-     * @param global_data data from which the key gets extracted
      * @param callback when defined a method to transform the given data
      * @returns json string of the result
      */
-    static async get_global(key: string, fallback: any = null, global_data: any = null, callback: Function = null) {
-        if (!key || !global_data) {
+    static async get_global(key: string, fallback: any = null, callback: Function = null) {
+        if (!key) {
             return Global.apply_callback(fallback, callback);
         }
         // avoid loading to much data
@@ -77,8 +77,10 @@ export class Global {
         }
         await this.setup();
         const steps = key.split('.');
+
+        // set safety fallback
         let value = fallback;
-        /*
+
         for (let i = 0; i < steps.length; i++) {
             let step = steps[i];
             let index = null;
@@ -90,43 +92,37 @@ export class Global {
                     index = parseInt((match[2] + '').trim(), 10);
                 }
             }
+            // first step is the key in the db
             if (i == 0) {
-                value = global_data[step];
-                if (value === undefined) {
-                    return Global.apply_callback(fallback, callback);
-                }
+                try {
+                    const result = await this.db.get('SELECT value FROM global WHERE key = ?', step);
+                    if (!result || !result.value) {
+                        return await Global.apply_callback(fallback, callback);
+                    }
+                    value = JSON.parse(result.value);
 
-                if (value !== undefined && index != null && Array.isArray(value)) {
-                    value = value[index];
+                    // when there was an index on the first element, select the item
+                    if (value !== undefined && index != null && Array.isArray(value)) {
+                        value = value[index];
+                    }
+                } catch (e) {
+                    console.log(key, e);
+                    return await Global.apply_callback(fallback, callback);
                 }
                 continue;
             }
+            // dig deeper in the data
             value = value[step];
             if (value === undefined) {
                 return Global.apply_callback(fallback, callback);
             }
+            // when index is available dig into the index
             if (value !== undefined && index != null && Array.isArray(value)) {
                 value = value[index];
             }
         }
-        */
+
         return await Global.apply_callback(value, callback);
-    }
-    /**
-     * When callback is defined it gets applied to the given value
-     * @param value value which can be transformed
-     * @param callback when defined a method to transform the given data
-     * @returns the transformed value
-     */
-    static async apply_callback(value: any, callback: Function = null) {
-        if (!value || !callback || typeof callback != 'function') {
-            return value;
-        }
-        try {
-            return await callback(value);
-        } catch (e) {
-            return value;
-        }
     }
     /**
      * Create global database when not existing
@@ -156,10 +152,51 @@ export class Global {
         }
         await this.setup();
         try {
-            await this.db.run('UPDATE global SET value = ? WHERE key = ?', JSON.stringify(value), key);
+            if (value) {
+                // insert or replace entry
+                // https://stackoverflow.com/questions/418898/sqlite-upsert-not-insert-or-replace
+                await this.db.run(`INSERT OR REPLACE INTO global (key, value) VALUES (?, ?);`, key, JSON.stringify(value));
+                return true;
+            }
+            // delete when no value is set
+            await this.db.run(`DELETE from global WHERE key = ?;`, key);
             return true;
+            // await this.db.run('UPDATE global SET value = ? WHERE key = ?', JSON.stringify(value), key);
         } catch (e) {
+            console.log(e);
             return false;
+        }
+    }
+    static async set_global_all(data) {
+        // @NOTE maybe this is slow, can be changed into a prepared statement or a hugh insert statement
+        await Promise.all(
+            Object.keys(data).map(async (key) => {
+                return await this.set_global(key, data[key]);
+            })
+        );
+    }
+    /**
+     * When callback is defined it gets applied to the given value
+     * @param value value which can be transformed
+     * @param callback when defined a method to transform the given data
+     * @returns the transformed value
+     */
+    static async apply_callback(value: any, callback: Function = null) {
+        if (!value || !callback || typeof callback != 'function') {
+            return value;
+        }
+        try {
+            return await callback(value);
+        } catch (e) {
+            return value;
+        }
+    }
+    static async export(filepath: string) {
+        if (filepath) {
+            const data = null;
+            Dir.create(dirname(filepath));
+            // write global data to release
+            writeFileSync(filepath, JSON.stringify(data));
         }
     }
 }

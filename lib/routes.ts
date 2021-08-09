@@ -37,13 +37,13 @@ export class Routes {
         });
         return result;
     }
-    static async execute_route(route: Route, global_data: any) {
+    static async execute_route(route: Route) {
         if (!route || !route.path) {
             return [`broken route ${JSON.stringify(route)}`, null];
         }
         if (!(<any>global).getGlobal || typeof (<any>global).getGlobal != 'function') {
-            (<any>global).getGlobal = (key, fallback, callback) => {
-                return Global.get_global(key, fallback || null, global_data, callback);
+            (<any>global).getGlobal = async (key, fallback, callback) => {
+                return await Global.get_global(key, fallback || null, callback);
             };
         }
         if (route.path.match(/\.md$/)) {

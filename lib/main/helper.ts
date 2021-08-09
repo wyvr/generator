@@ -226,7 +226,7 @@ export class MainHelper {
         // return [].concat(file_list, routes_urls);
         return [file_list, route_urls.length > 0 ? route_urls : null];
     }
-    async transform(global_data: any) {
+    async transform() {
         const svelte_files = File.collect_svelte_files('gen/src');
         await Plugin.before('transform', svelte_files);
 
@@ -242,7 +242,7 @@ export class MainHelper {
             }
             const combined_content = Client.insert_splits(file.path, pre_error ? raw_content : preprocessed_content);
             try {
-                const content = Global.replace_global(combined_content, global_data);
+                const content = Global.replace_global(combined_content);
                 writeFileSync(file.path, content);
             } catch (e) {
                 Logger.error(Error.get(e, file.path, 'wyvr'));

@@ -19,6 +19,7 @@ import { Dependency } from '@lib/dependency';
 import { Plugin } from '@lib/plugin';
 import { WyvrMode } from '@lib/model/wyvr/mode';
 import { MainHelper } from '@lib/main/helper';
+import { Global } from './global';
 
 export class Main {
     mode: WyvrMode = WyvrMode.build;
@@ -26,7 +27,6 @@ export class Main {
     helper = new MainHelper();
     perf: IPerformance_Measure;
     worker_amount: number;
-    global_data: any = null;
     identifiers: any = {};
     is_executing: boolean = false;
     cwd = process.cwd();
@@ -110,18 +110,16 @@ export class Main {
 
         if (this.mode == WyvrMode.build) {
             const import_global_path = Config.get('import.global');
+            let global_data = {};
             if (existsSync(import_global_path)) {
                 try {
-                    this.global_data = File.read_json(import_global_path);
+                    global_data = File.read_json(import_global_path);
                 } catch (e) {
                     Logger.warning('import global file does not exist', import_global_path);
                 }
             }
-            if (!this.global_data) {
-                this.global_data = {};
-            }
-            this.global_data.env = EnvModel[Env.get()];
-            this.global_data.url = Config.get('url');
+            Global.set_global('env', EnvModel[Env.get()]);
+            Global.set_global('url', Config.get('url'));
             const import_main_path = Config.get('import.main');
             const default_values = Config.get('default_values');
             if (import_main_path && existsSync(import_main_path)) {
@@ -130,12 +128,11 @@ export class Main {
                         import_main_path,
                         (data: { key: number; value: any }) => {
                             data.value = this.helper.generate(data.value, default_values);
-                            this.global_data = Generate.add_to_global(data.value, this.global_data);
+                            global_data = Generate.add_to_global(data.value, global_data);
                             return data;
                         },
                         () => {
                             is_imported = true;
-                            importer.set_global(this.global_data);
                         }
                     );
                 } catch (e) {
@@ -147,14 +144,16 @@ export class Main {
                     return;
                 }
                 if (!is_imported) {
-                    this.global_data = await importer.get_global();
+                    global_data = await importer.get_global();
                 }
             }
+            await Global.set_global_all(global_data)
         }
+
 
         this.perf.start('worker');
 
-        this.worker_controller = new WorkerController(this.global_data, this.release_path);
+        this.worker_controller = new WorkerController(this.release_path);
         this.worker_amount = this.worker_controller.get_worker_amount();
         Logger.present('workers', this.worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));
         const workers = this.worker_controller.create_workers(this.worker_amount);
@@ -280,8 +279,9 @@ export class Main {
         }
 
         this.perf.start('transform');
-        this.global_data = Generate.build_nav(this.global_data);
-        const collected_files = await this.helper.transform(this.global_data);
+        console.log('NAV IS GENERATED FROM GLOBAL')
+        // this.global_data = Generate.build_nav(this.global_data);
+        const collected_files = await this.helper.transform();
         if (!collected_files) {
             this.helper.fail('no collected files');
         }
@@ -290,7 +290,7 @@ export class Main {
         this.perf.start('build');
         if (Env.is_dev()) {
             // write global data to release
-            writeFileSync(join(this.release_path, '_global.json'), JSON.stringify(this.global_data));
+            Global.export(join(this.release_path, '_global.json'));
         }
         // read all imported files
         const files = File.collect_files(join(this.cwd, 'gen', 'data'), 'json');
@@ -386,7 +386,8 @@ export class Main {
         const on_global_index = this.worker_controller.events.on('emit', 'global', (data) => {
             // add the results to the global data
             if (data) {
-                this.global_data = merge(this.global_data, data.data);
+                console.log('GLOBAL FROM WORKER')
+                Global.set_global_all(data.data)
             }
         });
         const result = await this.helper.routes(this.worker_controller, this.package_tree, file_list, enhance_data, cron_state);

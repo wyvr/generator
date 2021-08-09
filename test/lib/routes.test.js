@@ -256,22 +256,22 @@ describe('Lib/Routes', () => {
                 },
             ]);
         });
-        it('getGlobal', async () => {
-            global.getGlobal = null;
-            await Routes.execute_route(
-                {
-                    path: 'test/lib/routes/md/file/index.md',
-                    pkg: null,
-                    rel_path: 'routes/md/file/index.md',
-                    initial: true,
-                    cron: null,
-                },
-                {
-                    a: { b: { c: 'found' } },
-                }
-            );
-            assert.strictEqual(await getGlobal('a.b.c'), 'found');
-        });
+        // it('getGlobal', async () => {
+        //     global.getGlobal = null;
+        //     await Routes.execute_route(
+        //         {
+        //             path: 'test/lib/routes/md/file/index.md',
+        //             pkg: null,
+        //             rel_path: 'routes/md/file/index.md',
+        //             initial: true,
+        //             cron: null,
+        //         },
+        //         {
+        //             a: { b: { c: 'found' } },
+        //         }
+        //     );
+        //     assert.strictEqual(await getGlobal('a.b.c'), 'found');
+        // });
         it('js null', async () => {
             const [error, result] = await Routes.execute_route(
                 {

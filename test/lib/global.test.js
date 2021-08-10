@@ -377,6 +377,7 @@ describe('Lib/Global', async () => {
             const file = join(path, 'export.json');
             Global.export(file);
             assert(existsSync(file), true);
+            removeSync(path);
         });
     });
     describe('set_global', async () => {

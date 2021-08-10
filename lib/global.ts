@@ -168,6 +168,14 @@ export class Global {
             return false;
         }
     }
+    static async set_global_all(data) {
+        // @NOTE maybe this is slow, can be changed into a prepared statement or a hugh insert statement
+        await Promise.all(
+            Object.keys(data).map(async (key) => {
+                return await this.set_global(key, data[key]);
+            })
+        );
+    }
     static async merge_global(key: string, value: any = null): Promise<boolean> {
         if (!key || value == null) {
             return false;
@@ -180,11 +188,11 @@ export class Global {
         }
         return await this.set_global(key, merge(orig, value));
     }
-    static async set_global_all(data) {
+    static async merge_global_all(data) {
         // @NOTE maybe this is slow, can be changed into a prepared statement or a hugh insert statement
         await Promise.all(
             Object.keys(data).map(async (key) => {
-                return await this.set_global(key, data[key]);
+                return await this.merge_global(key, data[key]);
             })
         );
     }

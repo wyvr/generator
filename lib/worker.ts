@@ -82,8 +82,8 @@ export class Worker {
                                 
                                 return result.data;
                             });
-                            console.log('GLOBAL IN ROUTE')
-                            await Global.set_global_all(global_data);
+                            console.log('GLOBAL IN ROUTE', global_data)
+                            await Global.merge_global_all(global_data);
                             route_data = [].concat(route_data, route_url);
                             return filename;
                         })

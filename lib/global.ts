@@ -71,11 +71,20 @@ export class Global {
         if (!key) {
             return Global.apply_callback(fallback, callback);
         }
-        // avoid loading to much data
-        if (key == 'nav' && (!callback || typeof callback != 'function')) {
-            Logger.error('[wyvr]', 'avoid getting getGlobal("nav") because of potential memory leak, add a callback to shrink results');
+        if(key == 'nav' || key.indexOf('nav.') == 0) {
+            return await this.get('nav', key.replace(/^nav\.?/, ''), fallback, callback);
+        }
+        return await this.get('global', key, fallback, callback);
+    }
+    static async get(table: string, key: string, fallback: any = null, callback: Function = null) {
+        if (!table || !key) {
             return Global.apply_callback(fallback, callback);
         }
+        // avoid loading to much data
+        // if (key == 'nav' && (!callback || typeof callback != 'function')) {
+        //     Logger.error('[wyvr]', 'avoid getting getGlobal("nav") because of potential memory leak, add a callback to shrink results');
+        //     return Global.apply_callback(fallback, callback);
+        // }
         await this.setup();
         const steps = key.split('.');
 
@@ -96,7 +105,7 @@ export class Global {
             // first step is the key in the db
             if (i == 0) {
                 try {
-                    const result = await this.db.get('SELECT value FROM global WHERE key = ?', step);
+                    const result = await this.db.get(`SELECT value FROM ${table} WHERE key = ?`, step);
                     if (!result || !result.value) {
                         return await Global.apply_callback(fallback, callback);
                     }
@@ -146,9 +155,22 @@ export class Global {
             key TEXT PRIMARY KEY,
             value TEXT
         );`);
+        await this.db.exec(`CREATE TABLE IF NOT EXISTS nav (
+            key TEXT PRIMARY KEY,
+            value TEXT
+        );`);
     }
     static async set_global(key: string, value: any = null): Promise<boolean> {
         if (!key) {
+            return false;
+        }
+        if(key == 'nav' || key.indexOf('nav.') == 0) {
+            return await this.set('nav', key.replace(/^nav\.?/, ''), value);
+        }
+        return await this.set('global', key, value);
+    }
+    static async set(table: string, key: string, value: any = null): Promise<boolean> {
+        if (!table || !key) {
             return false;
         }
         await this.setup();
@@ -156,11 +178,11 @@ export class Global {
             if (value) {
                 // insert or replace entry
                 // https://stackoverflow.com/questions/418898/sqlite-upsert-not-insert-or-replace
-                await this.db.run(`INSERT OR REPLACE INTO global (key, value) VALUES (?, ?);`, key, JSON.stringify(value));
+                await this.db.run(`INSERT OR REPLACE INTO ${table} (key, value) VALUES (?, ?);`, key, JSON.stringify(value));
                 return true;
             }
             // delete when no value is set
-            await this.db.run(`DELETE from global WHERE key = ?;`, key);
+            await this.db.run(`DELETE from ${table} WHERE key = ?;`, key);
             return true;
             // await this.db.run('UPDATE global SET value = ? WHERE key = ?', JSON.stringify(value), key);
         } catch (e) {

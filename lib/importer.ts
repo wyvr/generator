@@ -175,7 +175,7 @@ export class Importer {
                 fs.createReadStream(this.state_global_file, { flags: 'r', encoding: 'utf-8' }).pipe(jsonStream.input);
 
                 jsonStream.on('data', async (data: {key: string, value: any}) => {
-                    await Global.set_global(data.key, data.value);
+                    await Global.set(data.key, data.value);
                     global_data[data.key] = data.value;
                 });
 

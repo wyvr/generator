@@ -43,7 +43,7 @@ export class Routes {
         }
         if (!(<any>global).getGlobal || typeof (<any>global).getGlobal != 'function') {
             (<any>global).getGlobal = async (key, fallback, callback) => {
-                return await Global.get_global(key, fallback || null, callback);
+                return await Global.get(key, fallback || null, callback);
             };
         }
         if (route.path.match(/\.md$/)) {

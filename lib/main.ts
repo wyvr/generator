@@ -118,8 +118,8 @@ export class Main {
                     Logger.warning('import global file does not exist', import_global_path);
                 }
             }
-            Global.set_global('env', EnvModel[Env.get()]);
-            Global.set_global('url', Config.get('url'));
+            Global.set('env', EnvModel[Env.get()]);
+            Global.set('url', Config.get('url'));
             const import_main_path = Config.get('import.main');
             const default_values = Config.get('default_values');
             if (import_main_path && existsSync(import_main_path)) {
@@ -147,9 +147,8 @@ export class Main {
                     global_data = await importer.get_global();
                 }
             }
-            await Global.set_global_all(global_data)
+            await Global.set_all(global_data);
         }
-
 
         this.perf.start('worker');
 
@@ -279,8 +278,10 @@ export class Main {
         }
 
         this.perf.start('transform');
-        console.log('NAV IS GENERATED FROM GLOBAL')
-        // this.global_data = Generate.build_nav(this.global_data);
+
+        // update the navigation entries
+        await Generate.build_nav();
+        
         const collected_files = await this.helper.transform();
         if (!collected_files) {
             this.helper.fail('no collected files');
@@ -297,7 +298,7 @@ export class Main {
 
         // build static files
         const [build_pages, identifier_data_list] = await this.helper.build(this.worker_controller, files, changed_files, this.identifier_data_list);
-        if(this.identifier_data_list.length == 0) {
+        if (this.identifier_data_list.length == 0) {
             this.identifier_data_list = identifier_data_list;
         }
         this.perf.end('build');
@@ -385,15 +386,18 @@ export class Main {
         this.is_executing = false;
     }
     async routes(file_list: any[], enhance_data: boolean = true, cron_state: any[] = null) {
+        let global_data = {};
         const on_global_index = this.worker_controller.events.on('emit', 'global', (data) => {
-            // add the results to the global data
+            // add the results to the local global data
             if (data) {
-                console.log('GLOBAL FROM WORKER')
-                Global.set_global_all(data.data)
+                global_data = merge(global_data, data.data);
             }
         });
         const result = await this.helper.routes(this.worker_controller, this.package_tree, file_list, enhance_data, cron_state);
         this.worker_controller.events.off('emit', 'global', on_global_index);
+        
+        // merge the data into the database of all handled routes
+        await Global.merge_all(global_data);
         return result;
     }
 }

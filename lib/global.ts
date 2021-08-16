@@ -5,6 +5,7 @@ import { mkdirSync, existsSync, writeFileSync } from 'fs-extra';
 import { Dir } from './dir';
 import { dirname } from 'path';
 import merge from 'deepmerge';
+import { Storage } from '@lib/storage';
 
 export class Global {
     static is_setup: boolean = false;
@@ -48,7 +49,7 @@ export class Global {
             const func_content = content.substr(start_index, index - start_index);
             if (!(<any>global).getGlobal || typeof (<any>global).getGlobal != 'function') {
                 (<any>global).getGlobal = async (key, fallback, callback) => {
-                    return await this.get_global(key, fallback || null, callback);
+                    return await this.get(key, fallback === undefined ? null : fallback, callback);
                 };
             }
             let result = await eval(func_content); // @NOTE throw error, must be catched outside
@@ -67,154 +68,93 @@ export class Global {
      * @param callback when defined a method to transform the given data
      * @returns json string of the result
      */
-    static async get_global(key: string, fallback: any = null, callback: Function = null) {
+    static async get(key: string, fallback: any = null, callback: Function = null) {
         if (!key) {
-            return Global.apply_callback(fallback, callback);
+            return this.apply_callback(fallback, callback);
         }
-        if(key == 'nav' || key.indexOf('nav.') == 0) {
-            return await this.get('nav', key.replace(/^nav\.?/, ''), fallback, callback);
+        const [table, corrected_key] = this.correct(key);
+        // corrected_key can here not be an array
+        if (typeof corrected_key == 'string') {
+            const [get_error, result] = await Storage.get(table, corrected_key, fallback);
+            if (get_error) {
+                console.log(get_error);
+                return this.apply_callback(fallback, callback);
+            }
+            return this.apply_callback(result, callback);
         }
-        return await this.get('global', key, fallback, callback);
+        return this.apply_callback(fallback, callback);
     }
-    static async get(table: string, key: string, fallback: any = null, callback: Function = null) {
-        if (!table || !key) {
-            return Global.apply_callback(fallback, callback);
-        }
-        // avoid loading to much data
-        // if (key == 'nav' && (!callback || typeof callback != 'function')) {
-        //     Logger.error('[wyvr]', 'avoid getting getGlobal("nav") because of potential memory leak, add a callback to shrink results');
-        //     return Global.apply_callback(fallback, callback);
-        // }
-        await this.setup();
-        const steps = key.split('.');
 
-        // set safety fallback
-        let value = fallback;
-
-        for (let i = 0; i < steps.length; i++) {
-            let step = steps[i];
-            let index = null;
-            // searches an element at an specific index
-            if (step.indexOf('[') > -1 && step.indexOf(']') > -1) {
-                const match = step.match(/^([^\[]+)\[([^\]]+)\]$/);
-                if (match) {
-                    step = match[1];
-                    index = parseInt((match[2] + '').trim(), 10);
-                }
-            }
-            // first step is the key in the db
-            if (i == 0) {
-                try {
-                    const result = await this.db.get(`SELECT value FROM ${table} WHERE key = ?`, step);
-                    if (!result || !result.value) {
-                        return await Global.apply_callback(fallback, callback);
-                    }
-                    value = JSON.parse(result.value);
-
-                    // when there was an index on the first element, select the item
-                    if (value !== undefined && index != null && Array.isArray(value)) {
-                        value = value[index];
-                    }
-                } catch (e) {
-                    console.log(key, e);
-                    return await Global.apply_callback(fallback, callback);
-                }
-                continue;
-            }
-            // dig deeper in the data
-            value = value[step];
-            if (value === undefined) {
-                return Global.apply_callback(fallback, callback);
-            }
-            // when index is available dig into the index
-            if (value !== undefined && index != null && Array.isArray(value)) {
-                value = value[index];
-            }
-        }
-
-        return await Global.apply_callback(value, callback);
-    }
-    /**
-     * Create global database when not existing
-     * @returns void
-     */
-    static async setup() {
-        if (this.db) {
-            return;
-        }
-        // create the folder otherwise sqlite can not create file
-        if (!existsSync('cache')) {
-            mkdirSync('cache');
-        }
-        // save and store the connection
-        this.db = await open({
-            filename: 'cache/global.db',
-            driver: sqlite3.Database,
-        });
-        await this.db.exec(`CREATE TABLE IF NOT EXISTS global (
-            key TEXT PRIMARY KEY,
-            value TEXT
-        );`);
-        await this.db.exec(`CREATE TABLE IF NOT EXISTS nav (
-            key TEXT PRIMARY KEY,
-            value TEXT
-        );`);
-    }
-    static async set_global(key: string, value: any = null): Promise<boolean> {
+    static async set(key: string, value: any = null): Promise<boolean> {
         if (!key) {
             return false;
         }
-        if(key == 'nav' || key.indexOf('nav.') == 0) {
-            return await this.set('nav', key.replace(/^nav\.?/, ''), value);
+        const [table, corrected_key] = this.correct(key, value);
+        let set_error: Error | null = null,
+            result = false;
+        if (Array.isArray(corrected_key)) {
+            const all_result = await Promise.all(
+                corrected_key.map(async (key) => {
+                    return await Storage.merge(table, key, value[key]);
+                })
+            );
+            set_error = all_result.reduce((acc: Error | null, cur): Error | null => {
+                if (cur[0]) {
+                    return cur[0];
+                }
+                return acc;
+            }, null);
+            result = all_result.reduce((acc: boolean, cur): boolean => {
+                if (!cur[1]) {
+                    return false;
+                }
+                return acc;
+            }, true);
+        } else {
+            [set_error, result] = await Storage.set(table, corrected_key, value);
         }
-        return await this.set('global', key, value);
-    }
-    static async set(table: string, key: string, value: any = null): Promise<boolean> {
-        if (!table || !key) {
+        if (set_error) {
+            console.log(set_error);
             return false;
         }
-        await this.setup();
-        try {
-            if (value) {
-                // insert or replace entry
-                // https://stackoverflow.com/questions/418898/sqlite-upsert-not-insert-or-replace
-                await this.db.run(`INSERT OR REPLACE INTO ${table} (key, value) VALUES (?, ?);`, key, JSON.stringify(value));
-                return true;
-            }
-            // delete when no value is set
-            await this.db.run(`DELETE from ${table} WHERE key = ?;`, key);
-            return true;
-            // await this.db.run('UPDATE global SET value = ? WHERE key = ?', JSON.stringify(value), key);
-        } catch (e) {
-            console.log(e);
-            return false;
-        }
+        return result;
     }
-    static async set_global_all(data) {
+    static async set_all(data) {
         // @NOTE maybe this is slow, can be changed into a prepared statement or a hugh insert statement
-        await Promise.all(
+        return await Promise.all(
             Object.keys(data).map(async (key) => {
-                return await this.set_global(key, data[key]);
+                return await this.set(key, data[key]);
             })
         );
     }
-    static async merge_global(key: string, value: any = null): Promise<boolean> {
+    static async merge(key: string, value: any = null): Promise<boolean> {
         if (!key || value == null) {
             return false;
         }
-        await this.setup();
-        const orig = await this.get_global(key);
-        // when orif not exists use the new value
+        const orig = await this.get(key);
+        // when original not exists use the new value
         if (orig == null || typeof value != 'object') {
-            return await this.set_global(key, value);
+            return await this.set(key, value);
         }
-        return await this.set_global(key, merge(orig, value));
+        let merged = merge(orig, value);
+        const [table] = this.correct(key);
+        if(table == 'nav' && Array.isArray(merged)) {
+            const urls = [];
+            merged = merged.filter((entry)=>{
+                if(urls.indexOf(entry.url) > -1) {
+                    return false;
+                }
+                urls.push(entry.url)
+                return true;
+            })
+        }
+        return await this.set(key, merged);
     }
-    static async merge_global_all(data) {
+    static async merge_all(data) {
         // @NOTE maybe this is slow, can be changed into a prepared statement or a hugh insert statement
-        await Promise.all(
+        return await Promise.all(
             Object.keys(data).map(async (key) => {
-                return await this.merge_global(key, data[key]);
+                return await this.merge(key, data[key]);
             })
         );
     }
@@ -241,5 +181,22 @@ export class Global {
             // write global data to release
             writeFileSync(filepath, JSON.stringify(data));
         }
+    }
+    static correct(key: string, value: any = null): [string, string | string[]] {
+        let table = 'global';
+        let corrected_key: string | string[] = key;
+        if (key == 'nav' || key.indexOf('nav.') == 0) {
+            table = 'nav';
+            corrected_key = key.replace(/^nav\.?/, '');
+            // when accessed at root level, use the keys instead
+            if (!corrected_key) {
+                corrected_key = '*';
+                // use the kleys from the value for the nav to extract keys
+                if (value && typeof value == 'object') {
+                    corrected_key = Object.keys(value);
+                }
+            }
+        }
+        return [table, corrected_key];
     }
 }

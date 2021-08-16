@@ -138,15 +138,15 @@ export class Global {
         }
         let merged = merge(orig, value);
         const [table] = this.correct(key);
-        if(table == 'nav' && Array.isArray(merged)) {
+        if (table == 'nav' && Array.isArray(merged)) {
             const urls = [];
-            merged = merged.filter((entry)=>{
-                if(urls.indexOf(entry.url) > -1) {
+            merged = merged.filter((entry) => {
+                if (urls.indexOf(entry.url) > -1) {
                     return false;
                 }
-                urls.push(entry.url)
+                urls.push(entry.url);
                 return true;
-            })
+            });
         }
         return await this.set(key, merged);
     }

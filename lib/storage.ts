@@ -38,8 +38,8 @@ export class Storage {
         );`);
         // nav has to be empty
         const [nav_clear_error] = await this.clear('nav');
-        if(nav_clear_error) {
-            console.log(nav_clear_error)
+        if (nav_clear_error) {
+            console.log(nav_clear_error);
         }
     }
     static async get(table: string, key: string, fallback: any = null): Promise<[Error | null, any]> {
@@ -67,10 +67,15 @@ export class Storage {
             if (i == 0) {
                 try {
                     let result = null;
-                    if(step == '*') {
-                        result =  await this.db.all(`SELECT key, value FROM ${this.normalize(table)}`);
+                    if (step == '*') {
+                        result = await this.db.all(`SELECT key, value FROM ${this.normalize(table)}`);
                         if (result) {
-                            return [null, result];
+                            return [
+                                null,
+                                result.map((entry) => {
+                                    return { key: entry.key, value: JSON.parse(entry.value) };
+                                }),
+                            ];
                         }
                         // console.log(result)
                     } else {
@@ -116,12 +121,12 @@ export class Storage {
                 // console.log(rows)
                 return [null, true];
             }
-            console.log('DELETE', key)
+            console.log('DELETE', key);
             // delete when no value is set
             await this.db.run(`DELETE from ${this.normalize(table)} WHERE key = ?;`, key);
             return [null, true];
         } catch (e) {
-            console.log(e)
+            console.log(e);
             return [e, false];
         }
     }
@@ -131,7 +136,7 @@ export class Storage {
         }
         await this.setup();
         const [get_error, orig] = await this.get(table, key);
-        if(get_error) {
+        if (get_error) {
             return [get_error, null];
         }
         // when orif not exists use the new value
@@ -143,7 +148,7 @@ export class Storage {
     static normalize(text: string = '') {
         return text.replace(/[A-Z]/g, '-$1').toLowerCase().replace(/^-/, '').replace(/-+/g, '-');
     }
-    static async clear(table: string): Promise<[Error|null,boolean]> {
+    static async clear(table: string): Promise<[Error | null, boolean]> {
         if (!table) {
             return [null, false];
         }

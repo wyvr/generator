@@ -125,17 +125,17 @@ export class Generate {
     }
     static async build_nav() {
         const nav = await Global.get('nav');
-        console.log('nav', nav.length)
         if (!nav) {
             return null;
         }
 
         await Promise.all(
-            Object.keys(nav).map(async (key) => {
-                if (!Array.isArray(nav[key])) {
+            Object.keys(nav).map(async (index) => {
+                const entry = nav[index];
+                if (!Array.isArray(entry.value)) {
                     return null;
                 }
-                const data = nav[key]
+                const data = entry.value
                     // sort the nav by the field order
                     .sort((a, b) => {
                         if (a.order > b.order) {
@@ -154,8 +154,7 @@ export class Generate {
                         return nav;
                     });
                 const tree = arrayToTree(data);
-                Global.set(`nav.${key}`, tree);
-                console.log(key)
+                Global.set(`nav.${entry.key}`, tree);
                 return null;
             })
         );

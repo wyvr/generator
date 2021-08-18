@@ -91,18 +91,18 @@ export class Generate {
             return global;
         }
         // ensure global data structure
-        if (!global.nav) {
-            global.nav = {};
+        if (!global.navigation) {
+            global.navigation = {};
         }
         if (!Array.isArray(nav_result)) {
             return global;
         }
         nav_result.forEach((nav) => {
             if (nav.scope) {
-                if (!global.nav[nav.scope]) {
-                    global.nav[nav.scope] = [];
+                if (!global.navigation[nav.scope]) {
+                    global.navigation[nav.scope] = [];
                 }
-                global.nav[nav.scope].push(nav);
+                global.navigation[nav.scope].push(nav);
             }
         });
         return global;
@@ -124,10 +124,11 @@ export class Generate {
         return [].concat(prop_value, default_value).filter((x, index, arr) => arr.indexOf(x) == index);
     }
     static async build_nav() {
-        const nav = await Global.get('nav');
+        const nav = await Global.get('navigation');
         if (!nav) {
             return null;
         }
+        console.log('build nav', nav)
 
         await Promise.all(
             Object.keys(nav).map(async (index) => {

@@ -49,7 +49,9 @@ export class Global {
             const func_content = content.substr(start_index, index - start_index);
             if (!(<any>global).getGlobal || typeof (<any>global).getGlobal != 'function') {
                 (<any>global).getGlobal = async (key, fallback, callback) => {
-                    return await this.get(key, fallback === undefined ? null : fallback, callback);
+                    const value = await this.get(key, fallback === undefined ? null : fallback, callback);
+                    // console.log('->', key, value);
+                    return value;
                 };
             }
             let result = await eval(func_content); // @NOTE throw error, must be catched outside
@@ -75,6 +77,7 @@ export class Global {
         const [table, corrected_key] = this.correct(key);
         // corrected_key can here not be an array
         if (typeof corrected_key == 'string') {
+            // console.log(table, corrected_key)
             const [get_error, result] = await Storage.get(table, corrected_key, fallback);
             if (get_error) {
                 console.log(get_error);
@@ -138,7 +141,7 @@ export class Global {
         }
         let merged = merge(orig, value);
         const [table] = this.correct(key);
-        if (table == 'nav' && Array.isArray(merged)) {
+        if (table == 'navigation' && Array.isArray(merged)) {
             const urls = [];
             merged = merged.filter((entry) => {
                 if (urls.indexOf(entry.url) > -1) {
@@ -196,7 +199,7 @@ export class Global {
         let table = 'global';
         let corrected_key: string | string[] = key;
 
-        const sub_keys = ['nav'];
+        const sub_keys = ['nav', 'navigation'];
         const splitted_key = key.split('.');
         const first_key = splitted_key.shift();
         

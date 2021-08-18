@@ -32,6 +32,10 @@ export class Storage {
             key VARCHAR(255) NOT NULL PRIMARY KEY,
             value TEXT
         );`);
+        await this.db.exec(`CREATE TABLE IF NOT EXISTS navigation (
+            key VARCHAR(255) NOT NULL PRIMARY KEY,
+            value TEXT
+        );`);
         await this.db.exec(`CREATE TABLE IF NOT EXISTS nav (
             key VARCHAR(255) NOT NULL PRIMARY KEY,
             value TEXT
@@ -43,7 +47,7 @@ export class Storage {
         }
     }
     static tables() {
-        return ['global', 'nav'];
+        return ['global', 'navigation', 'nav'];
     }
     static async get(table: string, key: string, fallback: any = null): Promise<[Error | null, any]> {
         if (!table || !key) {

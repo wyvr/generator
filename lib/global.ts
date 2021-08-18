@@ -176,7 +176,17 @@ export class Global {
     }
     static async export(filepath: string) {
         if (filepath) {
-            const data = null;
+            const data = {};
+            await Promise.all(Storage.tables().map(async (table) => {
+                const result = await Storage.get(table, '*', null);
+                if(table == 'global') {
+                    Object.keys(result).forEach((key)=> {
+                        data[key] = result[key];
+                    })
+                    return null;
+                }
+                data[table] = result;
+            }));
             Dir.create(dirname(filepath));
             // write global data to release
             writeFileSync(filepath, JSON.stringify(data));
@@ -185,18 +195,24 @@ export class Global {
     static correct(key: string, value: any = null): [string, string | string[]] {
         let table = 'global';
         let corrected_key: string | string[] = key;
-        if (key == 'nav' || key.indexOf('nav.') == 0) {
-            table = 'nav';
-            corrected_key = key.replace(/^nav\.?/, '');
-            // when accessed at root level, use the keys instead
-            if (!corrected_key) {
-                corrected_key = '*';
-                // use the kleys from the value for the nav to extract keys
-                if (value && typeof value == 'object') {
-                    corrected_key = Object.keys(value);
-                }
+
+        const sub_keys = ['nav'];
+        const splitted_key = key.split('.');
+        const first_key = splitted_key.shift();
+        
+        if(sub_keys.indexOf(first_key) > -1) {
+            table = first_key;
+            corrected_key = splitted_key.join('.');
+        }
+
+        if(!corrected_key) {
+            corrected_key = '*';
+            // use the keys from the value to extract keys
+            if (value && typeof value == 'object') {
+                corrected_key = Object.keys(value);
             }
         }
+
         return [table, corrected_key];
     }
 }

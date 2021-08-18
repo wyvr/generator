@@ -42,6 +42,9 @@ export class Storage {
             console.log(nav_clear_error);
         }
     }
+    static tables() {
+        return ['global', 'nav'];
+    }
     static async get(table: string, key: string, fallback: any = null): Promise<[Error | null, any]> {
         if (!table || !key) {
             return [null, fallback];

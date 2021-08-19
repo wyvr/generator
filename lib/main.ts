@@ -385,17 +385,38 @@ export class Main {
         this.worker_controller.cleanup();
         this.is_executing = false;
     }
-    async routes(file_list: any[], enhance_data: boolean = true, cron_state: any[] = null) {
+    async routes(file_list: any[], enhance_data: boolean = true, cron_state: any[] = null): Promise<[any[], any[]]> {
+        let completed_routes = 0;
         const on_global_index = this.worker_controller.events.on('emit', WorkerEmit.global, async (data) => {
             // add the results to the global data
             if (data) {
                 await Global.merge_all(data.data);
             }
-            console.log('@WARN This execution is not blocking the main thread!!!! BUG nav is not set');
+            completed_routes++;
         });
-        const result = await this.helper.routes(this.worker_controller, this.package_tree, file_list, enhance_data, cron_state);
+        const [route_files, cron_routes, routes_count] = await this.helper.routes(this.worker_controller, this.package_tree, file_list, enhance_data, cron_state);
+        
+        // wait for the global event actions to complete
+        Logger.text('waiting for the events to finish')
+        try {
+            await new Promise((resolve, reject) => {
+                const guard = setTimeout(() => {
+                    reject('timeout waiting for global events to complete');
+                }, 60000);
+                const interval = setInterval(() => {
+                    console.log(completed_routes, routes_count)
+                    if (completed_routes == routes_count) {
+                        clearInterval(interval);
+                        clearTimeout(guard);
+                        resolve(true);
+                    }
+                }, 1000);
+            });
+        } catch(e) {
+            console.log(e)
+        }
         this.worker_controller.events.off('emit', WorkerEmit.global, on_global_index);
 
-        return result;
+        return [route_files, cron_routes];
     }
 }

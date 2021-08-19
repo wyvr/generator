@@ -135,7 +135,6 @@ export class Storage {
                 // console.log(rows)
                 return [null, true];
             }
-            console.log('DELETE', key);
             // delete when no value is set
             await this.db.run(`DELETE from ${this.normalize(table)} WHERE key = ?;`, key);
             return [null, true];
@@ -163,7 +162,7 @@ export class Storage {
             merged_value = merged_value.filter((item, index, arr) => {
                 return arr.findIndex((i) => i.url == item.url) == index;
             });
-            console.log(key, merged_value);
+            // console.log(key, merged_value);
         }
         return await this.set(table, key, merged_value);
     }

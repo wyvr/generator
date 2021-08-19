@@ -180,11 +180,11 @@ export class MainHelper {
         await Plugin.after('collect', packages);
         return package_tree;
     }
-    async routes(worker_controller: WorkerController, package_tree: any, file_list: any[], enhance_data: boolean = true, cron_state: any[] = null) {
+    async routes(worker_controller: WorkerController, package_tree: any, file_list: any[], enhance_data: boolean = true, cron_state: any[] = null): Promise<[any[], any[], number]> {
         await Plugin.before('routes', file_list, enhance_data);
         let routes = Routes.collect_routes(null, package_tree);
         if (!routes || routes.length == 0) {
-            return [file_list, null];
+            return [file_list, null, 0];
         }
         // add meta data to the route
         if (!enhance_data) {
@@ -225,7 +225,8 @@ export class MainHelper {
         await Plugin.after('routes', file_list, enhance_data);
         // Logger.info('routes amount', routes_urls.length);
         // return [].concat(file_list, routes_urls);
-        return [file_list, route_urls.length > 0 ? route_urls : null];
+        const cron_routes = route_urls.length > 0 ? route_urls : null;
+        return [file_list, cron_routes, routes.length];
     }
     async transform() {
         const svelte_files = File.collect_svelte_files('gen/src');

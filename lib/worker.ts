@@ -51,8 +51,7 @@ export class Worker {
                         WorkerHelper.log(LogType.warning, 'invalid configure value', value);
                         return;
                     }
-                    WorkerHelper.send_status(WorkerStatus.done);
-                    WorkerHelper.send_status(WorkerStatus.idle);
+                    WorkerHelper.send_complete();
                     break;
                 case WorkerAction.route:
                     WorkerHelper.send_status(WorkerStatus.busy);
@@ -94,8 +93,7 @@ export class Worker {
                         type: 'global',
                         data: global_data,
                     });
-                    WorkerHelper.send_status(WorkerStatus.done);
-                    WorkerHelper.send_status(WorkerStatus.idle);
+                    WorkerHelper.send_complete();
                     break;
                 case WorkerAction.build:
                     WorkerHelper.send_status(WorkerStatus.busy);
@@ -187,8 +185,7 @@ export class Worker {
                         data: build_result,
                     });
                     // console.log('result', result);
-                    WorkerHelper.send_status(WorkerStatus.done);
-                    WorkerHelper.send_status(WorkerStatus.idle);
+                    WorkerHelper.send_complete();
                     break;
                 case WorkerAction.scripts:
                     WorkerHelper.send_status(WorkerStatus.busy);
@@ -222,8 +219,7 @@ export class Worker {
                         })
                     );
 
-                    WorkerHelper.send_status(WorkerStatus.done);
-                    WorkerHelper.send_status(WorkerStatus.idle);
+                    WorkerHelper.send_complete();
                     break;
                 case WorkerAction.optimize:
                     if (value.length > 1) {
@@ -275,8 +271,7 @@ export class Worker {
 
                         writeFileSync(file, content);
                     });
-                    WorkerHelper.send_status(WorkerStatus.done);
-                    WorkerHelper.send_status(WorkerStatus.idle);
+                    WorkerHelper.send_complete();
                     break;
                 case WorkerAction.status:
                     WorkerHelper.log(LogType.debug, 'setting status from outside is not allowed');

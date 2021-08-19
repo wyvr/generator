@@ -9,6 +9,11 @@ export class WorkerHelper {
             data,
         });
     }
+    static send_complete() {
+        this.send_status(WorkerStatus.done);
+        // @TODO check memory limit, if near kill process
+        this.send_status(WorkerStatus.idle);
+    }
     static send_status(status: WorkerStatus) {
         const enum_status = this.get_status(status);
         this.send_action(WorkerAction.status, enum_status);

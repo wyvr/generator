@@ -1,11 +1,12 @@
 import { Logger } from '@lib/logger';
-import sqlite3 from 'sqlite3';
 import { open, Database } from 'sqlite';
 import { mkdirSync, existsSync, writeFileSync } from 'fs-extra';
 import { Dir } from './dir';
 import { dirname } from 'path';
 import merge from 'deepmerge';
 import { Storage } from '@lib/storage';
+import { v4 } from 'uuid';
+
 
 export class Global {
     static is_setup: boolean = false;
@@ -161,8 +162,10 @@ export class Global {
         return await this.set(key, merged);
     }
     static async merge_all(data) {
+        const id = v4().split('-')[0];
+        console.log('merge start', id, Object.keys(data.navigation))
         // @NOTE maybe this is slow, can be changed into a prepared statement or a hugh insert statement
-        return await Promise.all(
+        const result = await Promise.all(
             Object.keys(data).map(async (key) => {
                 if (!Array.isArray(data[key]) && typeof data[key] == 'object') {
                     return await Promise.all(Object.keys(data[key]).map(async (sub_key) => {
@@ -172,6 +175,8 @@ export class Global {
                 return await this.merge(key, data[key]);
             })
         );
+        console.log('merge done', id)
+        return result;
     }
     /**
      * When callback is defined it gets applied to the given value

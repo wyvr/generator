@@ -17,6 +17,9 @@ import sass from 'sass';
 import { Logger } from '@lib/logger';
 
 export class Client {
+    static transform_resource(content) {
+        return content.replace(/\/\/# sourceMappingURL=[^\n]*/g, '');
+    }
     static async create_bundle(cwd: string, entry: any, hydrate_files: WyvrFile[]) {
         Env.set(process.env.WYVR_ENV);
         const client_root = join(cwd, 'gen', 'client');
@@ -29,13 +32,13 @@ export class Client {
         const resouce_folder = join(__dirname, 'resource');
         // create empty file because it is required as identifier
         const script_partials = {
-            hydrate: fs.readFileSync(join(resouce_folder, 'hydrate.js'), { encoding: 'utf-8' }),
-            props: fs.readFileSync(join(resouce_folder, 'props.js'), { encoding: 'utf-8' }),
-            portal: fs.readFileSync(join(resouce_folder, 'portal.js'), { encoding: 'utf-8' }),
-            lazy: fs.readFileSync(join(resouce_folder, 'hydrate_lazy.js'), { encoding: 'utf-8' }),
-            idle: fs.readFileSync(join(resouce_folder, 'hydrate_idle.js'), { encoding: 'utf-8' }),
-            media: fs.readFileSync(join(resouce_folder, 'hydrate_media.js'), { encoding: 'utf-8' }),
-            env: fs.readFileSync(join(resouce_folder, 'env.js'), { encoding: 'utf-8' }),
+            hydrate: this.transform_resource(fs.readFileSync(join(resouce_folder, 'hydrate.js'), { encoding: 'utf-8' })),
+            props: this.transform_resource(fs.readFileSync(join(resouce_folder, 'props.js'), { encoding: 'utf-8' })),
+            portal: this.transform_resource(fs.readFileSync(join(resouce_folder, 'portal.js'), { encoding: 'utf-8' })),
+            lazy: this.transform_resource(fs.readFileSync(join(resouce_folder, 'hydrate_lazy.js'), { encoding: 'utf-8' })),
+            idle: this.transform_resource(fs.readFileSync(join(resouce_folder, 'hydrate_idle.js'), { encoding: 'utf-8' })),
+            media: this.transform_resource(fs.readFileSync(join(resouce_folder, 'hydrate_media.js'), { encoding: 'utf-8' })),
+            env: this.transform_resource(fs.readFileSync(join(resouce_folder, 'env.js'), { encoding: 'utf-8' })),
             debug: '',
         };
         if (Env.is_dev()) {
@@ -147,7 +150,7 @@ export class Client {
                         hydratable: true,
                         dev: Env.is_dev(),
                         cssHash: Client.css_hash,
-                    }
+                    },
                 }),
                 node_resolve({ browser: true }),
                 commonjs(),
@@ -161,7 +164,7 @@ export class Client {
         const output_options: any = {
             // dir: `gen/js`,
             file: join(cwd, 'gen', 'js', `${name}.js`),
-            //sourcemap: true,
+            sourcemap: false,
             format: 'iife',
             name: 'app',
         };
@@ -253,11 +256,7 @@ export class Client {
             return [null, ''];
         }
         const style_result = this.extract_tags_from_content(content, 'style');
-        if (
-            style_result &&
-            style_result.result &&
-            style_result.result.some((entry) => entry.indexOf('type="text/scss"') > -1 || entry.indexOf('lang="sass"') > -1)
-        ) {
+        if (style_result && style_result.result && style_result.result.some((entry) => entry.indexOf('type="text/scss"') > -1 || entry.indexOf('lang="sass"') > -1)) {
             let sass_result = null;
             try {
                 sass_result = sass.renderSync({

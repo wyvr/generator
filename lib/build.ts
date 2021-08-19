@@ -15,12 +15,12 @@ register();
     }
 };
 export class Build {
-    static compile(content: string): [any, any] {
+    static async compile(content: string): Promise<[any, any]> {
         if (!content || typeof content != 'string') {
             return [new Error('content has to be a string'), null];
         }
         try {
-            const compiled = compile(content, {
+            const compiled = await compile(content, {
                 dev: Env.is_dev(),
                 generate: 'ssr',
                 format: 'cjs',

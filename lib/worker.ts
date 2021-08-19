@@ -110,7 +110,7 @@ export class Worker {
                             const result = this.emit_identifier(data);
 
                             const page_code = Build.get_page_code(result.data, result.doc, result.layout, result.page);
-                            const [compile_error, compiled] = Build.compile(page_code);
+                            const [compile_error, compiled] = await Build.compile(page_code);
 
                             if (compile_error) {
                                 // svelte error messages

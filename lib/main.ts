@@ -1,7 +1,6 @@
-import { readFileSync, writeFileSync, existsSync, copySync, mkdirSync, removeSync } from 'fs-extra';
+import { readFileSync, writeFileSync, existsSync } from 'fs-extra';
 import { v4 } from 'uuid';
-import { dirname, join, sep } from 'path';
-import merge from 'deepmerge';
+import { join } from 'path';
 
 import { Generate } from '@lib/generate';
 import { Importer } from '@lib/importer';
@@ -19,7 +18,8 @@ import { Dependency } from '@lib/dependency';
 import { Plugin } from '@lib/plugin';
 import { WyvrMode } from '@lib/model/wyvr/mode';
 import { MainHelper } from '@lib/main/helper';
-import { Global } from './global';
+import { Global } from '@lib/global';
+import { WorkerEmit } from '@lib/model/worker/emit';
 
 export class Main {
     mode: WyvrMode = WyvrMode.build;
@@ -158,7 +158,7 @@ export class Main {
         const workers = this.worker_controller.create_workers(this.worker_amount);
         const gen_src_folder = join(this.cwd, 'gen', 'src');
         // watcher when worker sends identifier content
-        this.worker_controller.events.on('emit', 'identifier', (data: any) => {
+        this.worker_controller.events.on('emit', WorkerEmit.identifier, (data: any) => {
             this.identifiers[data.identifier] = {
                 name: data.identifier.replace(gen_src_folder + '/', ''),
                 doc: data.doc.replace(gen_src_folder + '/', ''),
@@ -281,7 +281,7 @@ export class Main {
 
         // update the navigation entries
         await Generate.build_nav();
-        
+
         const collected_files = await this.helper.transform();
         if (!collected_files) {
             this.helper.fail('no collected files');
@@ -386,16 +386,16 @@ export class Main {
         this.is_executing = false;
     }
     async routes(file_list: any[], enhance_data: boolean = true, cron_state: any[] = null) {
-        const on_global_index = this.worker_controller.events.on('emit', 'global', async (data) => {
+        const on_global_index = this.worker_controller.events.on('emit', WorkerEmit.global, async (data) => {
             // add the results to the global data
             if (data) {
                 await Global.merge_all(data.data);
             }
-            console.log('@WARN This execution is not blocking the main thread!!!! BUG nav is not set')
+            console.log('@WARN This execution is not blocking the main thread!!!! BUG nav is not set');
         });
         const result = await this.helper.routes(this.worker_controller, this.package_tree, file_list, enhance_data, cron_state);
-        this.worker_controller.events.off('emit', 'global', on_global_index);
-        
+        this.worker_controller.events.off('emit', WorkerEmit.global, on_global_index);
+
         return result;
     }
 }

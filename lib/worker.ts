@@ -4,7 +4,7 @@ import { WorkerAction } from '@lib/model/worker/action';
 import { File } from '@lib/file';
 import { Build } from '@lib/build';
 import { Dir } from '@lib/dir';
-import { join, dirname, resolve, sep } from 'path';
+import { join, dirname } from 'path';
 import { readFileSync, writeFileSync, mkdirSync } from 'fs-extra';
 import { LogType } from './model/log';
 import { Client } from '@lib/client';
@@ -14,8 +14,8 @@ import { Generate } from '@lib/generate';
 import { RequireCache } from '@lib/require_cache';
 import { Error } from '@lib/error';
 import { Optimize } from '@lib/optimize';
-import { EnvModel } from './model/env';
-import { Global } from './global';
+import { EnvModel } from '@lib/model/env';
+import { WorkerEmit } from '@lib/model/worker/emit';
 
 export class Worker {
     private config = null;
@@ -77,7 +77,7 @@ export class Worker {
                                     return result.data;
                                 }
                                 global_data = Generate.add_to_global(enhanced_data, global_data);
-                                
+
                                 return result.data;
                             });
                             route_data = [].concat(route_data, route_url);
@@ -85,11 +85,11 @@ export class Worker {
                         })
                     );
                     WorkerHelper.send_action(WorkerAction.emit, {
-                        type: 'route',
+                        type: WorkerEmit.route,
                         data: route_data,
                     });
                     WorkerHelper.send_action(WorkerAction.emit, {
-                        type: 'global',
+                        type: WorkerEmit.global,
                         data: global_data,
                     });
                     WorkerHelper.send_complete();

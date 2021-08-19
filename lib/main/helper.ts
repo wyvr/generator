@@ -20,7 +20,8 @@ import { Dependency } from '@lib/dependency';
 import { Error } from '@lib/error';
 import { Route } from '@lib/model/route';
 import { Global } from '@lib/global';
-import { hrtime_to_ms } from '../converter/time';
+import { hrtime_to_ms } from '@lib/converter/time';
+import { WorkerEmit } from '@lib/model/worker/emit';
 
 export class MainHelper {
     cwd = process.cwd();
@@ -206,7 +207,7 @@ export class MainHelper {
         }
         // collect generated routes
         const route_urls = [];
-        const on_route_index = worker_controller.events.on('emit', 'route', (data) => {
+        const on_route_index = worker_controller.events.on('emit', WorkerEmit.route, (data) => {
             // append the routes
             route_urls.push(...data.data);
         });
@@ -220,7 +221,7 @@ export class MainHelper {
             })),
             1
         );
-        worker_controller.events.off('emit', 'route', on_route_index);
+        worker_controller.events.off('emit', WorkerEmit.route, on_route_index);
         await Plugin.after('routes', file_list, enhance_data);
         // Logger.info('routes amount', routes_urls.length);
         // return [].concat(file_list, routes_urls);
@@ -405,13 +406,13 @@ export class MainHelper {
         Logger.info('build datasets', list.length);
         const paths = [];
         const identifier_data_list = [];
-        const on_build_index = worker_controller.events.on('emit', 'build', (data) => {
+        const on_build_index = worker_controller.events.on('emit', WorkerEmit.build, (data) => {
             // add the results to the build file list
             if (data) {
                 paths.push(...data.data);
             }
         });
-        const on_identifier_index = worker_controller.events.on('emit', 'identifier_list', (data) => {
+        const on_identifier_index = worker_controller.events.on('emit', WorkerEmit.identifier_list, (data) => {
             // add the results to the build file list
             if (data && data.data) {
                 if (Array.isArray(data.data)) {
@@ -423,8 +424,8 @@ export class MainHelper {
         });
 
         const result = await worker_controller.process_in_workers('build', WorkerAction.build, list, 100);
-        worker_controller.events.off('emit', 'build', on_build_index);
-        worker_controller.events.off('emit', 'identifier_list', on_identifier_index);
+        worker_controller.events.off('emit', WorkerEmit.build, on_build_index);
+        worker_controller.events.off('emit', WorkerEmit.identifier_list, on_identifier_index);
         await Plugin.after('build', result, paths);
         return [paths, identifier_data_list];
     }

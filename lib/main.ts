@@ -118,8 +118,8 @@ export class Main {
                     Logger.warning('import global file does not exist', import_global_path);
                 }
             }
-            Global.set('env', EnvModel[Env.get()]);
-            Global.set('url', Config.get('url'));
+            Global.set('global.env', EnvModel[Env.get()]);
+            Global.set('global.url', Config.get('url'));
             const import_main_path = Config.get('import.main');
             const default_values = Config.get('default_values');
             if (import_main_path && existsSync(import_main_path)) {
@@ -386,18 +386,16 @@ export class Main {
         this.is_executing = false;
     }
     async routes(file_list: any[], enhance_data: boolean = true, cron_state: any[] = null) {
-        let global_data = {};
-        const on_global_index = this.worker_controller.events.on('emit', 'global', (data) => {
-            // add the results to the local global data
+        const on_global_index = this.worker_controller.events.on('emit', 'global', async (data) => {
+            // add the results to the global data
             if (data) {
-                global_data = merge(global_data, data.data);
+                await Global.merge_all(data.data);
             }
+            console.log('@WARN This execution is not blocking the main thread!!!! BUG nav is not set')
         });
         const result = await this.helper.routes(this.worker_controller, this.package_tree, file_list, enhance_data, cron_state);
         this.worker_controller.events.off('emit', 'global', on_global_index);
         
-        // merge the data into the database of all handled routes
-        await Global.merge_all(global_data);
         return result;
     }
 }

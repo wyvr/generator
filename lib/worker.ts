@@ -70,14 +70,13 @@ export class Worker {
                             const route_url = Routes.write_routes(route_result, (data: any) => {
                                 // enhance the data from the pages
                                 // set default values when the key is not available in the given data
-                                data = Generate.set_default_values(Generate.enhance_data(data), default_values);
-                                const result = this.emit_identifier(data);
+                                const enhanced_data = Generate.set_default_values(Generate.enhance_data(data), default_values);
+                                const result = this.emit_identifier(enhanced_data);
 
                                 if (!entry.add_to_global) {
-                                    return data;
+                                    return result.data;
                                 }
-                                global_data = Generate.add_to_global(data, global_data);
-
+                                global_data = Generate.add_to_global(enhanced_data, global_data);
                                 
                                 return result.data;
                             });

@@ -46,8 +46,15 @@ export class Storage {
             console.log(nav_clear_error);
         }
     }
-    static tables() {
-        return ['global', 'navigation', 'nav'];
+    static async tables() {
+        if (!this.db) {
+            return [];
+        }
+        const result = await this.db.all(`SELECT name FROM sqlite_master WHERE type ='table' AND name NOT LIKE 'sqlite_%';`);
+        if (result && Array.isArray(result)) {
+            return result.map((table) => table.name);
+        }
+        return [];
     }
     static async get(table: string, key: string, fallback: any = null): Promise<[Error | null, any]> {
         if (!table || !key) {
@@ -146,11 +153,19 @@ export class Storage {
         if (get_error) {
             return [get_error, null];
         }
-        // when orif not exists use the new value
+        // when not exists use the new value
         if (orig == null || typeof value != 'object') {
             return await this.set(table, key, value);
         }
-        return await this.set(table, key, merge(orig, value));
+        let merged_value = merge(orig, value);
+        // avoid multiplying of the navigatin entries
+        if (table == 'navigation' && Array.isArray(merged_value)) {
+            merged_value = merged_value.filter((item, index, arr) => {
+                return arr.findIndex((i) => i.url == item.url) == index;
+            });
+            console.log(key, merged_value);
+        }
+        return await this.set(table, key, merged_value);
     }
     static normalize(text: string = '') {
         return text.replace(/[A-Z]/g, '-$1').toLowerCase().replace(/^-/, '').replace(/-+/g, '-');

@@ -8,16 +8,16 @@ describe('Lib/Global', async () => {
     const { Global } = require('@lib/global');
 
     async function setGlobalDB() {
-        await Global.set_global('nav', {
+        await Global.set('nav', {
             header: [
                 {
                     url: 'https://wyvr.dev',
                 },
             ],
         });
-        await Global.set_global('list', ['a', 'b']);
-        await Global.set_global('match', { header: [{ url: 'match' }, { url: 'nope' }, { url: 'not' }] });
-        await Global.set_global('item', {
+        await Global.set('list', ['a', 'b']);
+        await Global.set('match', { header: [{ url: 'match' }, { url: 'nope' }, { url: 'not' }] });
+        await Global.set('item', {
             a: true,
             b: false,
         });
@@ -59,7 +59,7 @@ describe('Lib/Global', async () => {
         it('valid with fallback object', async () => {
             assert.strictEqual(
                 await Global.replace_global(
-                    `getGlobal('demo', { 
+                    `getGlobal('global.demo', { 
                     'url': 'https://wyvr.dev'
                 })`,
                     null
@@ -72,7 +72,7 @@ describe('Lib/Global', async () => {
         it('add around code', async () => {
             assert.strictEqual(
                 await Global.replace_global(
-                    `const a = getGlobal('item', [1], (data) => {
+                    `const a = getGlobal('global.item', [1], (data) => {
                         data.push(0);
                         data.push(2);
                         return data;
@@ -221,37 +221,37 @@ describe('Lib/Global', async () => {
     });
     describe('get_global without db', async () => {
         it('undefined', async () => {
-            assert.deepStrictEqual(await Global.get_global(), null);
+            assert.deepStrictEqual(await Global.get(), null);
         });
         it('null', async () => {
-            assert.deepStrictEqual(await Global.get_global(null), null);
+            assert.deepStrictEqual(await Global.get(null), null);
         });
         it('empty', async () => {
-            assert.deepStrictEqual(await Global.get_global(''), null);
+            assert.deepStrictEqual(await Global.get(''), null);
         });
         it('fallback', async () => {
-            assert.deepStrictEqual(await Global.get_global('', true), true);
+            assert.deepStrictEqual(await Global.get('', true), true);
         });
         it('list', async () => {
-            assert.deepStrictEqual(await Global.get_global('list', true), true);
+            assert.deepStrictEqual(await Global.get('list', true), true);
         });
         it('first list entry', async () => {
-            assert.strictEqual(await Global.get_global('list[0]', true, null), true);
+            assert.strictEqual(await Global.get('list[0]', true, null), true);
         });
         it('deep unknown on null', async () => {
-            assert.strictEqual(await Global.get_global('nav.footer', true, null), true);
+            assert.strictEqual(await Global.get('nav.footer', true, null), true);
         });
         it('deep search on null', async () => {
-            assert.strictEqual(await Global.get_global('nav.header[0]', true, null), true);
+            assert.strictEqual(await Global.get('nav.header[0]', true, null), true);
         });
         it('deep search property on null', async () => {
-            assert.strictEqual(await Global.get_global('nav.header[0].url', true, null), true);
+            assert.strictEqual(await Global.get('nav.header[0].url', true, null), true);
         });
         it('deep unknown search property', async () => {
-            assert.strictEqual(await Global.get_global('nonexisting.this.is.an.test', true, null), true);
+            assert.strictEqual(await Global.get('nonexisting.this.is.an.test', true, null), true);
         });
         it('deep unknown search property', async () => {
-            assert.strictEqual(await Global.get_global('nonexisting.this.is.an.test', undefined, null), null);
+            assert.strictEqual(await Global.get('nonexisting.this.is.an.test', undefined, null), null);
         });
     });
     describe('get_global', async () => {
@@ -262,29 +262,29 @@ describe('Lib/Global', async () => {
             removeGlobalDB();
         });
         it('list', async () => {
-            assert.deepStrictEqual(await Global.get_global('list', true), ['a', 'b']);
+            assert.deepStrictEqual(await Global.get('list', true), ['a', 'b']);
         });
 
         it('first list entry', async () => {
-            assert.strictEqual(await Global.get_global('list[0]', true), 'a');
+            assert.strictEqual(await Global.get('list[0]', true), 'a');
         });
         it('unknown index', async () => {
-            assert.strictEqual(await Global.get_global('unknown[0]', true), true);
+            assert.strictEqual(await Global.get('unknown[0]', true), true);
         });
 
         it('deep unknown', async () => {
-            assert.strictEqual(await Global.get_global('nav.footer', true), true);
+            assert.strictEqual(await Global.get('nav.footer', true), true);
         });
         it('deep search', async () => {
-            assert.deepStrictEqual(await Global.get_global('nav.header[0]', null), {
+            assert.deepStrictEqual(await Global.get('nav.header[0]', null), {
                 url: 'https://wyvr.dev',
             });
         });
         it('deep search unknown on null', async () => {
-            assert.strictEqual(await Global.get_global('nav.header[]', true), true);
+            assert.strictEqual(await Global.get('nav.header[]', true), true);
         });
         it('deep search property', async () => {
-            assert.strictEqual(await Global.get_global('nav.header[0].url', null), 'https://wyvr.dev');
+            assert.strictEqual(await Global.get('nav.header[0].url', null), 'https://wyvr.dev');
         });
     });
     describe('get_global nav', async () => {
@@ -300,7 +300,7 @@ describe('Lib/Global', async () => {
             console.log = (...messages) => {
                 output.push(messages);
             };
-            assert.strictEqual(await Global.get_global('nav', null), null);
+            assert.strictEqual(await Global.get('nav', null), null);
             assert.deepStrictEqual(output, [
                 [
                     '\u001b[31m✘\u001b[39m',
@@ -316,7 +316,7 @@ describe('Lib/Global', async () => {
                 output.push(messages);
             };
             assert.strictEqual(
-                await Global.get_global('nav', null, (data) => {
+                await Global.get('nav', null, (data) => {
                     return false;
                 }),
                 false
@@ -331,7 +331,7 @@ describe('Lib/Global', async () => {
                 output.push(messages);
             };
             assert.strictEqual(
-                await Global.get_global('nav', null, (data) => {
+                await Global.get('nav', null, (data) => {
                     return false;
                 }),
                 false
@@ -385,20 +385,20 @@ describe('Lib/Global', async () => {
             removeGlobalDB();
         });
         it('empty', async () => {
-            assert.strictEqual(await Global.set_global(), false);
+            assert.strictEqual(await Global.set(), false);
         });
         it('no value', async () => {
-            assert.strictEqual(await Global.set_global('key'), true);
+            assert.strictEqual(await Global.set('key'), true);
         });
         it('save', async () => {
-            assert.strictEqual(await Global.set_global('key', 'value'), true);
-            assert.strictEqual(await Global.get_global('key'), 'value');
+            assert.strictEqual(await Global.set('key', 'value'), true);
+            assert.strictEqual(await Global.get('key'), 'value');
         });
         it('delete', async () => {
-            await Global.set_global('key', 'value');
-            assert.strictEqual(await Global.get_global('key'), 'value');
-            assert.strictEqual(await Global.set_global('key'), true);
-            assert.strictEqual(await Global.get_global('key'), null);
+            await Global.set('key', 'value');
+            assert.strictEqual(await Global.get('key'), 'value');
+            assert.strictEqual(await Global.set('key'), true);
+            assert.strictEqual(await Global.get('key'), null);
         });
     });
     describe('merge_global', async () => {
@@ -409,35 +409,35 @@ describe('Lib/Global', async () => {
             removeGlobalDB();
         });
         it('empty', async () => {
-            assert.strictEqual(await Global.merge_global(), false);
+            assert.strictEqual(await Global.merge(), false);
         });
         it('no value', async () => {
-            assert.strictEqual(await Global.merge_global('key'), false);
+            assert.strictEqual(await Global.merge('key'), false);
         });
         it('string', async () => {
-            await Global.set_global('string', 'value');
-            assert.strictEqual(await Global.merge_global('string', 'new'), true);
-            assert.strictEqual(await Global.get_global('string'), 'new');
+            await Global.set('string', 'value');
+            assert.strictEqual(await Global.merge('string', 'new'), true);
+            assert.strictEqual(await Global.get('string'), 'new');
         });
         it('number', async () => {
-            await Global.set_global('number', 0);
-            assert.strictEqual(await Global.merge_global('number', 1), true);
-            assert.strictEqual(await Global.get_global('number'), 1);
+            await Global.set('number', 0);
+            assert.strictEqual(await Global.merge('number', 1), true);
+            assert.strictEqual(await Global.get('number'), 1);
         });
         it('bool', async () => {
-            await Global.set_global('bool', false);
-            assert.strictEqual(await Global.merge_global('bool', true), true);
-            assert.strictEqual(await Global.get_global('bool'), true);
+            await Global.set('bool', false);
+            assert.strictEqual(await Global.merge('bool', true), true);
+            assert.strictEqual(await Global.get('bool'), true);
         });
         it('array', async () => {
-            await Global.set_global('array', [1, 2]);
-            assert.strictEqual(await Global.merge_global('array', [3, 4]), true);
-            assert.deepStrictEqual(await Global.get_global('array'), [1, 2, 3, 4]);
+            await Global.set('array', [1, 2]);
+            assert.strictEqual(await Global.merge('array', [3, 4]), true);
+            assert.deepStrictEqual(await Global.get('array'), [1, 2, 3, 4]);
         });
         it('object', async () => {
-            await Global.set_global('object', { key: false, value: 'old', arr: [0] });
-            assert.strictEqual(await Global.merge_global('object', { key: true, arr: [1, 2], insert: true }), true);
-            assert.deepStrictEqual(await Global.get_global('object'), { key: true, value: 'old', arr: [0, 1, 2], insert: true });
+            await Global.set('object', { key: false, value: 'old', arr: [0] });
+            assert.strictEqual(await Global.merge('object', { key: true, arr: [1, 2], insert: true }), true);
+            assert.deepStrictEqual(await Global.get('object'), { key: true, value: 'old', arr: [0, 1, 2], insert: true });
         });
     });
     describe('set_global_all', async () => {
@@ -445,8 +445,8 @@ describe('Lib/Global', async () => {
             removeGlobalDB();
         });
         it('save', async () => {
-            await Global.set_global_all({ set_global_all: true });
-            assert.strictEqual(await Global.get_global('set_global_all'), true);
+            await Global.set_all({ set_global_all: true });
+            assert.strictEqual(await Global.get('set_global_all'), true);
         });
     });
 });

@@ -128,7 +128,7 @@ export class Generate {
         if (!nav) {
             return null;
         }
-        // console.log('build nav', nav)
+        console.log('build nav', nav.length)
 
         await Promise.all(
             Object.keys(nav).map(async (index) => {

@@ -50,7 +50,7 @@ export class Global {
             if (!(<any>global).getGlobal || typeof (<any>global).getGlobal != 'function') {
                 (<any>global).getGlobal = async (key, fallback, callback) => {
                     const value = await this.get(key, fallback === undefined ? null : fallback, callback);
-                    // console.log('->', key, value);
+                    console.log('replace', key, value);
                     return value;
                 };
             }
@@ -114,7 +114,9 @@ export class Global {
                 return acc;
             }, true);
         } else {
+            console.log('set', table, corrected_key);
             [set_error, result] = await Storage.set(table, corrected_key, value);
+            console.log('set done', table, corrected_key)
         }
         if (set_error) {
             console.log(set_error);
@@ -140,7 +142,7 @@ export class Global {
             return await this.set(key, value);
         }
         let merged = merge(orig, value);
-        const [table] = this.correct(key);
+        const [table, corrected_key] = this.correct(key);
         if (table == 'navigation' && Array.isArray(merged)) {
             const urls = [];
             merged = merged.filter((entry) => {
@@ -151,12 +153,22 @@ export class Global {
                 return true;
             });
         }
+        // if(Array.isArray(corrected_key)) {
+        //     const result = await (await Promise.all(corrected_key.map(async (key)=> {
+        //         return await this.set(corrected_key, merged);
+        //     }))).reduce()
+        // }
         return await this.set(key, merged);
     }
     static async merge_all(data) {
         // @NOTE maybe this is slow, can be changed into a prepared statement or a hugh insert statement
         return await Promise.all(
             Object.keys(data).map(async (key) => {
+                if (!Array.isArray(data[key]) && typeof data[key] == 'object') {
+                    return await Promise.all(Object.keys(data[key]).map(async (sub_key) => {
+                        return await this.merge(`${key}.${sub_key}`, data[key][sub_key]);
+                    }));
+                }
                 return await this.merge(key, data[key]);
             })
         );
@@ -180,35 +192,37 @@ export class Global {
     static async export(filepath: string) {
         if (filepath) {
             const data = {};
-            await Promise.all(Storage.tables().map(async (table) => {
-                const result = await Storage.get(table, '*', null);
-                if(table == 'global') {
-                    Object.keys(result).forEach((key)=> {
-                        data[key] = result[key];
-                    })
-                    return null;
-                }
-                data[table] = result;
-            }));
+            await Promise.all(
+                (
+                    await Storage.tables()
+                ).map(async (table) => {
+                    const result = await Storage.get(table, '*', null);
+                    if (table == 'global') {
+                        Object.keys(result).forEach((key) => {
+                            data[key] = result[key];
+                        });
+                        return null;
+                    }
+                    data[table] = result;
+                })
+            );
             Dir.create(dirname(filepath));
             // write global data to release
             writeFileSync(filepath, JSON.stringify(data));
         }
     }
     static correct(key: string, value: any = null): [string, string | string[]] {
-        let table = 'global';
-        let corrected_key: string | string[] = key;
-
-        const sub_keys = ['nav', 'navigation'];
-        const splitted_key = key.split('.');
-        const first_key = splitted_key.shift();
-        
-        if(sub_keys.indexOf(first_key) > -1) {
-            table = first_key;
-            corrected_key = splitted_key.join('.');
+        if (!key) {
+            return ['global', '*'];
         }
 
-        if(!corrected_key) {
+        const splitted_key = key.split('.');
+        const first_key = splitted_key.shift();
+
+        const table = first_key;
+        let corrected_key: string | string[] = splitted_key.join('.');
+
+        if (!corrected_key) {
             corrected_key = '*';
             // use the keys from the value to extract keys
             if (value && typeof value == 'object') {

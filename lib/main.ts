@@ -404,7 +404,6 @@ export class Main {
                     reject('timeout waiting for global events to complete');
                 }, 60000);
                 const interval = setInterval(() => {
-                    console.log(completed_routes, routes_count)
                     if (completed_routes == routes_count) {
                         clearInterval(interval);
                         clearTimeout(guard);

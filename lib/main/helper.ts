@@ -180,11 +180,24 @@ export class MainHelper {
         await Plugin.after('collect', packages);
         return package_tree;
     }
-    async routes(worker_controller: WorkerController, package_tree: any, file_list: any[], enhance_data: boolean = true, cron_state: any[] = null): Promise<[any[], any[], number]> {
-        await Plugin.before('routes', file_list, enhance_data);
+    async routes(
+        worker_controller: WorkerController,
+        package_tree: any,
+        changed_files: any[],
+        enhance_data: boolean = true,
+        cron_state: any[] = null
+    ): Promise<[any[], any[], number]> {
+        await Plugin.before('routes', changed_files, enhance_data);
         let routes = Routes.collect_routes(null, package_tree);
+        // shrink routes to only modified ones
+        if (changed_files.length > 0) {
+            const rel_paths = changed_files.map((file) => file.rel_path);
+            routes = routes.filter((route) => {
+                return rel_paths.indexOf(route.rel_path) > -1;
+            });
+        }
         if (!routes || routes.length == 0) {
-            return [file_list, null, 0];
+            return [changed_files, null, 0];
         }
         // add meta data to the route
         if (!enhance_data) {
@@ -222,11 +235,11 @@ export class MainHelper {
             1
         );
         worker_controller.events.off('emit', WorkerEmit.route, on_route_index);
-        await Plugin.after('routes', file_list, enhance_data);
+        await Plugin.after('routes', changed_files, enhance_data);
         // Logger.info('routes amount', routes_urls.length);
         // return [].concat(file_list, routes_urls);
         const cron_routes = route_urls.length > 0 ? route_urls : null;
-        return [file_list, cron_routes, routes.length];
+        return [route_urls, cron_routes, routes.length];
     }
     async transform() {
         const svelte_files = File.collect_svelte_files('gen/src');

@@ -268,10 +268,11 @@ export class Main {
         this.perf.end('collect');
 
         const contains_routes = changed_files.find((file) => file.rel_path.match(/^routes\//)) != null;
+        let route_urls = [];
         if (!is_regenerating || contains_routes) {
             // get the route files
             this.perf.start('routes');
-            await this.routes(file_list, !is_regenerating, null);
+            [route_urls] = await this.routes(changed_files, !is_regenerating, null);
             this.perf.end('routes');
         } else {
             Logger.improve('routes, will not be regenerated');
@@ -294,7 +295,7 @@ export class Main {
             Global.export(join(this.release_path, '_global.json'));
         }
         // read all imported files
-        const files = File.collect_files(join(this.cwd, 'gen', 'data'), 'json');
+        const files = route_urls.length > 0 ? route_urls : File.collect_files(join(this.cwd, 'gen', 'data'), 'json');
 
         // build static files
         const [build_pages, identifier_data_list] = await this.helper.build(this.worker_controller, files, changed_files, this.identifier_data_list);
@@ -385,7 +386,7 @@ export class Main {
         this.worker_controller.cleanup();
         this.is_executing = false;
     }
-    async routes(file_list: any[], enhance_data: boolean = true, cron_state: any[] = null): Promise<[any[], any[]]> {
+    async routes(changed_files: any[], enhance_data: boolean = true, cron_state: any[] = null): Promise<[any[], any[]]> {
         let completed_routes = 0;
         const on_global_index = this.worker_controller.events.on('emit', WorkerEmit.global, async (data) => {
             // add the results to the global data
@@ -394,7 +395,7 @@ export class Main {
             }
             completed_routes++;
         });
-        const [route_files, cron_routes, routes_count] = await this.helper.routes(this.worker_controller, this.package_tree, file_list, enhance_data, cron_state);
+        const [route_files, cron_routes, routes_count] = await this.helper.routes(this.worker_controller, this.package_tree, changed_files, enhance_data, cron_state);
         
         // wait for the global event actions to complete
         Logger.text('waiting for the events to finish')

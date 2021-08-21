@@ -410,7 +410,7 @@ export class Main {
                         clearTimeout(guard);
                         resolve(true);
                     }
-                }, 1000);
+                }, 100);
             });
         } catch(e) {
             console.log(e)

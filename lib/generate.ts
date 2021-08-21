@@ -128,7 +128,6 @@ export class Generate {
         if (!nav) {
             return null;
         }
-        console.log('build nav', nav.length)
 
         await Promise.all(
             Object.keys(nav).map(async (index) => {
@@ -155,7 +154,7 @@ export class Generate {
                         return nav;
                     });
                 const tree = arrayToTree(data);
-                Global.set(`nav.${entry.key}`, tree);
+                await Global.set(`nav.${entry.key}`, tree);
                 return null;
             })
         );

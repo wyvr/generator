@@ -132,7 +132,6 @@ export class Storage {
                 // insert or replace entry
                 // https://stackoverflow.com/questions/418898/sqlite-upsert-not-insert-or-replace
                 const rows = await this.db.run(`INSERT OR REPLACE INTO ${this.normalize(table)} (key, value) VALUES (?, ?);`, key, JSON.stringify(value));
-                // console.log(rows)
                 return [null, true];
             }
             // delete when no value is set
@@ -154,7 +153,8 @@ export class Storage {
         }
         // when not exists use the new value
         if (orig == null || typeof value != 'object') {
-            return await this.set(table, key, value);
+            const result = await this.set(table, key, value);
+            return result;
         }
         let merged_value = merge(orig, value);
         // avoid multiplying of the navigatin entries
@@ -164,7 +164,8 @@ export class Storage {
             });
             // console.log(key, merged_value);
         }
-        return await this.set(table, key, merged_value);
+        const result = await this.set(table, key, merged_value);
+        return result;
     }
     static normalize(text: string = '') {
         return text.replace(/[A-Z]/g, '-$1').toLowerCase().replace(/^-/, '').replace(/-+/g, '-');

@@ -7,7 +7,6 @@ import merge from 'deepmerge';
 import { Storage } from '@lib/storage';
 import { v4 } from 'uuid';
 
-
 export class Global {
     static is_setup: boolean = false;
     static db: Database = null;
@@ -51,7 +50,6 @@ export class Global {
             if (!(<any>global).getGlobal || typeof (<any>global).getGlobal != 'function') {
                 (<any>global).getGlobal = async (key, fallback, callback) => {
                     const value = await this.get(key, fallback === undefined ? null : fallback, callback);
-                    console.log('replace', key, value);
                     return value;
                 };
             }
@@ -115,9 +113,7 @@ export class Global {
                 return acc;
             }, true);
         } else {
-            console.log('set', table, corrected_key);
             [set_error, result] = await Storage.set(table, corrected_key, value);
-            console.log('set done', table, corrected_key)
         }
         if (set_error) {
             console.log(set_error);
@@ -140,7 +136,8 @@ export class Global {
         const orig = await this.get(key);
         // when original not exists use the new value
         if (orig == null || typeof value != 'object') {
-            return await this.set(key, value);
+            const result = await this.set(key, value);
+            return result;
         }
         let merged = merge(orig, value);
         const [table, corrected_key] = this.correct(key);
@@ -154,28 +151,27 @@ export class Global {
                 return true;
             });
         }
-        // if(Array.isArray(corrected_key)) {
-        //     const result = await (await Promise.all(corrected_key.map(async (key)=> {
-        //         return await this.set(corrected_key, merged);
-        //     }))).reduce()
-        // }
-        return await this.set(key, merged);
+        const result = await this.set(key, merged);
+        return result;
     }
     static async merge_all(data) {
         const id = v4().split('-')[0];
-        console.log('merge start', id, Object.keys(data.navigation))
         // @NOTE maybe this is slow, can be changed into a prepared statement or a hugh insert statement
         const result = await Promise.all(
             Object.keys(data).map(async (key) => {
                 if (!Array.isArray(data[key]) && typeof data[key] == 'object') {
-                    return await Promise.all(Object.keys(data[key]).map(async (sub_key) => {
-                        return await this.merge(`${key}.${sub_key}`, data[key][sub_key]);
-                    }));
+                    const result = await Promise.all(
+                        Object.keys(data[key]).map(async (sub_key) => {
+                            const merge_result = await this.merge(`${key}.${sub_key}`, data[key][sub_key]);
+                            return merge_result;
+                        })
+                    );
+                    return result;
                 }
-                return await this.merge(key, data[key]);
+                const result = await this.merge(key, data[key]);
+                return result;
             })
         );
-        console.log('merge done', id)
         return result;
     }
     /**

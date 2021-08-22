@@ -44,7 +44,6 @@ export class Routes {
         if (!(<any>global).getGlobal || typeof (<any>global).getGlobal != 'function') {
             (<any>global).getGlobal = async (key, fallback, callback) => {
                 const result = await Global.get(key, fallback || null, callback);
-                console.log(key, result)
                 return result;
             };
         }

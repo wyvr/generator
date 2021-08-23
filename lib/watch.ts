@@ -6,6 +6,8 @@ import { join, dirname, basename } from 'path';
 import { hrtime_to_ms } from '@lib/converter/time';
 import { RequireCache } from '@lib/require_cache';
 import { Routes } from './routes';
+import { Dependency } from './dependency';
+import { File } from './file';
 
 export class Watch {
     changed_files: any[] = [];
@@ -116,10 +118,11 @@ export class Watch {
                     const routes = Routes.collect_routes(null).map((route) => {
                         return { rel_path: route.rel_path, dir_path: dirname(route.rel_path) };
                     });
-                    const appended_files = [];
+                    const added_files = [];
                     const files = this.changed_files
                         .filter((f) => f)
                         .map((file) => {
+                            // route handling
                             if (file.rel_path.match(/^routes\//)) {
                                 // search the real route files and append them
                                 const route_files = routes.filter((route) => {
@@ -127,7 +130,8 @@ export class Watch {
                                 });
                                 if (route_files) {
                                     route_files.forEach((route_file) => {
-                                        appended_files.push({
+                                        Logger.info('resolved to', `${route_file.rel_path} ${Logger.color.dim(file.rel_path)}`);
+                                        added_files.push({
                                             event: 'change',
                                             path: null,
                                             rel_path: route_file.rel_path,
@@ -139,6 +143,20 @@ export class Watch {
                                     return null;
                                 }
                             }
+                            // source handling of combined files
+                            if (file.rel_path.match(/^src\//)) {
+                                // check if the file is part of a base svelte file
+                                const svelte_file = File.to_extension(join('gen', file.rel_path), '.svelte');
+                                if (fs.existsSync(svelte_file)) {
+                                    Logger.info('resolved to', `${File.to_extension(file.rel_path, '.svelte')} ${Logger.color.dim(file.rel_path)}`);
+                                    added_files.push({
+                                        event: 'change',
+                                        path: null,
+                                        rel_path: svelte_file,
+                                    });
+                                    return null;
+                                }
+                            }
                             return file;
                         })
                         .filter((f) => f);
@@ -146,7 +164,7 @@ export class Watch {
                     this.changed_files = [];
                     this.is_executing = true;
                     const hr_start = process.hrtime();
-                    await this.callback([].concat(appended_files, files));
+                    await this.callback([].concat(added_files, files));
                     // reload only whole page when no static asset is given
                     const reload_files = files
                         .map((f) => f.rel_path)

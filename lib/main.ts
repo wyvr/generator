@@ -233,7 +233,7 @@ export class Main {
             try {
                 const watch = new Watch(async (changed_files: any[]) => {
                     Plugin.clear();
-                    await this.execute(importer.get_import_list(), changed_files);
+                    await this.execute([], changed_files);
                 });
             } catch (e) {
                 this.helper.fail(e);

@@ -114,7 +114,7 @@ export class Worker {
                                 WorkerHelper.log(LogType.error, '[svelte]', data.url, Error.get(compile_error, filename, 'build'));
                                 return;
                             }
-                            const [render_error, rendered, identifier_item] = Build.render(compiled, data);
+                            const [render_error, rendered, identifier_item] = await Build.render(compiled, data);
                             if (render_error) {
                                 // svelte error messages
                                 WorkerHelper.log(LogType.error, '[svelte]', data.url, Error.get(render_error, filename, 'render'));

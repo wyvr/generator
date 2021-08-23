@@ -6,13 +6,14 @@ import { Client } from '@lib/client';
 import { Env } from '@lib/env';
 
 register();
-// fix intl global
+// fix intl global on the server side
 (<any>global).Intl = require('intl');
 // onServer Server implementation
 (<any>global).onServer = async (callback: Function) => {
     if (callback && typeof callback == 'function') {
-        await callback();
+        return await callback();
     }
+    return null;
 };
 export class Build {
     static async compile(content: string): Promise<[any, any]> {
@@ -28,13 +29,13 @@ export class Build {
                 hydratable: true,
                 cssHash: Client.css_hash,
             });
-            const component = eval(compiled.js.code);
+            const component = await eval(compiled.js.code);
             return [null, { compiled, component, result: null, notes: [] }];
         } catch (e) {
             return [e, null];
         }
     }
-    static render(svelte_render_item, props) {
+    static async render(svelte_render_item, props) {
         const propNames = Object.keys(props);
         if (Array.isArray(propNames) && Array.isArray(svelte_render_item.compiled.vars)) {
             // check for not used props
@@ -50,7 +51,7 @@ export class Build {
             }
         }
         try {
-            svelte_render_item.result = svelte_render_item.component.render(props);
+            svelte_render_item.result = await svelte_render_item.component.render(props);
         } catch (e) {
             return [e, null];
         }

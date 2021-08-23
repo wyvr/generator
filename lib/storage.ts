@@ -16,7 +16,7 @@ export class Storage {
      */
     static async setup() {
         if (this.db) {
-            return;
+            return false;
         }
         // create the folder otherwise sqlite can not create file
         if (!existsSync('cache')) {
@@ -45,6 +45,7 @@ export class Storage {
         if (nav_clear_error) {
             console.log(nav_clear_error);
         }
+        return true;
     }
     static async tables() {
         if (!this.db) {

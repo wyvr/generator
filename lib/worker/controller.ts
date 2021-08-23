@@ -83,14 +83,7 @@ export class WorkerController {
         return this.workers.find((worker) => worker.pid == pid);
     }
     get_message(msg) {
-        if (
-            typeof msg == 'string' ||
-            msg.pid == null ||
-            msg.data == null ||
-            msg.data.action == null ||
-            msg.data.action.key == null ||
-            msg.data.action.value == null
-        ) {
+        if (typeof msg == 'string' || msg.pid == null || msg.data == null || msg.data.action == null || msg.data.action.key == null || msg.data.action.value == null) {
             return;
         }
         const worker = this.get_worker(msg.pid);
@@ -116,20 +109,18 @@ export class WorkerController {
                             if (index == 0) {
                                 return Logger.color.dim(message);
                             }
-                            if(message == null) {
+                            if (message == null) {
                                 return message;
                             }
                             // ssr errors
                             if (typeof message == 'object' && message.code == 'parse-error' && message.frame && message.start && message.name) {
-                                return `\n${message.name} ${Logger.color.dim('Line:')}${message.start.line}${Logger.color.dim(' Col:')}${
-                                    message.start.column
-                                }\n${message.frame}`;
+                                return `\n${message.name} ${Logger.color.dim('Line:')}${message.start.line}${Logger.color.dim(' Col:')}${message.start.column}\n${message.frame}`;
                             }
                             // rollup errors
                             if (typeof message == 'object' && message.code == 'PARSE_ERROR' && message.frame && message.loc) {
-                                return `\n${message.code} ${Logger.color.dim('in')} ${message.loc.file}\n${Logger.color.dim('Line:')}${
-                                    message.loc.line
-                                }${Logger.color.dim(' Col:')}${message.loc.column}\n${message.frame}`;
+                                return `\n${message.code} ${Logger.color.dim('in')} ${message.loc.file}\n${Logger.color.dim('Line:')}${message.loc.line}${Logger.color.dim(
+                                    ' Col:'
+                                )}${message.loc.column}\n${message.frame}`;
                             }
                             // nodejs error
                             if (message == 'object' && message.error) {
@@ -199,7 +190,7 @@ export class WorkerController {
             config: Config.get(),
             env: Env.get(),
             cwd: this.cwd,
-            release_path: this.release_path
+            release_path: this.release_path,
         });
     }
     ticks: number = 0;
@@ -231,6 +222,12 @@ export class WorkerController {
         Logger.info('process', amount, 'items, batch size', Logger.color.cyan(batch_size.toString()));
         // create new queue
         this.queue = new Queue();
+
+        // correct batch size when there are more workers available
+        const worker_based_batch_size = Math.ceil(list.length /this.get_worker_amount());
+        if (worker_based_batch_size > list.length / batch_size && worker_based_batch_size < batch_size) {
+            batch_size = worker_based_batch_size;
+        }
 
         let iterations = Math.ceil(amount / batch_size);
         Logger.debug('process iterations', iterations);

@@ -128,6 +128,7 @@ export class Routes {
                 if (!route) {
                     return null;
                 }
+                // create data json for the given file
                 const path = File.to_extension(File.to_index(join(process.cwd(), 'gen', 'data', url), 'json'), 'json');
                 mkdirSync(dirname(path), { recursive: true });
                 writeFileSync(path, JSON.stringify(route));

@@ -2,9 +2,10 @@ import { Config } from './config';
 import { Logger } from './logger';
 import chokidar from 'chokidar';
 import fs from 'fs';
-import { join } from 'path';
+import { join, dirname, basename } from 'path';
 import { hrtime_to_ms } from '@lib/converter/time';
 import { RequireCache } from '@lib/require_cache';
+import { Routes } from './routes';
 
 export class Watch {
     changed_files: any[] = [];
@@ -112,12 +113,40 @@ export class Watch {
                     clearTimeout(debounce);
                 }
                 debounce = setTimeout(async () => {
-                    const files = this.changed_files.filter((f) => f);
+                    const routes = Routes.collect_routes(null).map((route) => {
+                        return { rel_path: route.rel_path, dir_path: dirname(route.rel_path) };
+                    });
+                    const appended_files = [];
+                    const files = this.changed_files
+                        .filter((f) => f)
+                        .map((file) => {
+                            if (file.rel_path.match(/^routes\//)) {
+                                // search the real route files and append them
+                                const route_files = routes.filter((route) => {
+                                    return dirname(file.rel_path).indexOf(route.dir_path) == 0;
+                                });
+                                if (route_files) {
+                                    route_files.forEach((route_file) => {
+                                        appended_files.push({
+                                            event: 'change',
+                                            path: null,
+                                            rel_path: route_file.rel_path,
+                                        });
+                                    });
+                                }
+                                // when the changed file starts with a _ it is a helper file and is not allowed to be executed
+                                if (basename(file.rel_path).match(/^_/)) {
+                                    return null;
+                                }
+                            }
+                            return file;
+                        })
+                        .filter((f) => f);
                     // reset the files
                     this.changed_files = [];
                     this.is_executing = true;
                     const hr_start = process.hrtime();
-                    await this.callback(files);
+                    await this.callback([].concat(appended_files, files));
                     // reload only whole page when no static asset is given
                     const reload_files = files
                         .map((f) => f.rel_path)

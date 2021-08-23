@@ -257,8 +257,8 @@ export class WorkerController {
                 this.livecycle(idle[0]);
             }
             const done_listener_id = this.events.on('worker_status', WorkerStatus.done, () => {
-                done++;
                 Logger.text(name, Logger.color.dim('...'), `${Math.round((100 / size) * done)}%`, Logger.color.dim(`${done}/${size}`));
+                done++;
                 if (done == size) {
                     this.events.off('worker_status', WorkerStatus.done, done_listener_id);
                 }

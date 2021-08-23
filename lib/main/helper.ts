@@ -412,8 +412,7 @@ export class MainHelper {
                     removeSync(join('gen', 'css', `${identifier}.css`));
                 });
         } else {
-            // clear css files otherwise these will not be regenerated, because the build step only creates the file when it is not present already
-            removeSync(join('gen', 'css'));
+            // @NOTE css gets automatically rewritten after approx. 5 seconds
         }
 
         await Plugin.before('build', list);

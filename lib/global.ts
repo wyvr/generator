@@ -198,13 +198,13 @@ export class Global {
                     await Storage.tables()
                 ).map(async (table) => {
                     const result = await Storage.get(table, '*', null);
-                    if (table == 'global') {
-                        Object.keys(result).forEach((key) => {
-                            data[key] = result[key];
+                    if (result && Array.isArray(result) && Array.isArray(result[1])) {
+                        const table_data = {};
+                        result[1].forEach((entry) => {
+                            table_data[entry.key] = entry.value;
                         });
-                        return null;
+                        data[table] = table_data;
                     }
-                    data[table] = result;
                 })
             );
             Dir.create(dirname(filepath));

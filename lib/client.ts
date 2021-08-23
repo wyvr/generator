@@ -42,7 +42,7 @@ export class Client {
             debug: '',
         };
         if (Env.is_dev()) {
-            script_partials.debug = fs.readFileSync(join(resouce_folder, 'debug.js'), { encoding: 'utf-8' });
+            script_partials.debug = this.transform_resource(fs.readFileSync(join(resouce_folder, 'debug.js'), { encoding: 'utf-8' }));
         }
         // when no  hydrateable files are available create minimal bundle
         if (hydrate_files.length == 0) {

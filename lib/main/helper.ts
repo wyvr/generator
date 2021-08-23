@@ -415,8 +415,8 @@ export class MainHelper {
             // @NOTE css gets automatically rewritten after approx. 5 seconds
         }
 
-        await Plugin.before('build', list);
-        Logger.info('build datasets', list.length);
+        const [error_list, config, modified_list] = await Plugin.before('build', list);
+        Logger.info('build datasets', modified_list.length);
         const paths = [];
         const identifier_data_list = [];
         const on_build_index = worker_controller.events.on('emit', WorkerEmit.build, (data) => {
@@ -436,7 +436,7 @@ export class MainHelper {
             }
         });
 
-        const result = await worker_controller.process_in_workers('build', WorkerAction.build, list, 100);
+        const result = await worker_controller.process_in_workers('build', WorkerAction.build, modified_list, 100);
         worker_controller.events.off('emit', WorkerEmit.build, on_build_index);
         worker_controller.events.off('emit', WorkerEmit.identifier_list, on_identifier_index);
         await Plugin.after('build', result, paths);

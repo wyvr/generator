@@ -2,7 +2,7 @@ import { Config } from './config';
 import { Logger } from './logger';
 import chokidar from 'chokidar';
 import fs from 'fs';
-import { join, dirname, basename } from 'path';
+import { join, dirname, basename, extname } from 'path';
 import { hrtime_to_ms } from '@lib/converter/time';
 import { RequireCache } from '@lib/require_cache';
 import { Routes } from './routes';
@@ -126,7 +126,7 @@ export class Watch {
                             if (file.rel_path.match(/^routes\//)) {
                                 // search the real route files and append them
                                 const route_files = routes.filter((route) => {
-                                    return dirname(file.rel_path).indexOf(route.dir_path) == 0;
+                                    return dirname(file.rel_path).indexOf(route.dir_path) == 0 && basename(file.rel_path).indexOf('_') == 0;
                                 });
                                 if (route_files) {
                                     route_files.forEach((route_file) => {
@@ -144,7 +144,7 @@ export class Watch {
                                 }
                             }
                             // source handling of combined files
-                            if (file.rel_path.match(/^src\//)) {
+                            if (file.rel_path.match(/^src\//) && extname(file.rel_path) != '.svelte') {
                                 // check if the file is part of a base svelte file
                                 const svelte_file = File.to_extension(join('gen', file.rel_path), '.svelte');
                                 if (fs.existsSync(svelte_file)) {

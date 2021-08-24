@@ -275,7 +275,13 @@ export class MainHelper {
         await Promise.all(
             File.collect_files('gen/src').map(async (file) => {
                 if (file.match(/\.js/)) {
-                    copySync(file, file.replace(/^gen\/src/, 'gen/client'));
+                    const target_file = file.replace(/^gen\/src/, 'gen/client');
+                    // copySync(file, file.replace(/^gen\/src/, 'gen/client'));
+                    // also replace paths in the js/ts files
+                    File.create_dir(target_file);
+                    const content = readFileSync(file, { encoding: 'utf-8' });
+                    writeFileSync(file, Client.correct_import_paths(content));
+                    writeFileSync(target_file, Client.correct_import_paths(content));
                 } else if (file.match(/\.ts/)) {
                     const ts_duration = process.hrtime();
                     const js_file = File.to_extension(file, '.js');

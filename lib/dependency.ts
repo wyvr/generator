@@ -146,7 +146,7 @@ export class Dependency {
     }
     static get_structure(file: string, package_tree: any) {
         const type = file.split(sep).shift();
-        const components = (this.cache[type][file] || []).map((component) => {
+        const components = (this.cache[type] && this.cache[type][file] || []).map((component) => {
             return this.get_structure(component, package_tree);
         });
         return {

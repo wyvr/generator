@@ -1,5 +1,5 @@
 import { readdirSync, existsSync, readFileSync } from 'fs';
-import { join, extname, dirname, resolve } from 'path';
+import { join, extname, dirname, resolve, sep } from 'path';
 import { Logger } from '@lib/logger';
 import { File } from '@lib/file';
 
@@ -142,5 +142,16 @@ export class Dependency {
             });
         });
         return deps;
+    }
+    static get_structure(file: string, package_tree: any) {
+        const type = file.split(sep).shift();
+        const components = (this.cache[type][file] || []).map((component) => {
+            return this.get_structure(component, package_tree);
+        })
+        return {
+            file,
+            pkg: package_tree[`src/${file}`],
+            components,
+        };
     }
 }

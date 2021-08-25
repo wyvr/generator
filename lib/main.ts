@@ -328,27 +328,9 @@ export class Main {
                 // build structure based on the identifiers
                 Object.keys(this.identifiers).forEach((id) => {
                     const identifier = this.identifiers[id];
-                    const structure: any = {
-                        file: identifier.doc,
-                        pkg: this.package_tree[`src/${identifier.doc}`],
-                        components: (Dependency.cache.doc[identifier.doc] || []).map((component) => {
-                            return { file: component, pkg: this.package_tree[`src/${component}`] };
-                        }),
-                        layout: {
-                            file: identifier.layout,
-                            pkg: this.package_tree[`src/${identifier.layout}`],
-                            components: (Dependency.cache.layout[identifier.layout] || []).map((component) => {
-                                return { file: component, pkg: this.package_tree[`src/${component}`] };
-                            }),
-                            page: {
-                                file: identifier.page,
-                                pkg: this.package_tree[`src/${identifier.page}`],
-                                components: (Dependency.cache.page[identifier.page] || []).map((component) => {
-                                    return { file: component, pkg: this.package_tree[`src/${component}`] };
-                                }),
-                            },
-                        },
-                    };
+                    const structure: any = Dependency.get_structure(identifier.doc, this.package_tree);
+                    structure.layout = Dependency.get_structure(identifier.layout, this.package_tree);
+                    structure.layout.page = Dependency.get_structure(identifier.page, this.package_tree);
                     writeFileSync(join(this.release_path, `${id}.json`), JSON.stringify(structure));
                 });
             }
@@ -396,9 +378,9 @@ export class Main {
             completed_routes++;
         });
         const [route_files, cron_routes, routes_count] = await this.helper.routes(this.worker_controller, this.package_tree, changed_files, enhance_data, cron_state);
-        
+
         // wait for the global event actions to complete
-        Logger.text('waiting for the events to finish')
+        Logger.text('waiting for the events to finish');
         try {
             await new Promise((resolve, reject) => {
                 const guard = setTimeout(() => {
@@ -412,8 +394,8 @@ export class Main {
                     }
                 }, 100);
             });
-        } catch(e) {
-            console.log(e)
+        } catch (e) {
+            console.log(e);
         }
         this.worker_controller.events.off('emit', WorkerEmit.global, on_global_index);
 

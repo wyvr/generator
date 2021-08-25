@@ -2,6 +2,7 @@ import { readdirSync, existsSync, readFileSync } from 'fs';
 import { join, extname, dirname, resolve, sep } from 'path';
 import { Logger } from '@lib/logger';
 import { File } from '@lib/file';
+import { WyvrFile } from './model/wyvr/file';
 
 export class Dependency {
     static cache: any = null;
@@ -147,11 +148,33 @@ export class Dependency {
         const type = file.split(sep).shift();
         const components = (this.cache[type][file] || []).map((component) => {
             return this.get_structure(component, package_tree);
-        })
+        });
         return {
             file,
             pkg: package_tree[`src/${file}`],
             components,
         };
+    }
+    static get_dependencies(file: string, wyvr_files: WyvrFile[], dependency: any): any[] {
+        let dep_files = [];
+        if (file && dependency) {
+            Object.keys(dependency).forEach((type) => {
+                if (dependency[type][file]) {
+                    const files = dependency[type][file];
+                    // convert the dependencies to the wyvr files
+                    files.forEach((file_path: string) => {
+                        // search if the file is hydrateable
+                        const wyvr_file = wyvr_files.find((wyvr_file) => wyvr_file.path == join('gen/client', file_path));
+                        if (wyvr_file) {
+                            dep_files.push(wyvr_file);
+                        }
+                        // even when the current file is not hydrateable, search if it contains one
+                        dep_files.push(...this.get_dependencies(file_path, wyvr_files, dependency));
+                        return wyvr_file;
+                    });
+                }
+            });
+        }
+        return dep_files;
     }
 }

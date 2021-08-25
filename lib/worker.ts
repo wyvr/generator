@@ -16,6 +16,8 @@ import { Error } from '@lib/error';
 import { Optimize } from '@lib/optimize';
 import { EnvModel } from '@lib/model/env';
 import { WorkerEmit } from '@lib/model/worker/emit';
+import { Dependency } from './dependency';
+import { WyvrFile } from './model/wyvr/file';
 
 export class Worker {
     private config = null;
@@ -195,19 +197,13 @@ export class Worker {
                     await Promise.all(
                         value.map(async (identifier) => {
                             let dep_files = [];
-                            ['doc', 'layout', 'page'].map((type) => {
-                                if (identifier.file[type] && identifier.dependency[type] && identifier.dependency[type][identifier.file[type]]) {
-                                    dep_files.push(
-                                        ...identifier.dependency[type][identifier.file[type]]
-                                            .map((path) => {
-                                                const client_path = join('gen/client', path);
-                                                const match = files.find((file) => file.path == client_path);
-                                                return match;
-                                            })
-                                            .filter((x) => x)
-                                    );
-                                }
+                            ['doc', 'layout', 'page'].forEach((type) => {
+                                dep_files.push(...Dependency.get_dependencies(identifier.file[type], files, identifier.dependency));
                             });
+                            // remove doubled dependency entries
+                            dep_files = dep_files.filter((wyvr_file: WyvrFile, index)=>{
+                                return index == dep_files.findIndex((dep_file: WyvrFile)=> dep_file.path == wyvr_file.path);
+                            })
                             try {
                                 const [error, result] = await Client.create_bundle(this.cwd, identifier.file, dep_files);
                             } catch (e) {

@@ -311,14 +311,7 @@ export class Main {
 
         // check if the execution should stop after the build
         const collected_client_files = collected_files.client.map((file) => file.path.replace('gen/', ''));
-        const exec_scripts =
-            !is_regenerating ||
-            changed_files.some((file) => {
-                if (!file.rel_path.match(/^src\//)) {
-                    return false;
-                }
-                return collected_client_files.indexOf(file.rel_path) > -1;
-            });
+        const exec_scripts = !is_regenerating || changed_files.some((file) => file.rel_path.match(/^src\//));
 
         if (exec_scripts) {
             this.perf.start('dependencies');

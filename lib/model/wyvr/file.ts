@@ -1,4 +1,4 @@
-import { basename, extname } from 'path';
+import { basename, extname, sep } from 'path';
 
 export class WyvrFile {
     name: string;
@@ -12,7 +12,14 @@ export class WyvrFile {
             this.path = path;
         }
         if (this.path) {
-            let name = basename(path).replace(new RegExp(`${extname(path).replace('.', '\\.')}$`), '');
+            const splitted = path.split(sep);
+            const gen_index = splitted.indexOf('gen');
+            // make name unique per file, which is based on the path
+            // remove the gen and next (state) folder
+            let name = splitted
+                .slice(gen_index + 2)
+                .join('_')
+                .replace(new RegExp(`${extname(path).replace('.', '\\.')}$`), '');
             // avoid reserved keywords
             if (
                 [

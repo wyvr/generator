@@ -7,6 +7,7 @@ export class WyvrFile {
     styles?: string[];
     props?: string[];
     path: string = null;
+    rel_path: string = null;
     constructor(path: string = null) {
         if (path && typeof path == 'string') {
             this.path = path;
@@ -16,10 +17,9 @@ export class WyvrFile {
             const gen_index = splitted.indexOf('gen');
             // make name unique per file, which is based on the path
             // remove the gen and next (state) folder
-            let name = splitted
-                .slice(gen_index + 2)
-                .join('_')
-                .replace(new RegExp(`${extname(path).replace('.', '\\.')}$`), '');
+            const rel_splitts = splitted.slice(gen_index + 2);
+            this.rel_path = ['@src', ...rel_splitts].join(sep);
+            let name = rel_splitts.join('_').replace(new RegExp(`${extname(path).replace('.', '\\.')}$`), '');
             // avoid reserved keywords
             if (
                 [

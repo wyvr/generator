@@ -308,7 +308,9 @@ export class Client {
         content = style_result.content;
         // add hydrate tag
         const hydrate_tag = file.config.display == 'inline' ? 'span' : 'div';
-        content = `<${hydrate_tag} data-hydrate="${file.name}" ${props_include} ${portal} ${media}>${content}</${hydrate_tag}>`;
+        // debug info
+        const debug_info = Env.is_dev() ? `data-hydrate-path="${file.rel_path}"` : '';
+        content = `<${hydrate_tag} data-hydrate="${file.name}" ${debug_info} ${props_include} ${portal} ${media}>${content}</${hydrate_tag}>`;
         content = this.replace_slots_static(content);
         return content;
     }

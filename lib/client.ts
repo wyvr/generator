@@ -29,21 +29,20 @@ export class Client {
         const idle_input_files = [];
         const media_input_files = [];
 
-        const resouce_folder = join(__dirname, 'resource');
+        const resource_folder = join(__dirname, 'resource');
         // create empty file because it is required as identifier
         const script_partials = {
-            hydrate: this.transform_resource(fs.readFileSync(join(resouce_folder, 'hydrate.js'), { encoding: 'utf-8' })),
-            props: this.transform_resource(fs.readFileSync(join(resouce_folder, 'props.js'), { encoding: 'utf-8' })),
-            portal: this.transform_resource(fs.readFileSync(join(resouce_folder, 'portal.js'), { encoding: 'utf-8' })),
-            lazy: this.transform_resource(fs.readFileSync(join(resouce_folder, 'hydrate_lazy.js'), { encoding: 'utf-8' })),
-            idle: this.transform_resource(fs.readFileSync(join(resouce_folder, 'hydrate_idle.js'), { encoding: 'utf-8' })),
-            media: this.transform_resource(fs.readFileSync(join(resouce_folder, 'hydrate_media.js'), { encoding: 'utf-8' })),
-            env: this.transform_resource(fs.readFileSync(join(resouce_folder, 'env.js'), { encoding: 'utf-8' })),
+            hydrate: this.transform_resource(fs.readFileSync(join(resource_folder, 'hydrate.js'), { encoding: 'utf-8' })),
+            props: this.transform_resource(fs.readFileSync(join(resource_folder, 'props.js'), { encoding: 'utf-8' })),
+            portal: this.transform_resource(fs.readFileSync(join(resource_folder, 'portal.js'), { encoding: 'utf-8' })),
+            lazy: this.transform_resource(fs.readFileSync(join(resource_folder, 'hydrate_lazy.js'), { encoding: 'utf-8' })),
+            idle: this.transform_resource(fs.readFileSync(join(resource_folder, 'hydrate_idle.js'), { encoding: 'utf-8' })),
+            media: this.transform_resource(fs.readFileSync(join(resource_folder, 'hydrate_media.js'), { encoding: 'utf-8' })),
+            env: this.transform_resource(fs.readFileSync(join(resource_folder, 'env.js'), { encoding: 'utf-8' })),
             debug: '',
         };
         if (Env.is_dev()) {
-            const debug = this.transform_resource(fs.readFileSync(join(resouce_folder, 'debug.js'), { encoding: 'utf-8' }));
-            script_partials.debug = debug.replace('{debug.css}', fs.readFileSync(join(resouce_folder, 'debug.css'), { encoding: 'utf-8' }));
+            script_partials.debug = this.transform_resource(fs.readFileSync(join(resource_folder, 'debug.js'), { encoding: 'utf-8' }));
         }
         // when no  hydrateable files are available create minimal bundle
         if (hydrate_files.length == 0) {

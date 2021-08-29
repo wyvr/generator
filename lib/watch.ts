@@ -30,18 +30,42 @@ export class Watch {
             throw 'no packages to watch';
         }
 
+        // create simple static server
+        const static_server = require('node-static');
+
+        const pub = new static_server.Server(join(process.cwd(), 'pub'), { cache: false, serverInfo: `wyvr` });
+        const host = 'localhost';
+        const port = 3000;
+        require('http')
+            .createServer((req, res) => {
+                // console.log(req.method, req.url);
+                // console.log(Object.keys(req));
+                req.addListener('end', () => {
+                    pub.serve(req, res, (err, result) => {
+                        if (err) {
+                            Logger.error('serve error', Logger.color.bold(err.message), req.method, req.url, err.status);
+                            res.writeHead(err.status, err.headers);
+                            res.end();
+                        }
+                    });
+                }).resume();
+            })
+            .listen(port, host, () => {
+                Logger.success('server started', `http://${host}:${port}`);
+            });
+
         // start reloader
-        const bs = require('browser-sync').create();
-        bs.init(
-            {
-                proxy: Config.get('url'),
-                ghostMode: false,
-                open: false,
-            },
-            function () {
-                Logger.info('sync is ready');
-            }
-        );
+        // const bs = require('browser-sync').create();
+        // bs.init(
+        //     {
+        //         proxy: Config.get('url'),
+        //         ghostMode: false,
+        //         open: false,
+        //     },
+        //     function () {
+        //         Logger.info('sync is ready');
+        //     }
+        // );
         // watch for file changes
         let debounce = null;
         const watch_folder = packages.map((pkg) => pkg.path);
@@ -171,7 +195,8 @@ export class Watch {
                         .filter((p) => {
                             return p.match(/^(assets|css|js|md)\//);
                         });
-                    bs.reload(reload_files.length > 0 ? reload_files : undefined);
+                    console.log(reload_files);
+                    // bs.reload(reload_files.length > 0 ? reload_files : undefined);
 
                     RequireCache.clear();
                     const timeInMs = hrtime_to_ms(process.hrtime(hr_start));

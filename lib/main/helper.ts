@@ -348,7 +348,7 @@ export class MainHelper {
         list: string[],
         changed_files: { event: string; path: string; rel_path: string }[] = null,
         identifier_list: any[] = null
-    ): Promise<[string[], string[]]> {
+    ): Promise<[any[], string[]]> {
         mkdirSync('gen/src', { recursive: true });
 
         // rebuild ony affected resources
@@ -357,7 +357,8 @@ export class MainHelper {
             changed_files.forEach((file) => {
                 deps.push(...Dependency.get_dependent_identifiers(file.rel_path));
             });
-            console.log('deps', deps)
+            // console.log('changed_files', changed_files);
+            // console.log('build deps', deps);
             // add the dependet identifiers to the variants which will be exposed as matrix
             const variants = { doc: ['*'], layout: ['*'], page: ['*'] };
             let ignore_default = true;
@@ -412,6 +413,15 @@ export class MainHelper {
                     });
                 })
                 .map((identifier_item) => identifier_item.filename);
+            // add dependency detected files to the list
+            list.push(
+                ...Dependency.get_dependent_pages(
+                    [].concat(
+                        changed_files.map((file) => file.rel_path),
+                        deps
+                    )
+                )
+            );
             // clear css files otherwise these will not be regenerated, because the build step only creates the file when it is not present already
             delete_files
                 .filter((val, index, arr) => arr.indexOf(val) == index)
@@ -421,20 +431,22 @@ export class MainHelper {
         } else {
             // @NOTE css gets automatically rewritten after approx. 5 seconds
         }
-        console.log(list)
+        // console.log('build list', list);
         const [error_list, config, modified_list] = await Plugin.before('build', list);
         Logger.info('build datasets', modified_list.length);
-        const paths = [];
+        const pages = [];
         const identifier_data_list = [];
         const on_build_index = worker_controller.events.on('emit', WorkerEmit.build, (data) => {
             // add the results to the build file list
             if (data) {
-                paths.push(...data.data);
+                // console.log('build result', data.data);
+                pages.push(...data.data.filter((x) => x));
             }
         });
         const on_identifier_index = worker_controller.events.on('emit', WorkerEmit.identifier_list, (data) => {
             // add the results to the build file list
             if (data && data.data) {
+                // console.log('emit identifier_list', data.data);
                 if (Array.isArray(data.data)) {
                     identifier_data_list.push(...data.data);
                     return;
@@ -446,8 +458,8 @@ export class MainHelper {
         const result = await worker_controller.process_in_workers('build', WorkerAction.build, modified_list, 100);
         worker_controller.events.off('emit', WorkerEmit.build, on_build_index);
         worker_controller.events.off('emit', WorkerEmit.identifier_list, on_identifier_index);
-        await Plugin.after('build', result, paths);
-        return [paths, identifier_data_list];
+        await Plugin.after('build', result, pages);
+        return [pages, identifier_data_list];
     }
     async inject(list: string[]) {
         await Promise.all(

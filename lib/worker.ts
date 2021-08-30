@@ -170,7 +170,7 @@ export class Worker {
                             Dir.create(dirname(path));
                             writeFileSync(path, rendered.result.html);
 
-                            return path;
+                            return { path, filename, doc: result.doc, layout: result.layout, page: result.page, identifier: result.identifier };
                         })
                     );
                     // clear cache
@@ -201,9 +201,9 @@ export class Worker {
                                 dep_files.push(...Dependency.get_dependencies(identifier.file[type], files, identifier.dependency));
                             });
                             // remove doubled dependency entries
-                            dep_files = dep_files.filter((wyvr_file: WyvrFile, index)=>{
-                                return index == dep_files.findIndex((dep_file: WyvrFile)=> dep_file.path == wyvr_file.path);
-                            })
+                            dep_files = dep_files.filter((wyvr_file: WyvrFile, index) => {
+                                return index == dep_files.findIndex((dep_file: WyvrFile) => dep_file.path == wyvr_file.path);
+                            });
                             try {
                                 const [error, result] = await Client.create_bundle(this.cwd, identifier.file, dep_files);
                             } catch (e) {

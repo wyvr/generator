@@ -6,12 +6,13 @@ import { WyvrFile } from './model/wyvr/file';
 
 export class Dependency {
     static cache: any = null;
+    static page_cache: any = {};
 
     static pkg_dep: any = null;
     static new_cache() {
         return {};
     }
-    static build(source_folder: string) {
+    static build(source_folder: string, build_pages: any[]) {
         if (!existsSync(source_folder)) {
             return null;
         }
@@ -32,7 +33,15 @@ export class Dependency {
                     }
                 });
         });
-        // console.log(this.cache);
+        // build page cache
+        build_pages.forEach((page) => {
+            this.page_cache[page.filename] = {
+                doc: page.doc.replace(/.*?\/gen\//, ''),
+                layout: page.layout.replace(/.*?\/gen\//, ''),
+                page: page.page.replace(/.*?\/gen\//, ''),
+            };
+        });
+
         return all_files;
     }
     static get_pkg_dependencies() {
@@ -142,11 +151,23 @@ export class Dependency {
                 }
             });
         });
+
+        // console.log('get_dependent_identifiers', deps);
         return deps;
+    }
+    static get_dependent_pages(deps: string[]) {
+        const pages = [];
+        // console.log('get_dependent_pages', deps);
+        Object.keys(this.page_cache).forEach((key) => {
+            if (deps.indexOf(this.page_cache[key].doc) > -1 || deps.indexOf(this.page_cache[key].layout) > -1 || deps.indexOf(this.page_cache[key].page) > -1) {
+                pages.push(key);
+            }
+        });
+        return pages.filter((page, index) => pages.indexOf(page) == index);
     }
     static get_structure(file: string, package_tree: any) {
         const type = file.split(sep).shift();
-        const components = (this.cache[type] && this.cache[type][file] || []).map((component) => {
+        const components = ((this.cache[type] && this.cache[type][file]) || []).map((component) => {
             return this.get_structure(component, package_tree);
         });
         return {

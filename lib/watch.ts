@@ -79,7 +79,7 @@ export class Watch {
                         data = JSON.parse(message.toString('utf8'));
                     } catch (e) {}
                 }
-                console.log(data);
+                console.log('ws data', data);
                 if (data.path) {
                     this.watchers[ws.id].push(data.path);
                     Logger.debug('ws watch', id, data.path);
@@ -229,7 +229,8 @@ export class Watch {
                         .filter((p) => {
                             return p.match(/^(assets|css|js|md)\//);
                         });
-                    console.log(reload_files, files);
+                    console.log('watch reload', reload_files);
+                    console.log('watch files', files);
                     // bs.reload(reload_files.length > 0 ? reload_files : undefined);
 
                     RequireCache.clear();

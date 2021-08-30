@@ -298,8 +298,9 @@ export class Main {
         const files = route_urls.length > 0 ? route_urls : File.collect_files(join(this.cwd, 'gen', 'data'), 'json');
 
         // build static files
+        // console.log('identifier_data_list before', this.identifier_data_list)
         const [build_pages, identifier_data_list] = await this.helper.build(this.worker_controller, files, changed_files, this.identifier_data_list);
-        console.log('identifier_data_list', identifier_data_list)
+        // console.log('identifier_data_list', identifier_data_list)
         if (this.identifier_data_list.length == 0) {
             this.identifier_data_list = identifier_data_list;
         }
@@ -307,7 +308,7 @@ export class Main {
 
         // inject data into the pages
         this.perf.start('inject');
-        await this.helper.inject(build_pages);
+        await this.helper.inject(build_pages.map((d) => d.path));
         this.perf.end('inject');
 
         // check if the execution should stop after the build
@@ -317,7 +318,7 @@ export class Main {
         if (exec_scripts) {
             this.perf.start('dependencies');
             const dep_source_folder = join(process.cwd(), 'gen', 'raw');
-            Dependency.build(dep_source_folder);
+            Dependency.build(dep_source_folder, build_pages);
             if (Env.is_dev()) {
                 // build structure based on the identifiers
                 Object.keys(this.identifiers).forEach((id) => {
@@ -329,6 +330,7 @@ export class Main {
                 });
             }
             File.write_json(join('gen', 'dependencies.json'), JSON.parse(JSON.stringify(Dependency.cache)));
+            File.write_json(join('gen', 'page_dependencies.json'), JSON.parse(JSON.stringify(Dependency.page_cache)));
 
             this.perf.end('dependencies');
 

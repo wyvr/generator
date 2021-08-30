@@ -233,7 +233,7 @@ export class Main {
             try {
                 const watch = new Watch(async (changed_files: any[]) => {
                     Plugin.clear();
-                    await this.execute([], changed_files);
+                    return await this.execute([], changed_files);
                 });
             } catch (e) {
                 this.helper.fail(e);
@@ -363,6 +363,7 @@ export class Main {
 
         this.worker_controller.cleanup();
         this.is_executing = false;
+        return build_pages;
     }
     async routes(changed_files: any[], enhance_data: boolean = true, cron_state: any[] = null): Promise<[any[], any[]]> {
         let completed_routes = 0;

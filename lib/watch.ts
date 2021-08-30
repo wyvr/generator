@@ -222,15 +222,39 @@ export class Watch {
                     this.changed_files = [];
                     this.is_executing = true;
                     const hr_start = process.hrtime();
-                    await this.callback([].concat(added_files, files));
+                    const build_pages = await this.callback([].concat(added_files, files));
                     // reload only whole page when no static asset is given
-                    const reload_files = files
-                        .map((f) => f.rel_path)
-                        .filter((p) => {
-                            return p.match(/^(assets|css|js|md)\//);
-                        });
+                    const reload_files = []
+                        .concat(
+                            build_pages.map((page) => page.path.replace(/releases\/[^/]*\//, '/').replace(/index.html$/, '')),
+                            files
+                                .map((f) => f.rel_path)
+                                .filter((p) => {
+                                    return p.match(/^(assets|css|js|md)\//);
+                                })
+                        )
+                        .filter((x) => x);
                     console.log('watch reload', reload_files);
-                    console.log('watch files', files);
+                    // console.log('watch files', files);
+                    // search for watchers which has the pages open
+                    const watcher_ids = [];
+                    Object.keys(this.watchers).forEach((key) => {
+                        if (
+                            this.watchers[key].some((path) => {
+                                return reload_files.indexOf(path) > -1;
+                            })
+                        ) {
+                            watcher_ids.push(key);
+                        }
+                    });
+                    console.log('watcher_ids', watcher_ids);
+                    watcher_ids.forEach((id) => {
+                        wss.clients.forEach((client) => {
+                            if (client.id == id) {
+                                client.send(JSON.stringify({ action: 'reload' }));
+                            }
+                        });
+                    });
                     // bs.reload(reload_files.length > 0 ? reload_files : undefined);
 
                     RequireCache.clear();

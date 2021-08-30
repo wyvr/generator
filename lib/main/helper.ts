@@ -431,7 +431,7 @@ export class MainHelper {
         } else {
             // @NOTE css gets automatically rewritten after approx. 5 seconds
         }
-        // console.log('build list', list);
+        Logger.debug('build list', list);
         const [error_list, config, modified_list] = await Plugin.before('build', list);
         Logger.info('build datasets', modified_list.length);
         const pages = [];

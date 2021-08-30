@@ -8,10 +8,13 @@ import { RequireCache } from '@lib/require_cache';
 import { Routes } from './routes';
 import { Dependency } from './dependency';
 import { File } from './file';
+import { WebSocketServer } from 'ws';
+import { v4 } from 'uuid';
 
 export class Watch {
     changed_files: any[] = [];
     is_executing: boolean = false;
+    watchers = {};
 
     constructor(private callback: Function = null) {
         if (!callback || typeof callback != 'function') {
@@ -53,6 +56,37 @@ export class Watch {
             .listen(port, host, () => {
                 Logger.success('server started', `http://${host}:${port}`);
             });
+
+        const ws_port = 3001;
+        const wss = new WebSocketServer({ port: ws_port });
+
+        wss.on('connection', (ws) => {
+            const id = v4().split('-')[0];
+
+            ws.id = id;
+            this.watchers[id] = [];
+            Logger.debug('ws connect', id);
+
+            ws.on('close', () => {
+                // remove the watcher
+                delete this.watchers[ws.id];
+                Logger.debug('ws close', id);
+            });
+            ws.on('message', (message) => {
+                let data = null;
+                if (message) {
+                    try {
+                        data = JSON.parse(message.toString('utf8'));
+                    } catch (e) {}
+                }
+                console.log(data);
+                if (data.path) {
+                    this.watchers[ws.id].push(data.path);
+                    Logger.debug('ws watch', id, data.path);
+                }
+            });
+            ws.send(JSON.stringify({ state: 'active' }));
+        });
 
         // start reloader
         // const bs = require('browser-sync').create();
@@ -195,7 +229,7 @@ export class Watch {
                         .filter((p) => {
                             return p.match(/^(assets|css|js|md)\//);
                         });
-                    console.log(reload_files);
+                    console.log(reload_files, files);
                     // bs.reload(reload_files.length > 0 ? reload_files : undefined);
 
                     RequireCache.clear();

@@ -357,6 +357,7 @@ export class MainHelper {
             changed_files.forEach((file) => {
                 deps.push(...Dependency.get_dependent_identifiers(file.rel_path));
             });
+            console.log('deps', deps)
             // add the dependet identifiers to the variants which will be exposed as matrix
             const variants = { doc: ['*'], layout: ['*'], page: ['*'] };
             let ignore_default = true;
@@ -420,7 +421,7 @@ export class MainHelper {
         } else {
             // @NOTE css gets automatically rewritten after approx. 5 seconds
         }
-
+        console.log(list)
         const [error_list, config, modified_list] = await Plugin.before('build', list);
         Logger.info('build datasets', modified_list.length);
         const paths = [];
@@ -458,6 +459,9 @@ export class MainHelper {
                 const content = readFileSync(file, { encoding: 'utf-8' });
                 const head = [],
                     body = [];
+                if (Env.is_dev()) {
+                    body.push(`<script>${Client.transform_resource(readFileSync(join(__dirname, '..', 'resource', 'client_socket.js'), { encoding: 'utf-8' }))}</script>`);
+                }
                 const [err_after, config, file_after, content_after, head_after, body_after] = await Plugin.after('inject', file, content, head, body);
                 if (err_after) {
                     this.fail(err_after);

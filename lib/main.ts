@@ -299,6 +299,7 @@ export class Main {
 
         // build static files
         const [build_pages, identifier_data_list] = await this.helper.build(this.worker_controller, files, changed_files, this.identifier_data_list);
+        console.log('identifier_data_list', identifier_data_list)
         if (this.identifier_data_list.length == 0) {
             this.identifier_data_list = identifier_data_list;
         }

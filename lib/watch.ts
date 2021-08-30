@@ -83,6 +83,7 @@ export class Watch {
                 if (data.path) {
                     this.watchers[ws.id].push(data.path);
                     Logger.debug('ws watch', id, data.path);
+                    // @TODO force regenerate of this page
                 }
             });
             ws.send(JSON.stringify({ state: 'active' }));

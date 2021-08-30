@@ -241,7 +241,7 @@ export class Main {
         }
     }
 
-    async execute(file_list: any[], changed_files: { event: string; path: string; rel_path: string }[] = []) {
+    async execute(file_list: any[], changed_files: { event: string; path: string; rel_path: string }[] = [], watched_files:string[] = []) {
         this.is_executing = true;
 
         const is_regenerating = changed_files.length > 0;
@@ -296,6 +296,8 @@ export class Main {
         }
         // read all imported files
         const files = route_urls.length > 0 ? route_urls : File.collect_files(join(this.cwd, 'gen', 'data'), 'json');
+
+        // @TODO shrink files with watched_files
 
         // build static files
         // console.log('identifier_data_list before', this.identifier_data_list)

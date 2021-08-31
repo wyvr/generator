@@ -15,6 +15,7 @@ export class Watch {
     changed_files: any[] = [];
     is_executing: boolean = false;
     watchers = {};
+    websocket_server = null;
 
     constructor(private callback: Function = null) {
         if (!callback || typeof callback != 'function') {
@@ -26,6 +27,9 @@ export class Watch {
     }
     private restart() {
         process.kill(process.pid, 'SIGUSR2');
+    }
+    private get_watched_files(): string[] {
+        return [].concat(...Object.keys(this.watchers).map((id) => this.watchers[id])).filter((cur, idx, arr) => arr.indexOf(cur) == idx);
     }
     private init() {
         const packages = Config.get('packages');
@@ -57,37 +61,7 @@ export class Watch {
                 Logger.success('server started', `http://${host}:${port}`);
             });
 
-        const ws_port = 3001;
-        const wss = new WebSocketServer({ port: ws_port });
-
-        wss.on('connection', (ws) => {
-            const id = v4().split('-')[0];
-
-            ws.id = id;
-            this.watchers[id] = [];
-            Logger.debug('ws connect', id);
-
-            ws.on('close', () => {
-                // remove the watcher
-                delete this.watchers[ws.id];
-                Logger.debug('ws close', id);
-            });
-            ws.on('message', (message) => {
-                let data = null;
-                if (message) {
-                    try {
-                        data = JSON.parse(message.toString('utf8'));
-                    } catch (e) {}
-                }
-                console.log('ws data', data);
-                if (data.path) {
-                    this.watchers[ws.id].push(data.path);
-                    Logger.debug('ws watch', id, data.path);
-                    // @TODO force regenerate of this page
-                }
-            });
-            ws.send(JSON.stringify({ state: 'active' }));
-        });
+        this.connect();
 
         // start reloader
         // const bs = require('browser-sync').create();
@@ -223,7 +197,7 @@ export class Watch {
                     this.changed_files = [];
                     this.is_executing = true;
                     const hr_start = process.hrtime();
-                    const build_pages = await this.callback([].concat(added_files, files));
+                    const build_pages = await this.callback([].concat(added_files, files), this.get_watched_files());
                     // reload only whole page when no static asset is given
                     const reload_files = []
                         .concat(
@@ -250,11 +224,7 @@ export class Watch {
                     });
                     console.log('watcher_ids', watcher_ids);
                     watcher_ids.forEach((id) => {
-                        wss.clients.forEach((client) => {
-                            if (client.id == id) {
-                                client.send(JSON.stringify({ action: 'reload' }));
-                            }
-                        });
+                        this.send(id, { action: 'reload' });
                     });
                     // bs.reload(reload_files.length > 0 ? reload_files : undefined);
 
@@ -265,5 +235,58 @@ export class Watch {
                 }, 500);
             });
         Logger.info('watching', packages.length, 'packages');
+    }
+    private send(id, data) {
+        this.websocket_server.clients.forEach((client) => {
+            if (client.id == id) {
+                client.send(JSON.stringify(data));
+            }
+        });
+    }
+
+    private connect() {
+        const ws_port = 3001;
+        this.websocket_server = new WebSocketServer({ port: ws_port });
+
+        this.websocket_server.on('connection', (ws) => {
+            const id = v4().split('-')[0];
+
+            ws.id = id;
+            this.watchers[id] = [];
+            Logger.debug('ws connect', id);
+
+            ws.on('close', () => {
+                // remove the watcher
+                delete this.watchers[ws.id];
+                Logger.debug('ws close', id);
+            });
+            ws.on('message', (message) => {
+                let data = null;
+                if (message) {
+                    try {
+                        data = JSON.parse(message.toString('utf8'));
+                    } catch (e) {}
+                }
+
+                if (this.watchers[ws.id].length == 0) {
+                    this.send(ws.id, { action: 'available' });
+                }
+                if (data.action) {
+                    switch (data.action) {
+                        case 'ping':
+                            this.send(ws.id, { action: 'ping' });
+                            break;
+                        case 'path':
+                            if (data.path) {
+                                this.watchers[ws.id].push(data.path);
+                                Logger.debug('ws watch', id, data.path);
+                                // @TODO force regenerate of this page
+                                
+                            }
+                            break;
+                    }
+                }
+            });
+        });
     }
 }

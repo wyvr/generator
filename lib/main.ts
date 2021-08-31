@@ -231,9 +231,9 @@ export class Main {
         if (this.mode == WyvrMode.build) {
             // watch for file changes
             try {
-                const watch = new Watch(async (changed_files: any[]) => {
+                const watch = new Watch(async (changed_files: any[], watched_files: string[]) => {
                     Plugin.clear();
-                    return await this.execute([], changed_files);
+                    return await this.execute([], changed_files, watched_files);
                 });
             } catch (e) {
                 this.helper.fail(e);
@@ -241,7 +241,7 @@ export class Main {
         }
     }
 
-    async execute(file_list: any[], changed_files: { event: string; path: string; rel_path: string }[] = [], watched_files:string[] = []) {
+    async execute(file_list: any[], changed_files: { event: string; path: string; rel_path: string }[] = [], watched_files: string[] = []) {
         this.is_executing = true;
 
         const is_regenerating = changed_files.length > 0;
@@ -295,9 +295,12 @@ export class Main {
             Global.export(join(this.release_path, '_global.json'));
         }
         // read all imported files
-        const files = route_urls.length > 0 ? route_urls : File.collect_files(join(this.cwd, 'gen', 'data'), 'json');
+        let files = route_urls.length > 0 ? route_urls : File.collect_files(join(this.cwd, 'gen', 'data'), 'json');
 
-        // @TODO shrink files with watched_files
+        // shrink files with watched_files
+        if (watched_files && watched_files.length > 0) {
+            files = files.filter((file) => file.indexOf(watched_files) > -1);
+        }
 
         // build static files
         // console.log('identifier_data_list before', this.identifier_data_list)

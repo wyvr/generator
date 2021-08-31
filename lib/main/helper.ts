@@ -472,7 +472,7 @@ export class MainHelper {
                 const head = [],
                     body = [];
                 if (Env.is_dev()) {
-                    body.push(`<script>${Client.transform_resource(readFileSync(join(__dirname, '..', 'resource', 'client_socket.js'), { encoding: 'utf-8' }))}</script>`);
+                    body.push(`<script id="wyvr_client_socket">${Client.transform_resource(readFileSync(join(__dirname, '..', 'resource', 'client_socket.js'), { encoding: 'utf-8' }))}</script>`);
                 }
                 const [err_after, config, file_after, content_after, head_after, body_after] = await Plugin.after('inject', file, content, head, body);
                 if (err_after) {

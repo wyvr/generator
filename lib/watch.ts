@@ -138,101 +138,12 @@ export class Watch {
                     Logger.warning('the file is empty, empty files are ignored');
                     return;
                 }
-                // avoid that 2 commands get sent
-                if (this.is_executing == true) {
-                    Logger.warning('currently running, try again after current execution');
-                    return;
-                }
+
                 this.changed_files = [...this.changed_files, { event, path, rel_path }];
                 if (debounce) {
                     clearTimeout(debounce);
                 }
-                debounce = setTimeout(async () => {
-                    const routes = Routes.collect_routes(null).map((route) => {
-                        return { rel_path: route.rel_path, dir_path: dirname(route.rel_path) };
-                    });
-                    const added_files = [];
-                    const files = this.changed_files
-                        .filter((f) => f)
-                        .map((file) => {
-                            // route handling
-                            if (file.rel_path.match(/^routes\//)) {
-                                // search the real route files and append them
-                                const route_files = routes.filter((route) => {
-                                    return dirname(file.rel_path).indexOf(route.dir_path) == 0 && basename(file.rel_path).indexOf('_') == 0;
-                                });
-                                if (route_files) {
-                                    route_files.forEach((route_file) => {
-                                        Logger.info('resolved to', `${route_file.rel_path} ${Logger.color.dim(file.rel_path)}`);
-                                        added_files.push({
-                                            event: 'change',
-                                            path: null,
-                                            rel_path: route_file.rel_path,
-                                        });
-                                    });
-                                }
-                                // when the changed file starts with a _ it is a helper file and is not allowed to be executed
-                                if (basename(file.rel_path).match(/^_/)) {
-                                    return null;
-                                }
-                            }
-                            // source handling of combined files
-                            if (file.rel_path.match(/^src\//) && extname(file.rel_path) != '.svelte') {
-                                // check if the file is part of a base svelte file
-                                const svelte_file = File.to_extension(join('gen', file.rel_path), '.svelte');
-                                if (fs.existsSync(svelte_file)) {
-                                    Logger.info('resolved to', `${File.to_extension(file.rel_path, '.svelte')} ${Logger.color.dim(file.rel_path)}`);
-                                    added_files.push({
-                                        event: 'change',
-                                        path: null,
-                                        rel_path: svelte_file,
-                                    });
-                                    return null;
-                                }
-                            }
-                            return file;
-                        })
-                        .filter((f) => f);
-                    // reset the files
-                    this.changed_files = [];
-                    this.is_executing = true;
-                    const hr_start = process.hrtime();
-                    const build_pages = await this.callback([].concat(added_files, files), this.get_watched_files());
-                    // reload only whole page when no static asset is given
-                    const reload_files = []
-                        .concat(
-                            build_pages.map((page) => page.path.replace(/releases\/[^/]*\//, '/').replace(/index.html$/, '')),
-                            files
-                                .map((f) => f.rel_path)
-                                .filter((p) => {
-                                    return p.match(/^(assets|css|js|md)\//);
-                                })
-                        )
-                        .filter((x) => x);
-                    console.log('watch reload', reload_files);
-                    // console.log('watch files', files);
-                    // search for watchers which has the pages open
-                    const watcher_ids = [];
-                    Object.keys(this.watchers).forEach((key) => {
-                        if (
-                            this.watchers[key].some((path) => {
-                                return reload_files.indexOf(path) > -1;
-                            })
-                        ) {
-                            watcher_ids.push(key);
-                        }
-                    });
-                    console.log('watcher_ids', watcher_ids);
-                    watcher_ids.forEach((id) => {
-                        this.send(id, { action: 'reload' });
-                    });
-                    // bs.reload(reload_files.length > 0 ? reload_files : undefined);
-
-                    RequireCache.clear();
-                    const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
-                    Logger.stop('watch total', timeInMs);
-                    this.is_executing = false;
-                }, 500);
+                debounce = setTimeout(this.rebuild, 500);
             });
         Logger.info('watching', packages.length, 'packages');
     }
@@ -278,15 +189,110 @@ export class Watch {
                             break;
                         case 'path':
                             if (data.path) {
-                                this.watchers[ws.id].push(data.path);
-                                Logger.debug('ws watch', id, data.path);
-                                // @TODO force regenerate of this page
-                                
+                                if(this.get_watched_files().indexOf(data.path) == -1) {
+                                    // force regenerate of this page
+                                    this.watchers[ws.id].push(data.path);
+                                    Logger.debug('ws watch', id, data.path);
+                                    console.log(id, data.path);
+                                    this.rebuild();
+                                }
                             }
                             break;
                     }
                 }
             });
         });
+    }
+
+    async rebuild() {
+        // avoid that 2 commands get sent
+        if (this.is_executing == true) {
+            Logger.warning('currently running, try again after current execution');
+            return;
+        }
+        const routes = Routes.collect_routes(null).map((route) => {
+            return { rel_path: route.rel_path, dir_path: dirname(route.rel_path) };
+        });
+        const added_files = [];
+        const files = this.changed_files
+            .filter((f) => f)
+            .map((file) => {
+                // route handling
+                if (file.rel_path.match(/^routes\//)) {
+                    // search the real route files and append them
+                    const route_files = routes.filter((route) => {
+                        return dirname(file.rel_path).indexOf(route.dir_path) == 0 && basename(file.rel_path).indexOf('_') == 0;
+                    });
+                    if (route_files) {
+                        route_files.forEach((route_file) => {
+                            Logger.info('resolved to', `${route_file.rel_path} ${Logger.color.dim(file.rel_path)}`);
+                            added_files.push({
+                                event: 'change',
+                                path: null,
+                                rel_path: route_file.rel_path,
+                            });
+                        });
+                    }
+                    // when the changed file starts with a _ it is a helper file and is not allowed to be executed
+                    if (basename(file.rel_path).match(/^_/)) {
+                        return null;
+                    }
+                }
+                // source handling of combined files
+                if (file.rel_path.match(/^src\//) && extname(file.rel_path) != '.svelte') {
+                    // check if the file is part of a base svelte file
+                    const svelte_file = File.to_extension(join('gen', file.rel_path), '.svelte');
+                    if (fs.existsSync(svelte_file)) {
+                        Logger.info('resolved to', `${File.to_extension(file.rel_path, '.svelte')} ${Logger.color.dim(file.rel_path)}`);
+                        added_files.push({
+                            event: 'change',
+                            path: null,
+                            rel_path: svelte_file,
+                        });
+                        return null;
+                    }
+                }
+                return file;
+            })
+            .filter((f) => f);
+        // reset the files
+        this.changed_files = [];
+        this.is_executing = true;
+        const hr_start = process.hrtime();
+        const build_pages = await this.callback([].concat(added_files, files), this.get_watched_files());
+        // reload only whole page when no static asset is given
+        const reload_files = []
+            .concat(
+                build_pages.map((page) => page.path.replace(/releases\/[^/]*\//, '/').replace(/index.html$/, '')),
+                files
+                    .map((f) => f.rel_path)
+                    .filter((p) => {
+                        return p.match(/^(assets|css|js|md)\//);
+                    })
+            )
+            .filter((x) => x);
+        console.log('watch reload', reload_files);
+        // console.log('watch files', files);
+        // search for watchers which has the pages open
+        const watcher_ids = [];
+        Object.keys(this.watchers).forEach((key) => {
+            if (
+                this.watchers[key].some((path) => {
+                    return reload_files.indexOf(path) > -1;
+                })
+            ) {
+                watcher_ids.push(key);
+            }
+        });
+        console.log('watcher_ids', watcher_ids);
+        watcher_ids.forEach((id) => {
+            this.send(id, { action: 'reload' });
+        });
+        // bs.reload(reload_files.length > 0 ? reload_files : undefined);
+
+        RequireCache.clear();
+        const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
+        Logger.stop('watch total', timeInMs);
+        this.is_executing = false;
     }
 }

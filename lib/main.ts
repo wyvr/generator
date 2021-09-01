@@ -193,7 +193,7 @@ export class Main {
             // build the cron routes
             this.perf.start('build');
             // build static files
-            const [build_pages, identifier_data_list] = await this.helper.build(this.worker_controller, cron_routes, null, null);
+            const [build_pages, identifier_data_list] = await this.helper.build_files(this.worker_controller, cron_routes);
             this.perf.end('build');
 
             this.perf.start('optimize');
@@ -252,7 +252,7 @@ export class Main {
         }
     }
 
-    async execute(file_list: any[], changed_files: { event: string; path: string; rel_path: string }[] = [], watched_files: string[] = []) {
+    async execute(file_list: any[], changed_files: { event: string; path: string; rel_path: string }[] = [], watched_files: string[] = null) {
         this.is_executing = true;
 
         const is_regenerating = changed_files.length > 0;
@@ -310,7 +310,13 @@ export class Main {
 
         // build static files
         // console.log('identifier_data_list before', this.identifier_data_list)
-        const [build_pages, identifier_data_list] = await this.helper.build(this.worker_controller, files, changed_files, this.identifier_data_list, watched_files);
+        let build_pages = [];
+        let identifier_data_list = [];
+        if(watched_files) {
+            [build_pages, identifier_data_list] = await this.helper.build_files(this.worker_controller, files, watched_files, changed_files, this.identifier_data_list);
+        } else {
+            [build_pages, identifier_data_list] = await this.helper.build_list(this.worker_controller, files);
+        }
         // console.log('identifier_data_list', identifier_data_list)
         if (this.identifier_data_list.length == 0) {
             this.identifier_data_list = identifier_data_list;

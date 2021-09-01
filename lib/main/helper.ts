@@ -347,7 +347,8 @@ export class MainHelper {
         worker_controller: WorkerController,
         list: string[],
         changed_files: { event: string; path: string; rel_path: string }[] = null,
-        identifier_list: any[] = null
+        identifier_list: any[] = null,
+        watched_files: string[] = []
     ): Promise<[any[], string[]]> {
         mkdirSync('gen/src', { recursive: true });
 
@@ -422,6 +423,10 @@ export class MainHelper {
                     )
                 )
             );
+            // apply only to watched files
+            if (watched_files.length > 0) {
+                console.log(list, watched_files);
+            }
             // clear css files otherwise these will not be regenerated, because the build step only creates the file when it is not present already
             delete_files
                 .filter((val, index, arr) => arr.indexOf(val) == index)
@@ -461,7 +466,7 @@ export class MainHelper {
         await Plugin.after('build', result, pages);
         return [pages, identifier_data_list];
     }
-    async inject(list: string[]) {
+    async inject(list: string[], socket_port: number = 0) {
         await Promise.all(
             list.map(async (file) => {
                 // because of an compilation error the page can be non existing
@@ -472,7 +477,11 @@ export class MainHelper {
                 const head = [],
                     body = [];
                 if (Env.is_dev()) {
-                    body.push(`<script id="wyvr_client_socket">${Client.transform_resource(readFileSync(join(__dirname, '..', 'resource', 'client_socket.js'), { encoding: 'utf-8' }))}</script>`);
+                    body.push(
+                        `<script id="wyvr_client_socket">${Client.transform_resource(
+                            readFileSync(join(__dirname, '..', 'resource', 'client_socket.js'), { encoding: 'utf-8' }).replace(/\{port\}/g, socket_port)
+                        )}</script>`
+                    );
                 }
                 const [err_after, config, file_after, content_after, head_after, body_after] = await Plugin.after('inject', file, content, head, body);
                 if (err_after) {

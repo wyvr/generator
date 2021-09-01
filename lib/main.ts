@@ -20,6 +20,7 @@ import { WyvrMode } from '@lib/model/wyvr/mode';
 import { MainHelper } from '@lib/main/helper';
 import { Global } from '@lib/global';
 import { WorkerEmit } from '@lib/model/worker/emit';
+import { Port } from './port';
 
 export class Main {
     mode: WyvrMode = WyvrMode.build;
@@ -36,6 +37,7 @@ export class Main {
     cron_state = [];
     cron_config = [];
     identifier_data_list = [];
+    watcher_ports: [number, number] = [3000, 3001];
 
     constructor() {
         Env.set(process.env.WYVR_ENV);
@@ -61,6 +63,15 @@ export class Main {
         if (this.mode == WyvrMode.build) {
             Dir.clear('gen');
             writeFileSync(uniq_id_file, this.uniq_id);
+
+            if (Env.is_dev()) {
+                // get the first 2 free ports for the watcher
+                this.watcher_ports[0] = await Port.find(); // server
+                this.watcher_ports[1] = await Port.find(); // socket
+                Logger.present('server port', this.watcher_ports[0]);
+                Logger.present('socket port', this.watcher_ports[1]);
+
+            }
         }
         if (this.mode == WyvrMode.cron) {
             this.perf.start('cron');
@@ -231,7 +242,7 @@ export class Main {
         if (this.mode == WyvrMode.build) {
             // watch for file changes
             try {
-                const watch = new Watch(async (changed_files: any[], watched_files: string[]) => {
+                const watch = new Watch(this.watcher_ports, async (changed_files: any[], watched_files: string[]) => {
                     Plugin.clear();
                     return await this.execute([], changed_files, watched_files);
                 });
@@ -297,14 +308,9 @@ export class Main {
         // read all imported files
         let files = route_urls.length > 0 ? route_urls : File.collect_files(join(this.cwd, 'gen', 'data'), 'json');
 
-        // shrink files with watched_files
-        if (watched_files && watched_files.length > 0) {
-            files = files.filter((file) => file.indexOf(watched_files) > -1);
-        }
-
         // build static files
         // console.log('identifier_data_list before', this.identifier_data_list)
-        const [build_pages, identifier_data_list] = await this.helper.build(this.worker_controller, files, changed_files, this.identifier_data_list);
+        const [build_pages, identifier_data_list] = await this.helper.build(this.worker_controller, files, changed_files, this.identifier_data_list, watched_files);
         // console.log('identifier_data_list', identifier_data_list)
         if (this.identifier_data_list.length == 0) {
             this.identifier_data_list = identifier_data_list;
@@ -313,7 +319,10 @@ export class Main {
 
         // inject data into the pages
         this.perf.start('inject');
-        await this.helper.inject(build_pages.map((d) => d.path));
+        await this.helper.inject(
+            build_pages.map((d) => d.path),
+            this.watcher_ports[1]
+        );
         this.perf.end('inject');
 
         // check if the execution should stop after the build

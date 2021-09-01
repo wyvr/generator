@@ -17,7 +17,7 @@ export class Watch {
     watchers = {};
     websocket_server = null;
 
-    constructor(private callback: Function = null) {
+    constructor(private ports: [number, number], private callback: Function = null) {
         if (!callback || typeof callback != 'function') {
             Logger.warning('can not start watching because no callback is defined');
             return;
@@ -42,7 +42,7 @@ export class Watch {
 
         const pub = new static_server.Server(join(process.cwd(), 'pub'), { cache: false, serverInfo: `wyvr` });
         const host = 'localhost';
-        const port = 3000;
+        const port = this.ports[0];
         require('http')
             .createServer((req, res) => {
                 // console.log(req.method, req.url);
@@ -245,7 +245,7 @@ export class Watch {
     }
 
     private connect() {
-        const ws_port = 3001;
+        const ws_port = this.ports[1];
         this.websocket_server = new WebSocketServer({ port: ws_port });
 
         this.websocket_server.on('connection', (ws) => {

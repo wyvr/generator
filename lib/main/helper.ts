@@ -343,102 +343,6 @@ export class MainHelper {
             client: transformed_files,
         };
     }
-    // async build(
-    //     worker_controller: WorkerController,
-    //     list: string[],
-    //     changed_files: { event: string; path: string; rel_path: string }[] = null,
-    //     identifier_list: any[] = null,
-    //     watched_files: string[] = []
-    // ): Promise<[any[], string[]]> {
-    //     mkdirSync('gen/src', { recursive: true });
-
-    //     // rebuild ony affected resources
-    //     if (changed_files && changed_files.some((file) => file.rel_path.indexOf('src/') == 0) && identifier_list && identifier_list.length > 0 && Dependency.cache) {
-    //         const deps = [];
-    //         changed_files.forEach((file) => {
-    //             deps.push(...Dependency.get_dependent_identifiers(file.rel_path));
-    //         });
-    //         // console.log('changed_files', changed_files);
-    //         // console.log('build deps', deps);
-    //         // add the dependet identifiers to the variants which will be exposed as matrix
-    //         const variants = { doc: ['*'], layout: ['*'], page: ['*'] };
-    //         let ignore_default = true;
-    //         deps.filter((val, index, arr) => {
-    //             return arr.indexOf(val) == index;
-    //         }).forEach((path) => {
-    //             if (path.indexOf('Default.svelte') > -1) {
-    //                 ignore_default = false;
-    //             }
-    //             if (path.indexOf('doc/') == 0) {
-    //                 variants.doc.push(path.replace('doc/', ''));
-    //                 return;
-    //             }
-    //             if (path.indexOf('layout/') == 0) {
-    //                 variants.layout.push(path.replace('layout/', ''));
-    //                 return;
-    //             }
-    //             if (path.indexOf('page/') == 0) {
-    //                 variants.page.push(path.replace('page/', ''));
-    //                 return;
-    //             }
-    //         });
-    //         // build matrix of all possible combinations
-    //         let dep_identifiers = [];
-    //         variants.doc.forEach((doc) => {
-    //             variants.layout.forEach((layout) => {
-    //                 variants.page.forEach((page) => {
-    //                     const di = Client.get_identifier_name(this.root_template_paths, doc, layout, page);
-    //                     if (ignore_default && di == '*_*_*') {
-    //                         return;
-    //                     }
-    //                     dep_identifiers.push(di.replace(/\*/g, '[^_]*'));
-    //                 });
-    //             });
-    //         });
-    //         // convert the dependecy identifiers to a valid regex
-    //         dep_identifiers = dep_identifiers
-    //             .map((val) => `^${val}$`)
-    //             .filter((val, index, arr) => {
-    //                 return arr.indexOf(val) == index;
-    //             });
-    //         // modify list that only affected pages gets rebuild
-    //         const delete_files = [];
-    //         list = identifier_list
-    //             .filter((identifier_item) => {
-    //                 return dep_identifiers.find((di_regex) => {
-    //                     const matches = identifier_item.identifier.match(new RegExp(di_regex));
-    //                     if (matches) {
-    //                         delete_files.push(identifier_item.identifier);
-    //                     }
-    //                     return matches;
-    //                 });
-    //             })
-    //             .map((identifier_item) => identifier_item.filename);
-    //         // add dependency detected files to the list
-    //         list.push(
-    //             ...Dependency.get_dependent_pages(
-    //                 [].concat(
-    //                     changed_files.map((file) => file.rel_path),
-    //                     deps
-    //                 )
-    //             )
-    //         );
-    //         // apply only to watched files
-    //         if (watched_files.length > 0) {
-    //             console.log(list, watched_files);
-    //         }
-    //         // clear css files otherwise these will not be regenerated, because the build step only creates the file when it is not present already
-    //         delete_files
-    //             .filter((val, index, arr) => arr.indexOf(val) == index)
-    //             .forEach((identifier) => {
-    //                 removeSync(join('gen', 'css', `${identifier}.css`));
-    //             });
-    //     } else {
-    //         // @NOTE css gets automatically rewritten after approx. 5 seconds
-    //     }
-    //     const [pages, identifier_data_list] = await this.build_list(worker_controller, list);
-    //     return [pages, identifier_data_list];
-    // }
     async build_list(worker_controller: WorkerController, list: string[]) {
         Logger.debug('build list', list);
         const [error_list, config, modified_list] = await Plugin.before('build', list);
@@ -477,12 +381,9 @@ export class MainHelper {
         changed_files: { event: string; path: string; rel_path: string }[] = null,
         identifier_list: any[] = null
     ) {
-        console.log(list.length, watched_files);
-
         const filtered_list = list.filter((entry) => {
             return watched_files.find((file) => entry.indexOf(file) > -1);
         });
-        console.log(watched_files)
         const [pages, identifier_data_list] = await this.build_list(worker_controller, filtered_list);
         return [pages, identifier_data_list];
     }

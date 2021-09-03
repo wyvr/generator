@@ -349,7 +349,7 @@ export class Client {
         if (!root_paths || root_paths.length == 0 || !parts || parts.length == 0) {
             return default_sign;
         }
-        const replace_pattern = new RegExp(`^${root_paths.map((path) => path.replace(/\//g, '/') + '/').join('|')}`);
+        const replace_pattern = new RegExp(`^${root_paths.map((path) => path.replace(/\//g, '/').replace(/\/$/, '') + '/').join('|')}`);
         const result = parts
             .filter((x) => x)
             .map((part) => {

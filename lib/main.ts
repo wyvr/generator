@@ -21,6 +21,7 @@ import { MainHelper } from '@lib/main/helper';
 import { Global } from '@lib/global';
 import { WorkerEmit } from '@lib/model/worker/emit';
 import { Port } from './port';
+import { Client } from './client';
 
 export class Main {
     mode: WyvrMode = WyvrMode.build;
@@ -70,7 +71,6 @@ export class Main {
                 this.watcher_ports[1] = await Port.find(); // socket
                 Logger.present('server port', this.watcher_ports[0]);
                 Logger.present('socket port', this.watcher_ports[1]);
-
             }
         }
         if (this.mode == WyvrMode.cron) {
@@ -312,7 +312,7 @@ export class Main {
         // console.log('identifier_data_list before', this.identifier_data_list)
         let build_pages = [];
         let identifier_data_list = [];
-        if(watched_files) {
+        if (watched_files) {
             [build_pages, identifier_data_list] = await this.helper.build_files(this.worker_controller, files, watched_files, changed_files, this.identifier_data_list);
         } else {
             [build_pages, identifier_data_list] = await this.helper.build_list(this.worker_controller, files);
@@ -355,7 +355,25 @@ export class Main {
             this.perf.end('dependencies');
 
             this.perf.start('scripts');
-            const build_scripts = await this.helper.scripts(this.worker_controller, this.identifiers);
+            let identifiers = this.identifiers;
+            // when files are watched build only needed scripts
+            if (watched_files) {
+                // get the identfiers of the watched files
+                const page_identifiers = Object.keys(Dependency.page_cache)
+                    .filter((path) => watched_files.find((watched) => path.indexOf(watched) > -1))
+                    .map((path) => Dependency.page_cache[path])
+                    .map((identifier) => Client.get_identifier_name(['src/doc', 'src/layout', 'src/page'], identifier.doc, identifier.layout, identifier.page));
+                // build new identifiers based on the page identifiers
+                const watched_identifiers = {};
+                Object.keys(identifiers)
+                    .filter((name) => page_identifiers.indexOf(name) > -1)
+                    .map((name) => {
+                        watched_identifiers[name] = identifiers[name];
+                    });
+
+                identifiers = watched_identifiers;
+            }
+            const build_scripts = await this.helper.scripts(this.worker_controller, identifiers);
             this.perf.end('scripts');
         } else {
             Logger.improve('scripts, will not be regenerated');

@@ -414,9 +414,14 @@ export class MainHelper {
             })
         );
     }
-    async scripts(worker_controller: WorkerController, identifiers: any): Promise<boolean> {
+    async scripts(worker_controller: WorkerController, identifiers: any, is_watching: boolean = false): Promise<boolean> {
         await Plugin.before('scripts', identifiers, Dependency.cache);
-        Dir.clear('gen/js');
+        if(is_watching) {
+            // remove only new identifier files
+            Object.keys(identifiers).forEach((identifier) => removeSync(join('gen', 'js', `${identifier}.js`)));
+        } else {
+            Dir.clear('gen/js');
+        }
 
         // copy static component which are imported into hydrated components into the gen/client folder to avoid errors
         const hydrateable_files = Client.get_hydrateable_svelte_files(File.collect_svelte_files('gen/client')).map((file) => {

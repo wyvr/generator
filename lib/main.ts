@@ -20,8 +20,8 @@ import { WyvrMode } from '@lib/model/wyvr/mode';
 import { MainHelper } from '@lib/main/helper';
 import { Global } from '@lib/global';
 import { WorkerEmit } from '@lib/model/worker/emit';
-import { Port } from './port';
-import { Client } from './client';
+import { Port } from '@lib/port';
+import { Client } from '@lib/client';
 
 export class Main {
     mode: WyvrMode = WyvrMode.build;
@@ -373,7 +373,7 @@ export class Main {
 
                 identifiers = watched_identifiers;
             }
-            const build_scripts = await this.helper.scripts(this.worker_controller, identifiers);
+            const build_scripts = await this.helper.scripts(this.worker_controller, identifiers, !!watched_files);
             this.perf.end('scripts');
         } else {
             Logger.improve('scripts, will not be regenerated');

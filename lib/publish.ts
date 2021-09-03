@@ -1,7 +1,7 @@
 import { readdirSync, statSync, existsSync, readlinkSync, removeSync } from 'fs-extra';
 import { join } from 'path';
 import { Link } from '@lib/link';
-import { Dir } from './dir';
+import { Dir } from '@lib/dir';
 
 export class Publish {
     static cleanup(keep: number = 0) {

@@ -2,7 +2,7 @@ const pkg = require('@root/package.json');
 const circular = require('circular');
 import * as color from 'ansi-colors';
 import ora from 'ora';
-import { EnvModel } from './model/env';
+import { EnvModel } from '@lib/model/env';
 
 export class Logger {
     static color = color;

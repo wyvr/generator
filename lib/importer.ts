@@ -8,7 +8,7 @@ import { File } from '@lib/file';
 import { Config } from '@lib/config';
 import { Logger } from '@lib/logger';
 import { IPerformance_Measure, Performance_Measure, Performance_Measure_Blank } from '@lib/performance_measure';
-import { Global } from './global';
+import { Global } from '@lib/global';
 
 const cwd = process.cwd();
 

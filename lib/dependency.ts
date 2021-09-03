@@ -2,7 +2,7 @@ import { readdirSync, existsSync, readFileSync } from 'fs';
 import { join, extname, dirname, resolve, sep } from 'path';
 import { Logger } from '@lib/logger';
 import { File } from '@lib/file';
-import { WyvrFile } from './model/wyvr/file';
+import { WyvrFile } from '@lib/model/wyvr/file';
 
 export class Dependency {
     static cache: any = null;

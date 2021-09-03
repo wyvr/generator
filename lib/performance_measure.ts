@@ -1,7 +1,7 @@
 import { Logger } from '@lib/logger';
 import { hrtime_to_ms } from '@lib/converter/time';
 import ora from 'ora';
-import { Env } from './env';
+import { Env } from '@lib/env';
 
 export class Performance_Measure implements IPerformance_Measure {
     spinner = null;

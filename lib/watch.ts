@@ -1,13 +1,12 @@
-import { Config } from './config';
-import { Logger } from './logger';
+import { Config } from '@lib/config';
+import { Logger } from '@lib/logger';
 import chokidar from 'chokidar';
 import fs from 'fs';
 import { join, dirname, basename, extname } from 'path';
 import { hrtime_to_ms } from '@lib/converter/time';
 import { RequireCache } from '@lib/require_cache';
-import { Routes } from './routes';
-import { Dependency } from './dependency';
-import { File } from './file';
+import { Routes } from '@lib/routes';
+import { File } from '@lib/file';
 import { WebSocketServer } from 'ws';
 import { v4 } from 'uuid';
 

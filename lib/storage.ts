@@ -2,7 +2,7 @@ import { Logger } from '@lib/logger';
 import sqlite3 from 'sqlite3';
 import { open, Database } from 'sqlite';
 import { mkdirSync, existsSync, writeFileSync } from 'fs-extra';
-import { Dir } from './dir';
+import { Dir } from '@lib/dir';
 import { dirname } from 'path';
 import merge from 'deepmerge';
 

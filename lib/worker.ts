@@ -6,7 +6,7 @@ import { Build } from '@lib/build';
 import { Dir } from '@lib/dir';
 import { join, dirname } from 'path';
 import { readFileSync, writeFileSync, mkdirSync } from 'fs-extra';
-import { LogType } from './model/log';
+import { LogType } from '@lib/model/log';
 import { Client } from '@lib/client';
 import { Routes } from '@lib/routes';
 import { Config } from '@lib/config';
@@ -16,8 +16,8 @@ import { Error } from '@lib/error';
 import { Optimize } from '@lib/optimize';
 import { EnvModel } from '@lib/model/env';
 import { WorkerEmit } from '@lib/model/worker/emit';
-import { Dependency } from './dependency';
-import { WyvrFile } from './model/wyvr/file';
+import { Dependency } from '@lib/dependency';
+import { WyvrFile } from '@lib/model/wyvr/file';
 
 export class Worker {
     private config = null;

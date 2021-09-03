@@ -29,7 +29,7 @@ export class Watch {
         process.kill(process.pid, 'SIGUSR2');
     }
     private get_watched_files(): string[] {
-        return [].concat(...Object.keys(this.watchers).map((id) => this.watchers[id])).filter((cur, idx, arr) => arr.indexOf(cur) == idx);
+        return (<string[]>Object.values(this.watchers)).filter((x) => x);
     }
     private init() {
         const packages = Config.get('packages');
@@ -143,13 +143,18 @@ export class Watch {
                 if (debounce) {
                     clearTimeout(debounce);
                 }
-                debounce = setTimeout(this.rebuild, 500);
+                debounce = setTimeout(() => {
+                    this.rebuild();
+                }, 500);
             });
         Logger.info('watching', packages.length, 'packages');
     }
     private send(id, data) {
         this.websocket_server.clients.forEach((client) => {
             if (client.id == id) {
+                if (typeof data == 'object') {
+                    data.id = id;
+                }
                 client.send(JSON.stringify(data));
             }
         });
@@ -163,12 +168,11 @@ export class Watch {
             const id = v4().split('-')[0];
 
             ws.id = id;
-            this.watchers[id] = [];
-            Logger.debug('ws connect', id);
+            this.watchers[id] = null;
+            // Logger.debug('ws connect', id);
 
             ws.on('close', () => {
-                // remove the watcher
-                delete this.watchers[ws.id];
+                this.watchers[ws.id] = null;
                 Logger.debug('ws close', id);
             });
             ws.on('message', (message) => {
@@ -179,9 +183,6 @@ export class Watch {
                     } catch (e) {}
                 }
 
-                if (this.watchers[ws.id].length == 0) {
-                    this.send(ws.id, { action: 'available' });
-                }
                 if (data.action) {
                     switch (data.action) {
                         case 'ping':
@@ -189,18 +190,17 @@ export class Watch {
                             break;
                         case 'path':
                             if (data.path) {
-                                if(this.get_watched_files().indexOf(data.path) == -1) {
-                                    // force regenerate of this page
-                                    this.watchers[ws.id].push(data.path);
-                                    Logger.debug('ws watch', id, data.path);
-                                    console.log(id, data.path);
-                                    this.rebuild();
+                                if (this.get_watched_files().indexOf(data.path) == -1) {
+                                    this.watchers[ws.id] = data.path;
                                 }
                             }
                             break;
                     }
                 }
             });
+            if (!this.watchers[ws.id]) {
+                this.send(ws.id, { action: 'available' });
+            }
         });
     }
 
@@ -271,20 +271,14 @@ export class Watch {
                     })
             )
             .filter((x) => x);
-        console.log('watch reload', reload_files);
         // console.log('watch files', files);
         // search for watchers which has the pages open
         const watcher_ids = [];
         Object.keys(this.watchers).forEach((key) => {
-            if (
-                this.watchers[key].some((path) => {
-                    return reload_files.indexOf(path) > -1;
-                })
-            ) {
+            if (reload_files.indexOf(this.watchers[key]) > -1) {
                 watcher_ids.push(key);
             }
         });
-        console.log('watcher_ids', watcher_ids);
         watcher_ids.forEach((id) => {
             this.send(id, { action: 'reload' });
         });

@@ -269,7 +269,7 @@ export class Main {
 
         if (only_static) {
             this.is_executing = false;
-            return;
+            return [];
         }
 
         // collect the files for the generation

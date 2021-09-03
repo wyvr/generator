@@ -194,6 +194,12 @@ export class Watch {
                                 }
                             }
                             break;
+                        case 'reload':
+                            if (data.path) {
+                                Logger.info('rebuild', data.path)
+                                this.rebuild();
+                            }
+                            break;
                     }
                 }
             });

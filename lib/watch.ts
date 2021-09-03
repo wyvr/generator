@@ -168,7 +168,7 @@ export class Watch {
 
             ws.id = id;
             this.watchers[id] = null;
-            // Logger.debug('ws connect', id);
+            Logger.debug('ws connect', id);
 
             ws.on('close', () => {
                 this.watchers[ws.id] = null;

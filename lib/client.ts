@@ -39,6 +39,7 @@ export class Client {
             idle: this.transform_resource(fs.readFileSync(join(resource_folder, 'hydrate_idle.js'), { encoding: 'utf-8' })),
             media: this.transform_resource(fs.readFileSync(join(resource_folder, 'hydrate_media.js'), { encoding: 'utf-8' })),
             env: this.transform_resource(fs.readFileSync(join(resource_folder, 'env.js'), { encoding: 'utf-8' })),
+            events: this.transform_resource(fs.readFileSync(join(resource_folder, 'events.js'), { encoding: 'utf-8' })),
             debug: '',
         };
         if (Env.is_dev()) {
@@ -46,7 +47,7 @@ export class Client {
         }
         // when no  hydrateable files are available create minimal bundle
         if (hydrate_files.length == 0) {
-            fs.writeFileSync(join(cwd, 'gen', 'js', `${entry.name}.js`), [script_partials.env, script_partials.debug].join(''));
+            fs.writeFileSync(join(cwd, 'gen', 'js', `${entry.name}.js`), [script_partials.env, script_partials.events, script_partials.debug].join(''));
             return [null, null];
         }
         const content = await Promise.all(
@@ -109,7 +110,7 @@ export class Client {
                 }
             })
         );
-        const script_content = [script_partials.hydrate, script_partials.props, script_partials.portal, script_partials.debug, script_partials.env];
+        const script_content = [script_partials.hydrate, script_partials.props, script_partials.portal, script_partials.debug, script_partials.env, script_partials.events];
         if (lazy_input_files.length > 0) {
             script_content.push(script_partials.lazy);
         }

@@ -9,6 +9,7 @@ export class Logger {
     static spinner = null;
     static last_text = null;
     static env = process.env.WYVR_ENV || 'development';
+    static show_report = process.env.WYVR_REPORT != null;
     static set_env(env: string) {
         if (['development', 'debug', 'production'].indexOf(env) == -1) {
             return;
@@ -53,6 +54,11 @@ export class Logger {
     static improve(...values) {
         this.output(color.magenta, '⚡️', ...values);
     }
+    static report(duration, ...values) {
+        if (this.show_report) {
+            this.output(color.yellow, '#', ...values, duration, color.dim('ms'));
+        }
+    }
     static debug(...values) {
         if (this.env != 'debug') {
             return;
@@ -88,12 +94,7 @@ export class Logger {
         }
     }
     static logo() {
-        const logo = [
-            `__  __  __  __  __  ____`,
-            `\\ \\/ /\\/ /\\/ /\\/ /\\/ /_/`,
-            ` \\/_/\\/_/\\/ /\\/_/\\/_/`,
-            `         /_/ generator ${color.dim(pkg.version)}`,
-        ].join('\n');
+        const logo = [`__  __  __  __  __  ____`, `\\ \\/ /\\/ /\\/ /\\/ /\\/ /_/`, ` \\/_/\\/_/\\/ /\\/_/\\/_/`, `         /_/ generator ${color.dim(pkg.version)}`].join('\n');
         console.log(color.cyan(logo));
         console.log('');
     }

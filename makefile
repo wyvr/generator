@@ -30,6 +30,9 @@ dev: ## Start development build
 debug: ## Start debug build
 	@$(WYVR_COMPILE) && $(WYVR_TEST) && env WYVR_ENV=debug $(WYVR_BUILD)
 
+report: ## Start replorting mode
+	@$(WYVR_COMPILE) && $(WYVR_TEST) && env WYVR_REPORT=true WYVR_ENV=dev $(WYVR_BUILD)
+
 watch: ## Start watcher and make dev builds
 	@$(WYVR_CLEAN)
 	@$(WYVR_FOLDERS)

@@ -2,6 +2,7 @@ import { Logger } from '@lib/logger';
 import fs from 'fs';
 import { join } from 'path';
 import { Error } from '@lib/error';
+import { hrtime_to_ms } from '@lib/converter/time';
 
 export class Plugin {
     static cache: any = {};
@@ -69,6 +70,7 @@ export class Plugin {
             // after plugins gets executed in reversed order
             if (type == PluginType.after) {
                 for (let i = listeners.length - 1; i >= 0; i--) {
+                    const start = process.hrtime();
                     try {
                         const partial_result = await listeners[i].fn(...result);
                         if (partial_result && Array.isArray(partial_result) && partial_result.length >= result.length) {
@@ -77,6 +79,7 @@ export class Plugin {
                     } catch (e) {
                         Logger.error('error in plugin for', Logger.color.bold(name), Logger.color.bold(PluginType[type]), Error.get(e, listeners[i].source, 'plugin'));
                     }
+                    Logger.report(hrtime_to_ms(process.hrtime(start)), 'plugin', name, PluginType[type], listeners[i].source);
                 }
                 return result;
             }

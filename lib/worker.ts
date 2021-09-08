@@ -18,6 +18,7 @@ import { EnvModel } from '@lib/model/env';
 import { WorkerEmit } from '@lib/model/worker/emit';
 import { Dependency } from '@lib/dependency';
 import { WyvrFile } from '@lib/model/wyvr/file';
+import { Env } from '@lib/env';
 
 export class Worker {
     private config = null;
@@ -46,6 +47,7 @@ export class Worker {
                     // set the config of the worker by the main process
                     this.config = value?.config;
                     this.env = value?.env;
+                    Env.set(this.env);
                     this.cwd = value?.cwd;
                     this.release_path = value?.release_path;
                     // only when everything is configured set the worker idle

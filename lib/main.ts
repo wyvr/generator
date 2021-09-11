@@ -378,10 +378,13 @@ export class Main {
         } else {
             Logger.improve('scripts, will not be regenerated');
         }
-
-        this.perf.start('sitemap');
-        await this.helper.sitemap(this.release_path);
-        this.perf.end('sitemap');
+        if(!is_regenerating) {
+            this.perf.start('sitemap');
+            await this.helper.sitemap(this.release_path, build_pages);
+            this.perf.end('sitemap');
+        } else {
+            Logger.improve('sitemap, will not be regenerated');
+        }
 
         this.perf.start('link');
         await this.helper.link(this.uniq_id);

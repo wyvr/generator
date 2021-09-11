@@ -19,6 +19,7 @@
 // };
 module.exports = {
     url: 'example.wyvr',
+    https: false,
     worker: {
         ratio: 0,
     },

@@ -172,7 +172,7 @@ export class Worker {
                             Dir.create(dirname(path));
                             writeFileSync(path, rendered.result.html);
 
-                            return { path, filename, doc: result.doc, layout: result.layout, page: result.page, identifier: result.identifier };
+                            return { path, filename, doc: result.doc, layout: result.layout, page: result.page, identifier: result.identifier, _wyvr: data._wyvr };
                         })
                     );
                     // clear cache

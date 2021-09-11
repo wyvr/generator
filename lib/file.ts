@@ -80,6 +80,12 @@ export class File {
         }
         return filename;
     }
+    static remove_index(filename: string): string {
+        if(!filename) {
+            return '';
+        }
+        return filename.replace(/index\.[^\.]+/, '');
+    }
     /**
      * read the content of an file as json
      * @param filename

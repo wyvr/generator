@@ -416,7 +416,7 @@ export class MainHelper {
     }
     async scripts(worker_controller: WorkerController, identifiers: any, is_watching: boolean = false): Promise<boolean> {
         await Plugin.before('scripts', identifiers, Dependency.cache);
-        if(is_watching) {
+        if (is_watching) {
             // remove only new identifier files
             Object.keys(identifiers).forEach((identifier) => removeSync(join('gen', 'js', `${identifier}.js`)));
         } else {
@@ -491,25 +491,66 @@ export class MainHelper {
         }
         return result;
     }
-    async sitemap(release_path: string) {
-        const [error, config, files] = await Plugin.before('sitemap', [
+    async sitemap(release_path: string, pages: any[]) {
+        const [error, before_config, before_sitemaps] = await Plugin.before('sitemap', [
             {
                 name: 'sitemap.xml',
-                entries: [],
+                sitemaps: ['page-sitemap.xml'],
+            },
+            {
+                name: 'page-sitemap.xml',
+                entries: pages,
             },
         ]);
         if (error) {
             Logger.error(error);
             this.fail();
         }
-        // console.log(JSON.stringify(files))
-        files.forEach((file) => {
-            if (!file || !file.name || !file.entries) {
+        const url = `${Config.get('https') ? 'https://' : 'http://'}${Config.get('url')}`;
+        before_sitemaps.forEach((sitemap) => {
+            if (!sitemap || !sitemap.name) {
+                Logger.error('sitemap is incorrect', JSON.stringify(sitemap));
                 return;
             }
-            writeFileSync(join(release_path, file.name), JSON.stringify(file.entries, null, 4));
+
+            const content = ['<?xml version="1.0" encoding="UTF-8"?>'];
+            if (sitemap.sitemaps) {
+                content.push('<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
+                content.push(
+                    sitemap.sitemaps
+                        .map((entry) => {
+                            return `<url>
+                <loc>${url}/${entry}</loc>
+             </url>`;
+                        })
+                        .join('')
+                );
+                content.push('</sitemapindex>');
+            }
+            if (sitemap.entries) {
+                content.push('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
+                content.push(
+                    sitemap.entries
+                        .filter((entry) => {
+                            // remove private üages from the sitemap
+                            return entry._wyvr.private !== true;
+                        })
+                        .map((entry) => {
+                            return `<url>
+                <loc>${url}${File.remove_index(entry.path.replace(release_path, ''))}</loc>
+                ${entry._wyvr.last_modified ? `<lastmod>${entry._wyvr.last_modified}</lastmod>` : ''}
+                ${entry._wyvr.change_frequence ? `<changefreq>${entry._wyvr.change_frequence}</changefreq>` : ''}
+                ${entry._wyvr.priority ? `<priority>${entry._wyvr.priority}</priority>` : ''}
+             </url>`;
+                        })
+                        .join('')
+                );
+                content.push('</urlset>');
+            }
+
+            writeFileSync(join(release_path, sitemap.name), content.join('').replace(/^\s+/gm, '').replace(/\n|\r/g, ''));
         });
-        return files;
+        return;
     }
     async plugins(release_path: string) {
         const plugin_files = File.collect_files(join('gen', 'plugins'));

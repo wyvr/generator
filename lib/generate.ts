@@ -19,6 +19,9 @@ export class Generate {
             nav: [],
             extension: 'html',
             language: 'en',
+            private: false,
+            change_frequence: 'monthly',
+            priority: 0.5,
         };
         /*{
                 url: data.url,

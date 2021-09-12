@@ -492,7 +492,7 @@ export class MainHelper {
         return result;
     }
     async sitemap(release_path: string, pages: any[]) {
-        const [error, before_config, before_sitemaps] = await Plugin.before('sitemap', [
+        const [before_error, before_config, before_sitemaps] = await Plugin.before('sitemap', [
             {
                 name: 'sitemap.xml',
                 sitemaps: ['page-sitemap.xml'],
@@ -502,12 +502,64 @@ export class MainHelper {
                 entries: pages,
             },
         ]);
-        if (error) {
-            Logger.error(error);
+        if (before_error) {
+            Logger.error(before_error);
             this.fail();
         }
         const url = `${Config.get('https') ? 'https://' : 'http://'}${Config.get('url')}`;
-        before_sitemaps.forEach((sitemap) => {
+        const size = 10000;
+        // split when there are to many entries
+        const splitted_sitemaps = [];
+        const replace_sitemaps = {};
+        const sitemaps = before_sitemaps
+            .map((sitemap) => {
+                if (sitemap.entries) {
+                    sitemap.entries = sitemap.entries.filter((entry) => {
+                        // remove private pages from the sitemap
+                        return entry._wyvr.private !== true;
+                    });
+                    if (sitemap.entries.length > size) {
+                        const amount = Math.ceil(sitemap.entries.length / size);
+                        for (let i = 0; i < amount; i++) {
+                            const clone = {
+                                name: sitemap.name.replace(/\.xml/, `-${i + 1}.xml`),
+                                entries: [],
+                            };
+                            if (!replace_sitemaps[sitemap.name]) {
+                                replace_sitemaps[sitemap.name] = [];
+                            }
+                            replace_sitemaps[sitemap.name].push(clone.name);
+                            clone.entries = sitemap.entries.slice(i * size, (i + 1) * size);
+                            splitted_sitemaps.push(clone);
+                        }
+                        return null;
+                    }
+                }
+                return sitemap;
+            })
+            .filter((x) => x)
+            .map((sitemap) => {
+                if (sitemap.sitemaps) {
+                    const append_sitemap = [];
+                    const mod_sitemap = sitemap.sitemaps.filter((entry) => {
+                        if (replace_sitemaps[entry]) {
+                            append_sitemap.push(...replace_sitemaps[entry]);
+                            return false;
+                        }
+                        return entry;
+                    });
+                    sitemap.sitemaps = mod_sitemap.concat(append_sitemap);
+                }
+                return sitemap;
+            });
+        const combined_sitemap = sitemaps.concat(splitted_sitemaps);
+        const [after_error, after_config, after_sitemaps] = await Plugin.after('sitemap', combined_sitemap);
+        if (after_error) {
+            Logger.error(before_error);
+            this.fail();
+        }
+        // build sitemap files
+        after_sitemaps.forEach((sitemap) => {
             if (!sitemap || !sitemap.name) {
                 Logger.error('sitemap is incorrect', JSON.stringify(sitemap));
                 return;
@@ -531,10 +583,6 @@ export class MainHelper {
                 content.push('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
                 content.push(
                     sitemap.entries
-                        .filter((entry) => {
-                            // remove private üages from the sitemap
-                            return entry._wyvr.private !== true;
-                        })
                         .map((entry) => {
                             return `<url>
                 <loc>${url}${File.remove_index(entry.path.replace(release_path, ''))}</loc>

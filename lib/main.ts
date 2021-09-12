@@ -131,6 +131,7 @@ export class Main {
             }
             Global.set('global.env', EnvModel[Env.get()]);
             Global.set('global.url', Config.get('url'));
+            Global.set('global.https', Config.get('https') ? true : false);
             const import_main_path = Config.get('import.main');
             const default_values = Config.get('default_values');
             if (import_main_path && existsSync(import_main_path)) {

@@ -514,10 +514,14 @@ export class MainHelper {
         const sitemaps = before_sitemaps
             .map((sitemap) => {
                 if (sitemap.entries) {
-                    sitemap.entries = sitemap.entries.filter((entry) => {
-                        // remove private pages from the sitemap
-                        return entry._wyvr.private !== true;
-                    });
+                    sitemap.entries = sitemap.entries
+                        .filter((entry) => {
+                            // remove private pages from the sitemap
+                            return entry._wyvr.private !== true;
+                        })
+                        .sort((a, b) => {
+                            return b._wyvr.priority - a._wyvr.priority || a.path.localeCompare(b.path);
+                        });
                     if (sitemap.entries.length > size) {
                         const amount = Math.ceil(sitemap.entries.length / size);
                         for (let i = 0; i < amount; i++) {

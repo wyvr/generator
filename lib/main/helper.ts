@@ -388,8 +388,13 @@ export class MainHelper {
         return [pages, identifier_data_list];
     }
     async inject(list: string[], socket_port: number = 0) {
+        const [err_before, config_before, list_before] = await Plugin.before('inject', list);
+        if (err_before) {
+            this.fail(err_before);
+            return;
+        }
         await Promise.all(
-            list.map(async (file) => {
+            list_before.map(async (file) => {
                 // because of an compilation error the page can be non existing
                 if (!file || !existsSync(file)) {
                     return null;
@@ -397,6 +402,7 @@ export class MainHelper {
                 const content = readFileSync(file, { encoding: 'utf-8' });
                 const head = [],
                     body = [];
+                // inject dev socket connection
                 if (Env.is_dev()) {
                     body.push(
                         `<script id="wyvr_client_socket">${Client.transform_resource(
@@ -404,7 +410,29 @@ export class MainHelper {
                         )}</script>`
                     );
                 }
-                const [err_after, config, file_after, content_after, head_after, body_after] = await Plugin.after('inject', file, content, head, body);
+                // replace shortcodes
+                const replaced_content = content.replace(/\(\((.*?)\)\)/g, (match, inner) => {
+                    const name_match = inner.match(/([^ ]*)/);
+                    let name = null;
+                    if (name_match) {
+                        name = name_match[1];
+                    } else {
+                        // ignore when something went wrong
+                        return match;
+                    }
+                    const path = `@src/${name.replace(/_/g, '/')}.svelte`;
+
+                    const props = inner
+                        .substring(name.length)
+                        .replace(/\s([^= ]*)=\{(.*?)\}/g, (prop_match, prop_name, prop_value) => {
+                            return `,'${prop_name}':${prop_value}`;
+                        })
+                        .replace(/^,/, '');
+
+                    return `<div data-hydrate="${name}" ${Env.is_dev() ? `data-hydrate-path="${path}"` : ''} data-props="${props}"></div>`;
+                });
+
+                const [err_after, config_after, file_after, content_after, head_after, body_after] = await Plugin.after('inject', file, replaced_content, head, body);
                 if (err_after) {
                     this.fail(err_after);
                 }

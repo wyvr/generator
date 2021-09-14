@@ -410,17 +410,27 @@ export class MainHelper {
                         )}</script>`
                     );
                 }
+                // @INFO shortcodes
                 // replace shortcodes
                 const replaced_content = content.replace(/\(\((.*?)\)\)/g, (match, inner) => {
                     const name_match = inner.match(/([^ ]*)/);
                     let name = null;
+                    let path = null;
+                    let value = null;
                     if (name_match) {
-                        name = name_match[1];
+                        value = name_match[1];
                     } else {
                         // ignore when something went wrong
                         return match;
                     }
-                    const path = `@src/${name.replace(/_/g, '/')}.svelte`;
+                    // check wheter the path was given or the name
+                    if(value.indexOf('/') > -1) {
+                        name = value.replace(/\//g, '_');
+                        path = `@src/${value}.svelte`;
+                    } else {
+                        name = value;
+                        path = `@src/${value.replace(/_/g, '/')}.svelte`;
+                    }
 
                     const props = inner
                         .substring(name.length)

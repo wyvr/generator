@@ -74,6 +74,7 @@ export class Main {
             }
         }
         if (this.mode == WyvrMode.cron) {
+            Logger.block('cron')
             this.perf.start('cron');
             if (!existsSync(uniq_id_file)) {
                 Logger.warning('no previous version found in', uniq_id_file);
@@ -109,6 +110,7 @@ export class Main {
 
         // collect configured package
         if (this.mode == WyvrMode.build) {
+            Logger.block('build')
             this.perf.start('packages');
             const packages = await this.helper.packages();
             this.perf.end('packages');

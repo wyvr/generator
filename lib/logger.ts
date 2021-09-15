@@ -59,6 +59,9 @@ export class Logger {
             this.output(color.yellow, '#', ...values, duration, color.dim('ms'));
         }
     }
+    static block(...values) {
+        this.output(color.cyan, '■', ...values);
+    }
     static debug(...values) {
         if (this.env != 'debug') {
             return;

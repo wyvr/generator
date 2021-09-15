@@ -416,34 +416,74 @@ export class MainHelper {
                 }
                 // @INFO shortcodes
                 // replace shortcodes
-                const replaced_content = content.replace(/\(\((.*?)\)\)/g, (match, inner) => {
-                    const name_match = inner.match(/([^ ]*)/);
+                const replaced_content = content.replace(/\(\(([\s\S]*?)\)\)/g, (match_shortcode, inner) => {
+                    const match = inner.match(/([^ ]*)([\s\S]*)/);
                     let name = null;
                     let path = null;
                     let value = null;
-                    if (name_match) {
-                        value = name_match[1];
+                    if (match) {
+                        value = match[1];
                     } else {
                         // ignore when something went wrong
+                        if (Env.is_dev()) {
+                            Logger.warning('shortcode can not be replaced in', file, match);
+                        }
                         return match;
                     }
                     // check wheter the path was given or the name
-                    if(value.indexOf('/') > -1) {
+                    if (value.indexOf('/') > -1) {
                         name = value.replace(/\//g, '_');
                         path = `@src/${value}.svelte`;
                     } else {
                         name = value;
                         path = `@src/${value.replace(/_/g, '/')}.svelte`;
                     }
-
-                    const props = inner
-                        .substring(name.length)
-                        .replace(/\s([^= ]*)=\{(.*?)\}/g, (prop_match, prop_name, prop_value) => {
-                            return `,'${prop_name}':${prop_value}`;
+                    const data = match[2];
+                    const props = {};
+                    const data_length = data.length;
+                    let parentese = 0;
+                    let prop_name = '';
+                    let prop_value = '';
+                    for (let i = 0; i < data_length; i++) {
+                        const char = data[i];
+                        if (char == '{') {
+                            parentese++;
+                            if (parentese == 1) {
+                                continue;
+                            }
+                        }
+                        if (char == '}') {
+                            parentese--;
+                            if (parentese == 0) {
+                                // no valid json
+                                props[prop_name.trim()] = prop_value.replace(/\n\s*/gm, '').replace(/"/g, '&quot;');
+                                prop_name = '';
+                                prop_value = '';
+                            }
+                            continue;
+                        }
+                        if (char != '=' && parentese == 0) {
+                            prop_name += char;
+                        }
+                        if (parentese > 0) {
+                            prop_value += char;
+                        }
+                    }
+                    // const props = inner
+                    //     .substring(name.length)
+                    //     .replace(/\s([^= ]*)=\{(.*?)\}/g, (prop_match, prop_name, prop_value) => {
+                    //         console.log(prop_name)
+                    //         return `,'${prop_name}':${prop_value.replace(/"/g, '&quot;')}`;
+                    //     })
+                    //     .replace(/^,/, '');
+                    const props_content = Object.keys(props)
+                        .map((key) => {
+                            return `'${key}':${props[key]}`;
+                            // JSON.stringify(props).replace(/^\{/, '').replace(/\}$/, '')
                         })
-                        .replace(/^,/, '');
+                        .join(',');
 
-                    return `<div data-hydrate="${name}" ${Env.is_dev() ? `data-hydrate-path="${path}"` : ''} data-props="${props}"></div>`;
+                    return `<div data-hydrate="${name}" ${Env.is_dev() ? `data-hydrate-path="${path}"` : ''} data-props="${props_content}"></div>`;
                 });
 
                 const [err_after, config_after, file_after, content_after, head_after, body_after] = await Plugin.after('inject', file, replaced_content, head, body);

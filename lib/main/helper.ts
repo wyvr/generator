@@ -381,9 +381,13 @@ export class MainHelper {
         changed_files: { event: string; path: string; rel_path: string }[] = null,
         identifier_list: any[] = null
     ) {
+        // build the json files
+        const watched_json_files = watched_files.map((path) => File.to_index(join(process.cwd(), 'gen', 'data', path), 'json'));
+        // match exactly against the json files
         const filtered_list = list.filter((entry) => {
-            return watched_files.find((file) => entry.indexOf(file) > -1);
+            return watched_json_files.find((file) => entry == file);
         });
+        // build only the matching datasets
         const [pages, identifier_data_list] = await this.build_list(worker_controller, filtered_list);
         return [pages, identifier_data_list];
     }

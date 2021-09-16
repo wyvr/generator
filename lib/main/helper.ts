@@ -455,12 +455,23 @@ export class MainHelper {
                         if (char == '}') {
                             parentese--;
                             if (parentese == 0) {
+                                /*
+                                ((component/content/Slider item={value}))
+                                    <div></div>
+                                ((/))      
+                                */
                                 // no valid json
+                                try {
+                                    const prop_exec = `JSON.stringify(${prop_value})`;
+                                    prop_value = eval(prop_exec);
+                                } catch (e) {
+                                    Logger.debug('shortcode props can not be converted in', file, 'for', prop_name.trim());
+                                }
                                 props[prop_name.trim()] = prop_value.replace(/\n\s*/gm, '').replace(/"/g, '&quot;');
                                 prop_name = '';
                                 prop_value = '';
+                                continue;
                             }
-                            continue;
                         }
                         if (char != '=' && parentese == 0) {
                             prop_name += char;

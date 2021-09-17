@@ -396,8 +396,9 @@ export class MainHelper {
         const [err_before, config_before, list_before] = await Plugin.before('inject', list);
         if (err_before) {
             this.fail(err_before);
-            return;
+            return [];
         }
+        const shortcode_identifiers = [];
         await Promise.all(
             list_before.map(async (file) => {
                 // because of an compilation error the page can be non existing
@@ -525,8 +526,14 @@ export class MainHelper {
                     writeFileSync(file, injected_content);
                     return file;
                 }
-                console.log(identifier_item);
-                console.log(shortcode_imports);
+
+                shortcode_identifiers.push({
+                    file: {
+                        name: identifier_item.identifier,
+                    },
+                    imports: shortcode_imports,
+                });
+
                 writeFileSync(
                     file,
                     rendered.result.html.replace(
@@ -539,9 +546,9 @@ export class MainHelper {
                 return file;
             })
         );
+        return shortcode_identifiers;
     }
     async scripts(worker_controller: WorkerController, identifiers: any, is_watching: boolean = false): Promise<boolean> {
-        console.log(identifiers);
         await Plugin.before('scripts', identifiers, Dependency.cache);
         if (is_watching) {
             // remove only new identifier files
@@ -578,7 +585,8 @@ export class MainHelper {
         const list = Object.keys(identifiers).map((key) => {
             return { file: identifiers[key], dependency: Dependency.cache };
         });
-        console.log(list)
+        console.log(list[0]);
+
         const result = await worker_controller.process_in_workers('scripts', WorkerAction.scripts, list, 1);
         await Plugin.after('scripts', result);
         return result;

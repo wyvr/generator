@@ -12,7 +12,7 @@ export class Dependency {
     static new_cache() {
         return {};
     }
-    static build(source_folder: string, build_pages: any[]) {
+    static build(source_folder: string, build_pages: any[], shortcode_dependencies: any[]) {
         if (!existsSync(source_folder)) {
             return null;
         }

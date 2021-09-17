@@ -74,7 +74,7 @@ export class Main {
             }
         }
         if (this.mode == WyvrMode.cron) {
-            Logger.block('cron')
+            Logger.block('cron');
             this.perf.start('cron');
             if (!existsSync(uniq_id_file)) {
                 Logger.warning('no previous version found in', uniq_id_file);
@@ -110,7 +110,7 @@ export class Main {
 
         // collect configured package
         if (this.mode == WyvrMode.build) {
-            Logger.block('build')
+            Logger.block('build');
             this.perf.start('packages');
             const packages = await this.helper.packages();
             this.perf.end('packages');
@@ -328,12 +328,13 @@ export class Main {
 
         // inject data into the pages
         this.perf.start('inject');
-        await this.helper.inject(
+        const shortcode_dependencies = await this.helper.inject(
             build_pages.map((d) => d.path),
             this.watcher_ports[1],
             this.release_path
         );
         this.perf.end('inject');
+        console.log(shortcode_dependencies);
 
         // check if the execution should stop after the build
         const collected_client_files = collected_files.client.map((file) => file.path.replace('gen/', ''));
@@ -342,7 +343,7 @@ export class Main {
         if (exec_scripts) {
             this.perf.start('dependencies');
             const dep_source_folder = join(process.cwd(), 'gen', 'raw');
-            Dependency.build(dep_source_folder, build_pages);
+            Dependency.build(dep_source_folder, build_pages, shortcode_dependencies);
             if (Env.is_dev()) {
                 // build structure based on the identifiers
                 Object.keys(this.identifiers).forEach((id) => {
@@ -382,7 +383,7 @@ export class Main {
         } else {
             Logger.improve('scripts, will not be regenerated');
         }
-        if(!is_regenerating) {
+        if (!is_regenerating) {
             this.perf.start('sitemap');
             await this.helper.sitemap(this.release_path, build_pages);
             this.perf.end('sitemap');

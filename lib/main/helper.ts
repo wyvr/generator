@@ -22,6 +22,7 @@ import { Route } from '@lib/model/route';
 import { Global } from '@lib/global';
 import { hrtime_to_ms } from '@lib/converter/time';
 import { WorkerEmit } from '@lib/model/worker/emit';
+import { Build } from '../build';
 
 export class MainHelper {
     cwd = process.cwd();
@@ -391,7 +392,7 @@ export class MainHelper {
         const [pages, identifier_data_list] = await this.build_list(worker_controller, filtered_list);
         return [pages, identifier_data_list];
     }
-    async inject(list: string[], socket_port: number = 0) {
+    async inject(list: string[], socket_port: number = 0, release_path: string = '') {
         const [err_before, config_before, list_before] = await Plugin.before('inject', list);
         if (err_before) {
             this.fail(err_before);
@@ -416,6 +417,7 @@ export class MainHelper {
                 }
                 // @INFO shortcodes
                 // replace shortcodes
+                let shortcode_imports = null;
                 const replaced_content = content.replace(/\(\(([\s\S]*?)\)\)/g, (match_shortcode, inner) => {
                     const match = inner.match(/([^ ]*)([\s\S]*)/);
                     let name = null;
@@ -430,14 +432,20 @@ export class MainHelper {
                         }
                         return match;
                     }
+                    const src_path = join(this.cwd, 'gen', 'src');
                     // check wheter the path was given or the name
                     if (value.indexOf('/') > -1) {
                         name = value.replace(/\//g, '_');
-                        path = `@src/${value}.svelte`;
+                        path = `${src_path}/${value}.svelte`;
                     } else {
                         name = value;
-                        path = `@src/${value.replace(/_/g, '/')}.svelte`;
+                        path = `${src_path}/${value.replace(/_/g, '/')}.svelte`;
                     }
+                    name = name.replace(/_(.)/g, (m, $1) => $1.toUpperCase()).replace(/^(.)/g, (m, $1) => $1.toUpperCase());
+                    if (!shortcode_imports) {
+                        shortcode_imports = {};
+                    }
+                    shortcode_imports[name] = path;
                     const data = match[2];
                     const props = {};
                     const data_length = data.length;
@@ -455,19 +463,13 @@ export class MainHelper {
                         if (char == '}') {
                             parentese--;
                             if (parentese == 0) {
-                                /*
-                                ((component/content/Slider item={value}))
-                                    <div></div>
-                                ((/))      
-                                */
-                                // no valid json
                                 try {
                                     const prop_exec = `JSON.stringify(${prop_value})`;
                                     prop_value = eval(prop_exec);
                                 } catch (e) {
                                     Logger.debug('shortcode props can not be converted in', file, 'for', prop_name.trim());
                                 }
-                                props[prop_name.trim()] = prop_value.replace(/\n\s*/gm, '').replace(/"/g, '&quot;');
+                                props[prop_name.trim()] = prop_value.replace(/\n\s*/gm, ''); //.replace(/"/g, '&quot;');
                                 prop_name = '';
                                 prop_value = '';
                                 continue;
@@ -480,21 +482,13 @@ export class MainHelper {
                             prop_value += char;
                         }
                     }
-                    // const props = inner
-                    //     .substring(name.length)
-                    //     .replace(/\s([^= ]*)=\{(.*?)\}/g, (prop_match, prop_name, prop_value) => {
-                    //         console.log(prop_name)
-                    //         return `,'${prop_name}':${prop_value.replace(/"/g, '&quot;')}`;
-                    //     })
-                    //     .replace(/^,/, '');
-                    const props_content = Object.keys(props)
+                    const props_component = Object.keys(props)
                         .map((key) => {
-                            return `'${key}':${props[key]}`;
-                            // JSON.stringify(props).replace(/^\{/, '').replace(/\}$/, '')
+                            return `${key}={${props[key]}}`;
                         })
-                        .join(',');
+                        .join(' ');
 
-                    return `<div data-hydrate="${name}" ${Env.is_dev() ? `data-hydrate-path="${path}"` : ''} data-props="${props_content}"></div>`;
+                    return `<${name} ${props_component} />`;
                 });
 
                 const [err_after, config_after, file_after, content_after, head_after, body_after] = await Plugin.after('inject', file, replaced_content, head, body);
@@ -502,12 +496,52 @@ export class MainHelper {
                     this.fail(err_after);
                 }
                 const injected_content = content_after.replace(/<\/head>/, `${head_after.join('')}</head>`).replace(/<\/body>/, `${body_after.join('')}</body>`);
-                writeFileSync(file, injected_content);
+
+                if (!shortcode_imports) {
+                    writeFileSync(file, injected_content);
+                    return file;
+                }
+
+                const imports = Object.keys(shortcode_imports)
+                    .map((name) => {
+                        return `import ${name} from '${shortcode_imports[name]}';`;
+                    })
+                    .join('\n');
+                const svelte_code = `<script>${imports}</script>${injected_content}`;
+                writeFileSync(file.replace('.html', '.svelte'), svelte_code);
+
+                const [compile_error, compiled] = await Build.compile(svelte_code);
+
+                if (compile_error) {
+                    // svelte error messages
+                    Logger.error('[svelte]', file, Error.get(compile_error, file, 'build shortcodes'));
+                    writeFileSync(file, injected_content);
+                    return file;
+                }
+                const [render_error, rendered, identifier_item] = await Build.render(compiled, { _wyvr: { identifier: file.replace(release_path, '') } });
+                if (render_error) {
+                    // svelte error messages
+                    Logger.error('[svelte]', file, Error.get(render_error, file, 'render shortcodes'));
+                    writeFileSync(file, injected_content);
+                    return file;
+                }
+                console.log(identifier_item);
+                console.log(shortcode_imports);
+                writeFileSync(
+                    file,
+                    rendered.result.html.replace(
+                        /<\/head>/,
+                        `<link rel="preload" href="/${join('css', identifier_item.identifier)}.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+                <noscript><link rel="stylesheet" href="${join('css', identifier_item.identifier)}"></noscript></head>`
+                    )
+                );
+
                 return file;
             })
         );
     }
     async scripts(worker_controller: WorkerController, identifiers: any, is_watching: boolean = false): Promise<boolean> {
+        console.log(identifiers);
         await Plugin.before('scripts', identifiers, Dependency.cache);
         if (is_watching) {
             // remove only new identifier files
@@ -544,6 +578,7 @@ export class MainHelper {
         const list = Object.keys(identifiers).map((key) => {
             return { file: identifiers[key], dependency: Dependency.cache };
         });
+        console.log(list)
         const result = await worker_controller.process_in_workers('scripts', WorkerAction.scripts, list, 1);
         await Plugin.after('scripts', result);
         return result;

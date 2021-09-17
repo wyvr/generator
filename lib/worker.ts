@@ -195,7 +195,6 @@ export class Worker {
                     const svelte_files = File.collect_svelte_files('gen/client');
                     // get all svelte components which should be hydrated
                     const files = Client.get_hydrateable_svelte_files(svelte_files);
-
                     await Promise.all(
                         value.map(async (identifier) => {
                             let dep_files = [];

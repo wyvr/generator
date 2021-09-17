@@ -330,7 +330,8 @@ export class Main {
         this.perf.start('inject');
         await this.helper.inject(
             build_pages.map((d) => d.path),
-            this.watcher_ports[1]
+            this.watcher_ports[1],
+            this.release_path
         );
         this.perf.end('inject');
 

@@ -396,9 +396,9 @@ export class MainHelper {
         const [err_before, config_before, list_before] = await Plugin.before('inject', list);
         if (err_before) {
             this.fail(err_before);
-            return [];
+            return {};
         }
-        const shortcode_identifiers = [];
+        const shortcode_identifiers = {};
         await Promise.all(
             list_before.map(async (file) => {
                 // because of an compilation error the page can be non existing
@@ -419,6 +419,7 @@ export class MainHelper {
                 // @INFO shortcodes
                 // replace shortcodes
                 let shortcode_imports = null;
+                const src_path = join(this.cwd, 'gen', 'src');
                 const replaced_content = content.replace(/\(\(([\s\S]*?)\)\)/g, (match_shortcode, inner) => {
                     const match = inner.match(/([^ ]*)([\s\S]*)/);
                     let name = null;
@@ -433,7 +434,6 @@ export class MainHelper {
                         }
                         return match;
                     }
-                    const src_path = join(this.cwd, 'gen', 'src');
                     // check wheter the path was given or the name
                     if (value.indexOf('/') > -1) {
                         name = value.replace(/\//g, '_');
@@ -519,7 +519,7 @@ export class MainHelper {
                     writeFileSync(file, injected_content);
                     return file;
                 }
-                const [render_error, rendered, identifier_item] = await Build.render(compiled, { _wyvr: { identifier: file.replace(release_path, '') } });
+                const [render_error, rendered, identifier_item] = await Build.render(compiled, { _wyvr: { identifier: file.replace(release_path + sep, '') } });
                 if (render_error) {
                     // svelte error messages
                     Logger.error('[svelte]', file, Error.get(render_error, file, 'render shortcodes'));
@@ -527,20 +527,26 @@ export class MainHelper {
                     return file;
                 }
 
-                shortcode_identifiers.push({
-                    file: {
-                        name: identifier_item.identifier,
-                    },
-                    imports: shortcode_imports,
-                });
+                shortcode_identifiers[identifier_item.identifier] = {
+                    name: identifier_item.identifier,
+                    shortcodes: Object.values(shortcode_imports).map((path: string) => path.replace(src_path + sep, '')),
+                };
 
                 writeFileSync(
                     file,
                     rendered.result.html.replace(
                         /<\/head>/,
-                        `<link rel="preload" href="/${join('css', identifier_item.identifier)}.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-                <noscript><link rel="stylesheet" href="${join('css', identifier_item.identifier)}"></noscript></head>`
-                    )
+                        `<link rel="preload" href="/${join(
+                            'css',
+                            identifier_item.identifier
+                        )}.css" as="style" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="${join(
+                            'css',
+                            identifier_item.identifier
+                        )}"></noscript></head>`
+                    ).replace(/<\/body>/, `<script src="/${join(
+                        'js',
+                        identifier_item.identifier
+                    )}.js"></script></body>`)
                 );
 
                 return file;
@@ -585,7 +591,6 @@ export class MainHelper {
         const list = Object.keys(identifiers).map((key) => {
             return { file: identifiers[key], dependency: Dependency.cache };
         });
-        console.log(list[0]);
 
         const result = await worker_controller.process_in_workers('scripts', WorkerAction.scripts, list, 1);
         await Plugin.after('scripts', result);

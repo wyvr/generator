@@ -328,13 +328,15 @@ export class Main {
 
         // inject data into the pages
         this.perf.start('inject');
-        const shortcode_dependencies = await this.helper.inject(
+        const shortcode_identifier = await this.helper.inject(
             build_pages.map((d) => d.path),
             this.watcher_ports[1],
             this.release_path
         );
+        Object.keys(shortcode_identifier).forEach((key) => {
+            this.identifiers[key] = shortcode_identifier[key];
+        });
         this.perf.end('inject');
-        console.log(shortcode_dependencies);
 
         // check if the execution should stop after the build
         const collected_client_files = collected_files.client.map((file) => file.path.replace('gen/', ''));
@@ -343,14 +345,17 @@ export class Main {
         if (exec_scripts) {
             this.perf.start('dependencies');
             const dep_source_folder = join(process.cwd(), 'gen', 'raw');
-            Dependency.build(dep_source_folder, build_pages, shortcode_dependencies);
+            Dependency.build(dep_source_folder, build_pages, shortcode_identifier);
             if (Env.is_dev()) {
                 // build structure based on the identifiers
                 Object.keys(this.identifiers).forEach((id) => {
                     const identifier = this.identifiers[id];
-                    const structure: any = Dependency.get_structure(identifier.doc, this.package_tree);
-                    structure.layout = Dependency.get_structure(identifier.layout, this.package_tree);
-                    structure.layout.page = Dependency.get_structure(identifier.page, this.package_tree);
+                    let structure: any = null;
+                    if (identifier.doc) {
+                        structure = Dependency.get_structure(identifier.doc, this.package_tree);
+                        structure.layout = Dependency.get_structure(identifier.layout, this.package_tree);
+                        structure.layout.page = Dependency.get_structure(identifier.page, this.package_tree);
+                    }
                     writeFileSync(join(this.release_path, `${id}.json`), JSON.stringify(structure));
                 });
             }

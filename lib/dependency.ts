@@ -12,12 +12,12 @@ export class Dependency {
     static new_cache() {
         return {};
     }
-    static build(source_folder: string, build_pages: any[], shortcode_dependencies: any[]) {
+    static build(source_folder: string, build_pages: any[], shortcode_identifier: any) {
         if (!existsSync(source_folder)) {
             return null;
         }
         // add minimum structure to clear cache
-        this.cache = this.prepare(this.new_cache());
+        this.cache = this.prepare(this.new_cache(), shortcode_identifier);
         // will contain all files that where found inside the given folder
         const all_files = File.collect_svelte_files(source_folder).map((file) => file.path);
 
@@ -117,7 +117,7 @@ export class Dependency {
         }
     }
 
-    static prepare(cache: any): any {
+    static prepare(cache: any, shortcode_identifier:any): any {
         // when the structure is not correct create new cache
         if (!cache || typeof cache != 'object' || Array.isArray(cache)) {
             cache = this.new_cache();
@@ -131,6 +131,13 @@ export class Dependency {
         }
         if (!cache.page) {
             cache.page = {};
+        }
+        if (!cache.___shortcode___) {
+            const shortcode_dependencies = {};
+            Object.keys(shortcode_identifier).forEach((key)=>{
+                shortcode_dependencies[key] = shortcode_identifier[key].shortcodes;
+            })
+            cache.___shortcode___ = shortcode_dependencies;
         }
         return cache;
     }

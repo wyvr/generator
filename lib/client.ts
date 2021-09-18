@@ -28,6 +28,7 @@ export class Client {
         const lazy_input_files = [];
         const idle_input_files = [];
         const media_input_files = [];
+        const contains_shortcodes = !!entry.shortcodes;
 
         const resource_folder = join(__dirname, 'resource');
         // create empty file because it is required as identifier
@@ -42,12 +43,18 @@ export class Client {
             events: this.transform_resource(fs.readFileSync(join(resource_folder, 'events.js'), { encoding: 'utf-8' })),
             debug: '',
         };
-        if (Env.is_dev()) {
+        if (Env.is_dev() && !contains_shortcodes) {
             script_partials.debug = this.transform_resource(fs.readFileSync(join(resource_folder, 'debug.js'), { encoding: 'utf-8' }));
         }
-        // when no  hydrateable files are available create minimal bundle
+        // shortcode files doesn't need scripts
+        if (contains_shortcodes) {
+            script_partials.env = '';
+            script_partials.events = '';
+        }
+        // when no hydrateable files are available create minimal bundle
         if (hydrate_files.length == 0) {
-            fs.writeFileSync(join(cwd, 'gen', 'js', `${entry.name}.js`), [script_partials.env, script_partials.events, script_partials.debug].join(''));
+            const empty_bundle = [script_partials.env, script_partials.events, script_partials.debug];
+            File.write(join(cwd, 'gen', 'js', `${entry.name}.js`), empty_bundle.join(''));
             return [null, null];
         }
         const content = await Promise.all(
@@ -71,7 +78,7 @@ export class Client {
                     }
                     // write the lazy file fro the component
                     if (!fs.existsSync(lazy_input_path)) {
-                        fs.writeFileSync(
+                        File.write(
                             lazy_input_path,
                             `
                             ${script_partials.hydrate}
@@ -122,7 +129,7 @@ export class Client {
         }
         script_content.push(content.join('\n'));
 
-        fs.writeFileSync(input_file, script_content.join('\n'));
+        File.write(input_file, script_content.join('\n'));
 
         const [error, result] = await this.process_bundle(input_file, entry.name, cwd);
         if (error) {

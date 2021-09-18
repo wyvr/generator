@@ -162,7 +162,7 @@ export class Build {
         <Doc data={data}>
             <Layout data={data}>
                 <Page data={data}>
-                ${data.content || ''}
+                {@html data.content || ''}
                 </Page>
             </Layout>
         </Doc>`;

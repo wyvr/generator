@@ -121,6 +121,20 @@ export class File {
         return content;
     }
     /**
+     * write a file
+     * @param filename
+     * @returns void
+     */
+    static write(filename: string, content: string = ''): boolean {
+        if (!filename) {
+            return false;
+        }
+        // create containing folder
+        mkdirSync(dirname(filename), { recursive: true });
+        writeFileSync(filename, content);
+        return true;
+    }
+    /**
      * write a json file
      * @param filename
      * @returns void
@@ -130,10 +144,8 @@ export class File {
             return false;
         }
         // create containing folder
-        mkdirSync(dirname(filename), { recursive: true });
         const spaces = Env.json_spaces(process.env);
-        writeFileSync(filename, JSON.stringify(data, circular(), spaces));
-        return true;
+        return this.write(filename, JSON.stringify(data, circular(), spaces));
     }
     /**
      * search for one file out of multiple possible files, to depict hierachy of file overrides

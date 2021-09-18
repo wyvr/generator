@@ -380,6 +380,17 @@ export class Main {
                     .map((name) => {
                         watched_identifiers[name] = identifiers[name];
                     });
+                // add shortcode identifiers
+                const shortcodes = watched_files.map((file) => {
+                    return File.to_index(file, '.html').replace(/^\//, '');
+                });
+                shortcodes
+                    .filter((name) => {
+                        return Dependency.cache.___shortcode___[name];
+                    })
+                    .forEach((name) => {
+                        watched_identifiers[name] = { name, shortcodes: Dependency.cache.___shortcode___[name] };
+                    });
 
                 identifiers = watched_identifiers;
             }

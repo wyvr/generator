@@ -15,6 +15,7 @@ export class Watch {
     is_executing: boolean = false;
     watchers = {};
     websocket_server = null;
+    packages = null;
 
     constructor(private ports: [number, number], private callback: Function = null) {
         if (!callback || typeof callback != 'function') {
@@ -31,8 +32,8 @@ export class Watch {
         return (<string[]>Object.values(this.watchers)).filter((x) => x);
     }
     private init() {
-        const packages = Config.get('packages');
-        if (!packages || !Array.isArray(packages) || packages.length == 0) {
+        this.packages = Config.get('packages');
+        if (!this.packages || !Array.isArray(this.packages) || this.packages.length == 0) {
             throw 'no packages to watch';
         }
 
@@ -76,7 +77,7 @@ export class Watch {
         // );
         // watch for file changes
         let debounce = null;
-        const watch_folder = packages.map((pkg) => pkg.path);
+        const watch_folder = this.packages.map((pkg) => pkg.path);
         watch_folder.push(join(process.cwd(), 'wyvr.js'));
         chokidar
             .watch(watch_folder, {
@@ -102,11 +103,11 @@ export class Watch {
                 // find the package of the changed file
                 let pkg_index = -1;
                 let pkg = null;
-                for (let index = packages.length - 1; index > 0; index--) {
-                    const cur_pkg_index = path.indexOf(packages[index].path.replace(/^\.\//, ''));
+                for (let index = this.packages.length - 1; index > 0; index--) {
+                    const cur_pkg_index = path.indexOf(this.packages[index].path.replace(/^\.\//, ''));
                     if (cur_pkg_index > -1) {
                         pkg_index = index;
-                        pkg = packages[index];
+                        pkg = this.packages[index];
                         break;
                     }
                 }
@@ -114,15 +115,15 @@ export class Watch {
                 if (pkg) {
                     rel_path = path.replace(pkg.path + '/', '');
                     // check if the changed file gets overwritten in another pkg
-                    if (event != 'unlink' && pkg_index > -1 && pkg_index < packages.length - 1) {
-                        for (let i = pkg_index + 1; i < packages.length; i++) {
-                            const pkg_path = join(packages[i].path, rel_path);
+                    if (event != 'unlink' && pkg_index > -1 && pkg_index < this.packages.length - 1) {
+                        for (let i = pkg_index + 1; i < this.packages.length; i++) {
+                            const pkg_path = join(this.packages[i].path, rel_path);
                             if (fs.existsSync(pkg_path) && pkg_path != path) {
                                 Logger.warning(
                                     'ignore',
                                     `${event}@${Logger.color.dim(path)}`,
                                     'because it gets overwritten by pkg',
-                                    Logger.color.bold(packages[i].name),
+                                    Logger.color.bold(this.packages[i].name),
                                     Logger.color.dim(pkg_path)
                                 );
                                 return;
@@ -147,7 +148,7 @@ export class Watch {
                     this.rebuild();
                 }, 500);
             });
-        Logger.info('watching', packages.length, 'packages');
+        Logger.info('watching', this.packages.length, 'packages');
     }
     private send(id, data) {
         this.websocket_server.clients.forEach((client) => {
@@ -220,6 +221,9 @@ export class Watch {
             return { rel_path: route.rel_path, dir_path: dirname(route.rel_path) };
         });
         const added_files = [];
+
+        const reversed_packages = this.packages.map((x) => x).reverse();
+
         const files = this.changed_files
             .filter((f) => f)
             .map((file) => {
@@ -232,9 +236,18 @@ export class Watch {
                     if (route_files) {
                         route_files.forEach((route_file) => {
                             Logger.info('resolved to', `${route_file.rel_path} ${Logger.color.dim(file.rel_path)}`);
+                            const path = reversed_packages
+                                .map((pkg) => {
+                                    const pkg_path = join(pkg.path, route_file.rel_path);
+                                    if (fs.existsSync(pkg_path)) {
+                                        return pkg_path;
+                                    }
+                                    return null;
+                                })
+                                .find((x) => x);
                             added_files.push({
                                 event: 'change',
-                                path: null,
+                                path,
                                 rel_path: route_file.rel_path,
                             });
                         });
@@ -250,10 +263,20 @@ export class Watch {
                     const svelte_file = File.to_extension(join('gen', file.rel_path), '.svelte');
                     if (fs.existsSync(svelte_file)) {
                         Logger.info('resolved to', `${File.to_extension(file.rel_path, '.svelte')} ${Logger.color.dim(file.rel_path)}`);
+                        // find the package file
+                        const path = reversed_packages
+                            .map((pkg) => {
+                                const pkg_path = join(pkg.path, file.rel_path);
+                                if (fs.existsSync(pkg_path)) {
+                                    return pkg_path;
+                                }
+                                return null;
+                            })
+                            .find((x) => x);
                         added_files.push({
                             event: 'change',
-                            path: null,
-                            rel_path: svelte_file,
+                            path,
+                            rel_path: File.to_extension(file.rel_path, '.svelte'),
                         });
                         return null;
                     }

@@ -99,16 +99,17 @@ export class Watch {
 
                     return this.restart();
                 }
-                // find the pkg of the changed file
+                // find the package of the changed file
                 let pkg_index = -1;
-                const pkg = packages.find((t) => {
-                    const cur_pkg_index = path.indexOf(t.path.replace(/^\.\//, ''));
+                let pkg = null;
+                for (let index = packages.length - 1; index > 0; index--) {
+                    const cur_pkg_index = path.indexOf(packages[index].path.replace(/^\.\//, ''));
                     if (cur_pkg_index > -1) {
-                        pkg_index = cur_pkg_index;
-                        return true;
+                        pkg_index = index;
+                        pkg = packages[index];
+                        break;
                     }
-                    return false;
-                });
+                }
                 let rel_path = path;
                 if (pkg) {
                     rel_path = path.replace(pkg.path + '/', '');
@@ -196,7 +197,7 @@ export class Watch {
                             break;
                         case 'reload':
                             if (data.path) {
-                                Logger.block('rebuild', data.path)
+                                Logger.block('rebuild', data.path);
                                 this.rebuild();
                             }
                             break;

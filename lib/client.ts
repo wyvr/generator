@@ -142,6 +142,9 @@ export class Client {
     static async process_bundle(input_file: string, name: string, cwd: string) {
         const input_options = {
             input: input_file,
+            onwarn: (warning) => {
+                WorkerHelper.log(LogType.error, '[svelte]', Error.get(warning, input_file, 'bundle'));
+            },
             plugins: [
                 alias({
                     entries: [{ find: '@src', replacement: resolve('gen/client') }],

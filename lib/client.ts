@@ -6,6 +6,7 @@ import node_resolve from '@rollup/plugin-node-resolve';
 import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
 import css from 'rollup-plugin-css-only';
+import json from '@rollup/plugin-json';
 import { terser } from 'rollup-plugin-terser';
 import { WyvrFile, WyvrFileConfig, WyvrFileLoading, WyvrFileRender } from '@lib/model/wyvr/file';
 import { File } from '@lib/file';
@@ -162,6 +163,7 @@ export class Client {
                 }),
                 node_resolve({ browser: true }),
                 commonjs(),
+                json(),
                 css({ output: `gen/${name}.css` }),
             ],
         };

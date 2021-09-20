@@ -219,12 +219,12 @@ export class WorkerController {
     }
     async process_in_workers(name: string, action: WorkerAction, list: any[], batch_size: number = 10): Promise<boolean> {
         const amount = list.length;
-        Logger.info('process', amount, 'items, batch size', Logger.color.cyan(batch_size.toString()));
+        Logger.info('process', amount, `${amount == 1 ? 'item' : 'items'}, batch size`, Logger.color.cyan(batch_size.toString()));
         // create new queue
         this.queue = new Queue();
 
         // correct batch size when there are more workers available
-        const worker_based_batch_size = Math.ceil(list.length /this.get_worker_amount());
+        const worker_based_batch_size = Math.ceil(list.length / this.get_worker_amount());
         if (worker_based_batch_size > list.length / batch_size && worker_based_batch_size < batch_size) {
             batch_size = worker_based_batch_size;
         }

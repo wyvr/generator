@@ -347,7 +347,7 @@ export class MainHelper {
     async build_list(worker_controller: WorkerController, list: string[]) {
         Logger.debug('build list', list);
         const [error_list, config, modified_list] = await Plugin.before('build', list);
-        Logger.info('build datasets', modified_list.length);
+        Logger.debug('build', modified_list.length, `${modified_list.length == 1 ? 'dataset' : 'datasets'}`);
         const pages = [];
         const identifier_data_list = [];
         const on_build_index = worker_controller.events.on('emit', WorkerEmit.build, (data) => {

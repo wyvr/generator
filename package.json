@@ -5,6 +5,7 @@
     "main": "wyvr/index.js",
     "author": "wyvr",
     "license": "ISC",
+    "node": "^12.20.0 || ^14.13.1 || >=16.0.0",
     "dependencies": {
         "@rollup/plugin-alias": "^3.1.5",
         "@rollup/plugin-commonjs": "^20.0.0",

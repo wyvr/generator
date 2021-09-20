@@ -32,6 +32,7 @@ export class Watch {
         return (<string[]>Object.values(this.watchers)).filter((x) => x);
     }
     private init() {
+        Logger.block('watch');
         this.packages = Config.get('packages');
         if (!this.packages || !Array.isArray(this.packages) || this.packages.length == 0) {
             throw 'no packages to watch';

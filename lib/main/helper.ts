@@ -243,30 +243,37 @@ export class MainHelper {
         return [route_urls, cron_routes, routes.length];
     }
     async transform() {
-        const svelte_files = File.collect_svelte_files('gen/src');
-        await Plugin.before('transform', svelte_files);
-
+        // replace global in all files
+        const all_files = File.collect_files('gen/src');
+        // @NOTE: plugin is only allowed to change the content of the files itself, no editing of the list
+        await Plugin.before('transform', all_files);
         // destroy getGlobal to avoid overlapping calls
         delete (<any>global).getGlobal;
 
-        // combine svelte files
         await Promise.all(
-            svelte_files.map(async (file) => {
-                const raw_content = readFileSync(file.path, { encoding: 'utf-8' });
-                const [pre_error, preprocessed_content] = Client.preprocess_content(raw_content);
-                if (pre_error) {
-                    Logger.error(pre_error);
+            all_files.map(async (file) => {
+                let content = readFileSync(file, { encoding: 'utf-8' });
+                if (file.match(/\.svelte$/)) {
+                    const [pre_error, preprocessed_content] = Client.preprocess_content(content);
+                    if (pre_error) {
+                        Logger.error(pre_error);
+                    }
+                    // combine svelte files
+                    content = Client.insert_splits(file, pre_error ? content : preprocessed_content);
                 }
-                const combined_content = Client.insert_splits(file.path, pre_error ? raw_content : preprocessed_content);
+
                 try {
-                    const content = await Global.replace_global(combined_content);
-                    writeFileSync(file.path, content);
+                    const result_content = await Global.replace_global(content);
+                    writeFileSync(file, result_content);
                 } catch (e) {
-                    Logger.error(Error.get(e, file.path, 'wyvr'));
+                    Logger.error(Error.get(e, file, 'wyvr'));
                 }
                 return null;
             })
         );
+
+        const svelte_files = File.collect_svelte_files('gen/src');
+
         // search for hydrateable files
         const hydrateable_files = Client.get_hydrateable_svelte_files(svelte_files);
 
@@ -534,19 +541,18 @@ export class MainHelper {
 
                 writeFileSync(
                     file,
-                    rendered.result.html.replace(
-                        /<\/head>/,
-                        `<link rel="preload" href="/${join(
-                            'css',
-                            identifier_item.identifier
-                        )}.css" as="style" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="${join(
-                            'css',
-                            identifier_item.identifier
-                        )}"></noscript></head>`
-                    ).replace(/<\/body>/, `<script src="/${join(
-                        'js',
-                        identifier_item.identifier
-                    )}.js"></script></body>`)
+                    rendered.result.html
+                        .replace(
+                            /<\/head>/,
+                            `<link rel="preload" href="/${join(
+                                'css',
+                                identifier_item.identifier
+                            )}.css" as="style" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="${join(
+                                'css',
+                                identifier_item.identifier
+                            )}"></noscript></head>`
+                        )
+                        .replace(/<\/body>/, `<script src="/${join('js', identifier_item.identifier)}.js"></script></body>`)
                 );
 
                 return file;

@@ -136,6 +136,8 @@ export class Main {
             Global.set('global.https', Config.get('https') ? true : false);
             const import_main_path = Config.get('import.main');
             const default_values = Config.get('default_values');
+            Global.set('global.default_values', default_values);
+
             if (import_main_path && existsSync(import_main_path)) {
                 try {
                     datasets_total = await importer.import(

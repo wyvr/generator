@@ -104,7 +104,7 @@ export class Watch {
                 // find the package of the changed file
                 let pkg_index = -1;
                 let pkg = null;
-                for (let index = this.packages.length - 1; index > 0; index--) {
+                for (let index = this.packages.length - 1; index >= 0; index--) {
                     const cur_pkg_index = path.indexOf(this.packages[index].path.replace(/^\.\//, ''));
                     if (cur_pkg_index > -1) {
                         pkg_index = index;

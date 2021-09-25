@@ -16,6 +16,8 @@ register();
     }
     return null;
 };
+(<any>global).isServer = true;
+(<any>global).isClient = false;
 export class Build {
     static async compile(content: string): Promise<[any, any]> {
         if (!content || typeof content != 'string') {

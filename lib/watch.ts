@@ -291,14 +291,13 @@ export class Watch {
         const hr_start = process.hrtime();
         const build_pages = await this.callback([].concat(added_files, files), this.get_watched_files());
         // reload only whole page when no static asset is given
+        const rel_file_paths = files.map((f) => f.rel_path);
         const reload_files = []
             .concat(
                 build_pages.map((page) => page.path.replace(/releases\/[^/]*\//, '/').replace(/index.html$/, '')),
-                files
-                    .map((f) => f.rel_path)
-                    .filter((p) => {
-                        return p.match(/^(assets|css|js|md)\//);
-                    })
+                rel_file_paths.filter((p) => {
+                    return p.match(/^(assets|css|js|md)\//);
+                })
             )
             .filter((x) => x);
         // console.log('watch files', files);
@@ -312,6 +311,13 @@ export class Watch {
         watcher_ids.forEach((id) => {
             this.send(id, { action: 'reload' });
         });
+        // send update for static files to client
+        const assets = rel_file_paths.filter((p)=>p.match(/^assets\//));
+        if(assets.length > 0) {
+            Object.keys(this.watchers).forEach((id) => {
+                this.send(id, { action: 'assets', list: assets });
+            });
+        }
         // bs.reload(reload_files.length > 0 ? reload_files : undefined);
 
         RequireCache.clear();

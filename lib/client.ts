@@ -418,7 +418,7 @@ export class Client {
             return '';
         }
         // replace isServer and isClient
-        content = content.replace(/([^\w])isServer([^\w])/g, '$1false$2').replace(/([^\w])isClient([^\w])/g, '$1true$2');
+        content = content.replace(/([^\w])isServer([^\w])/g, '$1false$2').replace(/([^\w])isClient([^\w])/g, '$1true$2').replace(/import \{[^\}]*?\} from \'@wyvr\/generator\';?/g, '');
         const search_string = 'onServer(';
         let start_index = content.indexOf(search_string);
         if (start_index == -1) {
@@ -484,10 +484,10 @@ export class Client {
         const src_segment = `${sep}src${sep}`;
         const src_path = join(file_path.substr(0, file_path.indexOf(src_segment) + src_segment.length - 1));
 
-        return content.replace(/@import '@src\/([^']*)';/, (match, url)=> {
+        return content.replace(/@import '@src\/([^']*)';/, (match, url) => {
             const import_path = join(src_path, url);
             const import_css = File.read_file(import_path);
-            if(import_css == null) {
+            if (import_css == null) {
                 Logger.warning(`can not import ${url} into ${file_path}, maybe the file doesn't exist`);
                 return '';
             }

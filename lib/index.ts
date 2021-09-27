@@ -11,3 +11,10 @@ import cluster from 'cluster';
         new Worker();
     }
 })();
+
+module.exports = {
+    onServer: (callback) => {},
+    isServer: true,
+    isClient: false,
+    getGlobal: (key, fallback, callback) => {},
+};

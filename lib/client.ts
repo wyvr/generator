@@ -413,14 +413,14 @@ export class Client {
     static replace_slots_static(content: string): string {
         return this.replace_slots(content, (name: string, slot: string) => `<span data-slot="${name}">${slot}</span>`);
     }
-    static remove_on_server(content: string) {
+    static remove_on_server(content: string, as_client:boolean = true) {
         if (!content || typeof content != 'string') {
             return '';
         }
         // replace isServer and isClient and the imports
         content = content
-            .replace(/([^\w])isServer([^\w])/g, '$1false$2')
-            .replace(/([^\w])isClient([^\w])/g, '$1true$2')
+            .replace(/([^\w])isServer([^\w])/g, `$1${as_client ? 'false' : 'true'}$2`)
+            .replace(/([^\w])isClient([^\w])/g, `$1${as_client ? 'true' : 'false'}$2`)
             .replace(/import \{[^\}]*?\} from \'@wyvr\/generator\';?/g, '')
             .replace(/(?:const|let)[^=]*?= require\(\'@wyvr\/generator\'\);?/g, '');
         const search_string = 'onServer(';
@@ -450,7 +450,7 @@ export class Client {
         if (found_closing) {
             const replaced = content.substr(0, start_index) + content.substr(index);
             // check if more onServer handlers are used
-            return this.remove_on_server(replaced);
+            return this.remove_on_server(replaced, as_client);
         }
         return content;
     }

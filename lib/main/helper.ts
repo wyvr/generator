@@ -287,14 +287,14 @@ export class MainHelper {
                     // copySync(file, file.replace(/^gen\/src/, 'gen/client'));
                     // also replace paths in the js/ts files
                     File.create_dir(target_file);
-                    const content = readFileSync(file, { encoding: 'utf-8' });
-                    writeFileSync(file, Client.correct_import_paths(content));
-                    writeFileSync(target_file, Client.correct_import_paths(content));
+                    const content = Client.correct_import_paths(readFileSync(file, { encoding: 'utf-8' }));
+                    writeFileSync(file, Client.remove_on_server(content, false));
+                    writeFileSync(target_file, Client.remove_on_server(content, true));
                 } else if (file.match(/\.ts/)) {
                     const ts_duration = process.hrtime();
                     const js_file = File.to_extension(file, '.js');
                     const swc = require('@swc/core');
-                    const result = await swc.transform(readFileSync(file, { encoding: 'utf-8' }), {
+                    const result = await swc.transform(Client.correct_import_paths(Client.remove_on_server(readFileSync(file, { encoding: 'utf-8' }), true)), {
                         // Some options cannot be specified in .swcrc
                         filename: js_file,
                         sourceMaps: true,
@@ -337,7 +337,7 @@ export class MainHelper {
             const source_path = file.path;
             const path = file.path.replace(/^gen\/src/, 'gen/client');
             mkdirSync(dirname(path), { recursive: true });
-            writeFileSync(path, Client.remove_on_server(Client.replace_slots_client(readFileSync(source_path, { encoding: 'utf-8' }))));
+            writeFileSync(path, Client.remove_on_server(Client.replace_slots_client(readFileSync(source_path, { encoding: 'utf-8' })), true));
             return file;
         });
         // correct the import paths in the static files

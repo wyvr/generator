@@ -417,8 +417,12 @@ export class Client {
         if (!content || typeof content != 'string') {
             return '';
         }
-        // replace isServer and isClient
-        content = content.replace(/([^\w])isServer([^\w])/g, '$1false$2').replace(/([^\w])isClient([^\w])/g, '$1true$2').replace(/import \{[^\}]*?\} from \'@wyvr\/generator\';?/g, '');
+        // replace isServer and isClient and the imports
+        content = content
+            .replace(/([^\w])isServer([^\w])/g, '$1false$2')
+            .replace(/([^\w])isClient([^\w])/g, '$1true$2')
+            .replace(/import \{[^\}]*?\} from \'@wyvr\/generator\';?/g, '')
+            .replace(/(?:const|let)[^=]*?= require\(\'@wyvr\/generator\'\);?/g, '');
         const search_string = 'onServer(';
         let start_index = content.indexOf(search_string);
         if (start_index == -1) {

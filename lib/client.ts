@@ -143,6 +143,10 @@ export class Client {
         const input_options = {
             input: input_file,
             onwarn: (warning) => {
+                // remove unneeded warnings
+                if(this.ignore_warning(warning)) {
+                    return;
+                }
                 WorkerHelper.log(LogType.warning, '[svelte]', Error.get(warning, input_file, 'bundle'));
             },
             plugins: [
@@ -503,5 +507,16 @@ export class Client {
             return 'wyvr';
         }
         return `wyvr-${data.hash(data.css)}`;
+    }
+    static ignore_warning(warning): boolean {
+        // caused by the combining of the files
+        if(warning.message == 'Error when using sourcemap for reporting an error: Can\'t resolve original location of error.') {
+            return true;
+        }
+        // axios warning, don't know if it's really critical
+        if(warning.message.indexOf('Circular dependency: node_modules/axios/lib/defaults.js -> node_modules/axios/lib/adapters/xhr.js') > -1) {
+            return true;
+        }
+        return false;
     }
 }

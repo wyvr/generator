@@ -131,19 +131,19 @@ export class Main {
                     Logger.warning('import global file does not exist', import_global_path);
                 }
             }
+            const config = Config.get(null);
+            const import_main_path = Config.get('import.main');
+            Global.set('global', config);
             Global.set('global.env', EnvModel[Env.get()]);
             Global.set('global.url', Config.get('url'));
             Global.set('global.https', Config.get('https') ? true : false);
-            const import_main_path = Config.get('import.main');
-            const default_values = Config.get('default_values');
-            Global.set('global.default_values', default_values);
 
             if (import_main_path && existsSync(import_main_path)) {
                 try {
                     datasets_total = await importer.import(
                         import_main_path,
                         (data: { key: number; value: any }) => {
-                            data.value = this.helper.generate(data.value, default_values);
+                            data.value = this.helper.generate(data.value, config.default_values);
                             global_data = Generate.add_to_global(data.value, global_data);
                             return data;
                         },

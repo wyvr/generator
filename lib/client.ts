@@ -144,7 +144,7 @@ export class Client {
             input: input_file,
             onwarn: (warning) => {
                 // remove unneeded warnings
-                if(this.ignore_warning(warning)) {
+                if (this.ignore_warning(warning)) {
                     return;
                 }
                 WorkerHelper.log(LogType.warning, '[svelte]', Error.get(warning, input_file, 'bundle'));
@@ -417,7 +417,7 @@ export class Client {
     static replace_slots_static(content: string): string {
         return this.replace_slots(content, (name: string, slot: string) => `<span data-slot="${name}">${slot}</span>`);
     }
-    static remove_on_server(content: string, as_client:boolean = true) {
+    static remove_on_server(content: string, as_client: boolean = true) {
         if (!content || typeof content != 'string') {
             return '';
         }
@@ -510,11 +510,15 @@ export class Client {
     }
     static ignore_warning(warning): boolean {
         // caused by the combining of the files
-        if(warning.message == 'Error when using sourcemap for reporting an error: Can\'t resolve original location of error.') {
+        if (warning.message == "Error when using sourcemap for reporting an error: Can't resolve original location of error.") {
             return true;
         }
         // axios warning, don't know if it's really critical
-        if(warning.message.indexOf('Circular dependency: node_modules/axios/lib/defaults.js -> node_modules/axios/lib/adapters/xhr.js') > -1) {
+        if (
+            warning.message.indexOf('Circular dependency:') > -1 &&
+            warning.message.indexOf('node_modules/axios/lib/defaults.js') > -1 &&
+            warning.message.indexOf('node_modules/axios/lib/adapters/xhr.js') > -1
+        ) {
             return true;
         }
         return false;

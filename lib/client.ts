@@ -143,7 +143,7 @@ export class Client {
         const input_options = {
             input: input_file,
             onwarn: (warning) => {
-                WorkerHelper.log(LogType.error, '[svelte]', Error.get(warning, input_file, 'bundle'));
+                WorkerHelper.log(LogType.warning, '[svelte]', Error.get(warning, input_file, 'bundle'));
             },
             plugins: [
                 alias({

@@ -133,10 +133,9 @@ export class Main {
             }
             const config = Config.get(null);
             const import_main_path = Config.get('import.main');
-            Global.set('global', config);
-            Global.set('global.env', EnvModel[Env.get()]);
-            Global.set('global.url', Config.get('url'));
-            Global.set('global.https', Config.get('https') ? true : false);
+            config.env = EnvModel[Env.get()];
+            config.https = !!config.https;
+            await Global.set('global', config);
 
             if (import_main_path && existsSync(import_main_path)) {
                 try {

@@ -23,6 +23,7 @@ import { Global } from '@lib/global';
 import { hrtime_to_ms } from '@lib/converter/time';
 import { WorkerEmit } from '@lib/model/worker/emit';
 import { Build } from '../build';
+import { EnvModel } from '../model/env';
 
 export class MainHelper {
     cwd = process.cwd();
@@ -756,6 +757,23 @@ export class MainHelper {
         await Plugin.init(plugin_files, {
             release_path: release_path,
         });
+        // allow plugins to modify the global config
+        let global = Config.get(null);
+        const [error_before, config_before, global_before] = await Plugin.before('global', global);
+        if (error_before) {
+            this.fail(error_before);
+        }
+        if (global_before != null) {
+            global = global_before;
+        }
+        const [error_after, config_after, global_after] = await Plugin.after('global', global);
+        if (error_after) {
+            this.fail(error_after);
+        }
+        if (global_after != null) {
+            global = global_after;
+        }
+        await Global.set('global', global);
 
         return null;
     }

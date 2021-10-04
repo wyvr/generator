@@ -537,37 +537,13 @@ export class MainHelper {
     }
     async scripts(worker_controller: WorkerController, identifiers: any, is_watching: boolean = false): Promise<boolean> {
         await Plugin.before('scripts', identifiers, Dependency.cache);
+        console.log(Object.keys(identifiers), is_watching)
         if (is_watching) {
             // remove only new identifier files
             Object.keys(identifiers).forEach((identifier) => removeSync(join('gen', 'js', `${identifier}.js`)));
         } else {
             Dir.clear('gen/js');
         }
-
-        // copy static component which are imported into hydrated components into the gen/client folder to avoid errors
-        const hydrateable_files = Client.get_hydrateable_svelte_files(File.collect_svelte_files('gen/client')).map((file) => {
-            return file.path.replace('gen/client/', '');
-        });
-        hydrateable_files.forEach((file_path) => {
-            const group = file_path.split('/')[0];
-            if (Dependency.cache[group]) {
-                if (Dependency.cache[group][file_path]) {
-                    Dependency.cache[group][file_path].forEach((dep_file) => {
-                        if (hydrateable_files.indexOf(dep_file) == -1) {
-                            // this dependency file is not hydrateable and must be copied to the client folder
-                            const path = join(this.cwd, 'gen', 'client', dep_file);
-                            if (!existsSync(path)) {
-                                Logger.warning('dependency', dep_file, 'does not exist');
-                                return;
-                            }
-                            mkdirSync(dirname(path), { recursive: true });
-                            writeFileSync(path, Client.replace_slots_client(File.read(join(this.cwd, 'gen', 'src', dep_file))));
-                            Logger.debug('make the static file', dep_file, 'hydrateable because it is used inside the hydrateable file', file_path);
-                        }
-                    });
-                }
-            }
-        });
 
         const list = Object.keys(identifiers).map((key) => {
             return { file: identifiers[key], dependency: Dependency.cache };

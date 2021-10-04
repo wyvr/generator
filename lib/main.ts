@@ -376,7 +376,7 @@ export class Main {
                 const page_identifiers = Object.keys(Dependency.page_cache)
                     .filter((path) => watched_files.find((watched) => path.indexOf(watched) > -1))
                     .map((path) => Dependency.page_cache[path])
-                    .map((identifier) => Client.get_identifier_name(['src/doc', 'src/layout', 'src/page'], identifier.doc, identifier.layout, identifier.page));
+                    .map((identifier) => Client.get_identifier_name(['client/doc', 'client/layout', 'client/page'], identifier.doc, identifier.layout, identifier.page));
                 // build new identifiers based on the page identifiers
                 const watched_identifiers = {};
                 Object.keys(identifiers)
@@ -398,6 +398,7 @@ export class Main {
 
                 identifiers = watched_identifiers;
             }
+            
             const build_scripts = await this.helper.scripts(this.worker_controller, identifiers, !!watched_files);
             this.perf.end('scripts');
         } else {

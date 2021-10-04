@@ -537,7 +537,7 @@ export class MainHelper {
     }
     async scripts(worker_controller: WorkerController, identifiers: any, is_watching: boolean = false): Promise<boolean> {
         await Plugin.before('scripts', identifiers, Dependency.cache);
-        console.log(Object.keys(identifiers), is_watching)
+        
         if (is_watching) {
             // remove only new identifier files
             Object.keys(identifiers).forEach((identifier) => removeSync(join('gen', 'js', `${identifier}.js`)));

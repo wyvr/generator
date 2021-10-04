@@ -150,6 +150,7 @@ export class Watch {
                     clearTimeout(debounce);
                 }
                 debounce = setTimeout(() => {
+                    Logger.block('rebuild');
                     this.rebuild();
                 }, 500);
             });
@@ -222,7 +223,6 @@ export class Watch {
             Logger.warning('currently running, try again after current execution');
             return;
         }
-        Logger.block('rebuild');
         const routes = Routes.collect_routes(null).map((route) => {
             return { rel_path: route.rel_path, dir_path: dirname(route.rel_path) };
         });

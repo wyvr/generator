@@ -174,6 +174,9 @@ export class Main {
         const gen_src_folder = join(this.cwd, 'gen', 'src');
         // watcher when worker sends identifier content
         this.worker_controller.events.on('emit', WorkerEmit.identifier, (data: any) => {
+            if(!data) {
+                return;
+            }
             this.identifiers[data.identifier] = {
                 name: data.identifier.replace(gen_src_folder + '/', ''),
                 doc: data.doc.replace(gen_src_folder + '/', ''),

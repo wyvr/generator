@@ -16,6 +16,7 @@ import { LogType } from '@lib/model/log';
 import { Error } from '@lib/error';
 import sass from 'sass';
 import { Logger } from '@lib/logger';
+import { Transform } from './transform';
 
 export class Client {
     static transform_resource(content) {
@@ -194,31 +195,8 @@ export class Client {
             return [Error.get(e, input_file, 'bundle'), null];
         }
     }
-
-    static correct_svelte_file_import_paths(svelte_files: WyvrFile[]): WyvrFile[] {
-        if (!svelte_files || !Array.isArray(svelte_files)) {
-            return [];
-        }
-        //HydrateFileEntry[] {
-        return svelte_files
-            .map((file) => {
-                if (!file || !file.path) {
-                    return null;
-                }
-                const content = fs.readFileSync(file.path, { encoding: 'utf-8' });
-                if (content) {
-                    const corrected_imports = this.correct_import_paths(content);
-                    fs.writeFileSync(file.path, corrected_imports);
-                }
-                return file;
-            })
-            .filter((x) => x);
-    }
     static correct_import_paths(content: string): string {
-        if (!content || typeof content != 'string') {
-            return '';
-        }
-        return content.replace(/(['"])@src\//g, `$1${process.cwd()}/gen/src/`);
+        return Transform.src_import_path(content, 'gen/client');
     }
     static get_hydrateable_svelte_files(svelte_files: WyvrFile[]): WyvrFile[] {
         if (!svelte_files || !Array.isArray(svelte_files)) {
@@ -417,16 +395,10 @@ export class Client {
     static replace_slots_static(content: string): string {
         return this.replace_slots(content, (name: string, slot: string) => `<span data-slot="${name}">${slot}</span>`);
     }
-    static remove_on_server(content: string, as_client: boolean = true) {
+    static remove_on_server(content: string) {
         if (!content || typeof content != 'string') {
             return '';
         }
-        // replace isServer and isClient and the imports
-        content = content
-            .replace(/([^\w])isServer([^\w])/g, `$1${as_client ? 'false' : 'true'}$2`)
-            .replace(/([^\w])isClient([^\w])/g, `$1${as_client ? 'true' : 'false'}$2`)
-            .replace(/import \{[^\}]*?\} from \'@wyvr\/generator\';?/g, '')
-            .replace(/(?:const|let)[^=]*?= require\(\'@wyvr\/generator\'\);?/g, '');
         const search_string = 'onServer(';
         let start_index = content.indexOf(search_string);
         if (start_index == -1) {
@@ -454,7 +426,7 @@ export class Client {
         if (found_closing) {
             const replaced = content.substr(0, start_index) + content.substr(index);
             // check if more onServer handlers are used
-            return this.remove_on_server(replaced, as_client);
+            return this.remove_on_server(replaced);
         }
         return content;
     }
@@ -494,7 +466,7 @@ export class Client {
 
         return content.replace(/@import '@src\/([^']*)';/, (match, url) => {
             const import_path = join(src_path, url);
-            const import_css = File.read_file(import_path);
+            const import_css = File.read(import_path);
             if (import_css == null) {
                 Logger.warning(`can not import ${url} into ${file_path}, maybe the file doesn't exist`);
                 return '';

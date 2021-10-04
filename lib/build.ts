@@ -5,6 +5,7 @@ import register from 'svelte/register';
 import { Client } from '@lib/client';
 import { Env } from '@lib/env';
 import { WyvrCssMediaCollection } from '@lib/model/wyvr/file';
+import { Transform } from './transform';
 
 register();
 // fix intl global on the server side
@@ -169,5 +170,8 @@ export class Build {
             </Layout>
         </Doc>`;
         return code;
+    }
+    static correct_import_paths(content: string): string {
+        return Transform.src_import_path(content, 'gen/src');
     }
 }

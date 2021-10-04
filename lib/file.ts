@@ -92,7 +92,7 @@ export class File {
      * @returns the data of the file
      */
     static read_json(filename: string): any {
-        const content = this.read_file(filename);
+        const content = this.read(filename);
         if (!content) {
             return null;
         }
@@ -110,7 +110,7 @@ export class File {
      * @param filename
      * @returns the content of the file
      */
-    static read_file(filename: string): any {
+    static read(filename: string): any {
         if (!filename || !existsSync(filename)) {
             return null;
         }

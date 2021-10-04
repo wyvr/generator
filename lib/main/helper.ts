@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync, existsSync, copySync, mkdirSync, removeSync } from 'fs-extra';
-import { dirname, join, sep } from 'path';
+import { dirname, join, sep, extname } from 'path';
 
 import { Publish } from '@lib/publish';
 import { WyvrMode } from '@lib/model/wyvr/mode';
@@ -24,6 +24,7 @@ import { hrtime_to_ms } from '@lib/converter/time';
 import { WorkerEmit } from '@lib/model/worker/emit';
 import { Build } from '../build';
 import { EnvModel } from '../model/env';
+import { Transform } from '../transform';
 
 export class MainHelper {
     cwd = process.cwd();
@@ -169,7 +170,6 @@ export class MainHelper {
                 });
             });
         }
-        copySync('gen/raw', 'gen/src');
         // search for typescript files and compile them
         // const loader = require('ts-node').register({ /* options */ });
 
@@ -245,7 +245,7 @@ export class MainHelper {
     }
     async transform() {
         // replace global in all files
-        const all_files = File.collect_files('gen/src');
+        const all_files = File.collect_files('gen/raw');
         // @NOTE: plugin is only allowed to change the content of the files itself, no editing of the list
         await Plugin.before('transform', all_files);
         // destroy getGlobal to avoid overlapping calls
@@ -253,7 +253,7 @@ export class MainHelper {
 
         await Promise.all(
             all_files.map(async (file) => {
-                let content = readFileSync(file, { encoding: 'utf-8' });
+                let content = File.read(file);
                 if (file.match(/\.svelte$/)) {
                     const [pre_error, preprocessed_content] = Client.preprocess_content(content);
                     if (pre_error) {
@@ -265,7 +265,7 @@ export class MainHelper {
 
                 try {
                     const result_content = await Global.replace_global(content);
-                    writeFileSync(file, result_content);
+                    File.write(file, result_content);
                 } catch (e) {
                     Logger.error(Error.get(e, file, 'wyvr'));
                 }
@@ -273,78 +273,48 @@ export class MainHelper {
             })
         );
 
-        const svelte_files = File.collect_svelte_files('gen/src');
-
-        // search for hydrateable files
-        const hydrateable_files = Client.get_hydrateable_svelte_files(svelte_files);
-
-        // copy the hydrateable files into the gen/client folder
+        // destroy the client folder to avoid old versions
         Dir.clear('gen/client');
         // copy js/ts files to client, because stores and additional logic is "hidden" there
         await Promise.all(
-            File.collect_files('gen/src').map(async (file) => {
-                if (file.match(/\.js/)) {
-                    const target_file = file.replace(/^gen\/src/, 'gen/client');
-                    // copySync(file, file.replace(/^gen\/src/, 'gen/client'));
-                    // also replace paths in the js/ts files
-                    File.create_dir(target_file);
-                    const content = Client.correct_import_paths(readFileSync(file, { encoding: 'utf-8' }));
-                    writeFileSync(file, Client.remove_on_server(content, false));
-                    writeFileSync(target_file, Client.remove_on_server(content, true));
-                } else if (file.match(/\.ts/)) {
-                    const ts_duration = process.hrtime();
-                    const js_file = File.to_extension(file, '.js');
-                    const swc = require('@swc/core');
-                    const result = await swc.transform(Client.correct_import_paths(Client.remove_on_server(readFileSync(file, { encoding: 'utf-8' }), true)), {
-                        // Some options cannot be specified in .swcrc
-                        filename: js_file,
-                        sourceMaps: true,
-                        // Input files are treated as module by default.
-                        isModule: true,
+            all_files.map(async (raw_path) => {
+                let src_path = raw_path.replace(/^gen\/raw/, 'gen/src');
+                // prepare for the client
+                let client_path = raw_path.replace(/^gen\/raw/, 'gen/client');
+                mkdirSync(dirname(client_path), { recursive: true });
+                // replace wyvr values/imports
+                const content = File.read(raw_path);
+                let server_content = Build.correct_import_paths(Transform.replace_wyvr_imports(content));
+                let client_content = Client.correct_import_paths(Client.remove_on_server(content));
+                let write_files = true;
 
-                        // All options below can be configured via .swcrc
-                        jsc: {
-                            parser: {
-                                syntax: 'typescript',
-                                dynamicImport: true,
-                                decorators: true,
-                            },
-                            transform: {},
-                            loose: true,
-                            target: 'es2016',
-                        },
-                        module: {
-                            type: 'commonjs',
-                        },
-                    });
-                    // when swc returns a result, copy it to the client folder
-                    const target_file = file.replace(/^gen\/src/, 'gen/client');
-                    if (result) {
-                        // for server side rendering
-                        writeFileSync(js_file, result.code);
-                        writeFileSync(`${js_file}.map`, result.map);
-                        // for hydration
-                        const js_target_file = File.to_extension(target_file, '.js');
-                        writeFileSync(js_target_file, result.code);
-                        writeFileSync(`${js_target_file}.map`, result.map);
-                    }
-                    copySync(file, target_file);
-                    Logger.debug('compiled', file, 'to', js_file, 'in', hrtime_to_ms(process.hrtime(ts_duration)), 'ms');
+                switch (extname(src_path)) {
+                    case '.svelte':
+                        client_content = Client.replace_slots_client(client_content);
+                        break;
+                    case '.ts':
+                        const ts_duration = process.hrtime();
+                        // server file
+                        await Transform.typescript_compile(src_path, server_content);
+                        // client file
+                        await Transform.typescript_compile(client_path, client_content);
+                        Logger.debug('compiled', src_path, 'in', hrtime_to_ms(process.hrtime(ts_duration)), 'ms');
+                        write_files = false;
+                        break;
+                    case '.js':
+                    default:
+                        break;
+                }
+                if (write_files) {
+                    File.write(src_path, server_content);
+                    File.write(client_path, client_content);
                 }
                 return null;
             })
         );
-        hydrateable_files.map((file) => {
-            const source_path = file.path;
-            const path = file.path.replace(/^gen\/src/, 'gen/client');
-            mkdirSync(dirname(path), { recursive: true });
-            writeFileSync(path, Client.remove_on_server(Client.replace_slots_client(readFileSync(source_path, { encoding: 'utf-8' })), true));
-            return file;
-        });
-        // correct the import paths in the static files
-        Client.correct_svelte_file_import_paths(svelte_files);
 
-        // @todo replace global in the svelte components which should be hydrated
+        const svelte_files = File.collect_svelte_files('gen/src');
+        const hydrateable_files = Client.get_hydrateable_svelte_files(svelte_files);
         const transformed_files = Client.transform_hydrateable_svelte_files(hydrateable_files);
         await Plugin.after('transform', transformed_files);
         return {
@@ -587,7 +557,8 @@ export class MainHelper {
                                 return;
                             }
                             mkdirSync(dirname(path), { recursive: true });
-                            writeFileSync(path, Client.remove_on_server(Client.replace_slots_client(readFileSync(join(this.cwd, 'gen', 'src', dep_file), { encoding: 'utf-8' }))));
+                            console.log('script', path, true);
+                            writeFileSync(path, Client.replace_slots_client(File.read(join(this.cwd, 'gen', 'src', dep_file))));
                             Logger.debug('make the static file', dep_file, 'hydrateable because it is used inside the hydrateable file', file_path);
                         }
                     });

@@ -27,7 +27,7 @@ export class Dependency {
                     return file_path.indexOf(folder.path) > -1;
                 })
                 .forEach((file_path: string) => {
-                    const content = File.read_file(file_path);
+                    const content = File.read(file_path);
                     if (content) {
                         this.extract_from_content(folder.name, file_path.replace(source_folder + '/', ''), content);
                     }

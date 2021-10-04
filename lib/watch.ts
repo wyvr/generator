@@ -16,6 +16,8 @@ export class Watch {
     watchers = {};
     websocket_server = null;
     packages = null;
+    host = 'localhost'
+    port = 3000;
 
     constructor(private ports: [number, number], private callback: Function = null) {
         if (!callback || typeof callback != 'function') {
@@ -43,8 +45,8 @@ export class Watch {
         const static_server = require('node-static');
 
         const pub = new static_server.Server(join(process.cwd(), 'pub'), { cache: false, serverInfo: `wyvr` });
-        const host = 'localhost';
-        const port = this.ports[0];
+        this.host = 'localhost';
+        this.port = this.ports[0];
         require('http')
             .createServer((req, res) => {
                 // console.log(req.method, req.url);
@@ -59,8 +61,8 @@ export class Watch {
                     });
                 }).resume();
             })
-            .listen(port, host, () => {
-                Logger.success('server started', `http://${host}:${port}`);
+            .listen(this.port, this.host, () => {
+                Logger.success('server started', `http://${this.host}:${this.port}`);
                 this.idle();
             });
 
@@ -224,6 +226,11 @@ export class Watch {
         const routes = Routes.collect_routes(null).map((route) => {
             return { rel_path: route.rel_path, dir_path: dirname(route.rel_path) };
         });
+        if(this.get_watched_files().length == 0) {
+            Logger.improve('nobody is watching, no need to rebuild');
+            Logger.info('open', `http://${this.host}:${this.port}`, 'to start watching')
+            return;
+        }
         const added_files = [];
 
         const reversed_packages = this.packages.map((x) => x).reverse();

@@ -85,7 +85,7 @@ export class Logger {
     static stop(name: string, duration_in_ms: number = null) {
         let duration_text = Math.round(duration_in_ms).toString();
         const spaces = new Array(35 - duration_text.length - name.length).fill('.').join('');
-        const message = `${color.green(name)}${color.dim(spaces)}${duration_text} ${color.dim('ms')}`;
+        const message = `${color.green(name)} ${color.dim(spaces)} ${duration_text} ${color.dim('ms')}`;
         if (this.env == 'production') {
             this.log(null, `${color.green('✓')} ${message}`);
         } else {

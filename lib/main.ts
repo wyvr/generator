@@ -171,7 +171,7 @@ export class Main {
         this.worker_amount = this.worker_controller.get_worker_amount();
         Logger.present('workers', this.worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));
         const workers = this.worker_controller.create_workers(this.worker_amount);
-        const gen_src_folder = join(this.cwd, 'gen', 'src');
+        const gen_src_folder = join(this.cwd, 'gen', 'raw');
         // watcher when worker sends identifier content
         this.worker_controller.events.on('emit', WorkerEmit.identifier, (data: any) => {
             if(!data) {

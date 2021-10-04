@@ -24,7 +24,7 @@ export class Worker {
     private config = null;
     private env = null;
     private cwd = process.cwd();
-    private root_template_paths = [join(this.cwd, 'gen', 'src', 'doc'), join(this.cwd, 'gen', 'src', 'layout'), join(this.cwd, 'gen', 'src', 'page')];
+    private root_template_paths = [join(this.cwd, 'gen', 'raw', 'doc'), join(this.cwd, 'gen', 'raw', 'layout'), join(this.cwd, 'gen', 'raw', 'page')];
     private release_path = null;
     private identifiers_cache = {};
     constructor() {

@@ -96,9 +96,16 @@ export class Main {
                 this.cron_state = this.cron_state.filter((state) => {
                     return state.last_execution + state.every * 60 * 1000 < new Date().getTime();
                 });
+            } else {
+                this.cron_state = [];
             }
             Logger.info('rebuild', this.cron_state.length, 'routes');
             this.perf.end('cron');
+
+            if(this.cron_state.length == 0) {
+                Logger.improve('nothing to build');
+                return;
+            }
         }
         if (!Config.get('packages')) {
             Logger.warning('no packages available, please configure wyvr.js file');

@@ -1,5 +1,9 @@
 import { File } from '@lib/file';
 import * as swc from '@swc/core';
+import { sep, join } from 'path';
+import { Logger } from '@lib/logger';
+import sass from 'sass';
+import { Error } from '@lib/error';
 
 export class Transform {
     /**
@@ -101,5 +105,48 @@ export class Transform {
             content,
             result,
         };
+    }
+    static preprocess_content(content: string): [any, string] {
+        if (!content || typeof content != 'string') {
+            return [null, ''];
+        }
+        const style_result = Transform.extract_tags_from_content(content, 'style');
+        if (style_result && style_result.result && style_result.result.some((entry) => entry.indexOf('type="text/scss"') > -1 || entry.indexOf('lang="sass"') > -1)) {
+            let sass_result = null;
+            try {
+                sass_result = sass.renderSync({
+                    data: style_result.result
+                        .map((entry) => {
+                            const raw = entry.replace(/<style[^>]*>/g, '').replace(/<\/style>/g, '');
+                            return this.src_import_path(raw, 'gen/raw', '.css');
+                        })
+                        .join('\n'),
+                });
+            } catch (e) {
+                return [Error.get(e, e.file, 'sass'), content];
+            }
+            if (sass_result) {
+                return [null, `${style_result.content}<style>${sass_result.css.toString()}</style>`];
+            }
+        }
+
+        return [null, content];
+    }
+    static insert_css_imports(content: string, file_path: string) {
+        // replace @import in css
+        // @NOTE this will also work in non css context
+        const src_segment = `${sep}raw${sep}`;
+        const src_path = join(file_path.substr(0, file_path.indexOf(src_segment) + src_segment.length - 1));
+
+        return content.replace(/@import '@src\/([^']*)';/, (match, url) => {
+            const import_path = join(src_path, url);
+            const import_css = File.read(import_path);
+            // @NOTE scss has another syntax e.g. folder/file => folder/_file.scss
+            if (import_css == null) {
+                Logger.warning(`${Logger.color.dim('[css]')}' can not import ${url} into ${file_path}, maybe the file doesn't exist`);
+                return '';
+            }
+            return import_css;
+        });
     }
 }

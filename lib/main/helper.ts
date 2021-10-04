@@ -255,12 +255,15 @@ export class MainHelper {
             all_files.map(async (file) => {
                 let content = File.read(file);
                 if (file.match(/\.svelte$/)) {
-                    const [pre_error, preprocessed_content] = Client.preprocess_content(content);
+                    // combine svelte files
+                    content = Client.insert_splits(file, content);
+                    // convert other formats, scss, ...
+                    const [pre_error, preprocessed_content] = Transform.preprocess_content(content);
                     if (pre_error) {
                         Logger.error(pre_error);
                     }
-                    // combine svelte files
-                    content = Client.insert_splits(file, pre_error ? content : preprocessed_content);
+                    // replace the css imports
+                    content = Transform.insert_css_imports(pre_error ? content : preprocessed_content, file);
                 }
 
                 try {

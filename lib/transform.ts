@@ -18,7 +18,7 @@ export class Transform {
         }
         if (extension == '.svelte') {
             // for svelte file the src import correction is only allowed inside script tags
-            const extract_result = this.extract_tags_from_content(content, 'script');
+            const extract_result = this.extract_tags_from_content(content, 'script', 1);
             if (extract_result) {
                 const replaced_scripts = extract_result.result.map((script) => {
                     return this.replace_src(script, to);
@@ -76,7 +76,7 @@ export class Transform {
 
         return false;
     }
-    static extract_tags_from_content(content: string, tag: string): { content: string; result: string[] } {
+    static extract_tags_from_content(content: string, tag: string, max: number = 0): { content: string; result: string[] } {
         if (!content || typeof content != 'string' || !tag || typeof tag != 'string') {
             return {
                 content: content || '',
@@ -97,6 +97,10 @@ export class Transform {
                 result.push(content.slice(tag_start_index, tag_end_index + tag_end.length));
                 // remove the script from the content
                 content = content.substr(0, tag_start_index) + content.substr(tag_end_index + tag_end.length);
+                // allow that not all tags should be extracted
+                if(max > 0 && result.length == max) {
+                    search_tag = false;
+                }
                 continue;
             }
             search_tag = false;

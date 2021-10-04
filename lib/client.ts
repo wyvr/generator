@@ -461,14 +461,15 @@ export class Client {
         }
         // replace @import in css
         // @NOTE this will also work in non css context
-        const src_segment = `${sep}src${sep}`;
+        const src_segment = `${sep}raw${sep}`;
         const src_path = join(file_path.substr(0, file_path.indexOf(src_segment) + src_segment.length - 1));
 
         return content.replace(/@import '@src\/([^']*)';/, (match, url) => {
             const import_path = join(src_path, url);
             const import_css = File.read(import_path);
+            // @NOTE scss has another syntax e.g. folder/file => folder/_file.scss
             if (import_css == null) {
-                Logger.warning(`can not import ${url} into ${file_path}, maybe the file doesn't exist`);
+                Logger.warning(`${Logger.color.dim('[css]')}' can not import ${url} into ${file_path}, maybe the file doesn't exist`);
                 return '';
             }
             return import_css;

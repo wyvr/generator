@@ -376,34 +376,7 @@ export class Client {
     static replace_slots_client(content: string): string {
         return this.replace_slots(content, (name: string, slot: string) => `<div data-client-slot="${name}">${slot}</div>`);
     }
-    static insert_splits(file_path: string, content: string): string {
-        if (!file_path || !fs.existsSync(file_path) || !content || typeof content != 'string') {
-            return '';
-        }
-        const css_file = File.to_extension(file_path, 'css');
-        if (fs.existsSync(css_file)) {
-            const css_content = fs.readFileSync(css_file);
-            const css_result = Transform.extract_tags_from_content(content, 'style');
-            const combined_css = css_result.result
-                .map((style) => {
-                    return style.replace(/^<style>/, '').replace(/<\/style>$/, '');
-                })
-                .join('\n');
-            content = `${css_result.content}<style>${combined_css}${css_content}</style>`;
-        }
-        const js_file = File.to_extension(file_path, 'js');
-        if (fs.existsSync(js_file)) {
-            const js_content = fs.readFileSync(js_file);
-            const js_result = Transform.extract_tags_from_content(content, 'script');
-            const combined_js = js_result.result
-                .map((script) => {
-                    return script.replace(/^<script>/, '').replace(/<\/script>$/, '');
-                })
-                .join('\n');
-            content = `<script>${combined_js}${js_content}</script>${js_result.content}`;
-        }
-        return content;
-    }
+    
     
     static css_hash(data: { hash; css; name; filename }) {
         if (!data || !data.hash || !data.css) {

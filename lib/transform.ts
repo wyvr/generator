@@ -1,6 +1,7 @@
 import { File } from '@lib/file';
 import * as swc from '@swc/core';
 import { sep, join } from 'path';
+import {existsSync} from 'fs';
 import { Logger } from '@lib/logger';
 import sass from 'sass';
 import { Error } from '@lib/error';
@@ -152,5 +153,34 @@ export class Transform {
             }
             return import_css;
         });
+    }
+
+    static insert_splits(file_path: string, content: string): string {
+        if (!file_path || !existsSync(file_path) || !content || typeof content != 'string') {
+            return '';
+        }
+        const css_file = File.to_extension(file_path, 'css');
+        if (existsSync(css_file)) {
+            const css_content = File.read(css_file);
+            const css_result = this.extract_tags_from_content(content, 'style');
+            const combined_css = css_result.result
+                .map((style) => {
+                    return style.replace(/^<style>/, '').replace(/<\/style>$/, '');
+                })
+                .join('\n');
+            content = `${css_result.content}<style>${combined_css}${css_content}</style>`;
+        }
+        const js_file = File.to_extension(file_path, 'js');
+        if (existsSync(js_file)) {
+            const js_content = File.read(js_file);
+            const js_result = this.extract_tags_from_content(content, 'script');
+            const combined_js = js_result.result
+                .map((script) => {
+                    return script.replace(/^<script>/, '').replace(/<\/script>$/, '');
+                })
+                .join('\n');
+            content = `<script>${combined_js}${js_content}</script>${js_result.content}`;
+        }
+        return content;
     }
 }

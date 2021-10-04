@@ -256,7 +256,7 @@ export class MainHelper {
                 let content = File.read(file);
                 if (file.match(/\.svelte$/)) {
                     // combine svelte files
-                    content = Client.insert_splits(file, content);
+                    content = Transform.insert_splits(file, content);
                     // convert other formats, scss, ...
                     const [pre_error, preprocessed_content] = Transform.preprocess_content(content);
                     if (pre_error) {

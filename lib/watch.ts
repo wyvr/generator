@@ -16,7 +16,7 @@ export class Watch {
     watchers = {};
     websocket_server = null;
     packages = null;
-    host = 'localhost'
+    host = 'localhost';
     port = 3000;
 
     constructor(private ports: [number, number], private callback: Function = null) {
@@ -222,13 +222,14 @@ export class Watch {
             Logger.warning('currently running, try again after current execution');
             return;
         }
-        Logger.block('rebuild')
+        Logger.block('rebuild');
         const routes = Routes.collect_routes(null).map((route) => {
             return { rel_path: route.rel_path, dir_path: dirname(route.rel_path) };
         });
-        if(this.get_watched_files().length == 0) {
+        if (this.get_watched_files().length == 0) {
             Logger.improve('nobody is watching, no need to rebuild');
-            Logger.info('open', `http://${this.host}:${this.port}`, 'to start watching')
+            Logger.info('open', `http://${this.host}:${this.port}`, 'to start watching');
+            this.idle();
             return;
         }
         const added_files = [];
@@ -339,6 +340,6 @@ export class Watch {
 
     idle() {
         Logger.output(Logger.color.dim, '░', 'idle & waiting for changes...');
-        Logger.output(null, '')
+        Logger.output(null, '');
     }
 }

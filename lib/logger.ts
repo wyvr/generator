@@ -21,14 +21,14 @@ export class Logger {
     }
 
     static output(color_fn: Function | null, char: string, ...values: any[]) {
-        const text = values
+        let text = values
             .map(this.stringify)
             .filter((x) => x)
             .map((v) => (color_fn ? color_fn(v) : v))
             .join(' ');
         const symbol = color_fn ? color_fn(char) : char;
         if (this.spinner) {
-            this.spinner.stopAndPersist({ text, symbol }).start(this.last_text).spinner = 'dots';
+            this.spinner.stopAndPersist({ text: `${symbol} ${text}`, symbol: color.dim('│') }).start(this.last_text).spinner = 'dots';
             return;
         }
         console.log(symbol, text);
@@ -37,7 +37,7 @@ export class Logger {
         this.output(null, '', ...values);
     }
     static present(key, ...values) {
-        this.output(null, color.dim('>'), key, color.green(values.shift()), ...values);
+        this.output(null, color.dim('-'), key, color.green(values.shift()), ...values);
     }
     static info(key, ...values) {
         this.output(null, color.cyan('i'), key, color.cyan(values.shift()), ...values);
@@ -71,7 +71,7 @@ export class Logger {
     static start(name: string) {
         if (this.env != 'production') {
             this.last_text = name || '';
-            this.output(color.dim, '>', name);
+            this.output(color.dim, '┌', name);
             this.spinner = this.create_spinner(name);
         }
     }

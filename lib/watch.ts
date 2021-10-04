@@ -220,6 +220,7 @@ export class Watch {
             Logger.warning('currently running, try again after current execution');
             return;
         }
+        Logger.block('rebuild')
         const routes = Routes.collect_routes(null).map((route) => {
             return { rel_path: route.rel_path, dir_path: dirname(route.rel_path) };
         });
@@ -330,6 +331,7 @@ export class Watch {
     }
 
     idle() {
-        Logger.output(Logger.color.dim, ' ', 'idle & waiting for changes...');
+        Logger.output(Logger.color.dim, '░', 'idle & waiting for changes...');
+        Logger.output(null, '')
     }
 }

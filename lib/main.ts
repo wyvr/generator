@@ -53,13 +53,15 @@ export class Main {
         const pid = process.pid;
         process.title = `wyvr main ${pid}`;
         Logger.logo();
+        this.perf = Config.get('import.measure_performance') ? new Performance_Measure() : new Performance_Measure_Blank();
+
+        this.perf.start('config');
         Logger.present('PID', pid, Logger.color.dim(`"${process.title}"`));
         Logger.present('cwd', this.cwd);
         Logger.present('build', this.uniq_id);
         Logger.present('env', EnvModel[Env.get()]);
         Logger.present('mode', WyvrMode[this.mode]);
 
-        this.perf = Config.get('import.measure_performance') ? new Performance_Measure() : new Performance_Measure_Blank();
         const uniq_id_file = join('gen', 'uniq.txt');
         if (this.mode == WyvrMode.build) {
             Dir.clear('gen');
@@ -73,6 +75,8 @@ export class Main {
                 Logger.present('socket port', this.watcher_ports[1]);
             }
         }
+        this.perf.end('config');
+
         if (this.mode == WyvrMode.cron) {
             Logger.block('cron');
             this.perf.start('cron');
@@ -100,13 +104,14 @@ export class Main {
             Logger.warning('no packages available, please configure wyvr.js file');
             return;
         }
+
+        this.perf.start('cleanup');
         // remove old releases
         this.helper.cleanup_releases(this.mode, Config.get('releases.keep') ?? 0);
         // create release folder
         this.release_path = `releases/${this.uniq_id}`;
         Dir.create(this.release_path);
-
-        Logger.stop('config', hrtime_to_ms(process.hrtime(hr_start)));
+        this.perf.end('cleanup');
 
         // collect configured package
         if (this.mode == WyvrMode.build) {
@@ -174,7 +179,7 @@ export class Main {
         const gen_src_folder = join(this.cwd, 'gen', 'raw');
         // watcher when worker sends identifier content
         this.worker_controller.events.on('emit', WorkerEmit.identifier, (data: any) => {
-            if(!data) {
+            if (!data) {
                 return;
             }
             this.identifiers[data.identifier] = {
@@ -287,14 +292,14 @@ export class Main {
 
         const contains_routes = changed_files.find((file) => file.rel_path.match(/^routes\//)) != null;
         let route_urls = [];
+        this.perf.start('routes');
         if (!is_regenerating || contains_routes) {
             // get the route files
-            this.perf.start('routes');
             [route_urls] = await this.routes(changed_files, !is_regenerating, null);
-            this.perf.end('routes');
         } else {
             Logger.improve('routes, will not be regenerated');
         }
+        this.perf.end('routes');
 
         this.perf.start('transform');
 
@@ -404,13 +409,14 @@ export class Main {
         } else {
             Logger.improve('scripts, will not be regenerated');
         }
+
+        this.perf.start('sitemap');
         if (!is_regenerating) {
-            this.perf.start('sitemap');
             await this.helper.sitemap(this.release_path, build_pages);
-            this.perf.end('sitemap');
         } else {
             Logger.improve('sitemap, will not be regenerated');
         }
+        this.perf.end('sitemap');
 
         this.perf.start('link');
         await this.helper.link(this.uniq_id);

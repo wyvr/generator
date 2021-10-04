@@ -315,6 +315,11 @@ export class Worker {
         // add the identifier to the wyvr object
         data._wyvr.identifier = identifier;
         (<any>result).data = data;
+
+        // correct doc, layout and page from raw to src
+        result.doc = result.doc.replace(/gen\/raw/, 'gen/src')
+        result.layout = result.layout.replace(/gen\/raw/, 'gen/src')
+        result.page = result.page.replace(/gen\/raw/, 'gen/src')
         return result;
     }
 }

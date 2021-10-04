@@ -360,11 +360,11 @@ export class Main {
                         structure.layout = Dependency.get_structure(identifier.layout, this.package_tree);
                         structure.layout.page = Dependency.get_structure(identifier.page, this.package_tree);
                     }
-                    writeFileSync(join(this.release_path, `${id}.json`), JSON.stringify(structure));
+                    File.write_json(join(this.release_path, `${id}.json`), structure);
                 });
             }
-            File.write_json(join('gen', 'dependencies.json'), JSON.parse(JSON.stringify(Dependency.cache)));
-            File.write_json(join('gen', 'page_dependencies.json'), JSON.parse(JSON.stringify(Dependency.page_cache)));
+            File.write_json(join('gen', 'dependencies.json'), Dependency.cache);
+            File.write_json(join('gen', 'page_dependencies.json'), Dependency.page_cache);
 
             this.perf.end('dependencies');
 
@@ -398,7 +398,7 @@ export class Main {
 
                 identifiers = watched_identifiers;
             }
-            
+
             const build_scripts = await this.helper.scripts(this.worker_controller, identifiers, !!watched_files);
             this.perf.end('scripts');
         } else {

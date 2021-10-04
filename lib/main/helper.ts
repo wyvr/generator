@@ -288,8 +288,8 @@ export class MainHelper {
                 mkdirSync(dirname(client_path), { recursive: true });
                 // replace wyvr values/imports
                 const content = File.read(raw_path);
-                let server_content = Build.correct_import_paths(Transform.replace_wyvr_imports(content), extension);
-                let client_content = Client.correct_import_paths(Client.remove_on_server(content), extension);
+                let server_content = Build.correct_import_paths(Transform.replace_wyvr_imports(content, false), extension);
+                let client_content = Client.correct_import_paths(Client.remove_on_server(Transform.replace_wyvr_imports(content, true)), extension);
                 let write_files = true;
 
                 switch (extension) {
@@ -561,7 +561,6 @@ export class MainHelper {
                                 return;
                             }
                             mkdirSync(dirname(path), { recursive: true });
-                            console.log('script', path, true);
                             writeFileSync(path, Client.replace_slots_client(File.read(join(this.cwd, 'gen', 'src', dep_file))));
                             Logger.debug('make the static file', dep_file, 'hydrateable because it is used inside the hydrateable file', file_path);
                         }

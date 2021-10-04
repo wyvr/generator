@@ -33,7 +33,7 @@ export class Transform {
     static replace_src(content: string, to: string) {
         return content.replace(/(['"])@src\//g, `$1${process.cwd()}/${to.replace('^/', '').replace(/\/$/, '')}/`);
     }
-    static replace_wyvr_imports(content: string, as_client: boolean = true) {
+    static replace_wyvr_imports(content: string, as_client: boolean) {
         if (!content || typeof content != 'string') {
             return '';
         }

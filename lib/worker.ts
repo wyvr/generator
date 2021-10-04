@@ -295,9 +295,9 @@ export class Worker {
         });
     }
     emit_identifier(data: any): any {
-        const doc_file_name = File.find_file(join(this.cwd, 'gen', 'src', 'doc'), data._wyvr.template.doc);
-        const layout_file_name = File.find_file(join(this.cwd, 'gen', 'src', 'layout'), data._wyvr.template.layout);
-        const page_file_name = File.find_file(join(this.cwd, 'gen', 'src', 'page'), data._wyvr.template.page);
+        const doc_file_name = File.find_file(join(this.cwd, 'gen', 'raw', 'doc'), data._wyvr.template.doc);
+        const layout_file_name = File.find_file(join(this.cwd, 'gen', 'raw', 'layout'), data._wyvr.template.layout);
+        const page_file_name = File.find_file(join(this.cwd, 'gen', 'raw', 'page'), data._wyvr.template.page);
 
         const identifier = Client.get_identifier_name(this.root_template_paths, doc_file_name, layout_file_name, page_file_name);
         const result = {

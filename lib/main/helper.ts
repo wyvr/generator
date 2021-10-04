@@ -278,17 +278,18 @@ export class MainHelper {
         // copy js/ts files to client, because stores and additional logic is "hidden" there
         await Promise.all(
             all_files.map(async (raw_path) => {
+                const extension = extname(raw_path);
                 let src_path = raw_path.replace(/^gen\/raw/, 'gen/src');
                 // prepare for the client
                 let client_path = raw_path.replace(/^gen\/raw/, 'gen/client');
                 mkdirSync(dirname(client_path), { recursive: true });
                 // replace wyvr values/imports
                 const content = File.read(raw_path);
-                let server_content = Build.correct_import_paths(Transform.replace_wyvr_imports(content));
-                let client_content = Client.correct_import_paths(Client.remove_on_server(content));
+                let server_content = Build.correct_import_paths(Transform.replace_wyvr_imports(content), extension);
+                let client_content = Client.correct_import_paths(Client.remove_on_server(content), extension);
                 let write_files = true;
 
-                switch (extname(src_path)) {
+                switch (extension) {
                     case '.svelte':
                         client_content = Client.replace_slots_client(client_content);
                         break;

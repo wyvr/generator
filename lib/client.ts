@@ -195,8 +195,8 @@ export class Client {
             return [Error.get(e, input_file, 'bundle'), null];
         }
     }
-    static correct_import_paths(content: string): string {
-        return Transform.src_import_path(content, 'gen/client');
+    static correct_import_paths(content: string, extension: string): string {
+        return Transform.src_import_path(content, 'gen/client', extension);
     }
     static get_hydrateable_svelte_files(svelte_files: WyvrFile[]): WyvrFile[] {
         if (!svelte_files || !Array.isArray(svelte_files)) {
@@ -250,7 +250,7 @@ export class Client {
         if (!content || typeof content != 'string') {
             return [null, ''];
         }
-        const style_result = this.extract_tags_from_content(content, 'style');
+        const style_result = Transform.extract_tags_from_content(content, 'style');
         if (style_result && style_result.result && style_result.result.some((entry) => entry.indexOf('type="text/scss"') > -1 || entry.indexOf('lang="sass"') > -1)) {
             let sass_result = null;
             try {
@@ -258,7 +258,7 @@ export class Client {
                     data: style_result.result
                         .map((entry) => {
                             const raw = entry.replace(/<style[^>]*>/g, '').replace(/<\/style>/g, '');
-                            return this.correct_import_paths(raw);
+                            return this.correct_import_paths(raw, '.svelte');
                         })
                         .join('\n'),
                 });
@@ -287,7 +287,7 @@ export class Client {
             return '';
         }
         // extract scripts
-        const script_result = this.extract_tags_from_content(content, 'script');
+        const script_result = Transform.extract_tags_from_content(content, 'script');
         file.scripts = script_result.result;
         content = script_result.content;
         file.props = this.extract_props_from_scripts(script_result.result);
@@ -298,7 +298,7 @@ export class Client {
         // add media when loading is media
         const media = file.config.loading == WyvrFileLoading.media ? `data-media="${file.config.media}"` : '';
         // extract styles
-        const style_result = this.extract_tags_from_content(content, 'style');
+        const style_result = Transform.extract_tags_from_content(content, 'style');
         file.styles = style_result.result;
         content = style_result.content;
         // add hydrate tag
@@ -309,36 +309,7 @@ export class Client {
         content = this.replace_slots_static(content);
         return content;
     }
-    static extract_tags_from_content(content: string, tag: string): { content: string; result: string[] } {
-        if (!content || typeof content != 'string' || !tag || typeof tag != 'string') {
-            return {
-                content: content || '',
-                result: [],
-            };
-        }
-        let search_tag = true;
-        tag = tag.toLowerCase().trim();
-        const result = [];
-        const tag_start = `<${tag}`;
-        const tag_end = `</${tag}>`;
-        let tag_start_index, tag_end_index;
-        while (search_tag) {
-            tag_start_index = content.indexOf(tag_start);
-            tag_end_index = content.indexOf(tag_end);
-            if (tag_start_index > -1 && tag_end_index > -1) {
-                // append the tag into the result
-                result.push(content.slice(tag_start_index, tag_end_index + tag_end.length));
-                // remove the script from the content
-                content = content.substr(0, tag_start_index) + content.substr(tag_end_index + tag_end.length);
-                continue;
-            }
-            search_tag = false;
-        }
-        return {
-            content,
-            result,
-        };
-    }
+    
     static get_identifier_name(root_paths: string[], ...parts: string[]): string {
         const default_sign = 'default';
         if (!root_paths || root_paths.length == 0 || !parts || parts.length == 0) {
@@ -440,7 +411,7 @@ export class Client {
         const css_file = File.to_extension(file_path, 'css');
         if (fs.existsSync(css_file)) {
             const css_content = fs.readFileSync(css_file);
-            const css_result = this.extract_tags_from_content(content, 'style');
+            const css_result = Transform.extract_tags_from_content(content, 'style');
             const combined_css = css_result.result
                 .map((style) => {
                     return style.replace(/^<style>/, '').replace(/<\/style>$/, '');
@@ -451,7 +422,7 @@ export class Client {
         const js_file = File.to_extension(file_path, 'js');
         if (fs.existsSync(js_file)) {
             const js_content = fs.readFileSync(js_file);
-            const js_result = this.extract_tags_from_content(content, 'script');
+            const js_result = Transform.extract_tags_from_content(content, 'script');
             const combined_js = js_result.result
                 .map((script) => {
                     return script.replace(/^<script>/, '').replace(/<\/script>$/, '');

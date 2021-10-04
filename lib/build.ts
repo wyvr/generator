@@ -171,7 +171,7 @@ export class Build {
         </Doc>`;
         return code;
     }
-    static correct_import_paths(content: string): string {
-        return Transform.src_import_path(content, 'gen/src');
+    static correct_import_paths(content: string, extension: string): string {
+        return Transform.src_import_path(content, 'gen/src', extension);
     }
 }

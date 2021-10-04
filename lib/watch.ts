@@ -61,6 +61,7 @@ export class Watch {
             })
             .listen(port, host, () => {
                 Logger.success('server started', `http://${host}:${port}`);
+                this.idle();
             });
 
         this.connect();
@@ -313,8 +314,8 @@ export class Watch {
             this.send(id, { action: 'reload' });
         });
         // send update for static files to client
-        const assets = rel_file_paths.filter((p)=>p.match(/^assets\//));
-        if(assets.length > 0) {
+        const assets = rel_file_paths.filter((p) => p.match(/^assets\//));
+        if (assets.length > 0) {
             Object.keys(this.watchers).forEach((id) => {
                 this.send(id, { action: 'assets', list: assets });
             });
@@ -324,6 +325,11 @@ export class Watch {
         RequireCache.clear();
         const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
         Logger.stop('watch total', timeInMs);
+        this.idle();
         this.is_executing = false;
+    }
+
+    idle() {
+        Logger.output(Logger.color.dim, ' ', 'idle & waiting for changes...');
     }
 }

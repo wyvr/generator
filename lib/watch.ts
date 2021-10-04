@@ -26,7 +26,8 @@ export class Watch {
         this.init();
     }
     private restart() {
-        process.kill(process.pid, 'SIGUSR2');
+        Logger.warning('type "rs" and press [enter] to restart nodemon');
+        process.exit(1);
     }
     private get_watched_files(): string[] {
         return (<string[]>Object.values(this.watchers)).filter((x) => x);
@@ -97,7 +98,7 @@ export class Watch {
                 }
                 // when config file is changed restart
                 if (path.indexOf('wyvr.js') > -1) {
-                    Logger.info('config file has changed', path, 'restarting');
+                    Logger.warning('config file has changed', path, ', restart required');
 
                     return this.restart();
                 }

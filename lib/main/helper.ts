@@ -25,6 +25,7 @@ import { WorkerEmit } from '@lib/model/worker/emit';
 import { Build } from '../build';
 import { EnvModel } from '../model/env';
 import { Transform } from '../transform';
+import { WyvrFileLoading } from '../model/wyvr/file';
 
 export class MainHelper {
     cwd = process.cwd();
@@ -319,6 +320,15 @@ export class MainHelper {
 
         const svelte_files = File.collect_svelte_files('gen/src');
         const hydrateable_files = Client.get_hydrateable_svelte_files(svelte_files);
+        // validate hydratable files
+        hydrateable_files.map((file)=> {
+            if(file.config?.loading == WyvrFileLoading.none && !file.config?.trigger) {
+                Logger.error(Logger.color.dim('[wyvr]'), file.rel_path, 'trigger prop is required, when loading is set to none')
+            }
+            if(file.config?.loading == WyvrFileLoading.media && !file.config?.media) {
+                Logger.error(Logger.color.dim('[wyvr]'), file.rel_path, 'media prop is required, when loading is set to media')
+            }
+        })
         const transformed_files = Client.transform_hydrateable_svelte_files(hydrateable_files);
         await Plugin.after('transform', transformed_files);
         return {

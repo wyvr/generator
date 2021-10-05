@@ -15,6 +15,7 @@ import { WorkerHelper } from '@lib/worker/helper';
 import { LogType } from '@lib/model/log';
 import { Error } from '@lib/error';
 import { Transform } from './transform';
+import { Logger } from './logger';
 
 export class Client {
     static transform_resource(content) {
@@ -254,9 +255,7 @@ export class Client {
                 }
             });
         }
-
-        // @TODO validate
-
+        
         return config;
     }
     static transform_hydrateable_svelte_files(files: WyvrFile[]) {

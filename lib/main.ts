@@ -102,7 +102,7 @@ export class Main {
             Logger.info('rebuild', this.cron_state.length, 'routes');
             this.perf.end('cron');
 
-            if(this.cron_state.length == 0) {
+            if (this.cron_state.length == 0) {
                 Logger.improve('nothing to build');
                 return;
             }
@@ -263,7 +263,12 @@ export class Main {
             try {
                 const watch = new Watch(this.watcher_ports, async (changed_files: any[], watched_files: string[]) => {
                     Plugin.clear();
-                    return await this.execute([], changed_files, watched_files);
+                    console.log('CF', changed_files, 'WF', watched_files);
+                    return await this.execute(
+                        [],
+                        changed_files,
+                        watched_files
+                    );
                 });
             } catch (e) {
                 this.helper.fail(e);
@@ -290,6 +295,8 @@ export class Main {
             this.is_executing = false;
             return [];
         }
+
+        const watched_json_files = watched_files ? watched_files.map((path) => File.to_index(join(process.cwd(), 'gen', 'data', path), 'json')) : null;
 
         // collect the files for the generation
         this.perf.start('collect');
@@ -331,8 +338,8 @@ export class Main {
         // console.log('identifier_data_list before', this.identifier_data_list)
         let build_pages = [];
         let identifier_data_list = [];
-        if (watched_files) {
-            [build_pages, identifier_data_list] = await this.helper.build_files(this.worker_controller, files, watched_files, changed_files, this.identifier_data_list);
+        if (watched_json_files) {
+            [build_pages, identifier_data_list] = await this.helper.build_files(this.worker_controller, files, watched_json_files, changed_files, this.identifier_data_list);
         } else {
             [build_pages, identifier_data_list] = await this.helper.build_list(this.worker_controller, files);
         }
@@ -383,10 +390,10 @@ export class Main {
             this.perf.start('scripts');
             let identifiers = this.identifiers;
             // when files are watched build only needed scripts
-            if (watched_files) {
+            if (watched_json_files) {
                 // get the identfiers of the watched files
                 const page_identifiers = Object.keys(Dependency.page_cache)
-                    .filter((path) => watched_files.find((watched) => path.indexOf(watched) > -1))
+                    .filter((path) => watched_json_files.find((watched) => path.indexOf(watched) > -1))
                     .map((path) => Dependency.page_cache[path])
                     .map((identifier) => Client.get_identifier_name(['src/doc', 'src/layout', 'src/page'], identifier.doc, identifier.layout, identifier.page));
                 // build new identifiers based on the page identifiers

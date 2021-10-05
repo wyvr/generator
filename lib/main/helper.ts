@@ -370,12 +370,10 @@ export class MainHelper {
     async build_files(
         worker_controller: WorkerController,
         list: string[],
-        watched_files: string[] = [],
+        watched_json_files: string[] = [],
         changed_files: { event: string; path: string; rel_path: string }[] = null,
         identifier_list: any[] = null
     ) {
-        // build the json files
-        const watched_json_files = watched_files.map((path) => File.to_index(join(process.cwd(), 'gen', 'data', path), 'json'));
         // match exactly against the json files
         const filtered_list = list.filter((entry) => {
             return watched_json_files.find((file) => entry == file);

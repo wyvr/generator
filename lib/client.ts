@@ -28,6 +28,7 @@ export class Client {
         const lazy_input_files = [];
         const idle_input_files = [];
         const media_input_files = [];
+        const none_input_files = [];
         const contains_shortcodes = !!entry.shortcodes;
 
         const resource_folder = join(__dirname, 'resource');
@@ -39,6 +40,7 @@ export class Client {
             lazy: this.transform_resource(fs.readFileSync(join(resource_folder, 'hydrate_lazy.js'), { encoding: 'utf-8' })),
             idle: this.transform_resource(fs.readFileSync(join(resource_folder, 'hydrate_idle.js'), { encoding: 'utf-8' })),
             media: this.transform_resource(fs.readFileSync(join(resource_folder, 'hydrate_media.js'), { encoding: 'utf-8' })),
+            none: this.transform_resource(fs.readFileSync(join(resource_folder, 'hydrate_none.js'), { encoding: 'utf-8' })),
             env: this.transform_resource(fs.readFileSync(join(resource_folder, 'env.js'), { encoding: 'utf-8' })),
             events: this.transform_resource(fs.readFileSync(join(resource_folder, 'events.js'), { encoding: 'utf-8' })),
             debug: '',
@@ -64,7 +66,7 @@ export class Client {
 
                 const lazy_input_path = join(client_root, `${File.to_extension(file.path, '').replace(join('gen', 'client') + '/', '')}.js`);
                 const lazy_input_name = File.to_extension(lazy_input_path, '').replace(client_root + '/', '');
-                const is_lazy = [WyvrFileLoading.lazy, WyvrFileLoading.idle, WyvrFileLoading.media].indexOf(file.config?.loading) > -1;
+                const is_lazy = [WyvrFileLoading.lazy, WyvrFileLoading.idle, WyvrFileLoading.media, WyvrFileLoading.none].indexOf(file.config?.loading) > -1;
                 if (is_lazy) {
                     // add to the list of lazy type
                     if (file.config?.loading == WyvrFileLoading.lazy) {
@@ -75,6 +77,9 @@ export class Client {
                     }
                     if (file.config?.loading == WyvrFileLoading.media) {
                         media_input_files.push(file);
+                    }
+                    if (file.config?.loading == WyvrFileLoading.none) {
+                        none_input_files.push(file);
                     }
                     // write the lazy file fro the component
                     if (!fs.existsSync(lazy_input_path)) {
@@ -105,6 +110,11 @@ export class Client {
                             const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
                             wyvr_hydrate_${file.config.loading}('/js/${lazy_input_name}.js', ${var_name}_target, '${file.name}', '${var_name}');
                             `;
+                    case WyvrFileLoading.none:
+                        return `
+                            const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
+                            wyvr_hydrate_${file.config.loading}('/js/${lazy_input_name}.js', ${var_name}_target, '${file.name}', '${var_name}', '${file.config.trigger}');
+                            `;
 
                     //case WyvrFileLoading.instant:
                     default:
@@ -126,6 +136,9 @@ export class Client {
         }
         if (media_input_files.length > 0) {
             script_content.push(script_partials.media);
+        }
+        if (none_input_files.length > 0) {
+            script_content.push(script_partials.none);
         }
         script_content.push(content.join('\n'));
 
@@ -242,6 +255,8 @@ export class Client {
             });
         }
 
+        // @TODO validate
+
         return config;
     }
     static transform_hydrateable_svelte_files(files: WyvrFile[]) {
@@ -281,7 +296,7 @@ export class Client {
         content = this.replace_slots_static(content);
         return content;
     }
-    
+
     static get_identifier_name(root_paths: string[], ...parts: string[]): string {
         const default_sign = 'default';
         if (!root_paths || root_paths.length == 0 || !parts || parts.length == 0) {
@@ -376,8 +391,7 @@ export class Client {
     static replace_slots_client(content: string): string {
         return this.replace_slots(content, (name: string, slot: string) => `<div data-client-slot="${name}">${slot}</div>`);
     }
-    
-    
+
     static css_hash(data: { hash; css; name; filename }) {
         if (!data || !data.hash || !data.css) {
             return 'wyvr';

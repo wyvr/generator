@@ -117,6 +117,7 @@ export enum WyvrFileLoading {
     lazy = 'lazy',
     idle = 'idle',
     media = 'media',
+    none = 'none',
 }
 export class WyvrCssMediaCollection {
     [key: string]: string

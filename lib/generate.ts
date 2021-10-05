@@ -22,15 +22,9 @@ export class Generate {
             private: false,
             change_frequence: 'monthly',
             priority: 0.5,
+            static: false
         };
-        /*{
-                url: data.url,
-                name: null,
-                scope: null,
-                visible: true,
-                order: 0,
-            }*/
-
+        
         if (data._wyvr) {
             if (data._wyvr.template) {
                 // use the given templates for all types
@@ -76,7 +70,7 @@ export class Generate {
         wyvr_prop.template.page = wyvr_prop.template.page.map((file) => File.to_extension(file, 'svelte'));
 
         // add simple props
-        ['extension', 'language', 'private', 'change_frequence', 'priority'].forEach((key) => {
+        ['extension', 'language', 'private', 'change_frequence', 'priority', 'static'].forEach((key) => {
             if (data._wyvr[key]) {
                 wyvr_prop[key] = data._wyvr[key];
             }

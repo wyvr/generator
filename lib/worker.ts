@@ -308,7 +308,8 @@ export class Worker {
             page: page_file_name,
         };
         // emit identifier only when it was not added to the cache
-        if (!this.identifiers_cache[identifier]) {
+        // or avoid when the given data has to be static => no JS
+        if (!this.identifiers_cache[identifier] && !data._wyvr.static) {
             this.identifiers_cache[identifier] = true;
             WorkerHelper.send_action(WorkerAction.emit, result);
         }

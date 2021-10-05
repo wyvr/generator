@@ -60,7 +60,7 @@ export class Build {
             return [e, null];
         }
         // write css file
-        const css_file_path = join('gen', 'css', `${props._wyvr.identifier}.css`);
+        const css_file_path = join('gen', 'css', `${props._wyvr.identifier.replace(/\./g, '-')}.css`);
         let identifier_item = { url: props.url, identifier: props._wyvr.identifier, extension: props._wyvr.extension };
         let media_files = {};
         if (!fs.existsSync(css_file_path)) {

@@ -4,7 +4,7 @@ import { WorkerAction } from '@lib/model/worker/action';
 import { File } from '@lib/file';
 import { Build } from '@lib/build';
 import { Dir } from '@lib/dir';
-import { join, dirname } from 'path';
+import { join, dirname, extname } from 'path';
 import { readFileSync, writeFileSync, mkdirSync } from 'fs-extra';
 import { LogType } from '@lib/model/log';
 import { Client } from '@lib/client';
@@ -204,7 +204,7 @@ export class Worker {
                                     dep_files.push(...Dependency.get_dependencies(identifier.file[type], files, identifier.dependency));
                                 }
                             });
-                            if(identifier.file.shortcodes) {
+                            if (identifier.file.shortcodes) {
                                 dep_files.push(...Dependency.get_dependencies(identifier.file.name, files, identifier.dependency));
                             }
                             // remove doubled dependency entries
@@ -232,20 +232,26 @@ export class Worker {
                     WorkerHelper.send_status(WorkerStatus.busy);
                     const critical = require('critical');
                     const minify = require('html-minifier').minify;
-                    // create above the fold inline css
-                    let { css } = await critical.generate({
-                        inline: false, // generates CSS
-                        base: this.release_path,
-                        src: value[0].path,
-                        dimensions: [
-                            { width: 320, height: 568 },
-                            { width: 360, height: 720 },
-                            { width: 480, height: 800 },
-                            { width: 1024, height: 768 },
-                            { width: 1280, height: 1024 },
-                            { width: 1920, height: 1080 },
-                        ],
-                    });
+                    let css = null;
+                    try {
+                        // create above the fold inline css
+                        const result = await critical.generate({
+                            inline: false, // generates CSS
+                            base: this.release_path,
+                            src: value[0].path,
+                            dimensions: [
+                                { width: 320, height: 568 },
+                                { width: 360, height: 720 },
+                                { width: 480, height: 800 },
+                                { width: 1024, height: 768 },
+                                { width: 1280, height: 1024 },
+                                { width: 1920, height: 1080 },
+                            ],
+                        });
+                        css = result.css;
+                    } catch (e) {
+                        WorkerHelper.log(LogType.error, Error.get(e, value[0].files[0], 'worker optimize critical'));
+                    }
                     if (!css) {
                         css = '';
                     }
@@ -256,20 +262,22 @@ export class Worker {
                         // replacve hashed files in the content
                         content = Optimize.replace_hashed_files(content, value[0].hash_list);
                         // minify the html output
-                        try {
-                            content = minify(content, {
-                                collapseBooleanAttributes: true,
-                                collapseInlineTagWhitespace: true,
-                                collapseWhitespace: true,
-                                continueOnParseError: true,
-                                removeAttributeQuotes: true,
-                                removeComments: true,
-                                removeScriptTypeAttributes: true,
-                                removeStyleLinkTypeAttributes: true,
-                                useShortDoctype: true,
-                            });
-                        } catch (e) {
-                            WorkerHelper.log(LogType.error, Error.get(e, file, 'worker optimize minify'));
+                        if (['.html', '.htm'].indexOf(extname(file)) > -1) {
+                            try {
+                                content = minify(content, {
+                                    collapseBooleanAttributes: true,
+                                    collapseInlineTagWhitespace: true,
+                                    collapseWhitespace: true,
+                                    continueOnParseError: true,
+                                    removeAttributeQuotes: true,
+                                    removeComments: true,
+                                    removeScriptTypeAttributes: true,
+                                    removeStyleLinkTypeAttributes: true,
+                                    useShortDoctype: true,
+                                });
+                            } catch (e) {
+                                WorkerHelper.log(LogType.error, Error.get(e, file, 'worker optimize minify'));
+                            }
                         }
 
                         writeFileSync(file, content);
@@ -318,9 +326,9 @@ export class Worker {
         (<any>result).data = data;
 
         // correct doc, layout and page from raw to src
-        result.doc = result.doc.replace(/gen\/raw/, 'gen/src')
-        result.layout = result.layout.replace(/gen\/raw/, 'gen/src')
-        result.page = result.page.replace(/gen\/raw/, 'gen/src')
+        result.doc = result.doc.replace(/gen\/raw/, 'gen/src');
+        result.layout = result.layout.replace(/gen\/raw/, 'gen/src');
+        result.page = result.page.replace(/gen\/raw/, 'gen/src');
         return result;
     }
 }

@@ -321,14 +321,14 @@ export class MainHelper {
         const svelte_files = File.collect_svelte_files('gen/src');
         const hydrateable_files = Client.get_hydrateable_svelte_files(svelte_files);
         // validate hydratable files
-        hydrateable_files.map((file)=> {
-            if(file.config?.loading == WyvrFileLoading.none && !file.config?.trigger) {
-                Logger.error(Logger.color.dim('[wyvr]'), file.rel_path, 'trigger prop is required, when loading is set to none')
+        hydrateable_files.map((file) => {
+            if (file.config?.loading == WyvrFileLoading.none && !file.config?.trigger) {
+                Logger.error(Logger.color.dim('[wyvr]'), file.rel_path, 'trigger prop is required, when loading is set to none');
             }
-            if(file.config?.loading == WyvrFileLoading.media && !file.config?.media) {
-                Logger.error(Logger.color.dim('[wyvr]'), file.rel_path, 'media prop is required, when loading is set to media')
+            if (file.config?.loading == WyvrFileLoading.media && !file.config?.media) {
+                Logger.error(Logger.color.dim('[wyvr]'), file.rel_path, 'media prop is required, when loading is set to media');
             }
-        })
+        });
         const transformed_files = Client.transform_hydrateable_svelte_files(hydrateable_files);
         await Plugin.after('transform', transformed_files);
         return {
@@ -522,20 +522,17 @@ export class MainHelper {
                     shortcodes: Object.values(shortcode_imports).map((path: string) => path.replace(src_path + sep, '')),
                 };
 
+                const css_identifier = `/${join('css', identifier_item.identifier.replace(/\./g, '-'))}.css`;
+                const js_identifier = `/${join('js', identifier_item.identifier.replace(/\./g, '-'))}.js`;
+
                 writeFileSync(
                     file,
                     rendered.result.html
                         .replace(
                             /<\/head>/,
-                            `<link rel="preload" href="/${join(
-                                'css',
-                                identifier_item.identifier
-                            )}.css" as="style" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="${join(
-                                'css',
-                                identifier_item.identifier
-                            )}"></noscript></head>`
+                            `<link rel="preload" href="${css_identifier}" as="style" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="${css_identifier}"></noscript></head>`
                         )
-                        .replace(/<\/body>/, `<script src="/${join('js', identifier_item.identifier)}.js"></script></body>`)
+                        .replace(/<\/body>/, `<script src="${js_identifier}"></script></body>`)
                 );
 
                 return file;
@@ -545,7 +542,7 @@ export class MainHelper {
     }
     async scripts(worker_controller: WorkerController, identifiers: any, is_watching: boolean = false): Promise<boolean> {
         await Plugin.before('scripts', identifiers, Dependency.cache);
-        
+
         if (is_watching) {
             // remove only new identifier files
             Object.keys(identifiers).forEach((identifier) => removeSync(join('gen', 'js', `${identifier}.js`)));
@@ -566,7 +563,6 @@ export class MainHelper {
             Logger.improve('optimize will not be executed in dev mode');
             return;
         }
-        await Plugin.before('optimize', identifier_list);
         // add contenthash to the generated files
         const replace_hash_files = [];
         const [hash_list, file_list] = Optimize.get_hashed_files();
@@ -714,6 +710,7 @@ export class MainHelper {
         const plugin_files = File.collect_files(join('gen', 'plugins'));
         await Plugin.init(plugin_files, {
             release_path: release_path,
+            env: EnvModel[Env.get()]
         });
         // allow plugins to modify the global config
         let global = Config.get(null);
@@ -740,10 +737,17 @@ export class MainHelper {
         if (error_before) {
             this.fail(error_before);
         }
-        // symlink the "static" folders to release
-        Link.to('gen/assets', `releases/${uniq_id}/assets`);
-        Link.to('gen/js', `releases/${uniq_id}/js`);
-        Link.to('gen/css', `releases/${uniq_id}/css`);
+        const static_folders = ['assets', 'js', 'css'];
+        if (Env.is_dev()) {
+            // symlink the "static" folders to release
+            static_folders.forEach((folder) => {
+                Link.to(`gen/${folder}`, `releases/${uniq_id}/${folder}`);
+            });
+        } else {
+            static_folders.forEach((folder) => {
+                copySync(`gen/${folder}`, `releases/${uniq_id}/${folder}`);
+            });
+        }
 
         const [error_after] = await Plugin.after('link');
         if (error_after) {
@@ -755,13 +759,7 @@ export class MainHelper {
         if (error_before) {
             this.fail(error_before);
         }
-        if (Env.is_prod()) {
-            // in production copy the static folders
-            ['assets', 'js', 'css'].forEach((folder) => {
-                removeSync(`releases/${uniq_id}/${folder}`);
-                copySync(`gen/${folder}`, `releases/${uniq_id}/${folder}`);
-            });
-        }
+        Publish.release(uniq_id);
         const [error_after] = await Plugin.after('release');
         if (error_after) {
             this.fail(error_after);
@@ -780,8 +778,5 @@ export class MainHelper {
             return true;
         }
         return false;
-    }
-    async publish(uniq_id: string) {
-        Publish.release(uniq_id);
     }
 }

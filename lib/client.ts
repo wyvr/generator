@@ -25,7 +25,7 @@ export class Client {
         Env.set(process.env.WYVR_ENV);
         const client_root = join(cwd, 'gen', 'client');
 
-        const input_file = join(client_root, `${entry.name}.js`);
+        const input_file = join(client_root, `${entry.name.replace(/\./g, '-')}.js`);
         const lazy_input_files = [];
         const idle_input_files = [];
         const media_input_files = [];
@@ -57,7 +57,7 @@ export class Client {
         // when no hydrateable files are available create minimal bundle
         if (hydrate_files.length == 0) {
             const empty_bundle = [script_partials.env, script_partials.events, script_partials.debug];
-            File.write(join(cwd, 'gen', 'js', `${entry.name}.js`), empty_bundle.join(''));
+            File.write(join(cwd, 'gen', 'js', `${entry.name.replace(/\./g, '-')}.js`), empty_bundle.join(''));
             return [null, null];
         }
         const content = await Promise.all(
@@ -65,8 +65,8 @@ export class Client {
                 const import_path = join(cwd, file.path);
                 const var_name = file.name.toLowerCase().replace(/\s/g, '_');
 
-                const lazy_input_path = join(client_root, `${File.to_extension(file.path, '').replace(join('gen', 'client') + '/', '')}.js`);
-                const lazy_input_name = File.to_extension(lazy_input_path, '').replace(client_root + '/', '');
+                const lazy_input_path = join(client_root, `${File.to_extension(file.path, '').replace(join('gen', 'client') + '/', '').replace(/\./g, '-')}.js`);
+                const lazy_input_name = File.to_extension(lazy_input_path, '').replace(client_root + '/', '').replace(/\./g, '-');
                 const is_lazy = [WyvrFileLoading.lazy, WyvrFileLoading.idle, WyvrFileLoading.media, WyvrFileLoading.none].indexOf(file.config?.loading) > -1;
                 if (is_lazy) {
                     // add to the list of lazy type
@@ -145,7 +145,7 @@ export class Client {
 
         File.write(input_file, script_content.join('\n'));
 
-        const [error, result] = await this.process_bundle(input_file, entry.name, cwd);
+        const [error, result] = await this.process_bundle(input_file, entry.name.replace(/\./g, '-'), cwd);
         if (error) {
             WorkerHelper.log(LogType.error, '[svelte]', error);
         }
@@ -255,7 +255,7 @@ export class Client {
                 }
             });
         }
-        
+
         return config;
     }
     static transform_hydrateable_svelte_files(files: WyvrFile[]) {

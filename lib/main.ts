@@ -444,10 +444,6 @@ export class Main {
         await this.helper.release(this.uniq_id);
         this.perf.end('release');
 
-        this.perf.start('publish');
-        await this.helper.publish(this.uniq_id);
-        this.perf.end('publish');
-
         this.worker_controller.cleanup();
         this.is_executing = false;
         return build_pages;

@@ -101,6 +101,7 @@ export class WyvrFileConfig {
     loading: WyvrFileLoading = WyvrFileLoading.instant;
     error: any;
     portal: string;
+    trigger: string;
     media: string = 'all';
     [key: string]: any;
 }

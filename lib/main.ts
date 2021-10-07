@@ -232,7 +232,7 @@ export class Main {
         }
         if (this.mode == WyvrMode.build) {
             // execute
-            await this.execute(importer.get_import_list());
+            await this.execute();
 
             // save config for cron and debugging
             File.write_json('gen/config.json', Config.get());
@@ -264,7 +264,6 @@ export class Main {
                 const watch = new Watch(this.watcher_ports, async (changed_files: any[], watched_files: string[]) => {
                     Plugin.clear();
                     return await this.execute(
-                        [],
                         changed_files,
                         watched_files
                     );
@@ -275,7 +274,7 @@ export class Main {
         }
     }
 
-    async execute(file_list: any[], changed_files: { event: string; path: string; rel_path: string }[] = [], watched_files: string[] = null) {
+    async execute(changed_files: { event: string; path: string; rel_path: string }[] = [], watched_files: string[] = null) {
         this.is_executing = true;
 
         const is_regenerating = changed_files.length > 0;

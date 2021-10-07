@@ -263,7 +263,6 @@ export class Main {
             try {
                 const watch = new Watch(this.watcher_ports, async (changed_files: any[], watched_files: string[]) => {
                     Plugin.clear();
-                    console.log('CF', changed_files, 'WF', watched_files);
                     return await this.execute(
                         [],
                         changed_files,

@@ -151,7 +151,11 @@ export class Watch {
                 }
                 debounce = setTimeout(() => {
                     Logger.block('rebuild');
-                    this.rebuild();
+                    this.rebuild(
+                        this.changed_files.find((file) => {
+                            return file.rel_path.indexOf('plugin') > -1;
+                        })
+                    );
                 }, 500);
             });
         Logger.info('watching', this.packages.length, 'packages');
@@ -217,10 +221,19 @@ export class Watch {
         });
     }
 
-    async rebuild() {
+    async rebuild(force_complete_rebuild: boolean = false) {
         // avoid that 2 commands get sent
         if (this.is_executing == true) {
             Logger.warning('currently running, try again after current execution');
+            return;
+        }
+        if (force_complete_rebuild) {
+            // build whole site
+            await this.build([], null);
+            // reload all watcher
+            Object.keys(this.watchers).forEach((id) => {
+                this.send(id, { action: 'reload' });
+            });
             return;
         }
         const routes = Routes.collect_routes(null).map((route) => {
@@ -298,9 +311,8 @@ export class Watch {
             .filter((f) => f);
         // reset the files
         this.changed_files = [];
-        this.is_executing = true;
-        const hr_start = process.hrtime();
-        const build_pages = await this.callback([].concat(added_files, files), this.get_watched_files());
+
+        const build_pages = await this.build([].concat(added_files, files), this.get_watched_files());
         // reload only whole page when no static asset is given
         const rel_file_paths = files.map((f) => f.rel_path);
         const reload_files = []
@@ -330,12 +342,18 @@ export class Watch {
             });
         }
         // bs.reload(reload_files.length > 0 ? reload_files : undefined);
+    }
 
+    async build(changed_files: any[], watched_files: string[]) {
+        this.is_executing = true;
+        const hr_start = process.hrtime();
+        const result = await this.callback(changed_files, watched_files);
         RequireCache.clear();
         const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
         Logger.stop('watch total', timeInMs);
         this.idle();
         this.is_executing = false;
+        return result;
     }
 
     idle() {

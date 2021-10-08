@@ -20,13 +20,11 @@ export class I18N {
         i18next.on('missingKey', function (lngs, namespace, key, res) {
             Logger.warning('[i18n]', `missing key "${key}" in ${namespace} language ${lngs.join(',')}`);
         });
-        await i18next.init(
-            {
-                fallbackLng: 'en',
-                debug: false,
-                saveMissing: true, // needed to emit missingKey
-            }
-        );
+        await i18next.init({
+            fallbackLng: 'en',
+            debug: false,
+            saveMissing: true, // needed to emit missingKey
+        });
     }
     static translate(key: string | string[], options?: any) {
         I18N.setup();

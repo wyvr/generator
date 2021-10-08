@@ -24,6 +24,7 @@
         "fs-extra": "10.0.0",
         "html-minifier": "4.0.0",
         "http-server": "13.0.2",
+        "i18next": "^21.2.4",
         "intl": "1.2.5",
         "marked": "3.0.4",
         "mocha": "9.1.2",

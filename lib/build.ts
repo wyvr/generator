@@ -6,6 +6,7 @@ import { Client } from '@lib/client';
 import { Env } from '@lib/env';
 import { WyvrCssMediaCollection } from '@lib/model/wyvr/file';
 import { Transform } from './transform';
+import { I18N } from '@lib/i18n';
 
 register();
 // fix intl global on the server side
@@ -19,6 +20,7 @@ register();
 };
 (<any>global).isServer = true;
 (<any>global).isClient = false;
+(<any>global).__ = I18N.translate;
 export class Build {
     static async compile(content: string): Promise<[any, any]> {
         if (!content || typeof content != 'string') {

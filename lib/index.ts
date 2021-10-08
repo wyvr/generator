@@ -17,4 +17,5 @@ module.exports = {
     isServer: true,
     isClient: false,
     getGlobal: (key, fallback, callback) => {},
+    __: () => {},
 };

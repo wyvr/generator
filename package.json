@@ -8,11 +8,11 @@
     "node": "^12.20.0 || ^14.13.1 || >=16.0.0",
     "dependencies": {
         "@rollup/plugin-alias": "3.1.5",
-        "@rollup/plugin-commonjs": "20.0.0",
+        "@rollup/plugin-commonjs": "^21.0.0",
         "@rollup/plugin-json": "4.1.0",
         "@rollup/plugin-node-resolve": "13.0.5",
-        "@rollup/plugin-typescript": "8.2.3",
-        "@swc/core": "1.2.92",
+        "@rollup/plugin-typescript": "^8.2.5",
+        "@swc/core": "^1.2.95",
         "ansi-colors": "4.1.1",
         "array-to-tree": "3.3.2",
         "axios": "0.22.0",
@@ -26,7 +26,7 @@
         "http-server": "13.0.2",
         "i18next": "^21.2.4",
         "intl": "1.2.5",
-        "marked": "3.0.4",
+        "marked": "^3.0.7",
         "mocha": "9.1.2",
         "node-static": "0.7.11",
         "nodemon": "2.0.13",
@@ -40,7 +40,7 @@
         "svelte": "3.43.1",
         "svelte-i18n": "3.3.12",
         "uuid": "8.3.2",
-        "ws": "8.2.2"
+        "ws": "^8.2.3"
     },
     "devDependencies": {
         "@istanbuljs/nyc-config-typescript": "1.0.1",

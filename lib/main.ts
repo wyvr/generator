@@ -263,10 +263,7 @@ export class Main {
             try {
                 const watch = new Watch(this.watcher_ports, async (changed_files: any[], watched_files: string[]) => {
                     Plugin.clear();
-                    return await this.execute(
-                        changed_files,
-                        watched_files
-                    );
+                    return await this.execute(changed_files, watched_files);
                 });
             } catch (e) {
                 this.helper.fail(e);
@@ -288,6 +285,10 @@ export class Main {
         this.perf.start('plugins');
         await this.helper.plugins(this.release_path);
         this.perf.end('plugins');
+
+        this.perf.start('i18n');
+        await this.helper.i18n();
+        this.perf.end('i18n');
 
         if (only_static) {
             this.is_executing = false;

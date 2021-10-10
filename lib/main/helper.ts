@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync, existsSync, copySync, mkdirSync, removeSync } from 'fs-extra';
-import { dirname, join, sep, extname } from 'path';
+import { dirname, join, sep, extname, basename } from 'path';
 
 import { Publish } from '@lib/publish';
 import { WyvrMode } from '@lib/model/wyvr/mode';
@@ -22,10 +22,11 @@ import { Route } from '@lib/model/route';
 import { Global } from '@lib/global';
 import { hrtime_to_ms } from '@lib/converter/time';
 import { WorkerEmit } from '@lib/model/worker/emit';
-import { Build } from '../build';
-import { EnvModel } from '../model/env';
-import { Transform } from '../transform';
-import { WyvrFileLoading } from '../model/wyvr/file';
+import { Build } from '@lib/build';
+import { EnvModel } from '@lib/model/env';
+import { Transform } from '@lib/transform';
+import { WyvrFileLoading } from '@lib/model/wyvr/file';
+import { I18N } from '../i18n';
 
 export class MainHelper {
     cwd = process.cwd();
@@ -149,6 +150,11 @@ export class MainHelper {
             });
         }
         return package_tree;
+    }
+    async i18n() {
+        const packages = Config.get('packages');
+        const result = I18N.collect(packages);
+        I18N.write(result);
     }
     async collect(package_tree: any) {
         const packages = Config.get('packages');
@@ -710,7 +716,7 @@ export class MainHelper {
         const plugin_files = File.collect_files(join('gen', 'plugins'));
         await Plugin.init(plugin_files, {
             release_path: release_path,
-            env: EnvModel[Env.get()]
+            env: EnvModel[Env.get()],
         });
         // allow plugins to modify the global config
         let global = Config.get(null);
@@ -737,7 +743,7 @@ export class MainHelper {
         if (error_before) {
             this.fail(error_before);
         }
-        const static_folders = ['assets', 'js', 'css'];
+        const static_folders = ['assets', 'js', 'css', 'i18n'];
         if (Env.is_dev()) {
             // symlink the "static" folders to release
             static_folders.forEach((folder) => {

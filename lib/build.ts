@@ -11,6 +11,7 @@ import { I18N } from '@lib/i18n';
 register();
 // fix intl global on the server side
 (<any>global).Intl = require('intl');
+require('intl-pluralrules');
 // onServer Server implementation
 (<any>global).onServer = async (callback: Function) => {
     if (callback && typeof callback == 'function') {

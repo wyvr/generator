@@ -22,9 +22,9 @@ export class Generate {
             private: false,
             change_frequence: 'monthly',
             priority: 0.5,
-            static: false
+            static: false,
         };
-        
+
         if (data._wyvr) {
             if (data._wyvr.template) {
                 // use the given templates for all types
@@ -71,7 +71,7 @@ export class Generate {
 
         // add simple props
         ['extension', 'language', 'private', 'change_frequence', 'priority', 'static'].forEach((key) => {
-            if (data._wyvr[key]) {
+            if (data._wyvr[key] != null) {
                 wyvr_prop[key] = data._wyvr[key];
             }
         });

@@ -11,11 +11,9 @@ import { terser } from 'rollup-plugin-terser';
 import { WyvrFile, WyvrFileConfig, WyvrFileLoading, WyvrFileRender } from '@lib/model/wyvr/file';
 import { File } from '@lib/file';
 import { Env } from '@lib/env';
-import { WorkerHelper } from '@lib/worker/helper';
-import { LogType } from '@lib/model/log';
 import { Error } from '@lib/error';
-import { Transform } from './transform';
-import { Logger } from './logger';
+import { Transform } from '@lib/transform';
+import { Logger } from '@lib/logger';
 
 export class Client {
     static transform_resource(content) {
@@ -65,8 +63,15 @@ export class Client {
                 const import_path = join(cwd, file.path);
                 const var_name = file.name.toLowerCase().replace(/\s/g, '_');
 
-                const lazy_input_path = join(client_root, `${File.to_extension(file.path, '').replace(join('gen', 'client') + '/', '').replace(/\./g, '-')}.js`);
-                const lazy_input_name = File.to_extension(lazy_input_path, '').replace(client_root + '/', '').replace(/\./g, '-');
+                const lazy_input_path = join(
+                    client_root,
+                    `${File.to_extension(file.path, '')
+                        .replace(join('gen', 'client') + '/', '')
+                        .replace(/\./g, '-')}.js`
+                );
+                const lazy_input_name = File.to_extension(lazy_input_path, '')
+                    .replace(client_root + '/', '')
+                    .replace(/\./g, '-');
                 const is_lazy = [WyvrFileLoading.lazy, WyvrFileLoading.idle, WyvrFileLoading.media, WyvrFileLoading.none].indexOf(file.config?.loading) > -1;
                 if (is_lazy) {
                     // add to the list of lazy type
@@ -98,7 +103,7 @@ export class Client {
                         );
                         const [error, result] = await this.process_bundle(lazy_input_path, lazy_input_name, cwd);
                         if (error) {
-                            WorkerHelper.log(LogType.error, '[svelte]', error);
+                            Logger.error('[svelte]', error);
                         }
                     }
                 }
@@ -147,7 +152,7 @@ export class Client {
 
         const [error, result] = await this.process_bundle(input_file, entry.name.replace(/\./g, '-'), cwd);
         if (error) {
-            WorkerHelper.log(LogType.error, '[svelte]', error);
+            Logger.error('[svelte]', error);
         }
         return [error, result];
     }
@@ -160,7 +165,7 @@ export class Client {
                 if (this.ignore_warning(warning)) {
                     return;
                 }
-                WorkerHelper.log(LogType.warning, '[svelte]', Error.get(warning, input_file, 'bundle'));
+                Logger.warning('[svelte]', Error.get(warning, input_file, 'bundle'));
             },
             plugins: [
                 alias({

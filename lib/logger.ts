@@ -3,6 +3,9 @@ const circular = require('circular');
 import * as color from 'ansi-colors';
 import ora from 'ora';
 import { EnvModel } from '@lib/model/env';
+import { WorkerAction } from '@lib/model/worker/action';
+import cluster from 'cluster';
+import { LogType } from '@lib/model/log';
 
 export class Logger {
     static color = color;
@@ -20,13 +23,27 @@ export class Logger {
         return ora(name).start();
     }
 
-    static output(color_fn: Function | null, char: string, ...values: any[]) {
-        let text = values
-            .map(this.stringify)
-            .filter((x) => x)
-            .map((v) => (color_fn ? color_fn(v) : v))
-            .join(' ');
+    static output(type: number, color_fn: Function | null, char: string, ...values: any[]) {
+        const messages = values.map(this.stringify).filter((x) => x);
+
+        if (cluster.isWorker) {
+            process.send({
+                pid: process.pid,
+                data: {
+                    action: {
+                        key: WorkerAction.log,
+                        value: {
+                            type,
+                            messages,
+                        },
+                    },
+                },
+            });
+            return;
+        }
+        const text = messages.map((v) => (color_fn ? color_fn(v) : v)).join(' ');
         const symbol = color_fn ? color_fn(char) : char;
+
         if (this.spinner) {
             this.spinner.stopAndPersist({ text: `${symbol} ${text}`, symbol: color.dim('│') }).start(this.last_text).spinner = 'dots';
             return;
@@ -34,44 +51,44 @@ export class Logger {
         console.log(symbol, text);
     }
     static log(...values) {
-        this.output(null, '', ...values);
+        this.output(LogType.log, null, '', ...values);
     }
     static present(key, ...values) {
-        this.output(null, color.dim('-'), key, color.green(values.shift()), ...values);
+        this.output(LogType.present, null, color.dim('-'), key, color.green(values.shift()), ...values);
     }
     static info(key, ...values) {
-        this.output(null, color.cyan('i'), key, color.cyan(values.shift()), ...values);
+        this.output(LogType.info, null, color.cyan('i'), key, color.cyan(values.shift()), ...values);
     }
     static success(key, ...values) {
-        this.output(null, color.green('✓'), key, color.green(values.shift()), ...values);
+        this.output(LogType.success, null, color.green('✓'), key, color.green(values.shift()), ...values);
     }
     static warning(...values) {
-        this.output(color.yellow, '⚠', ...values);
+        this.output(LogType.warning, color.yellow, '⚠', ...values);
     }
     static error(...values) {
-        this.output(color.red, '✘', ...values);
+        this.output(LogType.error, color.red, '✘', ...values);
     }
     static improve(...values) {
-        this.output(color.magenta, '⚡️', ...values);
+        this.output(LogType.improve, color.magenta, '⚡️', ...values);
     }
     static report(duration, ...values) {
         if (this.show_report) {
-            this.output(color.yellow, '#', ...values, duration, color.dim('ms'));
+            this.output(LogType.report, color.yellow, '#', ...values, duration, color.dim('ms'));
         }
     }
     static block(...values) {
-        this.output(color.cyan, '■', ...values);
+        this.output(LogType.block, color.cyan, '■', ...values);
     }
     static debug(...values) {
         if (this.env != 'debug') {
             return;
         }
-        this.output(color.dim, '~', ...values);
+        this.output(LogType.debug, color.dim, '~', ...values);
     }
     static start(name: string) {
         if (this.env != 'production') {
             this.last_text = name || '';
-            this.output(color.dim, '┌', name);
+            this.output(LogType.start, color.dim, '┌', name);
             this.spinner = this.create_spinner(name);
         }
     }

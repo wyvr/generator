@@ -357,7 +357,7 @@ export class Watch {
     }
 
     idle() {
-        Logger.output(Logger.color.dim, '░', 'idle & waiting for changes...');
-        Logger.output(null, '');
+        Logger.output(null, Logger.color.dim, '░', 'idle & waiting for changes...');
+        Logger.output(null, null, '');
     }
 }

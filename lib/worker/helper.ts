@@ -44,10 +44,4 @@ export class WorkerHelper {
         }
         return enum_status;
     }
-    static log(type: LogType, ...messages: any[]) {
-        this.send_action(WorkerAction.log, {
-            type,
-            messages,
-        });
-    }
 }

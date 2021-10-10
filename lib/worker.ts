@@ -19,6 +19,7 @@ import { WorkerEmit } from '@lib/model/worker/emit';
 import { Dependency } from '@lib/dependency';
 import { WyvrFile } from '@lib/model/wyvr/file';
 import { Env } from '@lib/env';
+import { Logger } from '@lib/logger';
 
 export class Worker {
     private config = null;
@@ -39,7 +40,7 @@ export class Worker {
             const action = msg?.action?.key;
             const value = msg?.action?.value;
             if (!value) {
-                WorkerHelper.log(LogType.warning, 'ignored message from main, no value given', msg);
+                Logger.warning('ignored message from main, no value given', msg);
                 return;
             }
             switch (action) {
@@ -52,7 +53,7 @@ export class Worker {
                     this.release_path = value?.release_path;
                     // only when everything is configured set the worker idle
                     if ((!this.config && this.env == null) || !this.cwd) {
-                        WorkerHelper.log(LogType.warning, 'invalid configure value', value);
+                        Logger.warning('invalid configure value', value);
                         return;
                     }
                     WorkerHelper.send_complete();
@@ -68,7 +69,7 @@ export class Worker {
                             const filename = entry.route.path;
                             const [error, route_result] = await Routes.execute_route(entry.route);
                             if (error) {
-                                WorkerHelper.log(LogType.error, 'route error', Error.get(error, filename, 'route'));
+                                Logger.error('route error', Error.get(error, filename, 'route'));
                                 return null;
                             }
                             const route_url = Routes.write_routes(route_result, (data: any) => {
@@ -105,7 +106,7 @@ export class Worker {
                         value.map(async (filename) => {
                             const data = File.read_json(filename);
                             if (!data) {
-                                WorkerHelper.log(LogType.error, 'broken/missing/empty file', filename);
+                                Logger.error('broken/missing/empty file', filename);
                                 return;
                             }
                             const result = this.emit_identifier(data);
@@ -115,13 +116,13 @@ export class Worker {
 
                             if (compile_error) {
                                 // svelte error messages
-                                WorkerHelper.log(LogType.error, '[svelte]', data.url, Error.get(compile_error, filename, 'build'));
+                                Logger.error('[svelte]', data.url, Error.get(compile_error, filename, 'build'));
                                 return;
                             }
                             const [render_error, rendered, identifier_item] = await Build.render(compiled, data);
                             if (render_error) {
                                 // svelte error messages
-                                WorkerHelper.log(LogType.error, '[svelte]', data.url, Error.get(render_error, filename, 'render'));
+                                Logger.error('[svelte]', data.url, Error.get(render_error, filename, 'render'));
                                 return;
                             }
                             // change extension when set
@@ -170,9 +171,9 @@ export class Worker {
                             }
 
                             Dir.create(dirname(path));
-                            
+
                             // remove svelte integrated comment from compiler to avoid broken output
-                            if(!extension.match(/html|htm|php/)) {
+                            if (!extension.match(/html|htm|php/)) {
                                 rendered.result.html = rendered.result.html.replace(/<!-- HTML_TAG_(?:START|END) -->/g, '');
                             }
                             writeFileSync(path, rendered.result.html);
@@ -221,7 +222,7 @@ export class Worker {
                                 const [error, result] = await Client.create_bundle(this.cwd, identifier.file, dep_files);
                             } catch (e) {
                                 // svelte error messages
-                                WorkerHelper.log(LogType.error, Error.get(e, identifier.file.name, 'worker scripts'));
+                                Logger.error(Error.get(e, identifier.file.name, 'worker scripts'));
                             }
                             return null;
                         })
@@ -231,7 +232,7 @@ export class Worker {
                     break;
                 case WorkerAction.optimize:
                     if (value.length > 1) {
-                        WorkerHelper.log(LogType.error, 'more then 1 entry in crititcal css extraction is not allowed');
+                        Logger.error('more then 1 entry in crititcal css extraction is not allowed');
                         return;
                     }
                     WorkerHelper.send_status(WorkerStatus.busy);
@@ -255,7 +256,7 @@ export class Worker {
                         });
                         css = result.css;
                     } catch (e) {
-                        WorkerHelper.log(LogType.error, Error.get(e, value[0].files[0], 'worker optimize critical'));
+                        Logger.error(Error.get(e, value[0].files[0], 'worker optimize critical'));
                     }
                     if (!css) {
                         css = '';
@@ -281,7 +282,7 @@ export class Worker {
                                     useShortDoctype: true,
                                 });
                             } catch (e) {
-                                WorkerHelper.log(LogType.error, Error.get(e, file, 'worker optimize minify'));
+                                Logger.error(Error.get(e, file, 'worker optimize minify'));
                             }
                         }
 
@@ -290,20 +291,20 @@ export class Worker {
                     WorkerHelper.send_complete();
                     break;
                 case WorkerAction.status:
-                    WorkerHelper.log(LogType.debug, 'setting status from outside is not allowed');
+                    Logger.debug('setting status from outside is not allowed');
                     break;
                 case WorkerAction.cleanup:
-                    WorkerHelper.log(LogType.debug, 'cleanup worker');
+                    Logger.debug('cleanup worker');
                     RequireCache.clear();
                     break;
                 default:
-                    WorkerHelper.log(LogType.warning, 'unknown message action from outside', msg);
+                    Logger.warning('unknown message action from outside', msg);
                     break;
             }
         });
 
         process.on('uncaughtException', (err) => {
-            WorkerHelper.log(LogType.error, 'uncaughtException', err.message, err.stack);
+            Logger.error('uncaughtException', err.message, err.stack);
             process.exit(1);
         });
     }

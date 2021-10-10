@@ -12,15 +12,6 @@ export class I18N {
         if (this.is_setup) {
             return;
         }
-        i18next.on('languageChanged', function (lng) {
-            Logger.info('[i18n]', 'changed language', lng);
-        });
-        i18next.on('loaded', function (loaded) {
-            Logger.info('[i18n]', 'loaded', loaded);
-        });
-        i18next.on('failedLoading', function (lng, ns, msg) {
-            Logger.error('[i18n]', 'failedLoading', lng, ns, msg);
-        });
         i18next.on('missingKey', function (lngs, namespace, key, res) {
             Logger.warning('[i18n]', `missing key "${key}" in "${namespace}" language ${lngs.join(',')}`);
         });

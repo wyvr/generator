@@ -42,6 +42,7 @@ export class Client {
             none: this.transform_resource(fs.readFileSync(join(resource_folder, 'hydrate_none.js'), { encoding: 'utf-8' })),
             env: this.transform_resource(fs.readFileSync(join(resource_folder, 'env.js'), { encoding: 'utf-8' })),
             events: this.transform_resource(fs.readFileSync(join(resource_folder, 'events.js'), { encoding: 'utf-8' })),
+            i18n: this.transform_resource(fs.readFileSync(join(resource_folder, 'i18n.js'), { encoding: 'utf-8' })),
             debug: '',
         };
         if (Env.is_dev() && !contains_shortcodes) {
@@ -51,10 +52,11 @@ export class Client {
         if (contains_shortcodes) {
             script_partials.env = '';
             script_partials.events = '';
+            script_partials.i18n = '';
         }
         // when no hydrateable files are available create minimal bundle
         if (hydrate_files.length == 0) {
-            const empty_bundle = [script_partials.env, script_partials.events, script_partials.debug];
+            const empty_bundle = [script_partials.env, script_partials.events, script_partials.i18n, script_partials.debug];
             File.write(join(cwd, 'gen', 'js', `${entry.name.replace(/\./g, '-')}.js`), empty_bundle.join(''));
             return [null, null];
         }
@@ -133,7 +135,15 @@ export class Client {
                 }
             })
         );
-        const script_content = [script_partials.hydrate, script_partials.props, script_partials.portal, script_partials.debug, script_partials.env, script_partials.events];
+        const script_content = [
+            script_partials.hydrate,
+            script_partials.props,
+            script_partials.portal,
+            script_partials.debug,
+            script_partials.env,
+            script_partials.events,
+            script_partials.i18n,
+        ];
         if (lazy_input_files.length > 0) {
             script_content.push(script_partials.lazy);
         }

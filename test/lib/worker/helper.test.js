@@ -133,28 +133,6 @@ describe('Lib/Worker/WorkerHelper', () => {
             assert.strictEqual(WorkerHelper.get_status('dead'), WorkerStatus.dead);
         });
     });
-    describe('log', () => {
-        it('undefined', () => {
-            WorkerHelper.log();
-            assert.deepStrictEqual(messages, [{ action: { key: 1, key_name: 'log', value: { type: undefined, messages: [] } } }]);
-        });
-        it('null', () => {
-            WorkerHelper.log(null);
-            assert.deepStrictEqual(messages, [{ action: { key: 1, key_name: 'log', value: { type: null, messages: [] } } }]);
-        });
-        it('type', () => {
-            WorkerHelper.log(LogType.info);
-            assert.deepStrictEqual(messages, [{ action: { key: 1, key_name: 'log', value: { type: 2, messages: [] } } }]);
-        });
-        it('single', () => {
-            WorkerHelper.log(LogType.info, 'a');
-            assert.deepStrictEqual(messages, [{ action: { key: 1, key_name: 'log', value: { type: 2, messages: ['a'] } } }]);
-        });
-        it('multiple', () => {
-            WorkerHelper.log(LogType.info, 'a', 'b', 'c', 'd');
-            assert.deepStrictEqual(messages, [{ action: { key: 1, key_name: 'log', value: { type: 2, messages: ['a', 'b', 'c', 'd'] } } }]);
-        });
-    });
     after(() => {
         process.send = send;
     });

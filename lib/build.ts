@@ -146,8 +146,10 @@ export class Build {
         const media_includes = Object.keys(media_files)
             .map((key, index) => {
                 const path = '/css/' + basename(this.append_to_file_path(css_file_path, index + ''));
-                return `<link rel="preload" href="${path}" as="style" onload="this.onload=null;this.media='${key}';this.rel='stylesheet'">
-                <noscript><link rel="stylesheet" href="${path}" media="${key}"></noscript>`;
+                // @NOTE to get correct critical css this is not allowed to be preloaded
+                // return `<link rel="preload" href="${path}" as="style" onload="this.onload=null;this.media='${key}';this.rel='stylesheet'">
+                // <noscript><link rel="stylesheet" href="${path}" media="${key}"></noscript>`;
+                return `<link rel="stylesheet" href="${path}" media="${key}">`;
             })
             .join('\n');
         return html.replace('</head>', media_includes);

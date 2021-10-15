@@ -77,24 +77,24 @@ describe('Lib/Logger', () => {
             assert.deepStrictEqual(result, [[undefined, '']]);
         });
         it('symbol', () => {
-            Logger.output(null, '#');
+            Logger.output(null, null, '#');
             assert.deepStrictEqual(result, [['#', '']]);
         });
         it('symbol + text', () => {
-            Logger.output(null, '#', 'a');
+            Logger.output(null, null, '#', 'a');
             assert.deepStrictEqual(result, [['#', 'a']]);
         });
         it('symbol + multiple text', () => {
-            Logger.output(null, '#', 'a', 'b');
+            Logger.output(null, null, '#', 'a', 'b');
             assert.deepStrictEqual(result, [['#', 'a b']]);
         });
         it('no symbol + text', () => {
             Logger.output(null, null, 'a');
-            assert.deepStrictEqual(result, [[null, 'a']]);
+            assert.deepStrictEqual(result, [['a', '']]);
         });
         it('no symbol + multiple text', () => {
             Logger.output(null, null, 'a', 'b');
-            assert.deepStrictEqual(result, [[null, 'a b']]);
+            assert.deepStrictEqual(result, [['a', 'b']]);
         });
     });
     describe('log', () => {
@@ -114,15 +114,15 @@ describe('Lib/Logger', () => {
     describe('present', () => {
         it('empty', () => {
             Logger.present();
-            assert.deepStrictEqual(result, [[color.dim('>'), '']]);
+            assert.deepStrictEqual(result, [[color.dim('-'), '']]);
         });
         it('single', () => {
             Logger.present('a');
-            assert.deepStrictEqual(result, [[color.dim('>'), 'a']]);
+            assert.deepStrictEqual(result, [[color.dim('-'), 'a']]);
         });
         it('multiple', () => {
             Logger.present('a', 'b', 'c', 'd');
-            assert.deepStrictEqual(result, [[color.dim('>'), `a ${color.green('b')} c d`]]);
+            assert.deepStrictEqual(result, [[color.dim('-'), `a ${color.green('b')} c d`]]);
         });
     });
     describe('info', () => {
@@ -319,7 +319,7 @@ describe('Lib/Logger', () => {
             assert.deepStrictEqual(Logger.spinner, null);
             Logger.stop('a');
             assert.deepStrictEqual(result, [
-                ['', 'null \x1B[32m✓\x1B[39m \x1B[32ma\x1B[39m\x1B[2m.................................\x1B[22m0 \x1B[2mms\x1B[22m'],
+                ['', 'null \x1B[32m✓\x1B[39m \x1B[32ma\x1B[39m \x1B[2m.................................\x1B[22m 0 \x1B[2mms\x1B[22m'],
             ]);
             assert.deepStrictEqual(Logger.spinner, null);
             Logger.set_env('development');

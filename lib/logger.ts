@@ -41,8 +41,9 @@ export class Logger {
             });
             return;
         }
-        const text = messages.map((v) => (color_fn ? color_fn(v) : v)).join(' ');
-        const symbol = color_fn ? color_fn(char) : char;
+        const has_color_fn = color_fn && typeof color_fn == 'function';
+        const text = messages.map((v) => (has_color_fn ? color_fn(v) : v)).join(' ');
+        const symbol = has_color_fn ? color_fn(char) : char;
 
         if (this.spinner) {
             this.spinner.stopAndPersist({ text: `${symbol} ${text}`, symbol: color.dim('│') }).start(this.last_text).spinner = 'dots';

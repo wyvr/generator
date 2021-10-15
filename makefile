@@ -65,13 +65,16 @@ test: ## Executes the tests
 	@$(WYVR_COMPILE) && $(WYVR_TEST)
 
 test-watch: ## Watches changes in the tests
-	@npx nodemon --watch lib --watch test -e js,ts --delay 2 --exec "$(WYVR_COVERAGE)"
+	@npx nodemon --watch lib --watch test -e js,ts --exec "$(WYVR_TEST)"
 
 init: ## Install and prepare setup
 	@npm install
 
 coverage: ## Get test coverage result
 	@$(WYVR_COVERAGE)
+
+coverage-watch: ## Watches changes in the tests
+	@npx nodemon --watch lib --watch test -e js,ts --delay 2 --exec "$(WYVR_COVERAGE)"
 
 clean: ## Removes generated folders for a clean setup
 	@$(WYVR_CLEAN)

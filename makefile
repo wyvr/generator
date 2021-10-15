@@ -57,6 +57,7 @@ compile-watch: ## Start watcher and make dev builds
 		--ignore wyvr \
 		--ignore gen \
 		--ignore releases \
+		--ignore cache \
 		-e js,ts,svelte,css \
 		--verbose \
 		--exec '$(WYVR_COMPILE)'
@@ -65,7 +66,7 @@ test: ## Executes the tests
 	@$(WYVR_COMPILE) && $(WYVR_TEST)
 
 test-watch: ## Watches changes in the tests
-	@npx nodemon --watch lib --watch test -e js,ts --exec "$(WYVR_TEST)"
+	@npx nodemon --watch lib --watch test -e js,ts --delay 2 --exec "$(WYVR_TEST)"
 
 init: ## Install and prepare setup
 	@npm install

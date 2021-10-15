@@ -27,7 +27,7 @@ describe('Lib/Model/Wyvr/File', () => {
         it('reserved keyword in folder', () => {
             const file = new WyvrFile('folder/abstract.svelte');
             assert.deepStrictEqual(file.path, 'folder/abstract.svelte');
-            assert.deepStrictEqual(file.name, '_abstract');
+            assert.deepStrictEqual(file.name, 'folder_abstract');
         });
     });
     describe('WyvrFileConfig', () => {

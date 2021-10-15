@@ -17,7 +17,7 @@ export class WyvrFile {
             const gen_index = splitted.indexOf('gen');
             // make name unique per file, which is based on the path
             // remove the gen and next (state) folder
-            const rel_splitts = splitted.slice(gen_index + 2);
+            const rel_splitts = gen_index > -1 ? splitted.slice(gen_index + 2) : splitted;
             this.rel_path = ['@src', ...rel_splitts].join(sep);
             let name = rel_splitts.join('_').replace(new RegExp(`${extname(path).replace('.', '\\.')}$`), '');
             // avoid reserved keywords

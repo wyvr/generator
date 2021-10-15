@@ -744,16 +744,10 @@ export class MainHelper {
             this.fail(error_before);
         }
         const static_folders = ['assets', 'js', 'css', 'i18n'];
-        if (Env.is_dev()) {
-            // symlink the "static" folders to release
-            static_folders.forEach((folder) => {
-                Link.to(`gen/${folder}`, `releases/${uniq_id}/${folder}`);
-            });
-        } else {
-            static_folders.forEach((folder) => {
-                copySync(`gen/${folder}`, `releases/${uniq_id}/${folder}`);
-            });
-        }
+        // symlink the "static" folders to release
+        static_folders.forEach((folder) => {
+            Link.to(`gen/${folder}`, `releases/${uniq_id}/${folder}`);
+        });
 
         const [error_after] = await Plugin.after('link');
         if (error_after) {

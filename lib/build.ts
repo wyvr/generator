@@ -57,6 +57,11 @@ export class Build {
                 svelte_render_item.notes.push({ msg: 'unused props', details: unused_props });
             }
         }
+
+        // set the correct translations for the page
+        I18N.setup();
+        const translations = I18N.get(props._wyvr.language);
+        I18N.i18n.init(translations);
         try {
             svelte_render_item.result = await svelte_render_item.component.render(props);
         } catch (e) {
@@ -82,6 +87,11 @@ export class Build {
             // inject media css files
             svelte_render_item.result.html = await this.inject_media_files(svelte_render_item.result.html, css_file_path, media_files);
         }
+        // inject translations
+        if(translations) {
+            svelte_render_item.result.html = svelte_render_item.result.html.replace(/<\/body>/, `<script>var wyvr_i18n_tr = ${JSON.stringify(translations)}</script></body>`)
+        }
+
         // svelte_render_item.result.html = svelte_render_item.result.html.replace('</head>', `<style>${svelte_render_item.result.css.code}</style></head>`);
         return [null, svelte_render_item, identifier_item];
     }

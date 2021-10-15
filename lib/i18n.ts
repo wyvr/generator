@@ -1,30 +1,46 @@
-import i18next from 'i18next';
 import { Env } from '@lib/env';
 import { Logger } from '@lib/logger';
 import { File } from '@lib/file';
 import { join, basename } from 'path';
 import { existsSync } from 'fs-extra';
 import merge from 'deepmerge';
+import { Client } from '@lib/client';
+import { Error } from './error';
 
 export class I18N {
-    static is_setup: false;
-    static async setup() {
+    static is_setup = false;
+    static i18n: any = null;
+    static translations: any = null;
+    static setup() {
         if (this.is_setup) {
             return;
         }
-        i18next.on('missingKey', function (lngs, namespace, key, res) {
-            Logger.warning('[i18n]', `missing key "${key}" in "${namespace}" language ${lngs.join(',')}`);
-        });
-        await i18next.init({
-            fallbackLng: 'en',
-            debug: false,
-            saveMissing: true, // needed to emit missingKey
-            resources: File.read_json(join('gen', 'i18n', `i18n.json`)),
-        });
+        try {
+            const content = Client.transform_resource(File.read(join(__dirname, 'resource', 'i18n.js')));
+            I18N.i18n = eval(content);
+            this.is_setup = true;
+        } catch (e) {
+            Logger.error('i18n', Error.extract(e, 'i18n'));
+        }
     }
     static translate(key: string | string[], options?: any) {
         I18N.setup();
-        return i18next.t(key, options);
+        const error = I18N.i18n.check(key, options);
+        if (error) {
+            Logger.warning('i18n', error);
+        }
+        return I18N.i18n.__(key, options);
+    }
+    static get(language: string) {
+        if(!language) {
+            language = 'en';
+        }
+        // load from cache
+        if(this.translations && this.translations[language]) {
+            return this.translations[language];
+        }
+        // load from file
+        return File.read_json(join('gen', 'i18n', `${language}.json`));
     }
     static collect(packages: any[]) {
         const result = {};
@@ -38,22 +54,22 @@ export class I18N {
                         if (!result[language]) {
                             result[language] = {};
                         }
-                        if (!result[language].translation) {
-                            result[language].translation = {};
-                        }
                         const context = basename(file, '.json');
-                        if (!result[language].translation[context]) {
-                            result[language].translation[context] = {};
+                        if (!result[language][context]) {
+                            result[language][context] = {};
                         }
                         const data = File.read_json(file);
-                        result[language].translation[context] = merge(result[language][context], data);
+                        result[language][context] = merge(result[language][context], data);
                     });
                 }
             });
         }
+        I18N.translations = result;
         return result;
     }
     static write(result: any) {
-        File.write_json(join('gen', 'i18n', `i18n.json`), result);
+        Object.keys(result).forEach((language) => {
+            File.write_json(join('gen', 'i18n', `${language}.json`), result[language]);
+        });
     }
 }

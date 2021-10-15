@@ -37,6 +37,10 @@ export class Transform {
         if (!content || typeof content != 'string') {
             return '';
         }
+        // modify __ => translation
+        if(as_client) {
+            content = content.replace(/(\W)__\(/g, '$1window.__(')
+        }
         // replace isServer and isClient and the imports
         return content
             .replace(/([^\w])isServer([^\w])/g, `$1${as_client ? 'false' : 'true'}$2`)

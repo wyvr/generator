@@ -440,13 +440,4 @@ describe('Lib/Global', async () => {
             assert.deepStrictEqual(await Global.get('object'), { key: true, value: 'old', arr: [0, 1, 2], insert: true });
         });
     });
-    describe('set_global_all', async () => {
-        after(() => {
-            removeGlobalDB();
-        });
-        it('save', async () => {
-            await Global.set_all({ set_global_all: true });
-            assert.strictEqual(await Global.get('set_global_all'), true);
-        });
-    });
 });

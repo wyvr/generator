@@ -121,14 +121,6 @@ export class Global {
         }
         return result;
     }
-    static async set_all(data) {
-        // @NOTE maybe this is slow, can be changed into a prepared statement or a hugh insert statement
-        return await Promise.all(
-            Object.keys(data).map(async (key) => {
-                return await this.set(key, data[key]);
-            })
-        );
-    }
     static async merge(key: string, value: any = null): Promise<boolean> {
         if (!key || value == null) {
             return false;

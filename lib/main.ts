@@ -174,7 +174,7 @@ export class Main {
                     global_data = await importer.get_global();
                 }
             }
-            await Global.set_all(global_data);
+            await Global.merge_all(global_data);
         }
 
         this.perf.start('worker');

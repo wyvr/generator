@@ -237,7 +237,6 @@ export class Worker {
                     }
                     WorkerHelper.send_status(WorkerStatus.busy);
                     const critical = require('critical');
-                    const minify = require('html-minifier').minify;
                     let css = null;
                     try {
                         // create above the fold inline css
@@ -262,6 +261,7 @@ export class Worker {
                         css = '';
                     }
 
+                    const minify = require('html-minifier').minify;
                     value[0].files.forEach((file) => {
                         const css_tag = `<style>${css}</style>`;
                         let content = readFileSync(file, { encoding: 'utf-8' }).replace(/<style data-critical-css><\/style>/, css_tag);

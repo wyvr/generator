@@ -38,6 +38,7 @@
         "sqlite3": "5.0.2",
         "stream-json": "1.7.3",
         "svelte": "3.43.2",
+        "typescript": "4.4.4",
         "uuid": "8.3.2",
         "ws": "^8.2.3"
     },
@@ -52,8 +53,7 @@
         "rollup-plugin-terser": "7.0.2",
         "source-map-support": "0.5.20",
         "tosource": "2.0.0-alpha.3",
-        "ts-node": "10.3.0",
-        "typescript": "4.4.4"
+        "ts-node": "10.3.0"
     },
     "_moduleAliases": {
         "@config": "config",

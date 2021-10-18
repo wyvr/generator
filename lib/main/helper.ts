@@ -43,7 +43,7 @@ export class MainHelper {
         let package_json = null;
         if (!package_json && existsSync('package.json')) {
             try {
-                package_json = JSON.parse(readFileSync('package.json', { encoding: 'utf-8' }));
+                package_json = File.read_json('package.json');
             } catch (e) {
                 Logger.error(Error.extract(e, 'package.json'));
             }
@@ -405,32 +405,23 @@ export class MainHelper {
                 if (!file || !existsSync(file)) {
                     return null;
                 }
-                const content = readFileSync(file, { encoding: 'utf-8' });
+                const content = File.read(file);
                 const head = [],
                     body = [];
                 // inject dev socket connection
                 if (Env.is_dev()) {
                     body.push(
                         `<script id="wyvr_client_socket">${Client.transform_resource(
-                            readFileSync(join(__dirname, '..', 'resource', 'client_socket.js'), { encoding: 'utf-8' }).replace(/\{port\}/g, socket_port)
+                            File.read(join(__dirname, '..', 'resource', 'client_socket.js')).replace(/\{port\}/g, socket_port)
                         )}</script>`
                     );
                 }
-                // @INFO media
-                // replace media
-                const media_content = await replaceAsync(content, /\(media\(([\s\S]*?)\)\)/g, async (match_media, inner) => {
-                    const config = await Media.get_config(inner);
-                    // store for later transformation
-                    has_media = true;
-                    media[config.result] = config;
-                    return config.result;
-                });
 
                 // @INFO shortcodes
                 // replace shortcodes
                 let shortcode_imports = null;
                 const src_path = join(this.cwd, 'gen', 'src');
-                const replaced_content = media_content.replace(/\(\(([\s\S]*?)\)\)/g, (match_shortcode, inner) => {
+                const replaced_content = content.replace(/\(\(([\s\S]*?)\)\)/g, (match_shortcode, inner) => {
                     const match = inner.match(/([^ ]*)([\s\S]*)/);
                     let name = null;
                     let path = null;
@@ -508,8 +499,19 @@ export class MainHelper {
                 }
                 const injected_content = content_after.replace(/<\/head>/, `${head_after.join('')}</head>`).replace(/<\/body>/, `${body_after.join('')}</body>`);
 
+                // @INFO media before shortcode replacement
+                // replace media
+                const media_content = await replaceAsync(injected_content, /\(media\(([\s\S]*?)\)\)/g, async (match_media, inner) => {
+                    const config = await Media.get_config(inner);
+                    console.log(JSON.stringify(config));
+                    // store for later transformation
+                    has_media = true;
+                    media[config.result] = config;
+                    return config.result;
+                });
+
                 if (!shortcode_imports) {
-                    writeFileSync(file, injected_content);
+                    writeFileSync(file, media_content);
                     return file;
                 }
 
@@ -518,7 +520,7 @@ export class MainHelper {
                         return `import ${name} from '${shortcode_imports[name]}';`;
                     })
                     .join('\n');
-                const svelte_code = `<script>${imports}</script>${injected_content}`;
+                const svelte_code = `<script>${imports}</script>${media_content}`;
                 writeFileSync(file.replace('.html', '.svelte'), svelte_code);
 
                 const [compile_error, compiled] = await Build.compile(svelte_code);
@@ -526,16 +528,27 @@ export class MainHelper {
                 if (compile_error) {
                     // svelte error messages
                     Logger.error('[svelte]', file, Error.get(compile_error, file, 'build shortcodes'));
-                    writeFileSync(file, injected_content);
+                    writeFileSync(file, media_content);
                     return file;
                 }
                 const [render_error, rendered, identifier_item] = await Build.render(compiled, { _wyvr: { identifier: file.replace(release_path + sep, '') } });
                 if (render_error) {
                     // svelte error messages
                     Logger.error('[svelte]', file, Error.get(render_error, file, 'render shortcodes'));
-                    writeFileSync(file, injected_content);
+                    writeFileSync(file, media_content);
                     return file;
                 }
+
+                // @INFO media after shortcode replacement
+                // replace media
+                rendered.result.html = await replaceAsync(rendered.result.html, /\(media\(([\s\S]*?)\)\)/g, async (match_media, inner) => {
+                    const config = await Media.get_config(inner);
+                    console.log(JSON.stringify(config));
+                    // store for later transformation
+                    has_media = true;
+                    media[config.result] = config;
+                    return config.result;
+                });
 
                 shortcode_identifiers[identifier_item.identifier] = {
                     name: identifier_item.identifier,

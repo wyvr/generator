@@ -9,4 +9,5 @@ export enum WorkerAction {
     scripts = 1 << 7,
     cleanup = 1 << 8,
     optimize = 1 << 9,
+    media = 1 << 10,
 }

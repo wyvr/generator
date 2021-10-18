@@ -350,7 +350,7 @@ export class Main {
 
         // inject data into the pages
         this.perf.start('inject');
-        const shortcode_identifier = await this.helper.inject(
+        const [shortcode_identifier, media] = await this.helper.inject(
             build_pages.map((d) => d.path),
             this.watcher_ports[1],
             this.release_path
@@ -434,6 +434,12 @@ export class Main {
         this.perf.start('link');
         await this.helper.link(this.uniq_id);
         this.perf.end('link');
+
+        if (media) {
+            this.perf.start('media');
+            await this.helper.media(this.worker_controller, media);
+            this.perf.end('media');
+        }
 
         this.perf.start('optimize');
         await this.helper.optimize(identifier_data_list, this.worker_controller);

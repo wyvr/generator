@@ -110,11 +110,22 @@ export class File {
      * @param filename
      * @returns the content of the file
      */
-    static read(filename: string): any {
+    static read_buffer(filename: string): any {
+        return this.read(filename, 'buffer');
+    }
+    /**
+     * read the content of an file as plain text
+     * @param filename
+     * @returns the content of the file
+     */
+    static read(filename: string, encoding: string = 'utf-8'): any {
         if (!filename || !existsSync(filename)) {
             return null;
         }
-        const content = readFileSync(filename, { encoding: 'utf8', flag: 'r' });
+        if(encoding == 'buffer') {
+            encoding = null;
+        }
+        const content = readFileSync(filename, { encoding: <any>encoding, flag: 'r' });
         if (!content) {
             return null;
         }
@@ -216,7 +227,7 @@ export class File {
      * @returns
      */
     static is_file(path: string): boolean {
-        if (!path || typeof path != 'string') {
+        if (!path || typeof path != 'string' || !existsSync(path)) {
             return false;
         }
         const stat = statSync(path);

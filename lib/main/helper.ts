@@ -26,7 +26,9 @@ import { Build } from '@lib/build';
 import { EnvModel } from '@lib/model/env';
 import { Transform } from '@lib/transform';
 import { WyvrFileLoading } from '@lib/model/wyvr/file';
-import { I18N } from '../i18n';
+import { I18N } from '@lib/i18n';
+import { Media } from '@lib/media';
+import replaceAsync from 'string-replace-async';
 
 export class MainHelper {
     cwd = process.cwd();
@@ -388,13 +390,15 @@ export class MainHelper {
         const [pages, identifier_data_list] = await this.build_list(worker_controller, filtered_list);
         return [pages, identifier_data_list];
     }
-    async inject(list: string[], socket_port: number = 0, release_path: string = '') {
+    async inject(list: string[], socket_port: number = 0, release_path: string = ''): Promise<[any, any]> {
         const [err_before, config_before, list_before] = await Plugin.before('inject', list);
         if (err_before) {
             this.fail(err_before);
-            return {};
+            return [{}, null];
         }
         const shortcode_identifiers = {};
+        const media = {};
+        let has_media = false;
         await Promise.all(
             list_before.map(async (file) => {
                 // because of an compilation error the page can be non existing
@@ -412,11 +416,21 @@ export class MainHelper {
                         )}</script>`
                     );
                 }
+                // @INFO media
+                // replace media
+                const media_content = await replaceAsync(content, /\(media\(([\s\S]*?)\)\)/g, async (match_media, inner) => {
+                    const config = await Media.get_config(inner);
+                    // store for later transformation
+                    has_media = true;
+                    media[config.result] = config;
+                    return config.result;
+                });
+
                 // @INFO shortcodes
                 // replace shortcodes
                 let shortcode_imports = null;
                 const src_path = join(this.cwd, 'gen', 'src');
-                const replaced_content = content.replace(/\(\(([\s\S]*?)\)\)/g, (match_shortcode, inner) => {
+                const replaced_content = media_content.replace(/\(\(([\s\S]*?)\)\)/g, (match_shortcode, inner) => {
                     const match = inner.match(/([^ ]*)([\s\S]*)/);
                     let name = null;
                     let path = null;
@@ -544,7 +558,7 @@ export class MainHelper {
                 return file;
             })
         );
-        return shortcode_identifiers;
+        return [shortcode_identifiers, has_media ? media : null];
     }
     async scripts(worker_controller: WorkerController, identifiers: any, is_watching: boolean = false): Promise<boolean> {
         await Plugin.before('scripts', identifiers, Dependency.cache);
@@ -597,6 +611,14 @@ export class MainHelper {
         if (error_after) {
             this.fail(error_after);
         }
+        return result;
+    }
+    async media(worker_controller: WorkerController, media: any): Promise<boolean> {
+        await Plugin.before('media', media);
+
+        const list = Object.values(media);
+        const result = await worker_controller.process_in_workers('media', WorkerAction.media, list, 100);
+        await Plugin.after('media', result);
         return result;
     }
     async sitemap(release_path: string, pages: any[]) {
@@ -748,6 +770,9 @@ export class MainHelper {
         static_folders.forEach((folder) => {
             Link.to(`gen/${folder}`, `releases/${uniq_id}/${folder}`);
         });
+
+        // link media cache
+        Link.to(`cache/media`, `releases/${uniq_id}/media`);
 
         const [error_after] = await Plugin.after('link');
         if (error_after) {

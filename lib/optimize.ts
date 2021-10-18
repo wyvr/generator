@@ -1,12 +1,11 @@
-import { createHash as cryptoCreateHash, Hash } from 'crypto';
-import { readFileSync, writeFileSync } from 'fs';
+import { createHash as cryptoCreateHash } from 'crypto';
 import { dirname, basename, extname, join } from 'path';
 import { File } from '@lib/file';
 
 export class Optimize {
     static create_hash_of_file(file_path: string): string {
         const hash = cryptoCreateHash('sha256');
-        hash.update(readFileSync(file_path, { encoding: 'utf-8' }));
+        hash.update(File.read(file_path));
         const content_hash = hash.digest('hex').substr(0, 8);
         const ext = extname(file_path);
         const dir = dirname(file_path);
@@ -28,9 +27,9 @@ export class Optimize {
     }
     static replace_hashed_files_in_files(file_list: any[], hash_list: any[]) {
         file_list.forEach(({ file, hash }) => {
-            let content = this.replace_hashed_files(readFileSync(file, { encoding: 'utf-8' }), hash_list);
+            let content = this.replace_hashed_files(File.read(file), hash_list);
 
-            writeFileSync(hash, content);
+            File.write(hash, content)
         });
     }
     static replace_hashed_files(content:string, hash_list: any[]) {

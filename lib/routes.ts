@@ -48,7 +48,7 @@ export class Routes {
             };
         }
         if (route.path.match(/\.md$/)) {
-            const content = readFileSync(route.path, { encoding: 'utf-8' });
+            const content = File.read(route.path);
             if (!content) {
                 return [null, null];
             }

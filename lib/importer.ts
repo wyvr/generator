@@ -101,17 +101,15 @@ export class Importer {
         if (this.list && this.list.length > 0) {
             return this.list;
         }
-        if(!fs.existsSync(this.state_list_file)) {
+        if (!fs.existsSync(this.state_list_file)) {
             return [];
         }
         // try to load the list from state
-        const content = fs.readFileSync(this.state_list_file, { encoding: 'utf-8' });
-        try {
-            const list = JSON.parse(content);
+        const list = File.read_json(this.state_list_file);
+        if (list) {
             return list;
-        } catch (e) {
-            Logger.error('can not read', this.state_list_file, e);
         }
+        Logger.error('can not read', this.state_list_file);
         return [];
     }
     /**
@@ -174,7 +172,7 @@ export class Importer {
                 let global_data = {};
                 fs.createReadStream(this.state_global_file, { flags: 'r', encoding: 'utf-8' }).pipe(jsonStream.input);
 
-                jsonStream.on('data', async (data: {key: string, value: any}) => {
+                jsonStream.on('data', async (data: { key: string; value: any }) => {
                     await Global.set(data.key, data.value);
                     global_data[data.key] = data.value;
                 });

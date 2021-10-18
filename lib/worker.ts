@@ -266,7 +266,7 @@ export class Worker {
                     const minify = require('html-minifier').minify;
                     value[0].files.forEach((file) => {
                         const css_tag = `<style>${css}</style>`;
-                        let content = readFileSync(file, { encoding: 'utf-8' }).replace(/<style data-critical-css><\/style>/, css_tag);
+                        let content = File.read(file).replace(/<style data-critical-css><\/style>/, css_tag);
                         // replacve hashed files in the content
                         content = Optimize.replace_hashed_files(content, value[0].hash_list);
                         // minify the html output

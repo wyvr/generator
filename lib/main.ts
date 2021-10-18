@@ -86,7 +86,7 @@ export class Main {
                 return;
             }
             // get the configs
-            this.uniq_id = readFileSync(uniq_id_file, { encoding: 'utf-8' });
+            this.uniq_id = File.read(uniq_id_file);
             Config.set(File.read_json(join('gen', 'config.json')));
             this.cron_state = File.read_json(join('gen', 'cron.json'));
             this.package_tree = File.read_json(join('gen', 'package_tree.json'));

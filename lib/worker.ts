@@ -20,7 +20,7 @@ import { Dependency } from '@lib/dependency';
 import { WyvrFile } from '@lib/model/wyvr/file';
 import { Env } from '@lib/env';
 import { Logger } from '@lib/logger';
-import { MediaModel } from '@lib/model/media';
+import { MediaModel, MediaModelOutput } from '@lib/model/media';
 import sharp from 'sharp';
 
 export class Worker {
@@ -303,7 +303,7 @@ export class Worker {
                                 return null;
                             }
                             const buffer = await MediaModel.get_buffer(media.src);
-                            if(!buffer) {
+                            if (!buffer) {
                                 Logger.error('@media', `input file "${media.src}" doesn't exist`);
                                 return null;
                             }
@@ -316,8 +316,12 @@ export class Worker {
                                 options.height = media.height;
                             }
                             try {
-                                Logger.info(media.src, options);
-                                const result = await sharp(buffer).resize(options).toFile(output);
+                                Logger.info(media.src, JSON.stringify(options));
+                                const modified_image = await sharp(buffer).resize(options);
+                                if (media.output != MediaModelOutput.Path) {
+                                    Logger.warning('media', `${media.src} output "${media.output}" is not implemented at the moment`);
+                                }
+                                modified_image.toFile(output);
                             } catch (e) {
                                 Logger.error(Error.get(e, media.src, 'sharp'));
                             }

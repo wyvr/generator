@@ -74,5 +74,5 @@ export enum MediaModelMode {
 }
 export enum MediaModelOutput {
     Path = 'path',
-    Base64 = 'base64',
+    Base64 = 'base64', // @TODO
 }

@@ -1,9 +1,7 @@
 import { Logger } from '@lib/logger';
 import sqlite3 from 'sqlite3';
 import { open, Database } from 'sqlite';
-import { mkdirSync, existsSync, writeFileSync } from 'fs-extra';
-import { Dir } from '@lib/dir';
-import { dirname } from 'path';
+import { mkdirSync, existsSync } from 'fs-extra';
 import merge from 'deepmerge';
 
 export class Storage {

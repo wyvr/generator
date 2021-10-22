@@ -32,7 +32,6 @@ export class MediaModel {
                 hash_config[key] = config[key];
             }
         });
-        console.log(hash_config)
         return MediaModel.get_hash(JSON.stringify(hash_config));
     }
     static get_hash(value: string) {

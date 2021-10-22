@@ -296,7 +296,6 @@ export class Worker {
                     WorkerHelper.send_status(WorkerStatus.busy);
                     await Promise.all(
                         value.map(async (media: MediaModel) => {
-                            console.log(media)
                             return await Media.process(media);
                         })
                     );

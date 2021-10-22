@@ -1,5 +1,4 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs-extra';
-import { v4 } from 'uuid';
 import { join } from 'path';
 
 import { Generate } from '@lib/generate';
@@ -25,6 +24,8 @@ import { Client } from '@lib/client';
 import { Media } from '@lib/media';
 import { Error } from '@lib/error';
 import { MediaModel } from '@lib/model/media';
+import { uniq } from '@lib/helper/uniq';
+import { OnDemand } from '@lib/main/on_demand';
 
 export class Main {
     mode: WyvrMode = WyvrMode.build;
@@ -35,14 +36,13 @@ export class Main {
     identifiers: any = {};
     is_executing: boolean = false;
     cwd = process.cwd();
-    uniq_id = v4().split('-')[0];
+    uniq_id = uniq();
     release_path = null;
     package_tree = {};
     cron_state = [];
     cron_config = [];
     identifier_data_list = [];
     watcher_ports: [number, number] = [3000, 3001];
-    on_demand_port = 4000;
     uniq_id_file = join('gen', 'uniq.txt');
 
     constructor() {
@@ -78,7 +78,8 @@ export class Main {
             this.init();
         }
         if ([WyvrMode.media].indexOf(this.mode) >= 0) {
-            this.on_demand();
+            const on_demand = new OnDemand();
+            on_demand.start();
         }
     }
     async init() {
@@ -502,53 +503,5 @@ export class Main {
         this.worker_controller.events.off('emit', WorkerEmit.global, on_global_index);
 
         return [route_files, cron_routes];
-    }
-
-    async on_demand() {
-        this.on_demand_port = await Port.find(this.on_demand_port); // socket
-        Logger.present('on demand server port', this.on_demand_port);
-        const host = 'localhost';
-        
-        require('http')
-            .createServer((req, res) => {
-                this.perf.start('request');
-                
-                Logger.present(req.method, req.url);
-                // console.log(Object.keys(req));
-                req.addListener('end', async () => {
-                    const media_config = Media.extract_config(req.url);
-
-                    if (!media_config) {
-                        res.writeHead(404, { 'Content-Type': 'text/html' });
-                        res.end('');
-                        this.perf.end('request');
-                        return;
-                    }
-                    // create the cache file
-                    try {
-                        await Media.process(media_config);
-                    } catch(e) {
-                        Logger.error(Error.get(e, media_config.result));
-                        res.writeHead(404, { 'Content-Type': 'text/html' });
-                        res.end('');
-                        this.perf.end('request');
-                        return;
-                    }
-
-                    const buffer = File.read_buffer(join(process.cwd(), MediaModel.get_output(media_config.result)));
-                    if(buffer) {
-                        res.writeHead(200, { 'Content-Type': `image/${media_config.format}` });
-                        res.end(buffer);
-                        this.perf.end('request');
-                        return;
-                    }
-                    res.writeHead(404, { 'Content-Type': 'text/html' });
-                    res.end()
-                    this.perf.end('request');
-                }).resume();
-            })
-            .listen(this.on_demand_port, host, () => {
-                Logger.success('server started', `http://${host}:${this.on_demand_port}`);
-            });
     }
 }

@@ -503,7 +503,6 @@ export class MainHelper {
                 // replace media
                 const media_content = await replaceAsync(injected_content, /\(media\(([\s\S]*?)\)\)/g, async (match_media, inner) => {
                     const config = await Media.get_config(inner);
-                    console.log(JSON.stringify(config));
                     // store for later transformation
                     has_media = true;
                     media[config.result] = config;

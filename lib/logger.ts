@@ -23,7 +23,7 @@ export class Logger {
         return ora(name).start();
     }
 
-    static output(type: number, color_fn: Function | null, char: string, ...values: any[]) {
+    static output(type: number | LogType, color_fn: Function | null, char: string, ...values: any[]) {
         const messages = values.map(this.stringify).filter((x) => x);
 
         if (cluster.isWorker) {

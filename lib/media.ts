@@ -97,10 +97,10 @@ export class Media {
         Dir.create(dirname(output));
         const options: any = { fit: media.mode, position: 'centre' };
         if (media.width != null && media.width > -1) {
-            options.width = media.width;
+            options.width = Math.ceil(media.width);
         }
         if (media.height != null && media.height > -1) {
-            options.height = media.height;
+            options.height = Math.ceil(media.height);
         }
         try {
             Logger.info(media.src, JSON.stringify(options));

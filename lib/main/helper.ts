@@ -543,7 +543,6 @@ export class MainHelper {
                 // replace media
                 rendered.result.html = await replaceAsync(rendered.result.html, /\(media\(([\s\S]*?)\)\)/g, async (match_media, inner) => {
                     const config = await Media.get_config(inner);
-                    console.log(JSON.stringify(config));
                     // store for later transformation
                     has_media = true;
                     media[config.result] = config;

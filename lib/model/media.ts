@@ -11,6 +11,7 @@ export class MediaModel {
     mode: MediaModelMode = MediaModelMode.Cover;
     format: string = 'jpeg';
     hash: string = null;
+    quality: number = 60;
     output: MediaModelOutput = MediaModelOutput.Path;
 
     constructor(config: any) {
@@ -26,17 +27,19 @@ export class MediaModel {
 
     static get_config_hash(config: MediaModel) {
         const hash_config = {};
-        ['width', 'height', 'mode', 'format'].forEach((key) => {
+        ['width', 'height', 'mode', 'format', 'quality'].forEach((key) => {
             if (config[key]) {
                 hash_config[key] = config[key];
             }
         });
+        console.log(hash_config)
         return MediaModel.get_hash(JSON.stringify(hash_config));
     }
     static get_hash(value: string) {
-        const hash = cryptoCreateHash('sha256');
-        hash.update(value);
-        return hash.digest('hex').substr(0, 16);
+        // const hash = cryptoCreateHash('sha256');
+        // hash.update(value);
+        // return hash.digest('hex').substr(0, 16);
+        return Buffer.from(value).toString('base64')
     }
     static async get_buffer(src: string) {
         if (!src) {

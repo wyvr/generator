@@ -1,16 +1,18 @@
 import { createServer } from 'net';
 
 export class Port {
-    static current_port = 3000;
-    static async find(): Promise<number> {
+    static async find(from_port: number): Promise<number> {
         let in_use = true;
         let port = 0;
+        if(!from_port || isNaN(from_port)) {
+            return null;
+        }
         while(in_use) {
-            in_use = await this.in_use(this.current_port);
+            in_use = await this.in_use(from_port);
             if(!in_use) {
-                port = this.current_port;
+                port = from_port;
             }
-            this.current_port++;
+            from_port++;
         }
         return port;
     }

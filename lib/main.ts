@@ -22,6 +22,9 @@ import { Global } from '@lib/global';
 import { WorkerEmit } from '@lib/model/worker/emit';
 import { Port } from '@lib/port';
 import { Client } from '@lib/client';
+import { Media } from '@lib/media';
+import { Error } from '@lib/error';
+import { MediaModel } from '@lib/model/media';
 
 export class Main {
     mode: WyvrMode = WyvrMode.build;
@@ -39,38 +42,57 @@ export class Main {
     cron_config = [];
     identifier_data_list = [];
     watcher_ports: [number, number] = [3000, 3001];
+    on_demand_port = 4000;
+    uniq_id_file = join('gen', 'uniq.txt');
 
     constructor() {
         Env.set(process.env.WYVR_ENV);
+
+        Logger.logo();
+
         const args = process.argv.slice(2).map((arg) => arg.toLowerCase().trim());
         if (args.indexOf('cron') > -1) {
             this.mode = WyvrMode.cron;
         }
-        this.init();
-    }
-    async init() {
-        const hr_start = process.hrtime();
-        const pid = process.pid;
-        process.title = `wyvr main ${pid}`;
-        Logger.logo();
-        this.perf = Config.get('import.measure_performance') ? new Performance_Measure() : new Performance_Measure_Blank();
+        if (args.indexOf('media') > -1) {
+            this.mode = WyvrMode.media;
+        }
+        if ([WyvrMode.media, WyvrMode.cron].indexOf(this.mode) >= 0) {
+            if (!existsSync(this.uniq_id_file)) {
+                Logger.warning('no previous version found in', this.uniq_id_file);
+                process.exit(1);
+                return;
+            }
+            this.uniq_id = File.read(this.uniq_id_file);
+        }
 
-        this.perf.start('config');
-        Logger.present('PID', pid, Logger.color.dim(`"${process.title}"`));
+        process.title = `wyvr main ${process.pid}`;
+        Logger.present('PID', process.pid, Logger.color.dim(`"${process.title}"`));
         Logger.present('cwd', this.cwd);
         Logger.present('build', this.uniq_id);
         Logger.present('env', EnvModel[Env.get()]);
         Logger.present('mode', WyvrMode[this.mode]);
+        this.perf = Config.get('import.measure_performance') ? new Performance_Measure() : new Performance_Measure_Blank();
 
-        const uniq_id_file = join('gen', 'uniq.txt');
+        if ([WyvrMode.build, WyvrMode.cron].indexOf(this.mode) >= 0) {
+            this.init();
+        }
+        if ([WyvrMode.media].indexOf(this.mode) >= 0) {
+            this.on_demand();
+        }
+    }
+    async init() {
+        const hr_start = process.hrtime();
+
+        this.perf.start('config');
         if (this.mode == WyvrMode.build) {
             Dir.clear('gen');
-            writeFileSync(uniq_id_file, this.uniq_id);
+            writeFileSync(this.uniq_id_file, this.uniq_id);
 
             if (Env.is_dev()) {
                 // get the first 2 free ports for the watcher
-                this.watcher_ports[0] = await Port.find(); // server
-                this.watcher_ports[1] = await Port.find(); // socket
+                this.watcher_ports[0] = await Port.find(this.watcher_ports[0]); // server
+                this.watcher_ports[1] = await Port.find(this.watcher_ports[1]); // socket
                 Logger.present('server port', this.watcher_ports[0]);
                 Logger.present('socket port', this.watcher_ports[1]);
             }
@@ -80,13 +102,8 @@ export class Main {
         if (this.mode == WyvrMode.cron) {
             Logger.block('cron');
             this.perf.start('cron');
-            if (!existsSync(uniq_id_file)) {
-                Logger.warning('no previous version found in', uniq_id_file);
-                process.exit(1);
-                return;
-            }
+
             // get the configs
-            this.uniq_id = File.read(uniq_id_file);
             Config.set(File.read_json(join('gen', 'config.json')));
             this.cron_state = File.read_json(join('gen', 'cron.json'));
             this.package_tree = File.read_json(join('gen', 'package_tree.json'));
@@ -485,5 +502,53 @@ export class Main {
         this.worker_controller.events.off('emit', WorkerEmit.global, on_global_index);
 
         return [route_files, cron_routes];
+    }
+
+    async on_demand() {
+        this.on_demand_port = await Port.find(this.on_demand_port); // socket
+        Logger.present('on demand server port', this.on_demand_port);
+        const host = 'localhost';
+        
+        require('http')
+            .createServer((req, res) => {
+                this.perf.start('request');
+                
+                Logger.present(req.method, req.url);
+                // console.log(Object.keys(req));
+                req.addListener('end', async () => {
+                    const media_config = Media.extract_config(req.url);
+
+                    if (!media_config) {
+                        res.writeHead(404, { 'Content-Type': 'text/html' });
+                        res.end('');
+                        this.perf.end('request');
+                        return;
+                    }
+                    // create the cache file
+                    try {
+                        await Media.process(media_config);
+                    } catch(e) {
+                        Logger.error(Error.get(e, media_config.result));
+                        res.writeHead(404, { 'Content-Type': 'text/html' });
+                        res.end('');
+                        this.perf.end('request');
+                        return;
+                    }
+
+                    const buffer = File.read_buffer(join(process.cwd(), MediaModel.get_output(media_config.result)));
+                    if(buffer) {
+                        res.writeHead(200, { 'Content-Type': `image/${media_config.format}` });
+                        res.end(buffer);
+                        this.perf.end('request');
+                        return;
+                    }
+                    res.writeHead(404, { 'Content-Type': 'text/html' });
+                    res.end()
+                    this.perf.end('request');
+                }).resume();
+            })
+            .listen(this.on_demand_port, host, () => {
+                Logger.success('server started', `http://${host}:${this.on_demand_port}`);
+            });
     }
 }

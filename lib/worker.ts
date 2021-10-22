@@ -21,7 +21,7 @@ import { WyvrFile } from '@lib/model/wyvr/file';
 import { Env } from '@lib/env';
 import { Logger } from '@lib/logger';
 import { MediaModel, MediaModelOutput } from '@lib/model/media';
-import sharp from 'sharp';
+import { Media } from '@lib/media';
 
 export class Worker {
     private config = null;
@@ -296,36 +296,8 @@ export class Worker {
                     WorkerHelper.send_status(WorkerStatus.busy);
                     await Promise.all(
                         value.map(async (media: MediaModel) => {
-                            const output = MediaModel.get_output(media.result);
-                            const exists = File.is_file(output);
-                            // create only when not already exists
-                            if (exists) {
-                                return null;
-                            }
-                            const buffer = await MediaModel.get_buffer(media.src);
-                            if (!buffer) {
-                                Logger.error('@media', `input file "${media.src}" doesn't exist`);
-                                return null;
-                            }
-                            Dir.create(dirname(output));
-                            const options: any = { fit: media.mode, position: 'centre' };
-                            if (media.width != null && media.width > -1) {
-                                options.width = media.width;
-                            }
-                            if (media.height != null && media.height > -1) {
-                                options.height = media.height;
-                            }
-                            try {
-                                Logger.info(media.src, JSON.stringify(options));
-                                const modified_image = await sharp(buffer).resize(options);
-                                if (media.output != MediaModelOutput.Path) {
-                                    Logger.warning('media', `${media.src} output "${media.output}" is not implemented at the moment`);
-                                }
-                                modified_image.toFile(output);
-                            } catch (e) {
-                                Logger.error(Error.get(e, media.src, 'sharp'));
-                            }
-                            return null;
+                            console.log(media)
+                            return await Media.process(media);
                         })
                     );
                     WorkerHelper.send_complete();

@@ -103,7 +103,7 @@ export class Media {
             options.height = Math.ceil(media.height);
         }
         try {
-            Logger.info(media.src, JSON.stringify(options));
+            Logger.debug(media.src, JSON.stringify(options));
             const modified_image = await sharp(buffer).resize(options);
             if (media.output != MediaModelOutput.Path) {
                 Logger.warning('media', `${media.src} output "${media.output}" is not implemented at the moment`);

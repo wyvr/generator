@@ -4,14 +4,21 @@ import { Port } from '@lib/port';
 import { Logger } from '@lib/logger';
 import { Media } from '@lib/media';
 import { uniq } from '@lib/helper/uniq';
-import { Error } from '../error';
-import { File } from '../file';
-import { MediaModel } from '../model/media';
+import { Error } from '@lib/error';
+import { File } from '@lib/file';
+import { MediaModel } from '@lib/model/media';
 import { hrtime_to_ms } from '@lib/converter/time';
-import { LogType } from '../model/log';
+import { LogType } from '@lib/model/log';
+import { Config } from '@lib/config';
+import { delay } from '@lib/helper/delay';
+import { between } from '@lib/helper/random';
 
 export class OnDemand {
-    constructor(private on_demand_port: number = 4000) {}
+    allowed_domains: string[] = null;
+    constructor(private on_demand_port: number = 4000) {
+        this.allowed_domains = Config.get('media.allowed_domains');
+        Logger.present('allowed', Array.isArray(this.allowed_domains) ? this.allowed_domains : Logger.color.yellow('only local'));
+    }
     async start() {
         // get unused port
         this.on_demand_port = await Port.find(this.on_demand_port); // socket
@@ -29,14 +36,20 @@ export class OnDemand {
 
                 if (!media_config) {
                     Logger.warning(uid, 'no media config found');
-                    return this.fail(uid, res, start);
+                    return await this.fail(uid, res, start);
+                }
+                // check for allowed domain
+                let allowed = !media_config.domain || (Array.isArray(this.allowed_domains) && this.allowed_domains.find((domain) => media_config.domain == domain));
+                if (!allowed) {
+                    Logger.warning(uid, `domain "${media_config.domain}" not allowed`);
+                    return await this.fail(uid, res, start);
                 }
                 // create the cache file
                 try {
                     await Media.process(media_config);
                 } catch (e) {
                     Logger.error(uid, Error.get(e, media_config.result));
-                    return this.fail(uid, res, start);
+                    return await this.fail(uid, res, start);
                 }
 
                 const buffer = File.read_buffer(join(process.cwd(), MediaModel.get_output(media_config.result)));
@@ -46,14 +59,15 @@ export class OnDemand {
                     return this.end(uid, res, start, buffer);
                 }
                 Logger.warning(uid, 'no file found');
-                return this.fail(uid, res, start);
+                return await this.fail(uid, res, start);
             }).resume();
         }).listen(this.on_demand_port, host, () => {
             Logger.success('server started', `http://${host}:${this.on_demand_port}`);
         });
     }
 
-    fail(uid: string, res: any, hr_start: [number, number]) {
+    async fail(uid: string, res: any, hr_start: [number, number]) {
+        await delay(between(350, 1000));
         res.writeHead(404, { 'Content-Type': 'text/html' });
         return this.end(uid, res, hr_start, '');
     }

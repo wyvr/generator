@@ -140,7 +140,8 @@ export class Watch {
                     Logger.warning('detect', `${event}@${Logger.color.dim(path)}`, 'from unknown pkg');
                 }
                 // check if the file is empty >= ignore it for now
-                if (event != 'unlink' && File.read(path).trim() == '') {
+                const content = File.read(path);
+                if (event != 'unlink' && (!content || content.trim() == '')) {
                     Logger.warning('the file is empty, empty files are ignored');
                     return;
                 }

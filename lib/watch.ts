@@ -64,7 +64,7 @@ export class Watch {
             })
             .listen(this.port, this.host, () => {
                 Logger.success('server started', `http://${this.host}:${this.port}`);
-                this.idle();
+                idle('changes');
             });
 
         this.connect();
@@ -244,7 +244,7 @@ export class Watch {
         if (this.get_watched_files().length == 0) {
             Logger.improve('nobody is watching, no need to rebuild');
             Logger.info('open', `http://${this.host}:${this.port}`, 'to start watching');
-            this.idle();
+            idle('changes');
             return;
         }
         const added_files = [];

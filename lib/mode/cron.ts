@@ -3,12 +3,12 @@ import { Logger } from '@lib/logger';
 import { Config } from '@lib/config';
 import { File } from '@lib/file';
 import { join } from 'path';
-import { routes } from '../main/routes';
-import { fail } from '../helper/endings';
-import { WorkerController } from '../worker/controller';
-import { hrtime_to_ms } from '../converter/time';
-import { build_files } from '../main/build';
-import { optimize } from '../main/optimize';
+import { routes } from '@lib/main/routes';
+import { fail } from '@lib/helper/endings';
+import { WorkerController } from '@lib/worker/controller';
+import { hrtime_to_ms } from '@lib/converter/time';
+import { build_files } from '@lib/main/build';
+import { optimize } from '@lib/main/optimize';
 
 export class CronMode {
     hr_start = null;
@@ -69,9 +69,7 @@ export class CronMode {
         const [build_pages, identifier_data_list] = await build_files(worker_controller, cron_routes);
         this.perf.end('build');
 
-        this.perf.start('optimize');
-        await optimize(identifier_data_list, worker_controller);
-        this.perf.end('optimize');
+        await optimize(this.perf, identifier_data_list, worker_controller);
 
         // update last execution time in cron file
         const state_ids = this.cron_state.map((state) => state.id);

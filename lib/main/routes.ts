@@ -1,11 +1,11 @@
-import { Global } from '../global';
-import { Logger } from '../logger';
-import { Route } from '../model/route';
-import { WorkerAction } from '../model/worker/action';
-import { WorkerEmit } from '../model/worker/emit';
-import { Plugin } from '../plugin';
-import { Routes } from '../routes';
-import { WorkerController } from '../worker/controller';
+import { Global } from '@lib/global';
+import { Logger } from '@lib/logger';
+import { Route } from '@lib/model/route';
+import { WorkerAction } from '@lib/model/worker/action';
+import { WorkerEmit } from '@lib/model/worker/emit';
+import { Plugin } from '@lib/plugin';
+import { Routes } from '@lib/routes';
+import { WorkerController } from '@lib/worker/controller';
 
 export const routes = async (worker_controller: WorkerController, package_tree:any, changed_files: any[], enhance_data: boolean = true, cron_state: any[] = null): Promise<[any[], any[]]> => {
     let completed_routes = 0;

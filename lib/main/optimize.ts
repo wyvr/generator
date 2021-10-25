@@ -1,14 +1,17 @@
-import { Env } from "../env";
-import { Logger } from "../logger";
-import { WorkerAction } from "../model/worker/action";
-import { Optimize } from "../optimize";
-import { Plugin } from "../plugin";
-import { WorkerController } from "../worker/controller";
-import { fail } from "../helper/endings";
+import { Env } from '@lib/env';
+import { Logger } from '@lib/logger';
+import { WorkerAction } from '@lib/model/worker/action';
+import { Optimize } from '@lib/optimize';
+import { Plugin } from '@lib/plugin';
+import { WorkerController } from '@lib/worker/controller';
+import { fail } from '@lib/helper/endings';
+import { IPerformance_Measure } from '@lib/performance_measure';
 
-export const optimize = async (identifier_list: any[], worker_controller: WorkerController) => {
+export const optimize = async (perf: IPerformance_Measure, identifier_list: any[], worker_controller: WorkerController) => {
+    perf.start('optimize');
     if (Env.is_dev()) {
         Logger.improve('optimize will not be executed in dev mode');
+        perf.end('optimize');
         return;
     }
     // add contenthash to the generated files
@@ -19,7 +22,7 @@ export const optimize = async (identifier_list: any[], worker_controller: Worker
 
     const [error_before, config_before, identifier_list_before, replace_hash_files_before] = await Plugin.before('optimize', identifier_list, replace_hash_files);
     if (error_before) {
-        fail(error_before);
+        return fail(error_before);
     }
     // create the list of files with there hashed identifier elements css/js
     const indexed = {};
@@ -36,8 +39,9 @@ export const optimize = async (identifier_list: any[], worker_controller: Worker
     const result = await worker_controller.process_in_workers('optimize', WorkerAction.optimize, list, 1);
 
     const [error_after, config_after, list_after] = await Plugin.after('optimize', list);
+    perf.end('optimize');
     if (error_after) {
-        fail(error_after);
+        return fail(error_after);
     }
     return result;
 };

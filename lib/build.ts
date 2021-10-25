@@ -5,7 +5,7 @@ import register from 'svelte/register';
 import { Client } from '@lib/client';
 import { Env } from '@lib/env';
 import { WyvrCssMediaCollection } from '@lib/model/wyvr/file';
-import { Transform } from './transform';
+import { Transform } from '@lib/transform';
 import { I18N } from '@lib/i18n';
 
 register();

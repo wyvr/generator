@@ -1,8 +1,8 @@
-import { Logger } from '../logger';
-import { WorkerAction } from '../model/worker/action';
-import { WorkerEmit } from '../model/worker/emit';
-import { Plugin } from '../plugin';
-import { WorkerController } from '../worker/controller';
+import { Logger } from '@lib/logger';
+import { WorkerAction } from '@lib/model/worker/action';
+import { WorkerEmit } from '@lib/model/worker/emit';
+import { Plugin } from '@lib/plugin';
+import { WorkerController } from '@lib/worker/controller';
 
 export const build_files = async (
     worker_controller: WorkerController,

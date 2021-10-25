@@ -1,8 +1,8 @@
 import { Config } from '@lib/config';
-import { join, sep } from 'path';
-import { existsSync, copySync } from 'fs-extra';
 import { File } from '@lib/file';
 import { Logger } from '@lib/logger';
+import { join, sep } from 'path';
+import { existsSync, copySync } from 'fs-extra';
 
 export const copy_static_files = (cwd: string, package_tree) => {
     const packages = Config.get('packages');

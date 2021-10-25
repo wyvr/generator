@@ -63,6 +63,7 @@ export class OnDemand {
             }).resume();
         }).listen(this.on_demand_port, host, () => {
             Logger.success('server started', `http://${host}:${this.on_demand_port}`);
+            Logger.idle('requests');
         });
     }
 

@@ -21,11 +21,8 @@ import { Global } from '@lib/global';
 import { WorkerEmit } from '@lib/model/worker/emit';
 import { Port } from '@lib/port';
 import { Client } from '@lib/client';
-import { Media } from '@lib/media';
-import { Error } from '@lib/error';
-import { MediaModel } from '@lib/model/media';
 import { uniq } from '@lib/helper/uniq';
-import { OnDemand } from '@lib/main/on_demand';
+import { Deliver } from '@lib/main/deliver';
 
 export class Main {
     mode: WyvrMode = WyvrMode.build;
@@ -54,10 +51,10 @@ export class Main {
         if (args.indexOf('cron') > -1) {
             this.mode = WyvrMode.cron;
         }
-        if (args.indexOf('media') > -1) {
-            this.mode = WyvrMode.media;
+        if (args.indexOf('deliver') > -1) {
+            this.mode = WyvrMode.deliver;
         }
-        if ([WyvrMode.media, WyvrMode.cron].indexOf(this.mode) >= 0) {
+        if ([WyvrMode.deliver, WyvrMode.cron].indexOf(this.mode) >= 0) {
             if (!existsSync(this.uniq_id_file)) {
                 Logger.warning('no previous version found in', this.uniq_id_file);
                 process.exit(1);
@@ -77,9 +74,9 @@ export class Main {
         if ([WyvrMode.build, WyvrMode.cron].indexOf(this.mode) >= 0) {
             this.init();
         }
-        if ([WyvrMode.media].indexOf(this.mode) >= 0) {
-            const on_demand = new OnDemand();
-            on_demand.start();
+        if ([WyvrMode.deliver].indexOf(this.mode) >= 0) {
+            const deliver = new Deliver();
+            deliver.start();
         }
     }
     async init() {

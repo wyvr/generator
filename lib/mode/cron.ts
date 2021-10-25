@@ -4,7 +4,7 @@ import { Config } from '@lib/config';
 import { File } from '@lib/file';
 import { join } from 'path';
 import { routes } from '../main/routes';
-import { fail } from '../main/fail';
+import { fail } from '../helper/endings';
 import { WorkerController } from '../worker/controller';
 import { hrtime_to_ms } from '../converter/time';
 import { build_files } from '../main/build';

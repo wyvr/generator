@@ -4,7 +4,7 @@ import { WorkerAction } from "../model/worker/action";
 import { Optimize } from "../optimize";
 import { Plugin } from "../plugin";
 import { WorkerController } from "../worker/controller";
-import { fail } from "./fail";
+import { fail } from "../helper/endings";
 
 export const optimize = async (identifier_list: any[], worker_controller: WorkerController) => {
     if (Env.is_dev()) {

@@ -12,6 +12,7 @@ import { LogType } from '@lib/model/log';
 import { Config } from '@lib/config';
 import { delay } from '@lib/helper/delay';
 import { between } from '@lib/helper/random';
+import { idle } from '@lib/helper/endings';
 
 export class DeliverMode {
     allowed_domains: string[] = null;
@@ -63,7 +64,7 @@ export class DeliverMode {
             }).resume();
         }).listen(this.on_demand_port, host, () => {
             Logger.success('server started', `http://${host}:${this.on_demand_port}`);
-            Logger.idle('requests');
+            idle('requests');
         });
     }
 

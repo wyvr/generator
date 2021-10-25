@@ -119,10 +119,6 @@ export class Logger {
         console.log(color.cyan(logo));
         console.log('');
     }
-    static idle(wait_for: string = null) {
-        this.output(null, this.color.dim, '░', `idle & waiting${wait_for ? ` for ${wait_for}` : ''}...`);
-        this.output(null, null, '');
-    }
 
     static stringify(data: any): string {
         if (typeof data == 'string' || typeof data == 'number' || typeof data == 'bigint') {

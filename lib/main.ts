@@ -28,7 +28,7 @@ import { BuildMode } from '@lib/mode/build';
 import { copy_static_files } from '@lib/main/copy_static_files';
 import { packages } from './main/packages';
 import { I18N } from './i18n';
-import { fail } from './main/fail';
+import { fail } from './helper/endings';
 import { build_files, build_list } from './main/build';
 import { routes } from './main/routes';
 import { optimize } from './main/optimize';

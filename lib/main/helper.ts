@@ -29,7 +29,7 @@ import { WyvrFileLoading } from '@lib/model/wyvr/file';
 import { I18N } from '@lib/i18n';
 import { Media } from '@lib/media';
 import replaceAsync from 'string-replace-async';
-import { fail } from './fail';
+import { fail } from './helper/endings';
 
 export class MainHelper {
     cwd = process.cwd();

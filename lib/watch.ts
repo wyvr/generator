@@ -9,6 +9,7 @@ import { Routes } from '@lib/routes';
 import { File } from '@lib/file';
 import { WebSocketServer } from 'ws';
 import { v4 } from 'uuid';
+import { idle } from '@lib/helper/endings';
 
 export class Watch {
     changed_files: any[] = [];
@@ -352,12 +353,8 @@ export class Watch {
         RequireCache.clear();
         const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
         Logger.stop('watch total', timeInMs);
-        this.idle();
+        idle('changes');
         this.is_executing = false;
         return result;
-    }
-
-    idle() {
-        Logger.idle('changes');
     }
 }

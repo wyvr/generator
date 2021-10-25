@@ -10,8 +10,7 @@ import { Global } from '../global';
 import { WorkerController } from '../worker/controller';
 import { File } from '../file';
 import { hrtime_to_ms } from '../converter/time';
-import { shutdown } from '../main/shutdown';
-import { fail } from '../main/fail';
+import { shutdown, fail } from '../helper/endings';
 import { Watch } from '../watch';
 import { Plugin } from '../plugin';
 

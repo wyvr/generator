@@ -29,6 +29,7 @@ import { WyvrFileLoading } from '@lib/model/wyvr/file';
 import { I18N } from '@lib/i18n';
 import { Media } from '@lib/media';
 import replaceAsync from 'string-replace-async';
+import { fail } from './fail';
 
 export class MainHelper {
     cwd = process.cwd();
@@ -39,125 +40,9 @@ export class MainHelper {
         // set default values when the key is not available in the given data
         return Generate.set_default_values(Generate.enhance_data(data), default_values);
     }
-    async packages() {
-        let package_json = null;
-        if (!package_json && existsSync('package.json')) {
-            try {
-                package_json = File.read_json('package.json');
-            } catch (e) {
-                Logger.error(Error.extract(e, 'package.json'));
-            }
-        }
-        const packages = Config.get('packages');
-        const disabled_packages = [];
-        const available_packages = [];
-        if (packages && Array.isArray(packages)) {
-            let config: any = {};
-            // reset the config
-            Config.set({ packages: null });
-            packages.forEach((pkg, index) => {
-                // set default name for the config
-                if (!pkg.name) {
-                    pkg.name = '#' + index;
-                }
-
-                // search inside the node_modules folder
-                if (package_json && pkg.name && !pkg.path) {
-                    if (existsSync(join('node_modules', pkg.name))) {
-                        pkg.path = join('node_modules', pkg.name);
-                    }
-                    // search if the package is linked in the package json
-                    if (!pkg.path) {
-                        pkg.path = Object.keys(package_json.dependencies || {})
-                            .map((package_name) => {
-                                if (package_name != pkg.name) {
-                                    return null;
-                                }
-                                return package_json.dependencies[package_name].match(/file:(.*)/)[1];
-                            })
-                            .find((x) => x);
-                    }
-                }
-                // load the package config
-                const package_config = Config.load_from_path(pkg.path);
-                if (package_config) {
-                    config = Config.merge(config, package_config);
-                }
-                // check if the package is outside the node_modules folder
-                if (pkg.path && existsSync(pkg.path)) {
-                    available_packages.push(pkg);
-                    return;
-                }
-
-                disabled_packages.push(pkg);
-            });
-            // update config, but keep the main config values
-            Config.replace(Config.merge(config, Config.get()));
-            // update the packages in the config
-            const new_config = { packages: available_packages };
-            Logger.debug('update packages', JSON.stringify(new_config));
-            Config.set(new_config);
-        }
-        Logger.present(
-            'packages',
-            available_packages
-                ?.map((pkg) => {
-                    return `${pkg.name}`;
-                })
-                .join(', ')
-        );
-        if (disabled_packages.length) {
-            Logger.warning(
-                'disabled packages',
-                disabled_packages
-                    .map((pkg) => {
-                        return `${pkg.name}${Logger.color.dim('@' + pkg.path)}`;
-                    })
-                    .join(' ')
-            );
-        }
-
-        return packages;
-    }
-    copy_static_files(package_tree) {
-        const packages = Config.get('packages');
-        if (packages) {
-            packages.forEach((pkg) => {
-                // copy the files from the package to the project
-                ['assets', 'routes', 'plugins'].forEach((part) => {
-                    if (existsSync(join(pkg.path, part))) {
-                        // store the info which file comes from which package
-                        const pkg_part_path = join(pkg.path, part);
-                        File.collect_files(pkg_part_path)
-                            .map((file) => file.replace(pkg.path + sep, ''))
-                            .forEach((file) => {
-                                package_tree[file] = pkg;
-                            });
-                        copySync(join(pkg.path, part), join(this.cwd, 'gen', part));
-                    }
-                });
-            });
-        }
-        // copy configured assets into release
-        const assets = Config.get('assets');
-        if (assets) {
-            assets.forEach((entry) => {
-                if (entry.src && existsSync(entry.src)) {
-                    const target = join(this.cwd, 'gen/assets', entry.target);
-                    Logger.debug('copy asset from', entry.src, 'to', target);
-                    copySync(entry.src, target);
-                } else {
-                    Logger.warning('can not copy asset', entry.src, 'empty or not existing');
-                }
-            });
-        }
-        return package_tree;
-    }
-    async i18n() {
-        const packages = Config.get('packages');
-        const result = I18N.collect(packages);
-        I18N.write(result);
-    }
+    
+    
+    
     async collect(package_tree: any) {
         const packages = Config.get('packages');
         await Plugin.before('collect', packages);
@@ -191,67 +76,7 @@ export class MainHelper {
         await Plugin.after('collect', packages);
         return package_tree;
     }
-    async routes(
-        worker_controller: WorkerController,
-        package_tree: any,
-        changed_files: any[],
-        enhance_data: boolean = true,
-        cron_state: any[] = null
-    ): Promise<[any[], any[], number]> {
-        await Plugin.before('routes', changed_files, enhance_data);
-        let routes = Routes.collect_routes(null, package_tree);
-        // shrink routes to only modified ones
-        if (changed_files.length > 0) {
-            const rel_paths = changed_files.map((file) => file.rel_path);
-            routes = routes.filter((route) => {
-                return rel_paths.indexOf(route.rel_path) > -1;
-            });
-        }
-        if (!routes || routes.length == 0) {
-            return [changed_files, null, 0];
-        }
-        // add meta data to the route
-        if (!enhance_data) {
-            routes.forEach((route) => {
-                route.initial = false;
-            });
-        }
-
-        // rebuild only specific routes based on cron config
-        if (cron_state && cron_state.length > 0) {
-            const cron_paths = cron_state.map((state) => state.route);
-            routes = routes
-                .filter((route: Route) => {
-                    return cron_paths.indexOf(route.rel_path) > -1;
-                })
-                .map((route) => {
-                    route.cron = cron_state.find((state) => state.route == route.rel_path);
-                    return route;
-                });
-        }
-        // collect generated routes
-        const route_urls = [];
-        const on_route_index = worker_controller.events.on('emit', WorkerEmit.route, (data) => {
-            // append the routes
-            route_urls.push(...data.data);
-        });
-
-        const result = await worker_controller.process_in_workers(
-            'routes',
-            WorkerAction.route,
-            routes.map((route) => ({
-                route,
-                add_to_global: !!enhance_data,
-            })),
-            1
-        );
-        worker_controller.events.off('emit', WorkerEmit.route, on_route_index);
-        await Plugin.after('routes', changed_files, enhance_data);
-        // Logger.info('routes amount', routes_urls.length);
-        // return [].concat(file_list, routes_urls);
-        const cron_routes = route_urls.length > 0 ? route_urls : null;
-        return [route_urls, cron_routes, routes.length];
-    }
+    
     async transform() {
         // replace global in all files
         const all_files = File.collect_files('gen/raw');
@@ -344,56 +169,11 @@ export class MainHelper {
             client: transformed_files,
         };
     }
-    async build_list(worker_controller: WorkerController, list: string[]) {
-        Logger.debug('build list', list);
-        const [error_list, config, modified_list] = await Plugin.before('build', list);
-        Logger.debug('build', modified_list.length, `${modified_list.length == 1 ? 'dataset' : 'datasets'}`);
-        const pages = [];
-        const identifier_data_list = [];
-        const on_build_index = worker_controller.events.on('emit', WorkerEmit.build, (data) => {
-            // add the results to the build file list
-            if (data) {
-                // console.log('build result', data.data);
-                pages.push(...data.data.filter((x) => x));
-            }
-        });
-        const on_identifier_index = worker_controller.events.on('emit', WorkerEmit.identifier_list, (data) => {
-            // add the results to the build file list
-            if (data && data.data) {
-                // console.log('emit identifier_list', data.data);
-                if (Array.isArray(data.data)) {
-                    identifier_data_list.push(...data.data);
-                    return;
-                }
-                identifier_data_list.push(data.data);
-            }
-        });
-
-        const result = await worker_controller.process_in_workers('build', WorkerAction.build, modified_list, 100);
-        worker_controller.events.off('emit', WorkerEmit.build, on_build_index);
-        worker_controller.events.off('emit', WorkerEmit.identifier_list, on_identifier_index);
-        await Plugin.after('build', result, pages);
-        return [pages, identifier_data_list];
-    }
-    async build_files(
-        worker_controller: WorkerController,
-        list: string[],
-        watched_json_files: string[] = [],
-        changed_files: { event: string; path: string; rel_path: string }[] = null,
-        identifier_list: any[] = null
-    ) {
-        // match exactly against the json files
-        const filtered_list = list.filter((entry) => {
-            return watched_json_files.find((file) => entry == file);
-        });
-        // build only the matching datasets
-        const [pages, identifier_data_list] = await this.build_list(worker_controller, filtered_list);
-        return [pages, identifier_data_list];
-    }
+    
     async inject(list: string[], socket_port: number = 0, release_path: string = ''): Promise<[any, any]> {
         const [err_before, config_before, list_before] = await Plugin.before('inject', list);
         if (err_before) {
-            this.fail(err_before);
+            fail(err_before);
             return [{}, null];
         }
         const shortcode_identifiers = {};
@@ -495,7 +275,7 @@ export class MainHelper {
 
                 const [err_after, config_after, file_after, content_after, head_after, body_after] = await Plugin.after('inject', file, replaced_content, head, body);
                 if (err_after) {
-                    this.fail(err_after);
+                    fail(err_after);
                 }
                 const injected_content = content_after.replace(/<\/head>/, `${head_after.join('')}</head>`).replace(/<\/body>/, `${body_after.join('')}</body>`);
 
@@ -589,41 +369,7 @@ export class MainHelper {
         await Plugin.after('scripts', result);
         return result;
     }
-    async optimize(identifier_list: any[], worker_controller: WorkerController) {
-        if (Env.is_dev()) {
-            Logger.improve('optimize will not be executed in dev mode');
-            return;
-        }
-        // add contenthash to the generated files
-        const replace_hash_files = [];
-        const [hash_list, file_list] = Optimize.get_hashed_files();
-        // replace in the files itself
-        Optimize.replace_hashed_files_in_files(file_list, hash_list);
-
-        const [error_before, config_before, identifier_list_before, replace_hash_files_before] = await Plugin.before('optimize', identifier_list, replace_hash_files);
-        if (error_before) {
-            this.fail(error_before);
-        }
-        // create the list of files with there hashed identifier elements css/js
-        const indexed = {};
-        identifier_list_before.forEach((entry) => {
-            if (!indexed[entry.identifier]) {
-                indexed[entry.identifier] = entry;
-                indexed[entry.identifier].files = [];
-                indexed[entry.identifier].hash_list = hash_list;
-            }
-            indexed[entry.identifier].files.push(entry.path);
-        });
-        const list = Object.keys(indexed).map((key) => indexed[key]);
-
-        const result = await worker_controller.process_in_workers('optimize', WorkerAction.optimize, list, 1);
-
-        const [error_after, config_after, list_after] = await Plugin.after('optimize', list);
-        if (error_after) {
-            this.fail(error_after);
-        }
-        return result;
-    }
+    
     async media(worker_controller: WorkerController, media: any): Promise<boolean> {
         await Plugin.before('media', media);
 
@@ -645,7 +391,7 @@ export class MainHelper {
         ]);
         if (before_error) {
             Logger.error(before_error);
-            this.fail();
+            fail();
         }
         const url = `${Config.get('https') ? 'https://' : 'http://'}${Config.get('url')}`;
         const size = 10000;
@@ -701,7 +447,7 @@ export class MainHelper {
         const [after_error, after_config, after_sitemaps] = await Plugin.after('sitemap', combined_sitemap);
         if (after_error) {
             Logger.error(before_error);
-            this.fail();
+            fail();
         }
         // build sitemap files
         after_sitemaps.forEach((sitemap) => {
@@ -755,14 +501,14 @@ export class MainHelper {
         let global = Config.get(null);
         const [error_before, config_before, global_before] = await Plugin.before('global', global);
         if (error_before) {
-            this.fail(error_before);
+            fail(error_before);
         }
         if (global_before != null) {
             global = global_before;
         }
         const [error_after, config_after, global_after] = await Plugin.after('global', global);
         if (error_after) {
-            this.fail(error_after);
+            fail(error_after);
         }
         if (global_after != null) {
             global = global_after;
@@ -774,7 +520,7 @@ export class MainHelper {
     async link(uniq_id: string) {
         const [error_before] = await Plugin.before('link');
         if (error_before) {
-            this.fail(error_before);
+            fail(error_before);
         }
         const static_folders = ['assets', 'js', 'css', 'i18n'];
         // symlink the "static" folders to release
@@ -787,24 +533,21 @@ export class MainHelper {
 
         const [error_after] = await Plugin.after('link');
         if (error_after) {
-            this.fail(error_after);
+            fail(error_after);
         }
     }
     async release(uniq_id: string) {
         const [error_before] = await Plugin.before('release');
         if (error_before) {
-            this.fail(error_before);
+            fail(error_before);
         }
         Publish.release(uniq_id);
         const [error_after] = await Plugin.after('release');
         if (error_after) {
-            this.fail(error_after);
+            fail(error_after);
         }
     }
-    fail(error: any = null) {
-        Logger.error('failed', error);
-        process.exit(1);
-    }
+    
     cleanup_releases(mode: WyvrMode, keep: number = 0): boolean {
         if (mode == WyvrMode.build) {
             // delete old releases on new build

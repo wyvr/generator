@@ -13,7 +13,7 @@ import { Config } from '@lib/config';
 import { delay } from '@lib/helper/delay';
 import { between } from '@lib/helper/random';
 
-export class Deliver {
+export class DeliverMode {
     allowed_domains: string[] = null;
     constructor(private on_demand_port: number = 4000) {
         this.allowed_domains = Config.get('media.allowed_domains');

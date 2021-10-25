@@ -5,12 +5,18 @@ import { join, basename } from 'path';
 import { existsSync } from 'fs-extra';
 import merge from 'deepmerge';
 import { Client } from '@lib/client';
-import { Error } from './error';
+import { Error } from '@lib/error';
+import { Config } from '@lib/config';
 
 export class I18N {
     static is_setup = false;
     static i18n: any = null;
     static translations: any = null;
+    static create() {
+        const packages = Config.get('packages');
+        const result = I18N.collect(packages);
+        I18N.write(result);
+    }
     static setup() {
         if (this.is_setup) {
             return;
@@ -32,11 +38,11 @@ export class I18N {
         return I18N.i18n.__(key, options);
     }
     static get(language: string) {
-        if(!language) {
+        if (!language) {
             language = 'en';
         }
         // load from cache
-        if(this.translations && this.translations[language]) {
+        if (this.translations && this.translations[language]) {
             return this.translations[language];
         }
         // load from file

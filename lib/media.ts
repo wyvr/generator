@@ -36,6 +36,7 @@ export class Media {
         })()`;
         try {
             const result = eval(exec_code);
+            result.format= this.correct_format(result.format, result.src);
             return result;
         } catch (e) {
             Logger.error(Error.get(e, null, 'media'));
@@ -50,6 +51,7 @@ export class Media {
         if (!matches) {
             return null;
         }
+        
         let result: any | MediaModel = {};
         // check for domain matches
         if (matches[1] == '_d') {
@@ -60,6 +62,7 @@ export class Media {
             try {
                 const config_string = Buffer.from(domain_matches[2], 'base64').toString('ascii');
                 result = JSON.parse(config_string);
+                result.format= this.correct_format(result.format, url);
             } catch (e) {
                 Logger.error(Error.get(e, domain_matches[3], 'media on demand'));
             }
@@ -73,6 +76,7 @@ export class Media {
         try {
             const config_string = Buffer.from(matches[1], 'base64').toString('ascii');
             result = JSON.parse(config_string);
+            result.format= this.correct_format(result.format, url);
         } catch (e) {
             Logger.error(Error.get(e, matches[2], 'media on demand'));
         }
@@ -82,8 +86,21 @@ export class Media {
 
         return result;
     }
+    static correct_format(format: string, src: string) {
+        if (!format || format == 'null') {
+            const ext_match = src.match(/\.([^\.]+)$/);
+            if (ext_match) {
+                if (ext_match[1] == 'jpg') {
+                    ext_match[1] = 'jpeg';
+                }
+                return ext_match[1];
+            }
+            return null;
+        }
+        return format
+    }
     static async process(media: MediaModel) {
-        const output = MediaModel.get_output(media.result);
+        let output = MediaModel.get_output(media.result);
         const exists = File.is_file(output);
         // create only when not already exists
         if (exists) {
@@ -108,7 +125,33 @@ export class Media {
             if (media.output != MediaModelOutput.Path) {
                 Logger.warning('media', `${media.src} output "${media.output}" is not implemented at the moment`);
             }
-            await modified_image.toFile(output);
+            let output_buffer = null;
+            switch (media.format) {
+                case 'jpg':
+                case 'jpeg':
+                    output_buffer = await modified_image.jpeg({ quality: media.quality }).toBuffer();
+                    break;
+                case 'avif':
+                    output_buffer = await modified_image.avif({ quality: media.quality }).toBuffer();
+                    break;
+                case 'heif':
+                    output_buffer = await modified_image.heif({ quality: media.quality }).toBuffer();
+                    break;
+                case 'webp':
+                    output_buffer = await modified_image.webp().toBuffer();
+                    break;
+                case 'png':
+                    output_buffer = await modified_image.png().toBuffer();
+                    break;
+                case 'gif':
+                    output_buffer = await modified_image.png().toBuffer();
+                    break;
+            }
+            File.write(output, output_buffer);
+            if (!output_buffer) {
+                Logger.error(Error.get({ message: 'no buffer available' }, media.src, 'sharp'));
+                return null;
+            }
         } catch (e) {
             Logger.error(Error.get(e, media.src, 'sharp'));
         }

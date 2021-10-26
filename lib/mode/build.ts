@@ -31,6 +31,7 @@ import { release } from '@lib/main/release';
 import { media } from '@lib/main/media';
 import { dependencies } from '@lib/main/dependencies';
 import { Cwd } from '@lib/vars/cwd';
+import { ReleasePath } from '@lib/vars/release_path';
 
 export class BuildMode {
     hr_start = null;
@@ -40,7 +41,7 @@ export class BuildMode {
     identifier_data_list = [];
     identifiers: any = null;
 
-    constructor(private uniq_id: string, private perf: IPerformance_Measure, private release_path) {
+    constructor(private uniq_id: string, private perf: IPerformance_Measure) {
         this.hr_start = process.hrtime();
         if (!this.perf) {
             Logger.error('missing performance measure method');
@@ -131,7 +132,7 @@ export class BuildMode {
         this.perf.end('static');
 
         this.perf.start('plugins');
-        await plugins(this.release_path);
+        await plugins();
         this.perf.end('plugins');
 
         this.perf.start('i18n');
@@ -174,7 +175,7 @@ export class BuildMode {
         this.perf.start('build');
         if (Env.is_dev()) {
             // write global data to release
-            Global.export(join(this.release_path, '_global.json'));
+            Global.export(join(ReleasePath.get(), '_global.json'));
         }
         // read all imported files
         let files = route_urls.length > 0 ? route_urls : File.collect_files(join(Cwd.get(), 'gen', 'data'), 'json');
@@ -198,8 +199,7 @@ export class BuildMode {
         this.perf.start('inject');
         const [shortcode_identifier, media_entries] = await inject(
             build_pages.map((d) => d.path),
-            this.watcher_ports[1],
-            this.release_path
+            this.watcher_ports[1]
         );
         Object.keys(shortcode_identifier).forEach((key) => {
             this.identifiers[key] = shortcode_identifier[key];
@@ -211,7 +211,7 @@ export class BuildMode {
         const exec_scripts = !is_regenerating || changed_files.some((file) => file.rel_path.match(/^src\//));
 
         if (exec_scripts) {
-            dependencies(this.perf, this.release_path, build_pages, shortcode_identifier, this.identifiers, this.package_tree);
+            dependencies(this.perf, build_pages, shortcode_identifier, this.identifiers, this.package_tree);
 
             const build_scripts = await scripts(this.perf, worker_controller, this.identifiers, watched_files, watched_files);
         } else {
@@ -219,7 +219,7 @@ export class BuildMode {
         }
 
         if (!is_regenerating) {
-            await sitemap(this.perf, this.release_path, build_pages);
+            await sitemap(this.perf, build_pages);
         } else {
             Logger.improve('sitemap, will not be regenerated');
         }

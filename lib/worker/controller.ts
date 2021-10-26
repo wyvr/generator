@@ -11,6 +11,7 @@ import { Events } from '@lib/events';
 import { Error } from '@lib/error';
 import { Queue } from '@lib/queue';
 import { Cwd } from '@lib/vars/cwd';
+import { ReleasePath } from '@lib/vars/release_path';
 
 export class WorkerController {
     private cwd = Cwd.get();
@@ -21,7 +22,7 @@ export class WorkerController {
     private queue: Queue = null;
     private worker_amount: number = null;
 
-    constructor(public release_path: string) {
+    constructor() {
         Env.set(process.env.WYVR_ENV);
         this.worker_amount = this.get_worker_amount();
     }
@@ -191,7 +192,7 @@ export class WorkerController {
             config: Config.get(),
             env: Env.get(),
             cwd: this.cwd,
-            release_path: this.release_path,
+            release_path: ReleasePath.get(),
         });
     }
     ticks: number = 0;

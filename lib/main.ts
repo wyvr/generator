@@ -15,6 +15,7 @@ import { CronMode } from '@lib/mode/cron';
 import { BuildMode } from '@lib/mode/build';
 import { cleanup } from '@lib/main/cleanup';
 import { Cwd } from '@lib/vars/cwd';
+import { ReleasePath } from '@lib/vars/release_path';
 
 export class Main {
     mode: WyvrMode = WyvrMode.build;
@@ -24,7 +25,6 @@ export class Main {
     worker_amount: number;
     identifiers: any = {};
     uniq_id = null;
-    release_path = null;
     package_tree = {};
     cron_state = [];
     cron_config = [];
@@ -50,7 +50,7 @@ export class Main {
             return;
         }
         // create release folder
-        this.release_path = `releases/${this.uniq_id}`;
+        ReleasePath.set(`releases/${this.uniq_id}`);
 
         process.title = `wyvr main ${process.pid}`;
         Logger.present('PID', process.pid, Logger.color.dim(`"${process.title}"`));
@@ -62,10 +62,10 @@ export class Main {
 
         switch (this.mode) {
             case WyvrMode.build:
-                const build = new BuildMode(this.uniq_id, this.perf, this.release_path);
+                const build = new BuildMode(this.uniq_id, this.perf);
                 await build.init(this.uniq_id_file);
                 this.validate_config();
-                cleanup(this.perf, this.release_path, this.mode);
+                cleanup(this.perf, this.mode);
                 this.worker();
                 await build.start(this.worker_controller, this.identifiers);
                 break;
@@ -73,7 +73,7 @@ export class Main {
                 const cron = new CronMode(this.perf);
                 await cron.init();
                 this.validate_config();
-                cleanup(this.perf, this.release_path, this.mode);
+                cleanup(this.perf, this.mode);
                 this.worker();
                 await cron.start(this.worker_controller);
                 break;
@@ -114,7 +114,7 @@ export class Main {
     worker() {
         this.perf.start('worker');
 
-        this.worker_controller = new WorkerController(this.release_path);
+        this.worker_controller = new WorkerController();
         this.worker_amount = this.worker_controller.get_worker_amount();
         Logger.present('workers', this.worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));
         const workers = this.worker_controller.create_workers(this.worker_amount);

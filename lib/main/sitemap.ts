@@ -5,8 +5,9 @@ import { Logger } from '@lib/logger';
 import { Plugin } from '@lib/plugin';
 import { join } from 'path';
 import { IPerformance_Measure } from '@lib/performance_measure';
+import { ReleasePath } from '@lib/vars/release_path';
 
-export const sitemap = async (perf: IPerformance_Measure, release_path: string, pages: any[]) => {
+export const sitemap = async (perf: IPerformance_Measure, pages: any[]) => {
     perf.start('sitemap');
 
     const [before_error, before_config, before_sitemaps] = await Plugin.before('sitemap', [
@@ -106,7 +107,7 @@ export const sitemap = async (perf: IPerformance_Measure, release_path: string, 
                 sitemap.entries
                     .map((entry) => {
                         return `<url>
-            <loc>${url}${File.remove_index(entry.path.replace(release_path, ''))}</loc>
+            <loc>${url}${File.remove_index(entry.path.replace(ReleasePath.get(), ''))}</loc>
             ${entry._wyvr.last_modified ? `<lastmod>${entry._wyvr.last_modified}</lastmod>` : ''}
             ${entry._wyvr.change_frequence ? `<changefreq>${entry._wyvr.change_frequence}</changefreq>` : ''}
             ${entry._wyvr.priority ? `<priority>${entry._wyvr.priority}</priority>` : ''}
@@ -117,7 +118,7 @@ export const sitemap = async (perf: IPerformance_Measure, release_path: string, 
             content.push('</urlset>');
         }
 
-        File.write(join(release_path, sitemap.name), content.join('').replace(/^\s+/gm, '').replace(/\n|\r/g, ''));
+        File.write(join(ReleasePath.get(), sitemap.name), content.join('').replace(/^\s+/gm, '').replace(/\n|\r/g, ''));
     });
     perf.end('sitemap');
     return;

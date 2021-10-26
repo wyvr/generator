@@ -11,8 +11,9 @@ import replaceAsync from 'string-replace-async';
 import { Build } from '@lib/build';
 import { Error } from '@lib/error';
 import { Cwd } from '@lib/vars/cwd';
+import { ReleasePath } from '@lib/vars/release_path';
 
-export const inject = async (list: string[], socket_port: number = 0, release_path: string = ''): Promise<[any, any]> => {
+export const inject = async (list: string[], socket_port: number = 0): Promise<[any, any]> => {
     const [err_before, config_before, list_before] = await Plugin.before('inject', list);
     if (err_before) {
         fail(err_before);
@@ -152,7 +153,7 @@ export const inject = async (list: string[], socket_port: number = 0, release_pa
                 writeFileSync(file, media_content);
                 return file;
             }
-            const [render_error, rendered, identifier_item] = await Build.render(compiled, { _wyvr: { identifier: file.replace(release_path + sep, '') } });
+            const [render_error, rendered, identifier_item] = await Build.render(compiled, { _wyvr: { identifier: file.replace(ReleasePath.get() + sep, '') } });
             if (render_error) {
                 // svelte error messages
                 Logger.error('[svelte]', file, Error.get(render_error, file, 'render shortcodes'));

@@ -23,13 +23,13 @@ import { Logger } from '@lib/logger';
 import { MediaModel, MediaModelOutput } from '@lib/model/media';
 import { Media } from '@lib/media';
 import { Cwd } from '@lib/vars/cwd';
+import { ReleasePath } from '@lib/vars/release_path';
 
 export class Worker {
     private config = null;
     private env = null;
     private cwd = Cwd.get();
     private root_template_paths = [join(this.cwd, 'gen', 'raw', 'doc'), join(this.cwd, 'gen', 'raw', 'layout'), join(this.cwd, 'gen', 'raw', 'page')];
-    private release_path = null;
     private identifiers_cache = {};
     constructor() {
         this.init();
@@ -52,8 +52,8 @@ export class Worker {
                     this.config = value?.config;
                     this.env = value?.env;
                     Env.set(this.env);
-                    this.cwd = value?.cwd;
-                    this.release_path = value?.release_path;
+                    Cwd.set(value?.cwd);
+                    ReleasePath.set(value?.release_path);
                     // only when everything is configured set the worker idle
                     if ((!this.config && this.env == null) || !this.cwd) {
                         Logger.warning('invalid configure value', value);
@@ -130,7 +130,7 @@ export class Worker {
                             }
                             // change extension when set
                             const extension = data._wyvr?.extension;
-                            const path = File.to_extension(filename.replace(join(this.cwd, 'gen', 'data'), this.release_path), extension);
+                            const path = File.to_extension(filename.replace(join(this.cwd, 'gen', 'data'), ReleasePath.get()), extension);
                             // add debug data
                             if (extension.match(/html|htm|php/) && (this.env == EnvModel.debug || this.env == EnvModel.dev)) {
                                 const data_path = File.to_extension(path, 'json');
@@ -148,7 +148,7 @@ export class Worker {
                                         }
                                     }
                                     async function wyvr_debug_inspect_data() {
-                                        window.data = await wyvr_fetch('${data_path.replace(this.release_path, '')}');
+                                        window.data = await wyvr_fetch('${data_path.replace(ReleasePath.get(), '')}');
                                         console.log(window.data);
                                         console.info('now available inside "data"')
                                     }
@@ -245,7 +245,7 @@ export class Worker {
                         // create above the fold inline css
                         const result = await critical.generate({
                             inline: false, // generates CSS
-                            base: this.release_path,
+                            base: ReleasePath.get(),
                             src: value[0].path,
                             dimensions: [
                                 { width: 320, height: 568 },

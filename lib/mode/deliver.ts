@@ -13,6 +13,7 @@ import { Config } from '@lib/config';
 import { delay } from '@lib/helper/delay';
 import { between } from '@lib/helper/random';
 import { idle } from '@lib/helper/endings';
+import { Cwd } from '@lib/vars/cwd';
 
 export class DeliverMode {
     allowed_domains: string[] = null;
@@ -53,7 +54,7 @@ export class DeliverMode {
                     return await this.fail(uid, res, start);
                 }
 
-                const buffer = File.read_buffer(join(process.cwd(), MediaModel.get_output(media_config.result)));
+                const buffer = File.read_buffer(join(Cwd.get(), MediaModel.get_output(media_config.result)));
                 if (buffer) {
                     res.writeHead(200, { 'Content-Type': `image/${media_config.format}` });
                     Logger.info(uid, 'file sent');

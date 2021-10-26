@@ -1,9 +1,10 @@
 import { Logger } from '@lib/logger';
 import { join } from 'path';
+import { Cwd } from '@lib/vars/cwd';
 
 export class Error {
     static extract(e: any, source: string) {
-        const root_dir = process.cwd();
+        const root_dir = Cwd.get();
         const object = {
             code: null,
             filename: null,

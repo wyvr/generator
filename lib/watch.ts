@@ -10,6 +10,7 @@ import { File } from '@lib/file';
 import { WebSocketServer } from 'ws';
 import { v4 } from 'uuid';
 import { idle } from '@lib/helper/endings';
+import { Cwd } from '@lib/vars/cwd';
 
 export class Watch {
     changed_files: any[] = [];
@@ -45,7 +46,7 @@ export class Watch {
         // create simple static server
         const static_server = require('node-static');
 
-        const pub = new static_server.Server(join(process.cwd(), 'pub'), { cache: false, serverInfo: `wyvr` });
+        const pub = new static_server.Server(join(Cwd.get(), 'pub'), { cache: false, serverInfo: `wyvr` });
         this.host = 'localhost';
         this.port = this.ports[0];
         require('http')
@@ -84,7 +85,7 @@ export class Watch {
         // watch for file changes
         let debounce = null;
         const watch_folder = this.packages.map((pkg) => pkg.path);
-        watch_folder.push(join(process.cwd(), 'wyvr.js'));
+        watch_folder.push(join(Cwd.get(), 'wyvr.js'));
         chokidar
             .watch(watch_folder, {
                 ignoreInitial: true,

@@ -30,6 +30,7 @@ import { optimize } from '@lib/main/optimize';
 import { release } from '@lib/main/release';
 import { media } from '@lib/main/media';
 import { dependencies } from '@lib/main/dependencies';
+import { Cwd } from '@lib/vars/cwd';
 
 export class BuildMode {
     hr_start = null;
@@ -39,7 +40,7 @@ export class BuildMode {
     identifier_data_list = [];
     identifiers: any = null;
 
-    constructor(private cwd: string, private uniq_id: string, private perf: IPerformance_Measure, private release_path) {
+    constructor(private uniq_id: string, private perf: IPerformance_Measure, private release_path) {
         this.hr_start = process.hrtime();
         if (!this.perf) {
             Logger.error('missing performance measure method');
@@ -121,12 +122,12 @@ export class BuildMode {
         let watched_json_files = null;
         if (watched_files) {
             watched_json_files = watched_files.map((path) => {
-                return File.to_index(join(process.cwd(), 'gen', 'data', path), 'json');
+                return File.to_index(join(Cwd.get(), 'gen', 'data', path), 'json');
             });
         }
 
         this.perf.start('static');
-        this.package_tree = copy_static_files(this.cwd, this.package_tree);
+        this.package_tree = copy_static_files(this.package_tree);
         this.perf.end('static');
 
         this.perf.start('plugins');
@@ -144,7 +145,7 @@ export class BuildMode {
 
         // collect the files for the generation
         this.perf.start('collect');
-        this.package_tree = await collect(this.cwd, this.package_tree);
+        this.package_tree = await collect(this.package_tree);
         File.write_json(join('gen', 'package_tree.json'), JSON.parse(JSON.stringify(this.package_tree)));
         this.perf.end('collect');
 
@@ -176,7 +177,7 @@ export class BuildMode {
             Global.export(join(this.release_path, '_global.json'));
         }
         // read all imported files
-        let files = route_urls.length > 0 ? route_urls : File.collect_files(join(this.cwd, 'gen', 'data'), 'json');
+        let files = route_urls.length > 0 ? route_urls : File.collect_files(join(Cwd.get(), 'gen', 'data'), 'json');
 
         // build static files
         // console.log('identifier_data_list before', this.identifier_data_list)
@@ -196,7 +197,6 @@ export class BuildMode {
         // inject data into the pages
         this.perf.start('inject');
         const [shortcode_identifier, media_entries] = await inject(
-            this.cwd,
             build_pages.map((d) => d.path),
             this.watcher_ports[1],
             this.release_path

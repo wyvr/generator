@@ -14,14 +14,15 @@ import { Env } from '@lib/env';
 import { Error } from '@lib/error';
 import { Transform } from '@lib/transform';
 import { Logger } from '@lib/logger';
+import { Cwd } from '@lib/vars/cwd';
 
 export class Client {
     static transform_resource(content) {
         return content.replace(/\/\/# sourceMappingURL=[^\n]*/g, '');
     }
-    static async create_bundle(cwd: string, entry: any, hydrate_files: WyvrFile[]) {
+    static async create_bundle(entry: any, hydrate_files: WyvrFile[]) {
         Env.set(process.env.WYVR_ENV);
-        const client_root = join(cwd, 'gen', 'client');
+        const client_root = join(Cwd.get(), 'gen', 'client');
 
         const input_file = join(client_root, `${entry.name.replace(/\./g, '-')}.js`);
         const lazy_input_files = [];
@@ -66,12 +67,12 @@ export class Client {
         // when no hydrateable files are available create minimal bundle
         if (hydrate_files.length == 0) {
             const empty_bundle = [script_partials.env, script_partials.events, script_partials.debug];
-            File.write(join(cwd, 'gen', 'js', `${entry.name.replace(/\./g, '-')}.js`), empty_bundle.join(''));
+            File.write(join(Cwd.get(), 'gen', 'js', `${entry.name.replace(/\./g, '-')}.js`), empty_bundle.join(''));
             return [null, null];
         }
         const content = await Promise.all(
             hydrate_files.map(async (file) => {
-                const import_path = join(cwd, file.path);
+                const import_path = join(Cwd.get(), file.path);
                 const var_name = file.name.toLowerCase().replace(/\s/g, '_');
 
                 const lazy_input_path = join(
@@ -112,7 +113,7 @@ export class Client {
                             wyvr_hydrate(${var_name}_target, ${var_name});
                         `
                         );
-                        const [error, result] = await this.process_bundle(lazy_input_path, lazy_input_name, cwd);
+                        const [error, result] = await this.process_bundle(lazy_input_path, lazy_input_name);
                         if (error) {
                             Logger.error('[svelte]', error);
                         }
@@ -169,14 +170,14 @@ export class Client {
 
         File.write(input_file, script_content.join('\n'));
 
-        const [error, result] = await this.process_bundle(input_file, entry.name.replace(/\./g, '-'), cwd);
+        const [error, result] = await this.process_bundle(input_file, entry.name.replace(/\./g, '-'));
         if (error) {
             Logger.error('[svelte]', error);
         }
         return [error, result];
     }
 
-    static async process_bundle(input_file: string, name: string, cwd: string) {
+    static async process_bundle(input_file: string, name: string) {
         const input_options = {
             input: input_file,
             onwarn: (warning) => {
@@ -217,7 +218,7 @@ export class Client {
         }
         const output_options: any = {
             // dir: `gen/js`,
-            file: join(cwd, 'gen', 'js', `${name}.js`),
+            file: join(Cwd.get(), 'gen', 'js', `${name}.js`),
             sourcemap: false,
             format: 'iife',
             name: 'app',

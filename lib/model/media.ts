@@ -1,7 +1,7 @@
-import { createHash as cryptoCreateHash, Hash } from 'crypto';
 import { join } from 'path';
-import { File } from '@lib/file';
 import axios from 'axios';
+import { File } from '@lib/file';
+import { Cwd } from '@lib/vars/cwd';
 
 export class MediaModel {
     src: string = null;
@@ -61,10 +61,10 @@ export class MediaModel {
         }
         // assets are located in the gen folder, because they are combined from the packages
         if (src.match(/^\/?assets\//)) {
-            return File.read_buffer(join(process.cwd(), 'gen', src));
+            return File.read_buffer(join(Cwd.get(), 'gen', src));
         }
         // local file, somewhere in the project
-        return File.read_buffer(join(process.cwd(), src));
+        return File.read_buffer(join(Cwd.get(), src));
     }
     static get_output(src: string) {
         return join('cache', src);

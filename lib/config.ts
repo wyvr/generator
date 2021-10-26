@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import { join } from 'path';
 import merge from 'deepmerge';
+import { Cwd } from '@lib/vars/cwd';
 
 export class Config {
     // cached troughout the whole process
@@ -10,7 +11,7 @@ export class Config {
      * @returns the config
      */
     static load_from_path(path: string = ''): any | null {
-        const config_path = join(process.cwd(), path, 'wyvr.js');
+        const config_path = join(Cwd.get(), path, 'wyvr.js');
         if (fs.existsSync(config_path)) {
             const config = require(config_path);
             return config;

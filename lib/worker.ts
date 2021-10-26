@@ -22,11 +22,12 @@ import { Env } from '@lib/env';
 import { Logger } from '@lib/logger';
 import { MediaModel, MediaModelOutput } from '@lib/model/media';
 import { Media } from '@lib/media';
+import { Cwd } from '@lib/vars/cwd';
 
 export class Worker {
     private config = null;
     private env = null;
-    private cwd = process.cwd();
+    private cwd = Cwd.get();
     private root_template_paths = [join(this.cwd, 'gen', 'raw', 'doc'), join(this.cwd, 'gen', 'raw', 'layout'), join(this.cwd, 'gen', 'raw', 'page')];
     private release_path = null;
     private identifiers_cache = {};
@@ -221,7 +222,7 @@ export class Worker {
                             });
                             try {
                                 // console.log(identifier.file.name, identifier.dependency, dep_files);
-                                const [error, result] = await Client.create_bundle(this.cwd, identifier.file, dep_files);
+                                const [error, result] = await Client.create_bundle(identifier.file, dep_files);
                             } catch (e) {
                                 // svelte error messages
                                 Logger.error(Error.get(e, identifier.file.name, 'worker scripts'));

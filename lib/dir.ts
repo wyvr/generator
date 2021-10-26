@@ -1,5 +1,6 @@
 import {mkdirSync, removeSync} from 'fs-extra';
 import { join } from 'path';
+import { Cwd } from '@lib/vars/cwd';
 
 export class Dir {
     /**
@@ -7,8 +8,7 @@ export class Dir {
      * @param dir_name path of the new directory
      */
     static create(dir_name) {
-        const cwd = process.cwd();
-        const dir_path = join(cwd, dir_name);
+        const dir_path = join(Cwd.get(), dir_name);
         mkdirSync(dir_path, { recursive: true });
     }
     /**

@@ -4,8 +4,10 @@ import { Plugin } from '@lib/plugin';
 import { File } from '@lib/file';
 import { join, sep } from 'path';
 import { existsSync, copySync } from 'fs-extra';
+import { Cwd } from '@lib/vars/cwd';
 
-export const collect = async (cwd: string, package_tree: any) => {
+export const collect = async (package_tree: any) => {
+    const cwd = Cwd.get();
     const packages = Config.get('packages');
     await Plugin.before('collect', packages);
     if (packages) {

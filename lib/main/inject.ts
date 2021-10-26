@@ -10,8 +10,9 @@ import { Media } from '@lib/media';
 import replaceAsync from 'string-replace-async';
 import { Build } from '@lib/build';
 import { Error } from '@lib/error';
+import { Cwd } from '@lib/vars/cwd';
 
-export const inject = async (cwd: string, list: string[], socket_port: number = 0, release_path: string = ''): Promise<[any, any]> => {
+export const inject = async (list: string[], socket_port: number = 0, release_path: string = ''): Promise<[any, any]> => {
     const [err_before, config_before, list_before] = await Plugin.before('inject', list);
     if (err_before) {
         fail(err_before);
@@ -41,7 +42,7 @@ export const inject = async (cwd: string, list: string[], socket_port: number = 
             // @INFO shortcodes
             // replace shortcodes
             let shortcode_imports = null;
-            const src_path = join(cwd, 'gen', 'src');
+            const src_path = join(Cwd.get(), 'gen', 'src');
             const replaced_content = content.replace(/\(\(([\s\S]*?)\)\)/g, (match_shortcode, inner) => {
                 const match = inner.match(/([^ ]*)([\s\S]*)/);
                 let name = null;

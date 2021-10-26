@@ -1,5 +1,6 @@
 import { join } from 'path';
 import { Logger } from '@lib/logger';
+import { Cwd } from '@lib/vars/cwd';
 
 export class RequireCache {
     /**
@@ -23,6 +24,6 @@ export class RequireCache {
      * @returns boolean
      */
     static matches(cache_file: string): boolean {
-        return cache_file.indexOf(join(process.cwd(), 'gen')) > -1;
+        return cache_file.indexOf(join(Cwd.get(), 'gen')) > -1;
     }
 }

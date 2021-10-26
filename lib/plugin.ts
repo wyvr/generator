@@ -3,6 +3,7 @@ import fs from 'fs';
 import { join } from 'path';
 import { Error } from '@lib/error';
 import { hrtime_to_ms } from '@lib/converter/time';
+import { Cwd } from '@lib/vars/cwd';
 
 export class Plugin {
     static cache: any = {};
@@ -10,11 +11,12 @@ export class Plugin {
     static async init(plugin_files: string[], config: any) {
         Logger.info('found', plugin_files.length, 'plugins');
         this.config = config;
+        const cwd = Cwd.get();
         await Promise.all(
             plugin_files.map(async (file_path) => {
                 let plugin = null;
                 try {
-                    plugin = require(join(process.cwd(), file_path));
+                    plugin = require(join(cwd, file_path));
                 } catch (e) {
                     Logger.error('error in plugin', file_path, Error.get(e, file_path, 'plugin'));
                     return null;

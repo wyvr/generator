@@ -4,6 +4,7 @@ import { extname } from 'path';
 import { dirname, join } from 'path';
 import { WyvrFile } from '@lib/model/wyvr/file';
 import { Env } from '@lib/env';
+import { Cwd } from '@lib/vars/cwd';
 const circular = require('circular');
 
 export class File {
@@ -186,7 +187,7 @@ export class File {
      */
     static collect_svelte_files(dir: string = null) {
         if (!dir) {
-            dir = join(process.cwd(), 'src');
+            dir = join(Cwd.get(), 'src');
         }
         const result = this.collect_files(dir, 'svelte').map((path) => new WyvrFile(path));
         return result;

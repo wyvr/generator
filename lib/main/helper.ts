@@ -1,13 +1,9 @@
 import { join } from 'path';
-
-import { Publish } from '@lib/publish';
-import { WyvrMode } from '@lib/model/wyvr/mode';
-import { Logger } from '@lib/logger';
-import { Dir } from '@lib/dir';
 import { Generate } from '@lib/generate';
+import { Cwd } from '@lib/vars/cwd';
 
 export class MainHelper {
-    cwd = process.cwd();
+    cwd = Cwd.get();
     root_template_paths = [join(this.cwd, 'gen', 'src', 'doc'), join(this.cwd, 'gen', 'src', 'layout'), join(this.cwd, 'gen', 'src', 'page')];
 
     generate(data, ignore_global: boolean = false, default_values: any = null) {

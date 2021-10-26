@@ -9,8 +9,9 @@ import { Config } from '@lib/config';
 import { Logger } from '@lib/logger';
 import { IPerformance_Measure, Performance_Measure, Performance_Measure_Blank } from '@lib/performance_measure';
 import { Global } from '@lib/global';
+import { Cwd } from '@lib/vars/cwd';
 
-const cwd = process.cwd();
+const cwd = Cwd.get();
 
 export class Importer {
     chunk_index = 0;

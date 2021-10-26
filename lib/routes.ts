@@ -5,11 +5,12 @@ import fm from 'front-matter';
 import { File } from '@lib/file';
 import { Route } from '@lib/model/route';
 import { Global } from '@lib/global';
+import { Cwd } from '@lib/vars/cwd';
 
 export class Routes {
     static collect_routes(dir: string = null, package_tree: any = null) {
         if (!dir) {
-            dir = join(process.cwd(), 'gen/routes');
+            dir = join(Cwd.get(), 'gen/routes');
         }
         if (!existsSync(dir)) {
             return [];
@@ -129,7 +130,7 @@ export class Routes {
                     return null;
                 }
                 // create data json for the given file
-                const path = File.to_extension(File.to_index(join(process.cwd(), 'gen', 'data', url), 'json'), 'json');
+                const path = File.to_extension(File.to_index(join(Cwd.get(), 'gen', 'data', url), 'json'), 'json');
                 mkdirSync(dirname(path), { recursive: true });
                 writeFileSync(path, JSON.stringify(route));
                 return path;

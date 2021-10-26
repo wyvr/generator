@@ -14,6 +14,7 @@ import { DeliverMode } from '@lib/mode/deliver';
 import { CronMode } from '@lib/mode/cron';
 import { BuildMode } from '@lib/mode/build';
 import { cleanup } from '@lib/main/cleanup';
+import { Cwd } from '@lib/vars/cwd';
 
 export class Main {
     mode: WyvrMode = WyvrMode.build;
@@ -22,7 +23,6 @@ export class Main {
     perf: IPerformance_Measure;
     worker_amount: number;
     identifiers: any = {};
-    cwd = process.cwd();
     uniq_id = null;
     release_path = null;
     package_tree = {};
@@ -36,6 +36,7 @@ export class Main {
         this.start();
     }
     async start() {
+        Cwd.set(process.cwd());
         Env.set(process.env.WYVR_ENV);
 
         Logger.logo();
@@ -53,7 +54,7 @@ export class Main {
 
         process.title = `wyvr main ${process.pid}`;
         Logger.present('PID', process.pid, Logger.color.dim(`"${process.title}"`));
-        Logger.present('cwd', this.cwd);
+        Logger.present('cwd', Cwd.get());
         Logger.present('build', this.uniq_id);
         Logger.present('env', EnvModel[Env.get()]);
         Logger.present('mode', WyvrMode[this.mode]);
@@ -61,7 +62,7 @@ export class Main {
 
         switch (this.mode) {
             case WyvrMode.build:
-                const build = new BuildMode(this.cwd, this.uniq_id, this.perf, this.release_path);
+                const build = new BuildMode(this.uniq_id, this.perf, this.release_path);
                 await build.init(this.uniq_id_file);
                 this.validate_config();
                 cleanup(this.perf, this.release_path, this.mode);
@@ -117,7 +118,7 @@ export class Main {
         this.worker_amount = this.worker_controller.get_worker_amount();
         Logger.present('workers', this.worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));
         const workers = this.worker_controller.create_workers(this.worker_amount);
-        const gen_src_folder = join(this.cwd, 'gen', 'raw');
+        const gen_src_folder = join(Cwd.get(), 'gen', 'raw');
         // watcher when worker sends identifier content
         this.worker_controller.events.on('emit', WorkerEmit.identifier, (data: any) => {
             if (!data) {

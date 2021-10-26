@@ -5,6 +5,7 @@ import {existsSync} from 'fs';
 import { Logger } from '@lib/logger';
 import sass from 'sass';
 import { Error } from '@lib/error';
+import { Cwd } from '@lib/vars/cwd';
 
 export class Transform {
     /**
@@ -31,7 +32,7 @@ export class Transform {
         return this.replace_src(content, to); //gen/src
     }
     static replace_src(content: string, to: string) {
-        return content.replace(/(['"])@src\//g, `$1${process.cwd()}/${to.replace('^/', '').replace(/\/$/, '')}/`);
+        return content.replace(/(['"])@src\//g, `$1${Cwd.get()}/${to.replace('^/', '').replace(/\/$/, '')}/`);
     }
     static replace_wyvr_imports(content: string, as_client: boolean) {
         if (!content || typeof content != 'string') {

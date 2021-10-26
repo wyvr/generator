@@ -3,6 +3,7 @@ import { join, extname, dirname, resolve, sep } from 'path';
 import { Logger } from '@lib/logger';
 import { File } from '@lib/file';
 import { WyvrFile } from '@lib/model/wyvr/file';
+import { Cwd } from '@lib/vars/cwd';
 
 export class Dependency {
     static cache: any = null;
@@ -48,7 +49,7 @@ export class Dependency {
         if (this.pkg_dep) {
             return this.pkg_dep;
         }
-        const pkg_path = join(process.cwd(), 'package.json');
+        const pkg_path = join(Cwd.get(), 'package.json');
         if (!existsSync(pkg_path)) {
             return [];
         }
@@ -90,7 +91,7 @@ export class Dependency {
                     }
                     // add extension when not supplied
                     if (!extname(file)) {
-                        const src_folder = join(process.cwd(), 'gen', 'src');
+                        const src_folder = join(Cwd.get(), 'gen', 'src');
                         const file_with_ext = ['.ts', '.js']
                             .map((ext) => {
                                 if (existsSync(join(src_folder, file + ext))) {

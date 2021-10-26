@@ -3,8 +3,10 @@ import { File } from '@lib/file';
 import { Logger } from '@lib/logger';
 import { join, sep } from 'path';
 import { existsSync, copySync } from 'fs-extra';
+import { Cwd } from '@lib/vars/cwd';
 
-export const copy_static_files = (cwd: string, package_tree) => {
+export const copy_static_files = (package_tree) => {
+    const cwd = Cwd.get();
     const packages = Config.get('packages');
     if (packages) {
         packages.forEach((pkg) => {

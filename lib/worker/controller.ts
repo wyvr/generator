@@ -10,9 +10,10 @@ import { LogType } from '@lib/model/log';
 import { Events } from '@lib/events';
 import { Error } from '@lib/error';
 import { Queue } from '@lib/queue';
+import { Cwd } from '@lib/vars/cwd';
 
 export class WorkerController {
-    private cwd = process.cwd();
+    private cwd = Cwd.get();
     private workers: WorkerModel[] = [];
     private worker_ratio = Config.get('worker.ratio');
     private max_cores: number;

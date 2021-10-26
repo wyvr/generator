@@ -1,5 +1,6 @@
 import { mkdirSync, removeSync, symlinkSync, existsSync, lstatSync } from 'fs-extra';
 import { dirname } from 'path';
+import { Cwd } from '@lib/vars/cwd';
 export class Link {
     /**
      * links the given source_dir_name to the destination_name folder
@@ -8,7 +9,7 @@ export class Link {
      * @returns whether the given parameter is correct or not
      */
     static to(source_dir_name: string, destination_name: string = null): boolean {
-        const cwd = process.cwd();
+        const cwd = Cwd.get();
         if (!source_dir_name || typeof source_dir_name != 'string' || !destination_name) {
             return false;
         }

@@ -16,9 +16,9 @@ import { BuildMode } from '@lib/mode/build';
 import { cleanup } from '@lib/main/cleanup';
 import { Cwd } from '@lib/vars/cwd';
 import { ReleasePath } from '@lib/vars/release_path';
+import { Mode } from '@lib/vars/mode';
 
 export class Main {
-    mode: WyvrMode = WyvrMode.build;
     worker_controller: WorkerController = null;
     helper = new MainHelper();
     perf: IPerformance_Measure;
@@ -42,8 +42,8 @@ export class Main {
         Logger.logo();
 
         const args = process.argv.slice(2).map((arg) => arg.toLowerCase().trim());
-        this.mode = this.get_mode(args);
-        this.uniq_id = this.get_uniq_id(this.mode);
+        Mode.set(this.get_mode(args));
+        this.uniq_id = this.get_uniq_id(Mode.get());
         if (!this.uniq_id) {
             Logger.error('no previous version found in', this.uniq_id_file);
             process.exit(1);
@@ -57,15 +57,15 @@ export class Main {
         Logger.present('cwd', Cwd.get());
         Logger.present('build', this.uniq_id);
         Logger.present('env', EnvModel[Env.get()]);
-        Logger.present('mode', WyvrMode[this.mode]);
+        Logger.present('mode', WyvrMode[Mode.get()]);
         this.perf = Config.get('import.measure_performance') ? new Performance_Measure() : new Performance_Measure_Blank();
 
-        switch (this.mode) {
+        switch (Mode.get()) {
             case WyvrMode.build:
                 const build = new BuildMode(this.uniq_id, this.perf);
                 await build.init(this.uniq_id_file);
                 this.validate_config();
-                cleanup(this.perf, this.mode);
+                cleanup(this.perf);
                 this.worker();
                 await build.start(this.worker_controller, this.identifiers);
                 break;
@@ -73,7 +73,7 @@ export class Main {
                 const cron = new CronMode(this.perf);
                 await cron.init();
                 this.validate_config();
-                cleanup(this.perf, this.mode);
+                cleanup(this.perf);
                 this.worker();
                 await cron.start(this.worker_controller);
                 break;
@@ -82,7 +82,7 @@ export class Main {
                 deliver.start();
                 break;
             default:
-                Logger.error('unknown mode', this.mode);
+                Logger.error('unknown mode');
         }
     }
     get_mode(args: string[]) {

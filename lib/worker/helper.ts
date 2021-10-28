@@ -1,6 +1,6 @@
 import { WorkerStatus } from '@lib/model/worker/status';
 import { WorkerAction } from '@lib/model/worker/action';
-import { LogType } from '@lib/model/log';
+import { IWorkerSend } from '@lib/interface/worker';
 
 export class WorkerHelper {
     static send(data) {
@@ -19,7 +19,7 @@ export class WorkerHelper {
         this.send_action(WorkerAction.status, enum_status);
     }
     static send_action(action: WorkerAction, data) {
-        const data_to_send = {
+        const data_to_send: IWorkerSend = {
             action: {
                 key: action,
                 value: data,
@@ -27,15 +27,15 @@ export class WorkerHelper {
         };
         // add human readable info when in debug mode
         if (process.env.WYVR_ENV == 'debug') {
-            (<any>data_to_send).action.key_name = WorkerAction[action];
+            data_to_send.action.key_name = WorkerAction[action];
             if (action == WorkerAction.status) {
-                (<any>data_to_send).action.value_name = WorkerStatus[data];
+                data_to_send.action.value_name = WorkerStatus[data];
             }
         }
         this.send(data_to_send);
     }
-    static get_status(status) {
-        let enum_status: any = WorkerStatus[status];
+    static get_status(status): WorkerStatus {
+        let enum_status: string | number = WorkerStatus[status];
         if (enum_status == null) {
             enum_status = WorkerStatus.exists;
         }

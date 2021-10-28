@@ -5,13 +5,14 @@ import { WorkerAction } from '@lib/model/worker/action';
 import { Logger } from '@lib/logger';
 import { Env } from '@lib/env';
 import { WorkerModel } from '@lib/model/worker/worker';
-import { File } from '@lib/file';
 import { LogType } from '@lib/model/log';
 import { Events } from '@lib/events';
 import { Error } from '@lib/error';
 import { Queue } from '@lib/queue';
 import { Cwd } from '@lib/vars/cwd';
 import { ReleasePath } from '@lib/vars/release_path';
+import { cpus } from 'os';
+import { ILoggerObject } from '@lib/interface/logger';
 
 export class WorkerController {
     private workers: WorkerModel[] = [];
@@ -35,7 +36,7 @@ export class WorkerController {
         }
         // get amount of cores
         // at least one and left 1 core for the main worker
-        const cpu_cores = require('os').cpus().length;
+        const cpu_cores = cpus().length;
         const cpu_cores_ratio = Math.round(cpu_cores * this.worker_ratio);
         const max_cores = Math.max(1, cpu_cores_ratio - 1);
 
@@ -62,7 +63,7 @@ export class WorkerController {
         worker.process.on('exit', (code) => {
             Logger.debug('process', worker.pid, 'exit', code);
         });
-        worker.process.on('close', (code) => {
+        worker.process.on('close', () => {
             Logger.warning('worker died PID', worker.pid);
             Logger.info('create new worker');
             this.remove_worker(worker.pid);
@@ -106,8 +107,8 @@ export class WorkerController {
                 if (data && data.type && LogType[data.type] && Logger[LogType[data.type]]) {
                     // display svelte errors with better output
                     if (data.messages.length > 0 && data.messages[0] === '[svelte]') {
-                        data.messages = data.messages.map((message: any, index: number) => {
-                            if (index == 0) {
+                        data.messages = data.messages.map((message: ILoggerObject | string, index: number) => {
+                            if (index == 0 && typeof message == 'string') {
                                 return Logger.color.dim(message);
                             }
                             if (message == null) {
@@ -124,7 +125,7 @@ export class WorkerController {
                                 )}${message.loc.column}\n${message.frame}`;
                             }
                             // nodejs error
-                            if (message == 'object' && message.error) {
+                            if (typeof message == 'object' && message.error) {
                                 return Error.get(message.error, message.filename);
                             }
                             return message;
@@ -242,7 +243,7 @@ export class WorkerController {
         }
         const size = this.queue.length;
         let done = 0;
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             const idle = this.get_idle_workers();
             const listener_id = this.events.on('worker_status', WorkerStatus.idle, () => {
                 if (this.tick(this.queue)) {

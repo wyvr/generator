@@ -3,10 +3,13 @@ import { File } from '@lib/file';
 import { Dir } from '@lib/dir';
 import { Error } from '@lib/error';
 import { MediaModel, MediaModelOutput } from '@lib/model/media';
-import { dirname } from 'path';
+import { dirname, join } from 'path';
 import sharp from 'sharp';
+import { Config } from '@lib/config';
+import { Cwd } from '@lib/vars/cwd';
 
 export class Media {
+    static allowed_domains = null;
     static async get_config(content: string): Promise<MediaModel> {
         // get the config of the media
         const config = new MediaModel(Media.get_config_from_content(content));
@@ -156,5 +159,42 @@ export class Media {
             Logger.error(Error.get(e, media.src, 'sharp'));
         }
         return null;
+    }
+    static async serve(res: any, media_config: any, on_end: Function = null, on_fail: Function = null) {
+        if(!Media.allowed_domains) {
+            Media.allowed_domains = Config.get('media.allowed_domains');
+        }
+        const end = async (res, value) => {
+            if(typeof on_end == 'function') {
+                await on_end();
+            }
+            res.end(value);
+            return;
+        }
+        const fail = async (res, message) => {
+            if(typeof on_fail == 'function') {
+                await on_fail(message);
+            }
+            await end(res, null);
+            return;
+        }
+        // check for allowed domain
+        let allowed = !media_config.domain || (Array.isArray(this.allowed_domains) && this.allowed_domains.find((domain) => media_config.domain == domain));
+        if (!allowed) {
+            return await fail(res, `domain "${media_config.domain}" not allowed`);
+        }
+        // create the cache file
+        try {
+            await Media.process(media_config);
+        } catch (e) {
+            return await fail(res, Error.get(e, media_config.result));
+        }
+        // read created file and serve it
+        const buffer = File.read_buffer(join(Cwd.get(), MediaModel.get_output(media_config.result)));
+        if (buffer) {
+            res.writeHead(200, { 'Content-Type': `image/${media_config.format}` });
+            return await end(res, buffer);
+        }
+        return await fail(res, 'no file found');
     }
 }

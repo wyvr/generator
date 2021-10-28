@@ -11,6 +11,10 @@ import { WebSocketServer } from 'ws';
 import { v4 } from 'uuid';
 import { idle } from '@lib/helper/endings';
 import { Cwd } from '@lib/vars/cwd';
+import { Media } from '@lib/media';
+import { delay } from '@lib/helper/delay';
+import { between } from '@lib/helper/random';
+import { LogType } from '@lib/model/log';
 
 export class Watch {
     changed_files: any[] = [];
@@ -20,12 +24,16 @@ export class Watch {
     packages = null;
     host = 'localhost';
     port = 3000;
+    allowed_domains = null;
+
+    private readonly IDLE_TEXT = 'changes or requests';
 
     constructor(private ports: [number, number], private callback: Function = null) {
         if (!callback || typeof callback != 'function') {
             Logger.warning('can not start watching because no callback is defined');
             return;
         }
+        this.allowed_domains = Config.get('media.allowed_domains');
         RequireCache.clear();
         this.init();
     }
@@ -54,8 +62,19 @@ export class Watch {
                 // console.log(req.method, req.url);
                 // console.log(Object.keys(req));
                 req.addListener('end', () => {
-                    pub.serve(req, res, (err, result) => {
+                    pub.serve(req, res, async (err, result) => {
                         if (err) {
+                            // check for media files
+                            const media_config = Media.extract_config(req.url);
+                            if (media_config) {
+                                const start = process.hrtime();
+                                return Media.serve(res, media_config, ()=> {
+                                    const duration = Math.round(hrtime_to_ms(process.hrtime(start)) * 100) / 100;
+                                    Logger.block(`processed ${media_config.src} in ${duration} ms`)
+                                }, async (message)=> {
+                                    Logger.error(media_config.src, message);
+                                })
+                            }
                             Logger.error('serve error', Logger.color.bold(err.message), req.method, req.url, err.status);
                             res.writeHead(err.status, err.headers);
                             res.end();
@@ -65,7 +84,7 @@ export class Watch {
             })
             .listen(this.port, this.host, () => {
                 Logger.success('server started', `http://${this.host}:${this.port}`);
-                idle('changes');
+                idle(this.IDLE_TEXT);
             });
 
         this.connect();
@@ -245,7 +264,7 @@ export class Watch {
         if (this.get_watched_files().length == 0) {
             Logger.improve('nobody is watching, no need to rebuild');
             Logger.info('open', `http://${this.host}:${this.port}`, 'to start watching');
-            idle('changes');
+            idle(this.IDLE_TEXT);
             return;
         }
         const added_files = [];
@@ -354,8 +373,20 @@ export class Watch {
         RequireCache.clear();
         const timeInMs = hrtime_to_ms(process.hrtime(hr_start));
         Logger.stop('watch total', timeInMs);
-        idle('changes');
+        idle(this.IDLE_TEXT);
         this.is_executing = false;
         return result;
+    }
+
+    async fail(uid: string, res: any, hr_start: [number, number]) {
+        await delay(between(350, 1000));
+        res.writeHead(404, { 'Content-Type': 'text/html' });
+        return this.end(uid, res, hr_start, '');
+    }
+    end(uid: string, res: any, hr_start: [number, number], value: any = null) {
+        const duration = Math.round(hrtime_to_ms(process.hrtime(hr_start)) * 100) / 100;
+        Logger.output(LogType.log, Logger.color.dim, '░', uid, Logger.color.reset(duration + ''), 'ms');
+        res.end(value);
+        return;
     }
 }

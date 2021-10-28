@@ -7,9 +7,7 @@ import { EnvModel } from '@lib/model/env';
 import { IPerformance_Measure, Performance_Measure, Performance_Measure_Blank } from '@lib/performance_measure';
 import { File } from '@lib/file';
 import { WyvrMode } from '@lib/model/wyvr/mode';
-import { MainHelper } from '@lib/main/helper';
 import { WorkerEmit } from '@lib/model/worker/emit';
-import { uniq } from '@lib/helper/uniq';
 import { DeliverMode } from '@lib/mode/deliver';
 import { CronMode } from '@lib/mode/cron';
 import { BuildMode } from '@lib/mode/build';
@@ -17,20 +15,18 @@ import { cleanup } from '@lib/main/cleanup';
 import { Cwd } from '@lib/vars/cwd';
 import { ReleasePath } from '@lib/vars/release_path';
 import { Mode } from '@lib/vars/mode';
+import { UniqId } from '@lib/vars/uniq_id';
 
 export class Main {
     worker_controller: WorkerController = null;
-    helper = new MainHelper();
     perf: IPerformance_Measure;
     worker_amount: number;
     identifiers: any = {};
-    uniq_id = null;
     package_tree = {};
     cron_state = [];
     cron_config = [];
     identifier_data_list = [];
     watcher_ports: [number, number] = [3000, 3001];
-    uniq_id_file = join('gen', 'uniq.txt');
 
     constructor() {
         this.start();
@@ -43,27 +39,28 @@ export class Main {
 
         const args = process.argv.slice(2).map((arg) => arg.toLowerCase().trim());
         Mode.set(this.get_mode(args));
-        this.uniq_id = this.get_uniq_id(Mode.get());
-        if (!this.uniq_id) {
-            Logger.error('no previous version found in', this.uniq_id_file);
+        // load build id
+        const uniq = [WyvrMode.deliver, WyvrMode.cron].includes(Mode.get()) ? UniqId.load() : UniqId.new();
+        if (!uniq) {
             process.exit(1);
             return;
         }
+        UniqId.set(uniq);
         // create release folder
-        ReleasePath.set(`releases/${this.uniq_id}`);
+        ReleasePath.set(`releases/${UniqId.get()}`);
 
         process.title = `wyvr main ${process.pid}`;
         Logger.present('PID', process.pid, Logger.color.dim(`"${process.title}"`));
         Logger.present('cwd', Cwd.get());
-        Logger.present('build', this.uniq_id);
+        Logger.present('build',  UniqId.get());
         Logger.present('env', EnvModel[Env.get()]);
         Logger.present('mode', WyvrMode[Mode.get()]);
         this.perf = Config.get('import.measure_performance') ? new Performance_Measure() : new Performance_Measure_Blank();
 
         switch (Mode.get()) {
             case WyvrMode.build:
-                const build = new BuildMode(this.uniq_id, this.perf);
-                await build.init(this.uniq_id_file);
+                const build = new BuildMode(this.perf);
+                await build.init();
                 this.validate_config();
                 cleanup(this.perf);
                 this.worker();
@@ -94,15 +91,6 @@ export class Main {
         }
         // build is default
         return WyvrMode.build;
-    }
-    get_uniq_id(mode: WyvrMode) {
-        if (mode == null || isNaN(mode)) {
-            return null;
-        }
-        if ([WyvrMode.deliver, WyvrMode.cron].includes(mode)) {
-            return File.read(this.uniq_id_file);
-        }
-        return uniq();
     }
     validate_config() {
         if (!Config.get('packages')) {

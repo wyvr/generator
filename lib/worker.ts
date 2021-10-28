@@ -27,9 +27,7 @@ import { ReleasePath } from '@lib/vars/release_path';
 
 export class Worker {
     private config = null;
-    private env = null;
-    private cwd = Cwd.get();
-    private root_template_paths = [join(this.cwd, 'gen', 'raw', 'doc'), join(this.cwd, 'gen', 'raw', 'layout'), join(this.cwd, 'gen', 'raw', 'page')];
+    private root_template_paths = null;
     private identifiers_cache = {};
     constructor() {
         this.init();
@@ -50,15 +48,16 @@ export class Worker {
                 case WorkerAction.configure:
                     // set the config of the worker by the main process
                     this.config = value?.config;
-                    this.env = value?.env;
-                    Env.set(this.env);
+                    Env.set(value?.env);
                     Cwd.set(value?.cwd);
                     ReleasePath.set(value?.release_path);
                     // only when everything is configured set the worker idle
-                    if ((!this.config && this.env == null) || !this.cwd) {
+                    if (Env.get() == null || Cwd.get() == null || ReleasePath.get() == null) {
                         Logger.warning('invalid configure value', value);
                         return;
                     }
+                    const raw_path = join(Cwd.get(), 'gen', 'raw');
+                    this.root_template_paths = [join(raw_path, 'doc'), join(raw_path, 'layout'), join(raw_path, 'page')];
                     WorkerHelper.send_complete();
                     break;
                 case WorkerAction.route:
@@ -130,9 +129,9 @@ export class Worker {
                             }
                             // change extension when set
                             const extension = data._wyvr?.extension;
-                            const path = File.to_extension(filename.replace(join(this.cwd, 'gen', 'data'), ReleasePath.get()), extension);
+                            const path = File.to_extension(filename.replace(join(Cwd.get(), 'gen', 'data'), ReleasePath.get()), extension);
                             // add debug data
-                            if (extension.match(/html|htm|php/) && (this.env == EnvModel.debug || this.env == EnvModel.dev)) {
+                            if (extension.match(/html|htm|php/) && (Env.get() == EnvModel.debug || Env.get() == EnvModel.dev)) {
                                 const data_path = File.to_extension(path, 'json');
                                 rendered.result.html = rendered.result.html.replace(
                                     /<\/body>/,
@@ -321,9 +320,10 @@ export class Worker {
         });
     }
     emit_identifier(data: any): any {
-        const doc_file_name = File.find_file(join(this.cwd, 'gen', 'raw', 'doc'), data._wyvr.template.doc);
-        const layout_file_name = File.find_file(join(this.cwd, 'gen', 'raw', 'layout'), data._wyvr.template.layout);
-        const page_file_name = File.find_file(join(this.cwd, 'gen', 'raw', 'page'), data._wyvr.template.page);
+        const raw_path = join(Cwd.get(), 'gen', 'raw');
+        const doc_file_name = File.find_file(join(raw_path, 'doc'), data._wyvr.template.doc);
+        const layout_file_name = File.find_file(join(raw_path, 'layout'), data._wyvr.template.layout);
+        const page_file_name = File.find_file(join(raw_path, 'page'), data._wyvr.template.page);
 
         const identifier = Client.get_identifier_name(this.root_template_paths, doc_file_name, layout_file_name, page_file_name);
         const result = {

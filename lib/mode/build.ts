@@ -41,7 +41,7 @@ export class BuildMode {
     identifier_data_list = [];
     identifiers: any = null;
 
-    constructor(private uniq_id: string, private perf: IPerformance_Measure) {
+    constructor(private perf: IPerformance_Measure) {
         this.hr_start = process.hrtime();
         if (!this.perf) {
             Logger.error('missing performance measure method');
@@ -49,11 +49,10 @@ export class BuildMode {
             return;
         }
     }
-    async init(uniq_id_file: string) {
+    async init() {
         this.perf.start('config');
         // a new build must destroy the old generated data
         Dir.clear('gen');
-        File.write(uniq_id_file, this.uniq_id);
 
         if (Env.is_dev()) {
             // get the first 2 free ports for the watcher
@@ -224,14 +223,14 @@ export class BuildMode {
             Logger.improve('sitemap, will not be regenerated');
         }
 
-        await link(this.perf, this.uniq_id);
+        await link(this.perf);
 
         if (media_entries) {
             await media(this.perf, worker_controller, media_entries);
         }
 
         await optimize(this.perf, identifier_data_list, worker_controller);
-        await release(this.perf, this.uniq_id);
+        await release(this.perf);
 
         worker_controller.cleanup();
         this.is_executing = false;

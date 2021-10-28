@@ -14,7 +14,6 @@ import { Cwd } from '@lib/vars/cwd';
 import { ReleasePath } from '@lib/vars/release_path';
 
 export class WorkerController {
-    private cwd = Cwd.get();
     private workers: WorkerModel[] = [];
     private worker_ratio = Config.get('worker.ratio');
     private max_cores: number;
@@ -191,7 +190,7 @@ export class WorkerController {
         this.send_action(worker.pid, WorkerAction.configure, {
             config: Config.get(),
             env: Env.get(),
-            cwd: this.cwd,
+            cwd: Cwd.get(),
             release_path: ReleasePath.get(),
         });
     }

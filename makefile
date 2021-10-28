@@ -88,3 +88,6 @@ serve: ## start simple http server after production build
 
 lint: ## Use ESLint on the codebase
 	@npx eslint . --ext .ts
+
+lint-watch: ## Use ESLint on the codebase while watching
+	@npx nodemon --watch lib -e js,ts --delay 1 --exec "eslint . --ext .ts"

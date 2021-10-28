@@ -46,6 +46,9 @@
     "devDependencies": {
         "@istanbuljs/nyc-config-typescript": "1.0.1",
         "@types/mocha": "9.0.0",
+        "@typescript-eslint/eslint-plugin": "^5.2.0",
+        "@typescript-eslint/parser": "^5.2.0",
+        "eslint": "^8.1.0",
         "locate-character": "2.0.5",
         "magic-string": "0.25.7",
         "module-alias": "2.2.2",

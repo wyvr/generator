@@ -49,7 +49,9 @@ export class Logger {
             this.spinner.stopAndPersist({ text: `${symbol} ${text}`, symbol: color.dim('│') }).start(this.last_text).spinner = 'dots';
             return;
         }
+        /* eslint-disable */
         console.log(symbol, text);
+        /* eslint-enable */
     }
     static log(...values) {
         this.output(LogType.log, null, '', ...values);
@@ -116,8 +118,10 @@ export class Logger {
     }
     static logo() {
         const logo = [`__  __  __  __  __  ____`, `\\ \\/ /\\/ /\\/ /\\/ /\\/ /_/`, ` \\/_/\\/_/\\/ /\\/_/\\/_/`, `         /_/ generator ${color.dim(pkg.version)}`].join('\n');
+        /* eslint-disable */
         console.log(color.cyan(logo));
         console.log('');
+        /* eslint-enable */
     }
 
     static stringify(data: any): string {

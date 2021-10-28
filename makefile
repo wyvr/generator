@@ -85,3 +85,6 @@ serve: ## start simple http server after production build
 	@$(WYVR_COMPILE) && $(WYVR_TEST) && $(WYVR_BUILD)
 	@echo ""
 	@npx http-server ./pub
+
+lint: ## Use ESLint on the codebase
+	@npx eslint . --ext .ts

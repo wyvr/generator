@@ -1,0 +1,10 @@
+.nyc_output
+.vscode
+cache
+coverage
+gen
+node_modules
+pub
+releases
+test
+wyvr

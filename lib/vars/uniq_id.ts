@@ -6,13 +6,14 @@ import { uniq } from '@lib/helper/uniq';
 import { Logger } from '@lib/logger';
 
 export class UniqId {
-    static uniq_id_file = join('gen', 'uniq.txt');
+    static uniq_id_file = join('cache', 'uniq.txt');
     static value = null;
     static get() {
         return this.value;
     }
     static set(value: string) {
         if (this.value !== value) {
+            Logger.debug('persist UniqId', value)
             File.write(this.uniq_id_file, value);
         }
         this.value = value;

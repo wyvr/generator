@@ -35,7 +35,7 @@ import { ReleasePath } from '@lib/vars/release_path';
 
 export class BuildMode {
     hr_start = null;
-    watcher_ports: [number, number] = [3000, 3001];
+    watcher_ports: [number, number] = [3000, null];
     is_executing: boolean = false;
     package_tree = {};
     identifier_data_list = [];
@@ -57,7 +57,7 @@ export class BuildMode {
         if (Env.is_dev()) {
             // get the first 2 free ports for the watcher
             this.watcher_ports[0] = await Port.find(this.watcher_ports[0]); // server
-            this.watcher_ports[1] = await Port.find(this.watcher_ports[1]); // socket
+            this.watcher_ports[1] = await Port.find(this.watcher_ports[0] + 1); // socket
             Logger.present('server port', this.watcher_ports[0]);
             Logger.present('socket port', this.watcher_ports[1]);
         }

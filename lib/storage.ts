@@ -5,7 +5,7 @@ import { mkdirSync, existsSync } from 'fs-extra';
 import merge from 'deepmerge';
 
 export class Storage {
-    static is_setup: boolean = false;
+    static is_setup = false;
     static db: Database = null;
 
     /**
@@ -166,7 +166,7 @@ export class Storage {
         const result = await this.set(table, key, merged_value);
         return result;
     }
-    static normalize(text: string = '') {
+    static normalize(text = '') {
         return text.replace(/[A-Z]/g, '-$1').toLowerCase().replace(/^-/, '').replace(/-+/g, '-');
     }
     static async clear(table: string): Promise<[Error | null, boolean]> {

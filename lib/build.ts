@@ -68,7 +68,7 @@ export class Build {
         }
         // write css file
         const css_file_path = join('gen', 'css', `${props._wyvr.identifier.replace(/\./g, '-')}.css`);
-        let identifier_item = { url: props.url, identifier: props._wyvr.identifier, extension: props._wyvr.extension };
+        const identifier_item = { url: props.url, identifier: props._wyvr.identifier, extension: props._wyvr.extension };
         let media_files = {};
         if (!fs.existsSync(css_file_path)) {
             media_files = await this.write_css_file(css_file_path, svelte_render_item.result.css.code);

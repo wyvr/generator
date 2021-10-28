@@ -5,8 +5,7 @@ import { File } from '@lib/file';
 import { Build } from '@lib/build';
 import { Dir } from '@lib/dir';
 import { join, dirname, extname } from 'path';
-import { readFileSync, writeFileSync, mkdirSync } from 'fs-extra';
-import { LogType } from '@lib/model/log';
+import { writeFileSync, mkdirSync } from 'fs-extra';
 import { Client } from '@lib/client';
 import { Routes } from '@lib/routes';
 import { Config } from '@lib/config';
@@ -20,7 +19,7 @@ import { Dependency } from '@lib/dependency';
 import { WyvrFile } from '@lib/model/wyvr/file';
 import { Env } from '@lib/env';
 import { Logger } from '@lib/logger';
-import { MediaModel, MediaModelOutput } from '@lib/model/media';
+import { MediaModel } from '@lib/model/media';
 import { Media } from '@lib/media';
 import { Cwd } from '@lib/vars/cwd';
 import { ReleasePath } from '@lib/vars/release_path';
@@ -103,7 +102,7 @@ export class Worker {
                     break;
                 case WorkerAction.build:
                     WorkerHelper.send_status(WorkerStatus.busy);
-                    let identifier_list = [];
+                    const identifier_list = [];
                     const build_result = await Promise.all(
                         value.map(async (filename) => {
                             const data = File.read_json(filename);

@@ -82,7 +82,7 @@ export class Transform {
 
         return false;
     }
-    static extract_tags_from_content(content: string, tag: string, max: number = 0): { content: string; result: string[] } {
+    static extract_tags_from_content(content: string, tag: string, max = 0): { content: string; result: string[] } {
         if (!content || typeof content != 'string' || !tag || typeof tag != 'string') {
             return {
                 content: content || '',

@@ -4,11 +4,11 @@ export class Queue {
     private last: QueueEntry = null;
 
     // private variable
-    private _length: number = 0;
+    private _length = 0;
     get length(): number {
         return this._length;
     }
-    set length(value: number) {}
+    // set length(value: number) {}
 
     /**
      * add a new entry at the end of the queue

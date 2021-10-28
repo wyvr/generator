@@ -86,7 +86,7 @@ export class Generate {
             return global;
         }
         // extract navigation data
-        let nav_result = data._wyvr?.nav;
+        const nav_result = data._wyvr?.nav;
 
         if (!nav_result) {
             return global;

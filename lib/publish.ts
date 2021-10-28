@@ -4,7 +4,7 @@ import { Link } from '@lib/link';
 import { Dir } from '@lib/dir';
 
 export class Publish {
-    static cleanup(keep: number = 0) {
+    static cleanup(keep = 0) {
         let pub_release = null;
 
         // when pub exists and links to a release avoid deleting this release

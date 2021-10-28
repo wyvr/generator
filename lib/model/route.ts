@@ -1,10 +1,10 @@
 import { CronState } from '@lib/model/cron';
 
 export class Route {
-    path: string = '';
-    rel_path: string = '';
+    path = '';
+    rel_path = '';
     pkg: any = '';
-    initial: boolean = true;
+    initial = true;
     cron: CronState = null;
     constructor(data) {
         if (data) {

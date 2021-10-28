@@ -10,7 +10,7 @@ export class Config {
      * get the config of the path based on the current project
      * @returns the config
      */
-    static load_from_path(path: string = ''): any | null {
+    static load_from_path(path = ''): any | null {
         const config_path = join(Cwd.get(), path, 'wyvr.js');
         if (fs.existsSync(config_path)) {
             const config = require(config_path);
@@ -41,7 +41,7 @@ export class Config {
         // load only the partial config segment
         const splitted_config_segment = config_segment.split('.');
         let shrinked_config = this.cache;
-        for (let index in splitted_config_segment) {
+        for (const index in splitted_config_segment) {
             if (!splitted_config_segment[index] || !shrinked_config[splitted_config_segment[index]]) {
                 return null;
             }

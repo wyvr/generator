@@ -119,7 +119,7 @@ export class File {
      * @param filename
      * @returns the content of the file
      */
-    static read(filename: string, encoding: string = 'utf-8'): any {
+    static read(filename: string, encoding = 'utf-8'): any {
         if (!filename || !existsSync(filename)) {
             return null;
         }
@@ -137,7 +137,7 @@ export class File {
      * @param filename
      * @returns void
      */
-    static write(filename: string, content: string = ''): boolean {
+    static write(filename: string, content = ''): boolean {
         if (!filename) {
             return false;
         }

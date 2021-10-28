@@ -185,7 +185,7 @@ export class Dependency {
         };
     }
     static get_dependencies(file: string, wyvr_files: WyvrFile[], dependency: any): any[] {
-        let dep_files = [];
+        const dep_files = [];
         if (file && dependency) {
             Object.keys(dependency).forEach((type) => {
                 if (dependency[type][file]) {

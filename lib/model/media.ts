@@ -6,12 +6,12 @@ import { Cwd } from '@lib/vars/cwd';
 export class MediaModel {
     src: string = null;
     result: string = null;
-    width: number = -1;
-    height: number = -1;
+    width = -1;
+    height = -1;
     mode: MediaModelMode = MediaModelMode.Cover;
-    format: string = 'jpeg';
+    format = 'jpeg';
     hash: string = null;
-    quality: number = 60;
+    quality = 60;
     output: MediaModelOutput = MediaModelOutput.Path;
 
     constructor(config: any) {

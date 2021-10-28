@@ -194,7 +194,7 @@ export class WorkerController {
             release_path: ReleasePath.get(),
         });
     }
-    ticks: number = 0;
+    ticks = 0;
     tick(queue: Queue): boolean {
         const workers = this.get_idle_workers();
         Logger.debug('tick', this.ticks, 'idle workers', workers.length, 'queue', queue.length);
@@ -218,7 +218,7 @@ export class WorkerController {
         }
         return false;
     }
-    async process_in_workers(name: string, action: WorkerAction, list: any[], batch_size: number = 10): Promise<boolean> {
+    async process_in_workers(name: string, action: WorkerAction, list: any[], batch_size = 10): Promise<boolean> {
         const amount = list.length;
         Logger.info('process', amount, `${amount == 1 ? 'item' : 'items'}, batch size`, Logger.color.cyan(batch_size.toString()));
         // create new queue
@@ -230,7 +230,7 @@ export class WorkerController {
             batch_size = worker_based_batch_size;
         }
 
-        let iterations = Math.ceil(amount / batch_size);
+        const iterations = Math.ceil(amount / batch_size);
         Logger.debug('process iterations', iterations);
 
         for (let i = 0; i < iterations; i++) {

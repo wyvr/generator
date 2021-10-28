@@ -103,7 +103,7 @@ export class Media {
         return format
     }
     static async process(media: MediaModel) {
-        let output = MediaModel.get_output(media.result);
+        const output = MediaModel.get_output(media.result);
         const exists = File.is_file(output);
         // create only when not already exists
         if (exists) {
@@ -179,7 +179,7 @@ export class Media {
             return;
         }
         // check for allowed domain
-        let allowed = !media_config.domain || (Array.isArray(this.allowed_domains) && this.allowed_domains.find((domain) => media_config.domain == domain));
+        const allowed = !media_config.domain || (Array.isArray(this.allowed_domains) && this.allowed_domains.find((domain) => media_config.domain == domain));
         if (!allowed) {
             return await fail(res, `domain "${media_config.domain}" not allowed`);
         }

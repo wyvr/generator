@@ -2,7 +2,6 @@ const pkg = require('@root/package.json');
 const circular = require('circular');
 import * as color from 'ansi-colors';
 import ora from 'ora';
-import { EnvModel } from '@lib/model/env';
 import { WorkerAction } from '@lib/model/worker/action';
 import cluster from 'cluster';
 import { LogType } from '@lib/model/log';
@@ -103,7 +102,7 @@ export class Logger {
         }
     }
     static stop(name: string, duration_in_ms: number = null) {
-        let duration_text = Math.round(duration_in_ms).toString();
+        const duration_text = Math.round(duration_in_ms).toString();
         const spaces = new Array(35 - duration_text.length - name.length).fill('.').join('');
         const message = `${color.green(name)} ${color.dim(spaces)} ${duration_text} ${color.dim('ms')}`;
         if (this.env == 'production') {

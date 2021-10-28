@@ -13,7 +13,7 @@ import { Error } from '@lib/error';
 import { Cwd } from '@lib/vars/cwd';
 import { ReleasePath } from '@lib/vars/release_path';
 
-export const inject = async (list: string[], socket_port: number = 0): Promise<[any, any]> => {
+export const inject = async (list: string[], socket_port = 0): Promise<[any, any]> => {
     const [err_before, config_before, list_before] = await Plugin.before('inject', list);
     if (err_before) {
         fail(err_before);

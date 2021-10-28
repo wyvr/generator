@@ -36,7 +36,7 @@ import { ReleasePath } from '@lib/vars/release_path';
 export class BuildMode {
     hr_start = null;
     watcher_ports: [number, number] = [3000, null];
-    is_executing: boolean = false;
+    is_executing = false;
     package_tree = {};
     identifier_data_list = [];
     identifiers: any = null;
@@ -177,7 +177,7 @@ export class BuildMode {
             Global.export(join(ReleasePath.get(), '_global.json'));
         }
         // read all imported files
-        let files = route_urls.length > 0 ? route_urls : File.collect_files(join(Cwd.get(), 'gen', 'data'), 'json');
+        const files = route_urls.length > 0 ? route_urls : File.collect_files(join(Cwd.get(), 'gen', 'data'), 'json');
 
         // build static files
         // console.log('identifier_data_list before', this.identifier_data_list)

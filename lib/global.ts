@@ -1,6 +1,5 @@
-import { Logger } from '@lib/logger';
-import { open, Database } from 'sqlite';
-import { mkdirSync, existsSync, writeFileSync } from 'fs-extra';
+import { Database } from 'sqlite';
+import { writeFileSync } from 'fs-extra';
 import { Dir } from '@lib/dir';
 import { dirname } from 'path';
 import merge from 'deepmerge';
@@ -8,7 +7,7 @@ import { Storage } from '@lib/storage';
 import { v4 } from 'uuid';
 
 export class Global {
-    static is_setup: boolean = false;
+    static is_setup = false;
     static db: Database = null;
     /**
      * Replace the getGlobal() method and insert the result
@@ -20,7 +19,7 @@ export class Global {
             return '';
         }
         const search_string = 'getGlobal(';
-        let start_index = content.indexOf(search_string);
+        const start_index = content.indexOf(search_string);
         // when not found
         if (start_index == -1) {
             return content;
@@ -53,7 +52,7 @@ export class Global {
                     return value;
                 };
             }
-            let result = await eval(func_content); // @NOTE throw error, must be catched outside
+            const result = await eval(func_content); // @NOTE throw error, must be catched outside
 
             // insert result of getGlobal
             const replaced = content.substr(0, start_index) + JSON.stringify(result) + content.substr(index);

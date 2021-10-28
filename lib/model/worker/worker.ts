@@ -3,7 +3,7 @@ import cluster from 'cluster';
 
 export class WorkerModel {
     public status: WorkerStatus = WorkerStatus.undefined;
-    public pid: number = 0;
+    public pid = 0;
     public process: any = null;
     constructor(custom_fork: Function = null) {
         const instance = custom_fork ? custom_fork() : cluster.fork();

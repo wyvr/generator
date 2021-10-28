@@ -18,7 +18,7 @@ import { LogType } from '@lib/model/log';
 
 export class Watch {
     changed_files: any[] = [];
-    is_executing: boolean = false;
+    is_executing = false;
     watchers = {};
     websocket_server = null;
     packages = null;
@@ -243,7 +243,7 @@ export class Watch {
         });
     }
 
-    async rebuild(force_complete_rebuild: boolean = false) {
+    async rebuild(force_complete_rebuild = false) {
         // avoid that 2 commands get sent
         if (this.is_executing == true) {
             Logger.warning('currently running, try again after current execution');

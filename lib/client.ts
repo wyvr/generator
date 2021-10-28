@@ -382,7 +382,7 @@ export class Client {
             return '';
         }
         const search_string = 'onServer(';
-        let start_index = content.indexOf(search_string);
+        const start_index = content.indexOf(search_string);
         if (start_index == -1) {
             return content;
         }

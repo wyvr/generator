@@ -1,7 +1,6 @@
 export class Events {
     listeners: any = {};
-    auto_increment: number = 0;
-    constructor() {}
+    auto_increment = 0;
     on(scope: string, name: string | number, fn: Function): number {
         const _scope = this.get_scope(scope);
         const _name = this.to_string(name);
@@ -41,7 +40,7 @@ export class Events {
         if (!fn || typeof fn != 'function') {
             return;
         }
-        const _scope= this.get_scope(scope);
+        const _scope = this.get_scope(scope);
         const _name = this.to_string(name);
         const index = this.on(_scope, _name, (...props) => {
             fn(...props);

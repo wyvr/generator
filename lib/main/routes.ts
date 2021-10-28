@@ -7,7 +7,7 @@ import { Plugin } from '@lib/plugin';
 import { Routes } from '@lib/routes';
 import { WorkerController } from '@lib/worker/controller';
 
-export const routes = async (worker_controller: WorkerController, package_tree:any, changed_files: any[], enhance_data: boolean = true, cron_state: any[] = null): Promise<[any[], any[]]> => {
+export const routes = async (worker_controller: WorkerController, package_tree:any, changed_files: any[], enhance_data = true, cron_state: any[] = null): Promise<[any[], any[]]> => {
     let completed_routes = 0;
     const on_global_index = worker_controller.events.on('emit', WorkerEmit.global, async (data) => {
         // add the results to the global data
@@ -45,7 +45,7 @@ export const execute_routes = async (
     worker_controller: WorkerController,
     package_tree: any,
     changed_files: any[],
-    enhance_data: boolean = true,
+    enhance_data = true,
     cron_state: any[] = null
 ): Promise<[any[], any[], number]> => {
     await Plugin.before('routes', changed_files, enhance_data);

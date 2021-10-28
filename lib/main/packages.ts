@@ -6,7 +6,7 @@ import { join } from 'path';
 import { existsSync } from 'fs-extra';
 
 export const packages = async () => {
-    let package_json = File.read_json('package.json');
+    const package_json = File.read_json('package.json');
     if (!package_json) {
         Logger.error(Error.extract('parse error', 'package.json'));
     }

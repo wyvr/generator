@@ -1,7 +1,5 @@
 import { Logger } from '@lib/logger';
 import { hrtime_to_ms } from '@lib/converter/time';
-import ora from 'ora';
-import { Env } from '@lib/env';
 
 export class Performance_Measure implements IPerformance_Measure {
     spinner = null;
@@ -25,7 +23,7 @@ export class Performance_Measure implements IPerformance_Measure {
             .reverse();
 
         if (entry) {
-            var hrtime = process.hrtime(entry.hrtime); // hr_end[0] is in seconds, hr_end[1] is in nanoseconds
+            const hrtime = process.hrtime(entry.hrtime); // hr_end[0] is in seconds, hr_end[1] is in nanoseconds
             const timeInMs = hrtime_to_ms(hrtime);
             Logger.stop(entry.name, timeInMs);
         }

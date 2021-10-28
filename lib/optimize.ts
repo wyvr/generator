@@ -39,7 +39,7 @@ export class Optimize {
     }
     static replace_hashed_files_in_files(file_list: any[], hash_list: any[]) {
         file_list.forEach(({ file, hash }) => {
-            let content = this.replace_hashed_files(File.read(file), hash_list);
+            const content = this.replace_hashed_files(File.read(file), hash_list);
 
             File.write(hash, content);
         });

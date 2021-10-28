@@ -49,7 +49,7 @@ export class Main {
         // create release folder
         ReleasePath.set(`releases/${UniqId.get()}`);
 
-        process.title = `wyvr main ${process.pid}`;
+        process.title = `wyvr ${WyvrMode[Mode.get()]} ${process.pid}`;
         Logger.present('PID', process.pid, Logger.color.dim(`"${process.title}"`));
         Logger.present('cwd', Cwd.get());
         Logger.present('build',  UniqId.get());

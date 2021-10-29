@@ -1,12 +1,14 @@
+/* eslint @typescript-eslint/no-explicit-any: 0 */
+/* eslint @typescript-eslint/ban-types: 0 */
+
 import { Logger } from '@lib/logger';
-import fs from 'fs';
 import { join } from 'path';
 import { Error } from '@lib/error';
 import { hrtime_to_ms } from '@lib/converter/time';
 import { Cwd } from '@lib/vars/cwd';
 
 export class Plugin {
-    static cache: any = {};
+    static cache = {};
     static config: any = null;
     static async init(plugin_files: string[], config: any) {
         Logger.info('found', plugin_files.length, 'plugins');
@@ -60,7 +62,7 @@ export class Plugin {
     static async after(name: string, ...args) {
         return (await this.build_listeners(name, PluginType.after))(...args);
     }
-    static async build_listeners(name: string, type: PluginType, ...args): Promise<Function> {
+    static async build_listeners(name: string, type: PluginType): Promise<Function> {
         if (!name || !this.cache || !this.cache[name] || !this.cache[name][type] || this.cache[name][type].length == 0) {
             return async (...args) => {
                 return [null, this.config, ...args];

@@ -26,10 +26,10 @@ export class Port {
                 socket.pipe(socket);
             });
 
-            server.on('error', (e) => {
+            server.on('error', () => {
                 resolve(true);
             });
-            server.on('listening', (e) => {
+            server.on('listening', () => {
                 server.close();
                 resolve(false);
             });

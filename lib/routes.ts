@@ -1,5 +1,7 @@
-import { readFileSync, mkdirSync, writeFileSync, existsSync, readdirSync, statSync } from 'fs';
-import { join, dirname, resolve } from 'path';
+/* eslint @typescript-eslint/no-explicit-any: 0 */
+
+import { mkdirSync, writeFileSync, existsSync, readdirSync, statSync } from 'fs';
+import { join, dirname } from 'path';
 import marked from 'marked';
 import fm from 'front-matter';
 import { File } from '@lib/file';

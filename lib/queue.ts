@@ -1,3 +1,5 @@
+/* eslint @typescript-eslint/no-explicit-any: 0 */
+
 // @see https://medium.com/@konduruharish/queue-in-typescript-and-c-cbd936564a42
 export class Queue {
     private first: QueueEntry = null;

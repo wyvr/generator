@@ -216,7 +216,7 @@ export class Client {
         if (Env.is_prod()) {
             input_options.plugins.push(terser());
         }
-        const output_options: any = {
+        const output_options: rollup.OutputOptions = {
             // dir: `gen/js`,
             file: join(Cwd.get(), 'gen', 'js', `${name}.js`),
             sourcemap: false,

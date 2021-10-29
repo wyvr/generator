@@ -372,7 +372,7 @@ export class Watch {
         res.writeHead(404, { 'Content-Type': 'text/html' });
         return this.end(uid, res, hr_start, '');
     }
-    end(uid: string, res: ServerResponse, hr_start: [number, number], value: any = null) {
+    end(uid: string, res: ServerResponse, hr_start: [number, number], value: string = null) {
         const duration = Math.round(hrtime_to_ms(process.hrtime(hr_start)) * 100) / 100;
         Logger.output(LogType.log, Logger.color.dim, '░', uid, Logger.color.reset(duration + ''), 'ms');
         res.end(value);

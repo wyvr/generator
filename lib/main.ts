@@ -5,7 +5,6 @@ import { Config } from '@lib/config';
 import { Env } from '@lib/env';
 import { EnvModel } from '@lib/model/env';
 import { IPerformance_Measure, Performance_Measure, Performance_Measure_Blank } from '@lib/performance_measure';
-import { File } from '@lib/file';
 import { WyvrMode } from '@lib/model/wyvr/mode';
 import { WorkerEmit } from '@lib/model/worker/emit';
 import { DeliverMode } from '@lib/mode/deliver';
@@ -16,12 +15,14 @@ import { Cwd } from '@lib/vars/cwd';
 import { ReleasePath } from '@lib/vars/release_path';
 import { Mode } from '@lib/vars/mode';
 import { UniqId } from '@lib/vars/uniq_id';
+import { IObject } from '@lib/interface/object';
+import { cpus } from 'os';
 
 export class Main {
     worker_controller: WorkerController = null;
     perf: IPerformance_Measure;
     worker_amount: number;
-    identifiers: any = {};
+    identifiers: IObject = {};
     package_tree = {};
     cron_state = [];
     cron_config = [];
@@ -52,13 +53,13 @@ export class Main {
         process.title = `wyvr ${WyvrMode[Mode.get()]} ${process.pid}`;
         Logger.present('PID', process.pid, Logger.color.dim(`"${process.title}"`));
         Logger.present('cwd', Cwd.get());
-        Logger.present('build',  UniqId.get());
+        Logger.present('build', UniqId.get());
         Logger.present('env', EnvModel[Env.get()]);
         Logger.present('mode', WyvrMode[Mode.get()]);
         this.perf = Config.get('import.measure_performance') ? new Performance_Measure() : new Performance_Measure_Blank();
 
         switch (Mode.get()) {
-            case WyvrMode.build:
+            case WyvrMode.build: {
                 const build = new BuildMode(this.perf);
                 await build.init();
                 this.validate_config();
@@ -66,7 +67,8 @@ export class Main {
                 this.worker();
                 await build.start(this.worker_controller, this.identifiers);
                 break;
-            case WyvrMode.cron:
+            }
+            case WyvrMode.cron: {
                 const cron = new CronMode(this.perf);
                 await cron.init();
                 this.validate_config();
@@ -74,10 +76,12 @@ export class Main {
                 this.worker();
                 await cron.start(this.worker_controller);
                 break;
-            case WyvrMode.deliver:
+            }
+            case WyvrMode.deliver: {
                 const deliver = new DeliverMode();
                 deliver.start();
                 break;
+            }
             default:
                 Logger.error('unknown mode');
         }
@@ -104,8 +108,8 @@ export class Main {
 
         this.worker_controller = new WorkerController();
         this.worker_amount = this.worker_controller.get_worker_amount();
-        Logger.present('workers', this.worker_amount, Logger.color.dim(`of ${require('os').cpus().length} cores`));
-        const workers = this.worker_controller.create_workers(this.worker_amount);
+        Logger.present('workers', this.worker_amount, Logger.color.dim(`of ${cpus().length} cores`));
+        this.worker_controller.create_workers(this.worker_amount);
         const gen_src_folder = join(Cwd.get(), 'gen', 'raw');
         // watcher when worker sends identifier content
         this.worker_controller.events.on('emit', WorkerEmit.identifier, (data: any) => {

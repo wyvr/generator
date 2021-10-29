@@ -6,6 +6,8 @@ import { WorkerEmit } from '@lib/model/worker/emit';
 import { Plugin } from '@lib/plugin';
 import { Routes } from '@lib/routes';
 import { WorkerController } from '@lib/worker/controller';
+import { Error } from '@lib/error';
+import { IPackageTree } from '@lib/interface/package_tree';
 
 export const routes = async (
     worker_controller: WorkerController,
@@ -40,7 +42,7 @@ export const routes = async (
             }, 100);
         });
     } catch (e) {
-        console.log(e);
+        Logger.error(Error.get(e, 'routes', 'main'));
     }
     worker_controller.events.off('emit', WorkerEmit.global, on_global_index);
 
@@ -49,7 +51,7 @@ export const routes = async (
 
 export const execute_routes = async (
     worker_controller: WorkerController,
-    package_tree: any,
+    package_tree: IPackageTree,
     changed_files: any[],
     enhance_data = true,
     cron_state: any[] = null

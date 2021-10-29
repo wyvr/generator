@@ -1,9 +1,10 @@
 import { CronState } from '@lib/model/cron';
+import { IPackageTree } from '@lib/interface/package_tree';
 
 export class Route {
     path = '';
     rel_path = '';
-    pkg: any = '';
+    pkg: IPackageTree | string = '';
     initial = true;
     cron: CronState = null;
     constructor(data) {

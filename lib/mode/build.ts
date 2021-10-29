@@ -32,6 +32,8 @@ import { media } from '@lib/main/media';
 import { dependencies } from '@lib/main/dependencies';
 import { Cwd } from '@lib/vars/cwd';
 import { ReleasePath } from '@lib/vars/release_path';
+import { IObject } from '@lib/interface/object';
+import { IWatchFile } from '@lib/interface/watch';
 
 export class BuildMode {
     hr_start = null;
@@ -39,7 +41,7 @@ export class BuildMode {
     is_executing = false;
     package_tree = {};
     identifier_data_list = [];
-    identifiers: any = null;
+    identifiers: IObject = null;
 
     constructor(private perf: IPerformance_Measure) {
         this.hr_start = process.hrtime();
@@ -69,13 +71,15 @@ export class BuildMode {
 
         this.perf.end('config');
     }
-    async start(worker_controller: WorkerController, identifiers: any) {
+    async start(worker_controller: WorkerController, identifiers: IObject) {
         this.identifiers = identifiers;
-        // collect configured package
         Logger.block('build');
+        
+        // collect configured package
         this.perf.start('packages');
-        const pkgs = await packages();
+        await packages();
         this.perf.end('packages');
+
         Logger.debug('project_config', JSON.stringify(Config.get(), null, 4));
 
         // execute
@@ -104,7 +108,7 @@ export class BuildMode {
         }
         // watch for file changes
         try {
-            const watch = new Watch(this.watcher_ports, async (changed_files: any[], watched_files: string[]) => {
+            new Watch(this.watcher_ports, async (changed_files: IWatchFile[], watched_files: string[]) => {
                 Plugin.clear();
                 return await this.execute(worker_controller, changed_files, watched_files);
             });
@@ -112,7 +116,7 @@ export class BuildMode {
             fail(e);
         }
     }
-    async execute(worker_controller: WorkerController, changed_files: { event: string; path: string; rel_path: string }[] = [], watched_files: string[] = null) {
+    async execute(worker_controller: WorkerController, changed_files: IWatchFile[] = [], watched_files: string[] = null) {
         this.is_executing = true;
 
         const is_regenerating = changed_files.length > 0;
@@ -184,7 +188,7 @@ export class BuildMode {
         let build_pages = [];
         let identifier_data_list = [];
         if (watched_json_files) {
-            [build_pages, identifier_data_list] = await build_files(worker_controller, files, watched_json_files, changed_files, this.identifier_data_list);
+            [build_pages, identifier_data_list] = await build_files(worker_controller, files, watched_json_files);
         } else {
             [build_pages, identifier_data_list] = await build_list(worker_controller, files);
         }
@@ -206,13 +210,12 @@ export class BuildMode {
         this.perf.end('inject');
 
         // check if the execution should stop after the build
-        const collected_client_files = collected_files.client.map((file) => file.path.replace('gen/', ''));
         const exec_scripts = !is_regenerating || changed_files.some((file) => file.rel_path.match(/^src\//));
 
         if (exec_scripts) {
             dependencies(this.perf, build_pages, shortcode_identifier, this.identifiers, this.package_tree);
 
-            const build_scripts = await scripts(this.perf, worker_controller, this.identifiers, watched_files, watched_files);
+            await scripts(this.perf, worker_controller, this.identifiers, watched_files, watched_files);
         } else {
             Logger.improve('scripts, will not be regenerated');
         }

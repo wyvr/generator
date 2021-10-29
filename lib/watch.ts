@@ -1,4 +1,3 @@
-/* eslint @typescript-eslint/no-explicit-any: 0 */
 
 import { Config } from '@lib/config';
 import { Logger } from '@lib/logger';
@@ -21,9 +20,11 @@ import static_server from 'node-static';
 import { ServerResponse } from 'http';
 import { Error } from '@lib/error';
 import { server } from '@lib/server';
+import { IWatchFile } from '@lib/interface/watch';
+import { IBuildFileResult } from '@lib/interface/build';
 
 export class Watch {
-    changed_files: any[] = [];
+    changed_files: IWatchFile[] = [];
     is_executing = false;
     watchers = {};
     websocket_server = null;
@@ -33,10 +34,10 @@ export class Watch {
 
     private readonly IDLE_TEXT = 'changes or requests';
 
-    constructor(private ports: [number, number], private callback: any = null) {
+    constructor(private ports: [number, number], private callback: (changed_files: IWatchFile[], watched_files: string[])=>Promise<IBuildFileResult[]> = null) {
         if (!callback || typeof callback != 'function') {
             Logger.warning('can not start watching because no callback is defined');
-            return;
+            return null;
         }
         this.allowed_domains = Config.get('media.allowed_domains');
         RequireCache.clear();
@@ -160,7 +161,7 @@ export class Watch {
                 debounce = setTimeout(() => {
                     Logger.block('rebuild');
                     this.rebuild(
-                        this.changed_files.find((file) => {
+                        !!this.changed_files.find((file) => {
                             return file.rel_path.indexOf('plugin') > -1;
                         })
                     );
@@ -354,7 +355,7 @@ export class Watch {
         // bs.reload(reload_files.length > 0 ? reload_files : undefined);
     }
 
-    async build(changed_files: any[], watched_files: string[]) {
+    async build(changed_files: IWatchFile[], watched_files: string[]) {
         this.is_executing = true;
         const hr_start = process.hrtime();
         const result = await this.callback(changed_files, watched_files);

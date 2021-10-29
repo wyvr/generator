@@ -1,7 +1,8 @@
 import 'module-alias/register';
 import cluster from 'cluster';
 
-// console.log('argv', process.argv);
+/* eslint-disable */
+
 (async () => {
     if (!cluster.isWorker) {
         const { Main } = require('@lib/main');
@@ -19,3 +20,5 @@ module.exports = {
     getGlobal: (key, fallback, callback) => {},
     __: () => {},
 };
+
+/* eslint-enable */

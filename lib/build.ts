@@ -12,7 +12,7 @@ register();
 // fix intl global on the server side
 (<any>global).Intl = require('intl');
 // onServer Server implementation
-(<any>global).onServer = async (callback: Function) => {
+(<any>global).onServer = async (callback: () => Promise<any>) => {
     if (callback && typeof callback == 'function') {
         return await callback();
     }
@@ -87,8 +87,8 @@ export class Build {
             svelte_render_item.result.html = await this.inject_media_files(svelte_render_item.result.html, css_file_path, media_files);
         }
         // inject translations
-        if(translations) {
-            svelte_render_item.result.html = svelte_render_item.result.html.replace(/<\/body>/, `<script>var wyvr_i18n_tr = ${JSON.stringify(translations)}</script></body>`)
+        if (translations) {
+            svelte_render_item.result.html = svelte_render_item.result.html.replace(/<\/body>/, `<script>var wyvr_i18n_tr = ${JSON.stringify(translations)}</script></body>`);
         }
 
         // svelte_render_item.result.html = svelte_render_item.result.html.replace('</head>', `<style>${svelte_render_item.result.css.code}</style></head>`);

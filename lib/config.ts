@@ -13,7 +13,9 @@ export class Config {
     static load_from_path(path = ''): any | null {
         const config_path = join(Cwd.get(), path, 'wyvr.js');
         if (fs.existsSync(config_path)) {
+            /* eslint-disable @typescript-eslint/no-var-requires */
             const config = require(config_path);
+            /* eslint-enable */
             return config;
         }
         return null;
@@ -27,7 +29,9 @@ export class Config {
     static get(config_segment: string | null = null): any | null {
         if (!this.cache) {
             const local_config = this.load_from_path();
+            /* eslint-disable @typescript-eslint/no-var-requires */
             const default_config = require('@config/config');
+            /* eslint-enable */
             if (local_config) {
                 this.cache = merge(default_config, local_config);
             } else {
@@ -77,7 +81,7 @@ export class Config {
      * merge configs together
      * @param config1 base config
      * @param config2 config with higher priority
-     * @returns 
+     * @returns
      */
     static merge(config1: any, config2: any) {
         return merge(config1, config2);

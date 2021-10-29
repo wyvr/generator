@@ -1,7 +1,7 @@
 export class Events {
     listeners: any = {};
     auto_increment = 0;
-    on(scope: string, name: string | number, fn: Function): number {
+    on(scope: string, name: string | number, fn: (data: any) => void): number {
         const _scope = this.get_scope(scope);
         const _name = this.to_string(name);
         if (!this.listeners[_scope]) {
@@ -36,7 +36,7 @@ export class Events {
             });
         }
     }
-    once(scope: string, name: string | number, fn: Function) {
+    once(scope: string, name: string | number, fn: (data: any) => void) {
         if (!fn || typeof fn != 'function') {
             return;
         }

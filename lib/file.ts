@@ -1,11 +1,11 @@
 import { mkdirSync, existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'fs';
-import { extname } from 'path';
-
-import { dirname, join } from 'path';
+import { extname, dirname, join } from 'path';
+import circular from 'circular';
 import { WyvrFile } from '@lib/model/wyvr/file';
 import { Env } from '@lib/env';
 import { Cwd } from '@lib/vars/cwd';
-const circular = require('circular');
+import { Logger } from '@lib/logger';
+import { Error } from '@lib/error';
 
 export class File {
     /**
@@ -85,7 +85,7 @@ export class File {
         if (!filename) {
             return '';
         }
-        return filename.replace(/index\.[^\.]+/, '');
+        return filename.replace(/index\.[^.]+/, '');
     }
     /**
      * read the content of an file as json
@@ -101,7 +101,7 @@ export class File {
         try {
             data = JSON.parse(content);
         } catch (e) {
-            console.log('error reading json from', filename, e);
+            Logger.error(Error.get(e, filename, 'read json'));
             return null;
         }
         return data;
@@ -123,7 +123,7 @@ export class File {
         if (!filename || !existsSync(filename)) {
             return null;
         }
-        if(encoding == 'buffer') {
+        if (encoding == 'buffer') {
             encoding = null;
         }
         const content = readFileSync(filename, { encoding: <any>encoding, flag: 'r' });
@@ -206,7 +206,7 @@ export class File {
         const result = [];
         let regex = /./;
         if (extension && typeof extension == 'string') {
-            regex = new RegExp(`\.${extension}$`);
+            regex = new RegExp(`\\.${extension}$`);
         }
         entries.forEach((entry) => {
             const path = join(dir, entry);

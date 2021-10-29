@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { join, resolve, sep } from 'path';
+import { join, resolve } from 'path';
 import * as rollup from 'rollup';
 import svelte from 'rollup-plugin-svelte';
 import node_resolve from '@rollup/plugin-node-resolve';
@@ -113,7 +113,7 @@ export class Client {
                             wyvr_hydrate(${var_name}_target, ${var_name});
                         `
                         );
-                        const [error, result] = await this.process_bundle(lazy_input_path, lazy_input_name);
+                        const [error] = await this.process_bundle(lazy_input_path, lazy_input_name);
                         if (error) {
                             Logger.error('[svelte]', error);
                         }

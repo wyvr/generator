@@ -1,6 +1,5 @@
-import { readdirSync, existsSync, readFileSync } from 'fs';
-import { join, extname, dirname, resolve, sep } from 'path';
-import { Logger } from '@lib/logger';
+import { existsSync } from 'fs';
+import { join, extname, dirname, sep } from 'path';
 import { File } from '@lib/file';
 import { WyvrFile } from '@lib/model/wyvr/file';
 import { Cwd } from '@lib/vars/cwd';
@@ -50,10 +49,7 @@ export class Dependency {
             return this.pkg_dep;
         }
         const pkg_path = join(Cwd.get(), 'package.json');
-        if (!existsSync(pkg_path)) {
-            return [];
-        }
-        const pkg = require(pkg_path);
+        const pkg = File.read_json(pkg_path);
         if (!pkg) {
             return [];
         }

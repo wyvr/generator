@@ -2,6 +2,7 @@ import { join } from 'path';
 import axios from 'axios';
 import { File } from '@lib/file';
 import { Cwd } from '@lib/vars/cwd';
+import { IObject } from '@lib/interface/object';
 
 export class MediaModel {
     src: string = null;
@@ -14,7 +15,7 @@ export class MediaModel {
     quality = 60;
     output: MediaModelOutput = MediaModelOutput.Path;
 
-    constructor(config: any) {
+    constructor(config: IObject) {
         Object.keys(this).forEach((key) => {
             if (config[key]) {
                 if (key == 'src') {
@@ -52,7 +53,7 @@ export class MediaModel {
                     method: 'GET',
                     responseType: 'arraybuffer',
                 });
-                return Buffer.from(<any>res.data);
+                return Buffer.from(<string>res.data);
             } catch (err) {
                 // @TODO implement logging
                 // console.log(err);

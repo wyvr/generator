@@ -8,8 +8,10 @@ import { ReleasePath } from '@lib/vars/release_path';
 import { join } from 'path';
 import { Build } from '@lib/build';
 import { Cwd } from '@lib/vars/cwd';
+import { IObject } from '@lib/interface/object';
+import { IBuildFileResult } from '@lib/interface/build';
 
-export const build = async (value: any[], create_identifier: (any) => any) => {
+export const build = async (value: any[], create_identifier: (any) => any): Promise<[IObject[], IBuildFileResult[]]> => {
     if (!create_identifier || typeof create_identifier != 'function') {
         return [null, null];
     }

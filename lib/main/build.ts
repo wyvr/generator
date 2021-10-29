@@ -3,14 +3,10 @@ import { WorkerAction } from '@lib/model/worker/action';
 import { WorkerEmit } from '@lib/model/worker/emit';
 import { Plugin } from '@lib/plugin';
 import { WorkerController } from '@lib/worker/controller';
+import { IBuildFileResult } from '@lib/interface/build';
+import { IObject } from '@lib/interface/object';
 
-export const build_files = async (
-    worker_controller: WorkerController,
-    list: string[],
-    watched_json_files: string[] = [],
-    changed_files: { event: string; path: string; rel_path: string }[] = null,
-    identifier_list: any[] = null
-) => {
+export const build_files = async (worker_controller: WorkerController, list: string[], watched_json_files: string[] = []) => {
     // match exactly against the json files
     const filtered_list = list.filter((entry) => {
         return watched_json_files.find((file) => entry == file);
@@ -20,9 +16,11 @@ export const build_files = async (
     return [pages, identifier_data_list];
 };
 
-export const build_list = async (worker_controller: WorkerController, list: string[]) => {
+export const build_list = async (worker_controller: WorkerController, list: string[]): Promise<[IBuildFileResult[], IObject[]]> => {
     Logger.debug('build list', list);
+    /* eslint-disable */
     const [error_list, config, modified_list] = await Plugin.before('build', list);
+    /* eslint-enable */
     Logger.debug('build', modified_list.length, `${modified_list.length == 1 ? 'dataset' : 'datasets'}`);
     const pages = [];
     const identifier_data_list = [];

@@ -35,7 +35,6 @@ export class CronMode {
         this.package_tree = File.read_json(join('gen', 'package_tree.json'));
 
         if (this.cron_state) {
-            const current = new Date().getTime();
             // use only cron entries which should be executed
             this.cron_state = this.cron_state.filter((state) => {
                 return state.last_execution + state.every * 60 * 1000 < new Date().getTime();
@@ -53,6 +52,7 @@ export class CronMode {
         }
     }
     async start(worker_controller: WorkerController) {
+        /* eslint-disable @typescript-eslint/no-unused-vars */
         // execute the routes
         this.perf.start('routes');
         const [route_files, cron_routes] = await routes(worker_controller, this.package_tree, null, true, this.cron_state);
@@ -73,7 +73,7 @@ export class CronMode {
 
         // update last execution time in cron file
         const state_ids = this.cron_state.map((state) => state.id);
-        const new_cron_config = Config.get('cron').map((entry) => {
+        Config.get('cron').map((entry) => {
             const index = state_ids.indexOf(entry.id);
             if (index > -1) {
                 entry.last_execution = new Date().getTime();
@@ -81,5 +81,6 @@ export class CronMode {
         });
         const timeInMs = hrtime_to_ms(process.hrtime(this.hr_start));
         Logger.stop('cron total', timeInMs);
+        /* eslint-enable */
     }
 }

@@ -1,3 +1,5 @@
+/* eslint @typescript-eslint/no-explicit-any: 0 */
+
 import { Logger } from '@lib/logger';
 import sqlite3 from 'sqlite3';
 import { open, Database } from 'sqlite';
@@ -41,7 +43,7 @@ export class Storage {
         // nav has to be empty
         const [nav_clear_error] = await this.clear('nav');
         if (nav_clear_error) {
-            console.log(nav_clear_error);
+            Logger.error(nav_clear_error);
         }
         return true;
     }
@@ -70,7 +72,7 @@ export class Storage {
             let index = null;
             // searches an element at an specific index
             if (step.indexOf('[') > -1 && step.indexOf(']') > -1) {
-                const match = step.match(/^([^\[]+)\[([^\]]+)\]$/);
+                const match = step.match(/^([^[]+)\[([^\]]+)\]$/);
                 if (match) {
                     step = match[1];
                     index = parseInt((match[2] + '').trim(), 10);
@@ -130,14 +132,14 @@ export class Storage {
             if (value) {
                 // insert or replace entry
                 // https://stackoverflow.com/questions/418898/sqlite-upsert-not-insert-or-replace
-                const rows = await this.db.run(`INSERT OR REPLACE INTO ${this.normalize(table)} (key, value) VALUES (?, ?);`, key, JSON.stringify(value));
+                await this.db.run(`INSERT OR REPLACE INTO ${this.normalize(table)} (key, value) VALUES (?, ?);`, key, JSON.stringify(value));
                 return [null, true];
             }
             // delete when no value is set
             await this.db.run(`DELETE from ${this.normalize(table)} WHERE key = ?;`, key);
             return [null, true];
         } catch (e) {
-            console.log(e);
+            Logger.debug(e);
             return [e, false];
         }
     }

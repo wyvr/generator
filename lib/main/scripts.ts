@@ -8,11 +8,12 @@ import { join } from 'path';
 import { IPerformance_Measure } from '@lib/performance_measure';
 import { Client } from '@lib/client';
 import { File } from '@lib/file';
+import { IObject } from '@lib/interface/object';
 
 export const scripts = async (
     perf: IPerformance_Measure,
     worker_controller: WorkerController,
-    identifiers: any,
+    identifiers: IObject,
     watched_files: string[],
     watched_json_files: string[]
 ): Promise<boolean> => {

@@ -1,4 +1,3 @@
-import * as fs from 'fs-extra';
 import { File } from '@lib/file';
 import arrayToTree from 'array-to-tree';
 import { Global } from '@lib/global';

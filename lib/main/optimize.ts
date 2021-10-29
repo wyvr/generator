@@ -19,8 +19,9 @@ export const optimize = async (perf: IPerformance_Measure, identifier_list: any[
     const [hash_list, file_list] = Optimize.get_hashed_files();
     // replace in the files itself
     Optimize.replace_hashed_files_in_files(file_list, hash_list);
-
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     const [error_before, config_before, identifier_list_before, replace_hash_files_before] = await Plugin.before('optimize', identifier_list, replace_hash_files);
+    /* eslint-enable */
     if (error_before) {
         return fail(error_before);
     }
@@ -35,10 +36,12 @@ export const optimize = async (perf: IPerformance_Measure, identifier_list: any[
         indexed[entry.identifier].files.push(entry.path);
     });
     const list = Object.keys(indexed).map((key) => indexed[key]);
-
+    
     const result = await worker_controller.process_in_workers('optimize', WorkerAction.optimize, list, 1);
-
+    
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     const [error_after, config_after, list_after] = await Plugin.after('optimize', list);
+    /* eslint-enable */
     perf.end('optimize');
     if (error_after) {
         return fail(error_after);

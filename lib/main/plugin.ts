@@ -16,14 +16,18 @@ export const plugins = async () => {
     });
     // allow plugins to modify the global config
     let global = Config.get(null);
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     const [error_before, config_before, global_before] = await Plugin.before('global', global);
+    /* eslint-enable */
     if (error_before) {
         fail(error_before);
     }
     if (global_before != null) {
         global = global_before;
     }
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     const [error_after, config_after, global_after] = await Plugin.after('global', global);
+    /* eslint-enable */
     if (error_after) {
         fail(error_after);
     }

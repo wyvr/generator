@@ -14,11 +14,14 @@ import { Cwd } from '@lib/vars/cwd';
 import { ReleasePath } from '@lib/vars/release_path';
 
 export const inject = async (list: string[], socket_port = 0): Promise<[any, any]> => {
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     const [err_before, config_before, list_before] = await Plugin.before('inject', list);
+    /* eslint-enable */
     if (err_before) {
         fail(err_before);
         return [{}, null];
     }
+
     const shortcode_identifiers = {};
     const media = {};
     let has_media = false;
@@ -115,8 +118,9 @@ export const inject = async (list: string[], socket_port = 0): Promise<[any, any
 
                 return `<${name} ${props_component} />`;
             });
-
+            /* eslint-disable @typescript-eslint/no-unused-vars */
             const [err_after, config_after, file_after, content_after, head_after, body_after] = await Plugin.after('inject', file, replaced_content, head, body);
+            /* eslint-enable */
             if (err_after) {
                 fail(err_after);
             }

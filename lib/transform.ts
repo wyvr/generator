@@ -1,7 +1,7 @@
 import { File } from '@lib/file';
 import * as swc from '@swc/core';
 import { sep, join } from 'path';
-import {existsSync} from 'fs';
+import { existsSync } from 'fs';
 import { Logger } from '@lib/logger';
 import sass from 'sass';
 import { Error } from '@lib/error';
@@ -39,15 +39,15 @@ export class Transform {
             return '';
         }
         // modify __ => translation
-        if(as_client) {
-            content = content.replace(/(\W)__\(/g, '$1window.__(')
+        if (as_client) {
+            content = content.replace(/(\W)__\(/g, '$1window.__(');
         }
         // replace isServer and isClient and the imports
         return content
             .replace(/([^\w])isServer([^\w])/g, `$1${as_client ? 'false' : 'true'}$2`)
             .replace(/([^\w])isClient([^\w])/g, `$1${as_client ? 'true' : 'false'}$2`)
-            .replace(/import \{[^\}]*?\} from \'@wyvr\/generator\';?/g, '')
-            .replace(/(?:const|let)[^=]*?= require\(\'@wyvr\/generator\'\);?/g, '');
+            .replace(/import \{[^}]*?\} from '@wyvr\/generator';?/g, '')
+            .replace(/(?:const|let)[^=]*?= require\('@wyvr\/generator'\);?/g, '');
     }
     static async typescript_compile(path: string, content: string): Promise<boolean> {
         const output_path = File.to_extension(path, '.js');
@@ -104,7 +104,7 @@ export class Transform {
                 // remove the script from the content
                 content = content.substr(0, tag_start_index) + content.substr(tag_end_index + tag_end.length);
                 // allow that not all tags should be extracted
-                if(max > 0 && result.length == max) {
+                if (max > 0 && result.length == max) {
                     search_tag = false;
                 }
                 continue;
@@ -116,7 +116,7 @@ export class Transform {
             result,
         };
     }
-    static preprocess_content(content: string): [any, string] {
+    static preprocess_content(content: string): [string | null, string] {
         if (!content || typeof content != 'string') {
             return [null, ''];
         }

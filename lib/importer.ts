@@ -30,7 +30,7 @@ export class Importer {
      * @param hook_before_process the hook_before_process must return the original object or a modified version, because it will be executed before the processing of the data
      * @returns the amount of imported datasets
      */
-    import(import_file_path: string, hook_before_process: Hook_Before_Process = null, hook_after_import: Function): Promise<number> {
+    import(import_file_path: string, hook_before_process: Hook_Before_Process = null, hook_after_import: () => void): Promise<number> {
         this.perf.start('import');
 
         Dir.create('gen/data');
@@ -46,7 +46,7 @@ export class Importer {
 
         return new Promise((resolve, reject) => {
             const jsonStream = stream_array.withParser();
-            const fileStream = fs.createReadStream(import_file_path, { flags: 'r', encoding: 'utf-8' }).pipe(jsonStream.input);
+            fs.createReadStream(import_file_path, { flags: 'r', encoding: 'utf-8' }).pipe(jsonStream.input);
             this.chunk_index = 0;
 
             const format_processed_file = Config.get('import.format_processed_file');

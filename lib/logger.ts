@@ -1,10 +1,11 @@
-const pkg = require('@root/package.json');
-const circular = require('circular');
+import circular from 'circular';
 import * as color from 'ansi-colors';
 import ora from 'ora';
 import { WorkerAction } from '@lib/model/worker/action';
 import cluster from 'cluster';
 import { LogType } from '@lib/model/log';
+import { File } from '@lib/file';
+import { join } from 'path';
 
 export class Logger {
     static color = color;
@@ -22,7 +23,7 @@ export class Logger {
         return ora(name).start();
     }
 
-    static output(type: number | LogType, color_fn: Function | null, char: string, ...values: any[]) {
+    static output(type: number | LogType, color_fn: (text: string) => string | null, char: string, ...values: any[]) {
         const messages = values.map(this.stringify).filter((x) => x);
 
         if (cluster.isWorker) {
@@ -116,7 +117,9 @@ export class Logger {
         }
     }
     static logo() {
-        const logo = [`__  __  __  __  __  ____`, `\\ \\/ /\\/ /\\/ /\\/ /\\/ /_/`, ` \\/_/\\/_/\\/ /\\/_/\\/_/`, `         /_/ generator ${color.dim(pkg.version)}`].join('\n');
+        const pkg = File.read_json(join(__dirname, '..', 'package.json'));
+        const version = pkg ? pkg.version : 'missing version';
+        const logo = [`__  __  __  __  __  ____`, `\\ \\/ /\\/ /\\/ /\\/ /\\/ /_/`, ` \\/_/\\/_/\\/ /\\/_/\\/_/`, `         /_/ generator ${color.dim(version)}`].join('\n');
         /* eslint-disable */
         console.log(color.cyan(logo));
         console.log('');

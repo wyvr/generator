@@ -38,8 +38,10 @@ export class Performance_Measure_Entry {
 }
 
 export class Performance_Measure_Blank implements IPerformance_Measure {
+    /* eslint-disable */
     start(name: string) {}
     end(name: string) {}
+    /* eslint-enable */
 }
 
 export interface IPerformance_Measure {

@@ -6,10 +6,11 @@ import { Plugin } from '@lib/plugin';
 import { join } from 'path';
 import { IPerformance_Measure } from '@lib/performance_measure';
 import { ReleasePath } from '@lib/vars/release_path';
+import { IBuildFileResult } from '@lib/interface/build';
 
-export const sitemap = async (perf: IPerformance_Measure, pages: any[]) => {
+export const sitemap = async (perf: IPerformance_Measure, pages: IBuildFileResult[]) => {
     perf.start('sitemap');
-
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     const [before_error, before_config, before_sitemaps] = await Plugin.before('sitemap', [
         {
             name: 'sitemap.xml',
@@ -20,6 +21,7 @@ export const sitemap = async (perf: IPerformance_Measure, pages: any[]) => {
             entries: pages,
         },
     ]);
+    /* eslint-enable */
     if (before_error) {
         Logger.error(before_error);
         fail();
@@ -75,7 +77,9 @@ export const sitemap = async (perf: IPerformance_Measure, pages: any[]) => {
             return sitemap;
         });
     const combined_sitemap = sitemaps.concat(splitted_sitemaps);
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     const [after_error, after_config, after_sitemaps] = await Plugin.after('sitemap', combined_sitemap);
+    /* eslint-enable */
     if (after_error) {
         Logger.error(before_error);
         fail();

@@ -6,7 +6,7 @@ import { WorkerController } from '@lib/worker/controller';
 import { IBuildFileResult } from '@lib/interface/build';
 import { IObject } from '@lib/interface/object';
 
-export const build_files = async (worker_controller: WorkerController, list: string[], watched_json_files: string[] = []) => {
+export const build_files = async (worker_controller: WorkerController, list: string[], watched_json_files: string[] = []): Promise<[IBuildFileResult[], IObject[]]> => {
     // match exactly against the json files
     const filtered_list = list.filter((entry) => {
         return watched_json_files.find((file) => entry == file);

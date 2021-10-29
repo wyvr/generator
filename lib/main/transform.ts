@@ -18,7 +18,7 @@ export const transform = async () => {
     // @NOTE: plugin is only allowed to change the content of the files itself, no editing of the list
     await Plugin.before('transform', all_files);
     // destroy getGlobal to avoid overlapping calls
-    /* eslint-disable */
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     delete (<any>global).getGlobal;
     /* eslint-enable */
 

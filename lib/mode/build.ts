@@ -24,7 +24,7 @@ import { collect } from '@lib/main/collect';
 import { transform } from '@lib/main/transform';
 import { build_files, build_list } from '@lib/main/build';
 import { inject } from '@lib/main/inject';
-import { scripts } from '@lib/main/scritps';
+import { scripts } from '@lib/main/scripts';
 import { sitemap } from '@lib/main/sitemap';
 import { optimize } from '@lib/main/optimize';
 import { release } from '@lib/main/release';

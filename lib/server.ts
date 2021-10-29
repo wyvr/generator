@@ -20,7 +20,7 @@ export const server = (
         }
 
         req.addListener('end', async () => {
-            if (on_request && typeof on_request == 'function') {
+            if (on_end && typeof on_end == 'function') {
                 return await on_end(req, res, uid, start);
             }
             res.writeHead(404, { 'Content-Type': 'text/html' });

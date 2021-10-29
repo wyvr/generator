@@ -18,7 +18,9 @@ export const transform = async () => {
     // @NOTE: plugin is only allowed to change the content of the files itself, no editing of the list
     await Plugin.before('transform', all_files);
     // destroy getGlobal to avoid overlapping calls
+    /* eslint-disable */
     delete (<any>global).getGlobal;
+    /* eslint-enable */
 
     await Promise.all(
         all_files.map(async (file) => {
@@ -62,10 +64,11 @@ export const transform = async () => {
             let write_files = true;
 
             switch (extension) {
-                case '.svelte':
+                case '.svelte': {
                     client_content = Client.replace_slots_client(client_content);
                     break;
-                case '.ts':
+                }
+                case '.ts': {
                     const ts_duration = process.hrtime();
                     // server file
                     await Transform.typescript_compile(src_path, server_content);
@@ -74,9 +77,9 @@ export const transform = async () => {
                     Logger.debug('compiled', src_path, 'in', hrtime_to_ms(process.hrtime(ts_duration)), 'ms');
                     write_files = false;
                     break;
-                case '.js':
-                default:
-                    break;
+                }
+                //case '.js':
+                //default:
             }
             if (write_files) {
                 File.write(src_path, server_content);

@@ -9,7 +9,6 @@ import { RequireCache } from '@lib/require_cache';
 import { Routes } from '@lib/routes';
 import { File } from '@lib/file';
 import { WebSocketServer } from 'ws';
-import { v4 } from 'uuid';
 import { idle } from '@lib/helper/endings';
 import { Cwd } from '@lib/vars/cwd';
 import { Media } from '@lib/media';
@@ -22,6 +21,7 @@ import { Error } from '@lib/error';
 import { server } from '@lib/server';
 import { IWatchFile } from '@lib/interface/watch';
 import { IBuildFileResult } from '@lib/interface/build';
+import { uniq } from '@lib/helper/uniq';
 
 export class Watch {
     changed_files: IWatchFile[] = [];
@@ -185,8 +185,7 @@ export class Watch {
         this.websocket_server = new WebSocketServer({ port: ws_port });
 
         this.websocket_server.on('connection', (ws) => {
-            const id = v4().split('-')[0];
-
+            const id = uniq();
             ws.id = id;
             this.watchers[id] = null;
             Logger.debug('ws connect', id);

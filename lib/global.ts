@@ -4,7 +4,6 @@ import { Dir } from '@lib/dir';
 import { dirname } from 'path';
 import merge from 'deepmerge';
 import { Storage } from '@lib/storage';
-import { v4 } from 'uuid';
 
 export class Global {
     static is_setup = false;
@@ -68,7 +67,7 @@ export class Global {
      * @param callback when defined a method to transform the given data
      * @returns json string of the result
      */
-    static async get(key: string, fallback: any = null, callback: Function = null) {
+    static async get(key: string, fallback: any = null, callback: (any) => any = null) {
         if (!key) {
             return this.apply_callback(fallback, callback);
         }
@@ -78,7 +77,9 @@ export class Global {
             // console.log(table, corrected_key)
             const [get_error, result] = await Storage.get(table, corrected_key, fallback);
             if (get_error) {
+                /* eslint-disable no-console */
                 console.log(get_error);
+                /* eslint-enable */
                 return this.apply_callback(fallback, callback);
             }
             return this.apply_callback(result, callback);
@@ -115,7 +116,9 @@ export class Global {
             [set_error, result] = await Storage.set(table, corrected_key, value);
         }
         if (set_error) {
+            /* eslint-disable no-console */
             console.log(set_error);
+            /* eslint-enable */
             return false;
         }
         return result;
@@ -131,7 +134,7 @@ export class Global {
             return result;
         }
         let merged = merge(orig, value);
-        const [table, corrected_key] = this.correct(key);
+        const [table] = this.correct(key);
         if (table == 'navigation' && Array.isArray(merged)) {
             const urls = [];
             merged = merged.filter((entry) => {
@@ -146,7 +149,6 @@ export class Global {
         return result;
     }
     static async merge_all(data) {
-        const id = v4().split('-')[0];
         // @NOTE maybe this is slow, can be changed into a prepared statement or a hugh insert statement
         const result = await Promise.all(
             Object.keys(data).map(async (key) => {
@@ -171,7 +173,7 @@ export class Global {
      * @param callback when defined a method to transform the given data
      * @returns the transformed value
      */
-    static async apply_callback(value: any, callback: Function = null) {
+    static async apply_callback(value: any, callback: (any) => any = null) {
         if (!value || !callback || typeof callback != 'function') {
             return value;
         }

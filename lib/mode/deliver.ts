@@ -38,14 +38,14 @@ export class DeliverMode {
                 return Media.serve(
                     res,
                     media_config,
-                    () => {
+                    async () => {
                         const duration = Math.round(hrtime_to_ms(process.hrtime(start)) * 100) / 100;
                         Logger.output(LogType.log, Logger.color.dim, '░', uid, Logger.color.reset(duration + ''), 'ms');
                     },
                     async (message) => {
                         Logger.error(uid, message);
                         await delay(between(350, 1000));
-                        return null;
+                        return;
                     }
                 );
             }

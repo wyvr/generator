@@ -5,6 +5,7 @@ import { Error } from '@lib/error';
 import { MediaModel, MediaModelOutput } from '@lib/model/media';
 import { dirname, join } from 'path';
 import sharp from 'sharp';
+import { ServerResponse } from 'http';
 import { Config } from '@lib/config';
 import { Cwd } from '@lib/vars/cwd';
 
@@ -19,7 +20,7 @@ export class Media {
         let src = config.src;
         let domain = null;
         if (src.indexOf('http') == 0) {
-            const domain_match = src.match(/^https?:\/\/([^\/]*?)\//);
+            const domain_match = src.match(/^https?:\/\/([^/]*?)\//);
             if (domain_match) {
                 domain = MediaModel.get_hash(domain_match[1]);
                 src = src.substring(src.indexOf(domain_match[1]) + domain_match[1].length).replace(/^\//, '');
@@ -33,13 +34,13 @@ export class Media {
         // return the newly combined path
         return config;
     }
-    static get_config_from_content(content: string): any {
+    static get_config_from_content(content: string): MediaModel {
         const exec_code = `(() => {
             return {${content.replace(/&quot;/g, '"').replace(/&#39;/g, "'")}}
         })()`;
         try {
             const result = eval(exec_code);
-            result.format= this.correct_format(result.format, result.src);
+            result.format = this.correct_format(result.format, result.src);
             return result;
         } catch (e) {
             Logger.error(Error.get(e, null, 'media'));
@@ -50,22 +51,22 @@ export class Media {
         if (!url || typeof url != 'string') {
             return null;
         }
-        const matches = url.match(/^\/media\/([^\/]+)\/(.*)/);
+        const matches = url.match(/^\/media\/([^/]+)\/(.*)/);
         if (!matches) {
             return null;
         }
-        
-        let result: any | MediaModel = {};
+
+        let result: MediaModel = new MediaModel({});
         // check for domain matches
         if (matches[1] == '_d') {
-            const domain_matches = matches[2].match(/^([^\/]+)\/([^\/]+)\/(.*)/);
+            const domain_matches = matches[2].match(/^([^/]+)\/([^/]+)\/(.*)/);
             if (!domain_matches) {
                 return null;
             }
             try {
                 const config_string = Buffer.from(domain_matches[2], 'base64').toString('ascii');
                 result = JSON.parse(config_string);
-                result.format= this.correct_format(result.format, url);
+                result.format = this.correct_format(result.format, url);
             } catch (e) {
                 Logger.error(Error.get(e, domain_matches[3], 'media on demand'));
             }
@@ -79,7 +80,7 @@ export class Media {
         try {
             const config_string = Buffer.from(matches[1], 'base64').toString('ascii');
             result = JSON.parse(config_string);
-            result.format= this.correct_format(result.format, url);
+            result.format = this.correct_format(result.format, url);
         } catch (e) {
             Logger.error(Error.get(e, matches[2], 'media on demand'));
         }
@@ -91,7 +92,7 @@ export class Media {
     }
     static correct_format(format: string, src: string) {
         if (!format || format == 'null') {
-            const ext_match = src.match(/\.([^\.]+)$/);
+            const ext_match = src.match(/\.([^.]+)$/);
             if (ext_match) {
                 if (ext_match[1] == 'jpg') {
                     ext_match[1] = 'jpeg';
@@ -100,7 +101,7 @@ export class Media {
             }
             return null;
         }
-        return format
+        return format;
     }
     static async process(media: MediaModel) {
         const output = MediaModel.get_output(media.result);
@@ -115,7 +116,9 @@ export class Media {
             return null;
         }
         Dir.create(dirname(output));
+        /* eslint-disable @typescript-eslint/no-explicit-any */
         const options: any = { fit: media.mode, position: 'centre' };
+        /* eslint-enable */
         if (media.width != null && media.width > -1) {
             options.width = Math.ceil(media.width);
         }
@@ -160,24 +163,24 @@ export class Media {
         }
         return null;
     }
-    static async serve(res: any, media_config: any, on_end: Function = null, on_fail: Function = null) {
-        if(!Media.allowed_domains) {
+    static async serve(res: ServerResponse, media_config: MediaModel, on_end: () => Promise<void> = null, on_fail: (message: string) => Promise<void> = null) {
+        if (!Media.allowed_domains) {
             Media.allowed_domains = Config.get('media.allowed_domains');
         }
         const end = async (res, value) => {
-            if(typeof on_end == 'function') {
+            if (on_end && typeof on_end == 'function') {
                 await on_end();
             }
             res.end(value);
             return;
-        }
+        };
         const fail = async (res, message) => {
-            if(typeof on_fail == 'function') {
+            if (on_fail && typeof on_fail == 'function') {
                 await on_fail(message);
             }
             await end(res, null);
             return;
-        }
+        };
         // check for allowed domain
         const allowed = !media_config.domain || (Array.isArray(this.allowed_domains) && this.allowed_domains.find((domain) => media_config.domain == domain));
         if (!allowed) {

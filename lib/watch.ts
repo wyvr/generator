@@ -70,7 +70,7 @@ export class Watch {
                         return Media.serve(
                             res,
                             media_config,
-                            () => {
+                            async () => {
                                 const duration = Math.round(hrtime_to_ms(process.hrtime(start)) * 100) / 100;
                                 Logger.block(`processed ${media_config.src} in ${duration} ms`);
                             },

@@ -14,6 +14,7 @@ export class MediaModel {
     hash: string = null;
     quality = 60;
     output: MediaModelOutput = MediaModelOutput.Path;
+    domain?: string;
 
     constructor(config: IObject) {
         Object.keys(this).forEach((key) => {

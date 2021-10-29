@@ -1,14 +1,12 @@
-import { createServer } from 'http';
 import { Port } from '@lib/port';
 import { Logger } from '@lib/logger';
 import { Media } from '@lib/media';
-import { uniq } from '@lib/helper/uniq';
 import { hrtime_to_ms } from '@lib/converter/time';
 import { LogType } from '@lib/model/log';
 import { Config } from '@lib/config';
 import { delay } from '@lib/helper/delay';
 import { between } from '@lib/helper/random';
-import { idle } from '@lib/helper/endings';
+import { server } from '@lib/server';
 
 export class DeliverMode {
     constructor(private on_demand_port: number = 4000) {
@@ -20,14 +18,15 @@ export class DeliverMode {
         this.on_demand_port = await Port.find(this.on_demand_port); // socket
 
         Logger.present('on demand server port', this.on_demand_port);
-        const host = 'localhost';
 
-        createServer((req, res) => {
-            const start = process.hrtime();
-            const uid = uniq();
-            Logger.block(uid, req.method, req.url, new Date().toISOString());
-
-            req.addListener('end', async () => {
+        server(
+            'localhost',
+            this.on_demand_port,
+            'requests',
+            (req, uid) => {
+                Logger.block(uid, req.method, req.url, new Date().toISOString());
+            },
+            async (req, res, uid, start) => {
                 const media_config = Media.extract_config(req.url);
 
                 if (!media_config) {
@@ -49,10 +48,7 @@ export class DeliverMode {
                         return null;
                     }
                 );
-            }).resume();
-        }).listen(this.on_demand_port, host, () => {
-            Logger.success('server started', `http://${host}:${this.on_demand_port}`);
-            idle('requests');
-        });
+            }
+        );
     }
 }

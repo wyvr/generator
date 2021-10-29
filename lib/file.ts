@@ -206,7 +206,10 @@ export class File {
         const result = [];
         let regex = /./;
         if (extension && typeof extension == 'string') {
-            regex = new RegExp(`\\.${extension}$`);
+            /* eslint-disable no-useless-escape */
+            // escaping is here not useless
+            regex = new RegExp(`\.${extension}$`);
+            /* eslint-enable */
         }
         entries.forEach((entry) => {
             const path = join(dir, entry);

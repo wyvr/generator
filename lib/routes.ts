@@ -30,7 +30,7 @@ export class Routes {
                 const route = new Route({
                     path,
                     rel_path,
-                    pkg
+                    pkg,
                 });
                 result.push(route);
                 return;
@@ -112,7 +112,7 @@ export class Routes {
         }
         return [null, null];
     }
-    static write_routes(route_entries: any[], hook_before_process: Function = null) {
+    static write_routes(route_entries: any[], hook_before_process: (any) => any = null) {
         if (!Array.isArray(route_entries)) {
             return null;
         }

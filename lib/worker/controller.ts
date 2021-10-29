@@ -219,6 +219,7 @@ export class WorkerController {
         }
         return false;
     }
+    // eslint-disable-next-line
     async process_in_workers(name: string, action: WorkerAction, list: any[], batch_size = 10): Promise<boolean> {
         const amount = list.length;
         Logger.info('process', amount, `${amount == 1 ? 'item' : 'items'}, batch size`, Logger.color.cyan(batch_size.toString()));

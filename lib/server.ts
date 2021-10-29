@@ -1,3 +1,5 @@
+/* eslint @typescript-eslint/no-explicit-any: 0 */
+
 import { createServer, IncomingMessage, ServerResponse } from 'http';
 import { idle } from '@lib/helper/endings';
 import { Logger } from '@lib/logger';

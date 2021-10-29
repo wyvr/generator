@@ -1,3 +1,5 @@
+/* eslint @typescript-eslint/no-explicit-any: 0 */
+
 import { Config } from '@lib/config';
 import { Logger } from '@lib/logger';
 import chokidar from 'chokidar';

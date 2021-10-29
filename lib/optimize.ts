@@ -3,6 +3,7 @@ import { dirname, basename, extname, join } from 'path';
 import { File } from '@lib/file';
 import { Logger } from '@lib/logger';
 import { Error } from '@lib/error';
+import { OptimizeFileListEntry, OptimizeHashListEntry } from '@lib/interface/optimize';
 
 export class Optimize {
     static create_hash_of_file(file_path: string): string {
@@ -19,7 +20,7 @@ export class Optimize {
         const file = basename(file_path, ext);
         return join(dir, `${file}_${content_hash}${ext}`);
     }
-    static get_hashed_files() {
+    static get_hashed_files(): [OptimizeHashListEntry[], OptimizeFileListEntry[]] {
         const replace_hash_files = [];
         const files = [].concat(File.collect_files('gen/css'), File.collect_files('gen/js'));
         const list = files
@@ -37,14 +38,14 @@ export class Optimize {
             .filter((x) => x);
         return [replace_hash_files, list];
     }
-    static replace_hashed_files_in_files(file_list: any[], hash_list: any[]) {
+    static replace_hashed_files_in_files(file_list: OptimizeFileListEntry[], hash_list: OptimizeHashListEntry[]) {
         file_list.forEach(({ file, hash }) => {
             const content = this.replace_hashed_files(File.read(file), hash_list);
 
             File.write(hash, content);
         });
     }
-    static replace_hashed_files(content: string, hash_list: any[]) {
+    static replace_hashed_files(content: string, hash_list: OptimizeHashListEntry[]) {
         hash_list.forEach(({ before, after }) => {
             content = content.replace(new RegExp(before.replace(/\//, '\\/'), 'g'), after);
         });

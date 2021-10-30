@@ -34,7 +34,6 @@ export class CronMode {
         // get the configs
         Config.set(File.read_json(ConfigPath.get()));
         this.cron_state = File.read_json(CronStatePath.get());
-        console.log(this.cron_state);
         this.package_tree = File.read_json(PackageTreePath.get());
 
         if (this.cron_state) {

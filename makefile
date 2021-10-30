@@ -7,6 +7,7 @@ SHELL := /bin/bash
 .PHONY: test coverage
 # @see https://spin.atomicobject.com/2021/03/22/makefiles-vs-package-json-scripts/
 # base commands
+WYVR_LINT=npx eslint . --ext .ts
 WYVR_COMPILE=npx tsc
 WYVR_BUILD=node ./wyvr/index.js
 WYVR_TEST=npx mocha -R dot './test/**/*.js'
@@ -25,7 +26,7 @@ prod: ## Start production build
 	@$(WYVR_COMPILE) && $(WYVR_BUILD)
 
 dev: ## Start development build
-	@$(WYVR_COMPILE) && $(WYVR_TEST) && env WYVR_ENV=dev $(WYVR_BUILD)
+	@${WYVR_LINT};$(WYVR_COMPILE) && $(WYVR_TEST) && env WYVR_ENV=dev $(WYVR_BUILD)
 
 debug: ## Start debug build
 	@$(WYVR_COMPILE) && $(WYVR_TEST) && env WYVR_ENV=debug $(WYVR_BUILD)
@@ -60,7 +61,7 @@ compile-watch: ## Start watcher and make dev builds
 		--ignore cache \
 		-e js,ts,svelte,css \
 		--verbose \
-		--exec '$(WYVR_COMPILE)'
+		--exec '${WYVR_LINT};$(WYVR_COMPILE)'
 
 test: ## Executes the tests
 	@$(WYVR_COMPILE) && $(WYVR_TEST)
@@ -87,7 +88,7 @@ serve: ## start simple http server after production build
 	@npx http-server ./pub
 
 lint: ## Use ESLint on the codebase
-	@npx eslint . --ext .ts
+	@${WYVR_LINT}
 
 lint-watch: ## Use ESLint on the codebase while watching
-	@npx nodemon --watch lib -e js,ts --exec "eslint . --ext .ts"
+	@npx nodemon --watch lib -e js,ts --exec "${WYVR_LINT}"

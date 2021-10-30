@@ -4,17 +4,19 @@ import { File } from '@lib/file';
 import { Logger } from '@lib/logger';
 import { join } from 'path';
 import { existsSync } from 'fs-extra';
+import { IObject } from '@lib/interface/object';
+import { IPackage } from '@lib/interface/package';
 
 export const packages = async () => {
     const package_json = File.read_json('package.json');
     if (!package_json) {
-        Logger.error(Error.extract('parse error', 'package.json'));
+        Logger.error(Error.extract({ message: 'parse error' }, 'package.json'));
     }
-    const packages = Config.get('packages');
-    const disabled_packages = [];
-    const available_packages = [];
+    const packages: IPackage[] = Config.get('packages');
+    const disabled_packages: IPackage[] = [];
+    const available_packages: IPackage[] = [];
     if (packages && Array.isArray(packages)) {
-        let config: any = {};
+        let config: IObject = {};
         // reset the config
         Config.set({ packages: null });
         packages.forEach((pkg, index) => {

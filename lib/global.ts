@@ -5,6 +5,7 @@ import { dirname } from 'path';
 import merge from 'deepmerge';
 import { Storage } from '@lib/storage';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export class Global {
     static is_setup = false;
     static db: Database = null;
@@ -79,7 +80,7 @@ export class Global {
             if (get_error) {
                 /* eslint-disable no-console */
                 console.log(get_error);
-                /* eslint-enable */
+                /* eslint-enable no-console */
                 return this.apply_callback(fallback, callback);
             }
             return this.apply_callback(result, callback);
@@ -118,7 +119,7 @@ export class Global {
         if (set_error) {
             /* eslint-disable no-console */
             console.log(set_error);
-            /* eslint-enable */
+            /* eslint-enable no-console */
             return false;
         }
         return result;
@@ -227,3 +228,4 @@ export class Global {
         return [table, corrected_key];
     }
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */

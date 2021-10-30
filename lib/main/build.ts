@@ -4,19 +4,20 @@ import { WorkerEmit } from '@lib/model/worker/emit';
 import { Plugin } from '@lib/plugin';
 import { WorkerController } from '@lib/worker/controller';
 import { IBuildFileResult } from '@lib/interface/build';
-import { IObject } from '@lib/interface/object';
+import { IIdentifier } from '../interface/identifier';
 
-export const build_files = async (worker_controller: WorkerController, list: string[], watched_json_files: string[] = []): Promise<[IBuildFileResult[], IObject[]]> => {
+export const build_files = async (worker_controller: WorkerController, list: string[], watched_json_files: string[] = []): Promise<[IBuildFileResult[], IIdentifier[]]> => {
     // match exactly against the json files
     const filtered_list = list.filter((entry) => {
         return watched_json_files.find((file) => entry == file);
     });
     // build only the matching datasets
     const [pages, identifier_data_list] = await build_list(worker_controller, filtered_list);
+    
     return [pages, identifier_data_list];
 };
 
-export const build_list = async (worker_controller: WorkerController, list: string[]): Promise<[IBuildFileResult[], IObject[]]> => {
+export const build_list = async (worker_controller: WorkerController, list: string[]): Promise<[IBuildFileResult[], IIdentifier[]]> => {
     Logger.debug('build list', list);
     /* eslint-disable */
     const [error_list, config, modified_list] = await Plugin.before('build', list);

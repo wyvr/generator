@@ -3,16 +3,19 @@ import { join, extname, dirname, sep } from 'path';
 import { File } from '@lib/file';
 import { WyvrFile } from '@lib/model/wyvr/file';
 import { Cwd } from '@lib/vars/cwd';
+import { IObject } from '@lib/interface/object';
+import { IPackageTree } from '@lib/interface/package_tree';
+import { IIdentifierDependency } from '@lib/interface/identifier';
 
 export class Dependency {
-    static cache: any = null;
-    static page_cache: any = {};
+    static cache: IObject = null;
+    static page_cache: IObject = {};
 
-    static pkg_dep: any = null;
+    static pkg_dep: IObject = null;
     static new_cache() {
         return {};
     }
-    static build(source_folder: string, build_pages: any[], shortcode_identifier: any) {
+    static build(source_folder: string, build_pages: IIdentifierDependency[], shortcode_identifier: IObject) {
         if (!existsSync(source_folder)) {
             return null;
         }
@@ -114,7 +117,7 @@ export class Dependency {
         }
     }
 
-    static prepare(cache: any, shortcode_identifier:any): any {
+    static prepare(cache: IObject, shortcode_identifier:IObject): IObject {
         // when the structure is not correct create new cache
         if (!cache || typeof cache != 'object' || Array.isArray(cache)) {
             cache = this.new_cache();
@@ -156,12 +159,10 @@ export class Dependency {
             });
         });
 
-        // console.log('get_dependent_identifiers', deps);
         return deps;
     }
     static get_dependent_pages(deps: string[]) {
         const pages = [];
-        // console.log('get_dependent_pages', deps);
         Object.keys(this.page_cache).forEach((key) => {
             if (deps.indexOf(this.page_cache[key].doc) > -1 || deps.indexOf(this.page_cache[key].layout) > -1 || deps.indexOf(this.page_cache[key].page) > -1) {
                 pages.push(key);
@@ -169,7 +170,7 @@ export class Dependency {
         });
         return pages.filter((page, index) => pages.indexOf(page) == index);
     }
-    static get_structure(file: string, package_tree: any) {
+    static get_structure(file: string, package_tree: IPackageTree) {
         const type = file.split(sep).shift();
         const components = ((this.cache[type] && this.cache[type][file]) || []).map((component) => {
             return this.get_structure(component, package_tree);
@@ -180,7 +181,7 @@ export class Dependency {
             components,
         };
     }
-    static get_dependencies(file: string, wyvr_files: WyvrFile[], dependency: any): any[] {
+    static get_dependencies(file: string, wyvr_files: WyvrFile[], dependency: IObject): IObject[] {
         const dep_files = [];
         if (file && dependency) {
             Object.keys(dependency).forEach((type) => {

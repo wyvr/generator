@@ -10,3 +10,10 @@ export interface IBuildFileResult {
     identifier: IObject;
     _wyvr: WyvrFileConfig;
 }
+
+export interface IBuildResult {
+    compiled: IObject;
+    component: IObject;
+    result: IObject;
+    notes: IObject[];
+}

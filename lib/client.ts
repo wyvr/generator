@@ -15,12 +15,13 @@ import { Error } from '@lib/error';
 import { Transform } from '@lib/transform';
 import { Logger } from '@lib/logger';
 import { Cwd } from '@lib/vars/cwd';
+import { IIdentifierFile } from '@lib/interface/identifier';
 
 export class Client {
     static transform_resource(content) {
         return content.replace(/\/\/# sourceMappingURL=[^\n]*/g, '');
     }
-    static async create_bundle(entry: any, hydrate_files: WyvrFile[]) {
+    static async create_bundle(entry: IIdentifierFile, hydrate_files: WyvrFile[]) {
         Env.set(process.env.WYVR_ENV);
         const client_root = join(Cwd.get(), 'gen', 'client');
 

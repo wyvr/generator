@@ -9,13 +9,14 @@ import { WorkerController } from '@lib/worker/controller';
 import { Error } from '@lib/error';
 import { IPackageTree } from '@lib/interface/package_tree';
 import { IWatchFile } from '@lib/interface/watch';
+import { IObject } from '@lib/interface/object';
 
 export const routes = async (
     worker_controller: WorkerController,
     package_tree: IPackageTree,
     changed_files: IWatchFile[],
     enhance_data = true,
-    cron_state: any[] = null
+    cron_state: IObject[] = null
 ): Promise<[string[], string[]]> => {
     let completed_routes = 0;
     const on_global_index = worker_controller.events.on('emit', WorkerEmit.global, async (data) => {
@@ -55,7 +56,7 @@ export const execute_routes = async (
     package_tree: IPackageTree,
     changed_files: IWatchFile[],
     enhance_data = true,
-    cron_state: any[] = null
+    cron_state: IObject[] = null
 ): Promise<[string[], string[], number]> => {
     await Plugin.before('routes', changed_files, enhance_data);
     let routes = Routes.collect_routes(null, package_tree);

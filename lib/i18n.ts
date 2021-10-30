@@ -6,13 +6,15 @@ import merge from 'deepmerge';
 import { Client } from '@lib/client';
 import { Error } from '@lib/error';
 import { Config } from '@lib/config';
+import { IObject } from '@lib/interface/object';
+import { IPackage } from '@lib/interface/package';
 
 export class I18N {
     static is_setup = false;
-    static i18n: any = null;
-    static translations: any = null;
+    static i18n = null;
+    static translations: IObject = null;
     static create() {
-        const packages = Config.get('packages');
+        const packages: IPackage[] = Config.get('packages');
         const result = I18N.collect(packages);
         I18N.write(result);
     }
@@ -28,7 +30,7 @@ export class I18N {
             Logger.error('i18n', Error.extract(e, 'i18n'));
         }
     }
-    static translate(key: string | string[], options?: any) {
+    static translate(key: string | string[], options?: IObject) {
         I18N.setup();
         const error = I18N.i18n.check(key, options);
         if (error) {
@@ -47,7 +49,7 @@ export class I18N {
         // load from file
         return File.read_json(join('gen', 'i18n', `${language}.json`));
     }
-    static collect(packages: any[]) {
+    static collect(packages: IPackage[]) {
         const result = {};
         // search the i18n files in the packages
         if (packages) {
@@ -72,7 +74,7 @@ export class I18N {
         I18N.translations = result;
         return result;
     }
-    static write(result: any) {
+    static write(result: IObject) {
         Object.keys(result).forEach((language) => {
             File.write_json(join('gen', 'i18n', `${language}.json`), result[language]);
         });

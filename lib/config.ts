@@ -1,7 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any*/
+
 import * as fs from 'fs';
 import { join } from 'path';
 import merge from 'deepmerge';
 import { Cwd } from '@lib/vars/cwd';
+import { IObject } from '@lib/interface/object';
 
 export class Config {
     // cached troughout the whole process
@@ -10,12 +13,12 @@ export class Config {
      * get the config of the path based on the current project
      * @returns the config
      */
-    static load_from_path(path = ''): any | null {
+    static load_from_path(path = ''): IObject | null {
         const config_path = join(Cwd.get(), path, 'wyvr.js');
         if (fs.existsSync(config_path)) {
             /* eslint-disable @typescript-eslint/no-var-requires */
             const config = require(config_path);
-            /* eslint-enable */
+            /* eslint-enable @typescript-eslint/no-var-requires */
             return config;
         }
         return null;
@@ -31,7 +34,7 @@ export class Config {
             const local_config = this.load_from_path();
             /* eslint-disable @typescript-eslint/no-var-requires */
             const default_config = require('@config/config');
-            /* eslint-enable */
+            /* eslint-enable @typescript-eslint/no-var-requires */
             if (local_config) {
                 this.cache = merge(default_config, local_config);
             } else {
@@ -53,11 +56,13 @@ export class Config {
         }
         return shrinked_config;
     }
+
     /**
      * allow changing of the config
      * @param value object structure to replace the current config with
      * @returns
      */
+    /* eslint-disable @typescript-eslint/no-explicit-any*/
     static set(value: any): boolean {
         if (value) {
             this.cache = merge(this.cache, value);
@@ -65,6 +70,7 @@ export class Config {
         }
         return false;
     }
+
     /**
      * replaces the whole config with the given value
      * @param value new config

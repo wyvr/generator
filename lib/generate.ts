@@ -1,9 +1,10 @@
 import { File } from '@lib/file';
 import arrayToTree from 'array-to-tree';
 import { Global } from '@lib/global';
+import { IObject } from '@lib/interface/object';
 
 export class Generate {
-    static enhance_data(data: any): any {
+    static enhance_data(data: IObject): IObject {
         if (!data) {
             return null;
         }
@@ -80,7 +81,7 @@ export class Generate {
 
         return data;
     }
-    static add_to_global(data: any, global: any) {
+    static add_to_global(data: IObject, global: IObject) {
         if (!global || !data) {
             return global;
         }
@@ -107,7 +108,7 @@ export class Generate {
         });
         return global;
     }
-    static set_default_values(data: any, default_values: any) {
+    static set_default_values(data: IObject, default_values: IObject) {
         if (default_values) {
             Object.keys(default_values).forEach((key) => {
                 if (!data[key]) {

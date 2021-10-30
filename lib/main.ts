@@ -17,6 +17,7 @@ import { Mode } from '@lib/vars/mode';
 import { UniqId } from '@lib/vars/uniq_id';
 import { IObject } from '@lib/interface/object';
 import { cpus } from 'os';
+import { IIdentifierEmit } from '@lib/interface/identifier';
 
 export class Main {
     worker_controller: WorkerController = null;
@@ -112,7 +113,7 @@ export class Main {
         this.worker_controller.create_workers(this.worker_amount);
         const gen_src_folder = join(Cwd.get(), 'gen', 'raw');
         // watcher when worker sends identifier content
-        this.worker_controller.events.on('emit', WorkerEmit.identifier, (data: any) => {
+        this.worker_controller.events.on('emit', WorkerEmit.identifier, (data: IIdentifierEmit) => {
             if (!data) {
                 return;
             }

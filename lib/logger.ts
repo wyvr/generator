@@ -22,7 +22,7 @@ export class Logger {
     static create_spinner(name: string) {
         return ora(name).start();
     }
-
+    /* eslint-disable */
     static output(type: number | LogType, color_fn: (text: string) => string | null, char: string, ...values: any[]) {
         const messages = values.map(this.stringify).filter((x) => x);
 
@@ -49,10 +49,9 @@ export class Logger {
             this.spinner.stopAndPersist({ text: `${symbol} ${text}`, symbol: color.dim('│') }).start(this.last_text).spinner = 'dots';
             return;
         }
-        /* eslint-disable */
         console.log(symbol, text);
-        /* eslint-enable */
     }
+    /* eslint-enable */
     static log(...values) {
         this.output(LogType.log, null, '', ...values);
     }
@@ -125,11 +124,13 @@ export class Logger {
         console.log('');
         /* eslint-enable */
     }
-
+    
+    /* eslint-disable */
     static stringify(data: any): string {
         if (typeof data == 'string' || typeof data == 'number' || typeof data == 'bigint') {
             return data.toString();
         }
         return JSON.stringify(data, circular());
     }
+    /* eslint-enable */
 }

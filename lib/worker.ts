@@ -17,7 +17,8 @@ import { configure } from '@lib/worker/configure';
 import { route } from '@lib/worker/route';
 import { build } from '@lib/worker/build';
 import { script } from '@lib/worker/script';
-import { optimize } from './worker/optimize';
+import { optimize } from '@lib/worker/optimize';
+import { IIdentifierEmit } from '@lib/interface/identifier';
 
 export class Worker {
     private root_template_paths = null;
@@ -141,7 +142,7 @@ export class Worker {
         const page_file_name = File.find_file(join(raw_path, 'page'), data._wyvr.template.page);
 
         const identifier = Client.get_identifier_name(this.root_template_paths, doc_file_name, layout_file_name, page_file_name);
-        const result = {
+        const result: IIdentifierEmit = {
             type: 'identifier',
             identifier,
             doc: doc_file_name,

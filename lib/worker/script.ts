@@ -6,8 +6,9 @@ import { Error } from '@lib/error';
 import { File } from '@lib/file';
 import { Logger } from '@lib/logger';
 import { WyvrFile } from '@lib/model/wyvr/file';
+import { IIdentifier } from '@lib/interface/identifier';
 
-export const script = async (value: any[]) => {
+export const script = async (value: IIdentifier[]) => {
     const svelte_files = File.collect_svelte_files('gen/client');
     // get all svelte components which should be hydrated
     const files = Client.get_hydrateable_svelte_files(svelte_files);

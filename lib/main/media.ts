@@ -2,8 +2,9 @@ import { WorkerAction } from '@lib/model/worker/action';
 import { Plugin } from '@lib/plugin';
 import { WorkerController } from '@lib/worker/controller';
 import { IPerformance_Measure } from '@lib/performance_measure';
+import { IObject } from '@lib/interface/object';
 
-export const media = async (perf: IPerformance_Measure, worker_controller: WorkerController, media: any): Promise<boolean> => {
+export const media = async (perf: IPerformance_Measure, worker_controller: WorkerController, media: IObject): Promise<boolean> => {
     perf.start('media');
     await Plugin.before('media', media);
     const list = Object.values(media);

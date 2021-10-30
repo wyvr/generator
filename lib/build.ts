@@ -7,8 +7,11 @@ import { Env } from '@lib/env';
 import { WyvrCssMediaCollection } from '@lib/model/wyvr/file';
 import { Transform } from '@lib/transform';
 import { I18N } from '@lib/i18n';
+import { IBuildResult } from '@lib/interface/build';
+import { IObject } from '@lib/interface/object';
 
 register();
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // fix intl global on the server side
 (<any>global).Intl = require('intl');
 // onServer Server implementation
@@ -21,8 +24,9 @@ register();
 (<any>global).isServer = true;
 (<any>global).isClient = false;
 (<any>global).__ = I18N.translate;
+/* eslint-enable */
 export class Build {
-    static async compile(content: string): Promise<[any, any]> {
+    static async compile(content: string): Promise<[IObject, IBuildResult]> {
         if (!content || typeof content != 'string') {
             return [new Error('content has to be a string'), null];
         }
@@ -167,7 +171,7 @@ export class Build {
     static precompile_components() {
         //@TODO implement
     }
-    static get_page_code(data: any, doc_file_name: string, layout_file_name: string, page_file_name: string) {
+    static get_page_code(data: IObject, doc_file_name: string, layout_file_name: string, page_file_name: string) {
         const code = `
         <script>
             import Doc from '${doc_file_name}';

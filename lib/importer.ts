@@ -77,6 +77,7 @@ export class Importer {
      * @param data data from json stream
      * @param format_processed_file
      */
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     process(data: { key: number; value: any }, format_processed_file: boolean): void {
         this.chunk_index++;
         if (!data || data.key == null || !data.value) {
@@ -94,6 +95,8 @@ export class Importer {
 
         this.perf.end(perf_mark);
     }
+    /* eslint-enable */
+
     /**
      * get the lsit of all imported files
      * @returns list of all imported files
@@ -130,6 +133,7 @@ export class Importer {
      * Load the last import state, return null when nothing is present
      * @returns last import state
      */
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     load_import_state(): any {
         if (fs.existsSync(this.state_file)) {
             try {
@@ -142,6 +146,8 @@ export class Importer {
         }
         return null;
     }
+    /* eslint-enable */
+
     /**
      * Return whether the import file should be imported
      * @param import_file_path path to the file which should be imported
@@ -173,10 +179,12 @@ export class Importer {
                 const global_data = {};
                 fs.createReadStream(this.state_global_file, { flags: 'r', encoding: 'utf-8' }).pipe(jsonStream.input);
 
+                /* eslint-disable @typescript-eslint/no-explicit-any */
                 jsonStream.on('data', async (data: { key: string; value: any }) => {
                     await Global.set(data.key, data.value);
                     global_data[data.key] = data.value;
                 });
+                /* eslint-enable */
 
                 jsonStream.on('error', (e) => {
                     Logger.error('error streaming global data', e);
@@ -194,5 +202,7 @@ export class Importer {
 }
 
 export type Hook_Before_Process = {
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     ({ key: number, value: any }): { key: number; value: any };
+    /* eslint-enable */
 };

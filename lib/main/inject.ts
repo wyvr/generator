@@ -12,8 +12,9 @@ import { Build } from '@lib/build';
 import { Error } from '@lib/error';
 import { Cwd } from '@lib/vars/cwd';
 import { ReleasePath } from '@lib/vars/release_path';
+import { IObject } from '@lib/interface/object';
 
-export const inject = async (list: string[], socket_port = 0): Promise<[any, any]> => {
+export const inject = async (list: string[], socket_port = 0): Promise<[IObject, IObject]> => {
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const [err_before, config_before, list_before] = await Plugin.before('inject', list);
     /* eslint-enable */
@@ -36,11 +37,10 @@ export const inject = async (list: string[], socket_port = 0): Promise<[any, any
                 body = [];
             // inject dev socket connection
             if (Env.is_dev()) {
-                body.push(
-                    `<script id="wyvr_client_socket">${Client.transform_resource(
-                        File.read(join(__dirname, '..', 'resource', 'client_socket.js')).replace(/\{port\}/g, socket_port)
-                    )}</script>`
-                );
+                const client_socket = File.read(join(__dirname, '..', 'resource', 'client_socket.js'));
+                if (client_socket) {
+                    body.push(`<script id="wyvr_client_socket">${Client.transform_resource(client_socket.replace(/\{port\}/g, socket_port + ''))}</script>`);
+                }
             }
 
             // @INFO shortcodes

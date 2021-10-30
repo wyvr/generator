@@ -6,8 +6,9 @@ import { Plugin } from '@lib/plugin';
 import { WorkerController } from '@lib/worker/controller';
 import { fail } from '@lib/helper/endings';
 import { IPerformance_Measure } from '@lib/performance_measure';
+import { IIdentifier } from '@lib/interface/identifier';
 
-export const optimize = async (perf: IPerformance_Measure, identifier_list: any[], worker_controller: WorkerController) => {
+export const optimize = async (perf: IPerformance_Measure, identifier_list: IIdentifier[], worker_controller: WorkerController) => {
     perf.start('optimize');
     if (Env.is_dev()) {
         Logger.improve('optimize will not be executed in dev mode');

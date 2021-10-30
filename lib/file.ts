@@ -92,6 +92,7 @@ export class File {
      * @param filename
      * @returns the data of the file
      */
+    /* eslint-disable @typescript-eslint/no-explicit-any*/
     static read_json(filename: string): any {
         const content = this.read(filename);
         if (!content) {
@@ -99,38 +100,51 @@ export class File {
         }
         let data = null;
         try {
-            data = JSON.parse(content);
+            data = JSON.parse(<string>content);
         } catch (e) {
             Logger.error(Error.get(e, filename, 'read json'));
             return null;
         }
         return data;
     }
+    /* eslint-enable @typescript-eslint/no-explicit-any*/
+
     /**
      * read the content of an file as plain text
      * @param filename
      * @returns the content of the file
      */
-    static read_buffer(filename: string): any {
-        return this.read(filename, 'buffer');
+    static read_buffer(filename: string): Buffer {
+        return <Buffer>this.read_raw(filename, 'buffer');
     }
     /**
      * read the content of an file as plain text
      * @param filename
      * @returns the content of the file
      */
-    static read(filename: string, encoding = 'utf-8'): any {
+    static read_raw(filename: string, encoding = 'utf-8'): string | Buffer {
         if (!filename || !existsSync(filename)) {
             return null;
         }
         if (encoding == 'buffer') {
             encoding = null;
         }
+        /* eslint-disable @typescript-eslint/no-explicit-any*/
         const content = readFileSync(filename, { encoding: <any>encoding, flag: 'r' });
+        /* eslint-enable @typescript-eslint/no-explicit-any*/
+
         if (!content) {
             return null;
         }
         return content;
+    }
+    /**
+     * read the content of an file as plain text
+     * @param filename
+     * @returns the content of the file
+     */
+    static read(filename: string): string {
+        return <string>this.read_raw(filename, 'utf-8');
     }
     /**
      * write a file
@@ -151,6 +165,7 @@ export class File {
      * @param filename
      * @returns void
      */
+    /* eslint-disable @typescript-eslint/no-explicit-any*/
     static write_json(filename: string, data: any = null): boolean {
         if (!filename) {
             return false;
@@ -159,6 +174,7 @@ export class File {
         const spaces = Env.json_spaces(process.env);
         return this.write(filename, JSON.stringify(data, circular(), spaces));
     }
+    /* eslint-enable @typescript-eslint/no-explicit-any*/
     /**
      * search for one file out of multiple possible files, to depict hierachy of file overrides
      * @param in_dir root directory to search in

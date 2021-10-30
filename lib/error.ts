@@ -1,9 +1,10 @@
 import { Logger } from '@lib/logger';
 import { join } from 'path';
 import { Cwd } from '@lib/vars/cwd';
+import { IObject } from '@lib/interface/object';
 
 export class Error {
-    static extract(e: any, source: string) {
+    static extract(e: IObject, source: string) {
         const root_dir = Cwd.get();
         const object = {
             code: null,
@@ -71,7 +72,7 @@ export class Error {
 
         return object;
     }
-    static get(e: any, filename: string, scope: string = null): string {
+    static get(e: IObject, filename: string, scope: string = null): string {
         const data = this.extract(e, filename);
         const result = [];
         if (scope) {

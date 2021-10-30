@@ -1,6 +1,6 @@
 import { Logger } from '@lib/logger';
 
-export const fail = (error: any = null) => {
+export const fail = (error: string = null) => {
     Logger.error('failed', error);
     process.exit(1);
     return;

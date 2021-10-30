@@ -8,14 +8,15 @@ import { Routes } from '@lib/routes';
 import { WorkerController } from '@lib/worker/controller';
 import { Error } from '@lib/error';
 import { IPackageTree } from '@lib/interface/package_tree';
+import { IWatchFile } from '@lib/interface/watch';
 
 export const routes = async (
     worker_controller: WorkerController,
-    package_tree: any,
-    changed_files: any[],
+    package_tree: IPackageTree,
+    changed_files: IWatchFile[],
     enhance_data = true,
     cron_state: any[] = null
-): Promise<[any[], any[]]> => {
+): Promise<[string[], string[]]> => {
     let completed_routes = 0;
     const on_global_index = worker_controller.events.on('emit', WorkerEmit.global, async (data) => {
         // add the results to the global data
@@ -52,10 +53,10 @@ export const routes = async (
 export const execute_routes = async (
     worker_controller: WorkerController,
     package_tree: IPackageTree,
-    changed_files: any[],
+    changed_files: IWatchFile[],
     enhance_data = true,
     cron_state: any[] = null
-): Promise<[any[], any[], number]> => {
+): Promise<[string[], string[], number]> => {
     await Plugin.before('routes', changed_files, enhance_data);
     let routes = Routes.collect_routes(null, package_tree);
     // shrink routes to only modified ones
@@ -66,7 +67,7 @@ export const execute_routes = async (
         });
     }
     if (!routes || routes.length == 0) {
-        return [changed_files, null, 0];
+        return [changed_files.map((file) => file.path), null, 0];
     }
     // add meta data to the route
     if (!enhance_data) {

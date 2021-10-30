@@ -34,6 +34,9 @@ import { Cwd } from '@lib/vars/cwd';
 import { ReleasePath } from '@lib/vars/release_path';
 import { IObject } from '@lib/interface/object';
 import { IWatchFile } from '@lib/interface/watch';
+import { CronStatePath } from '@lib/vars/cron_state_path';
+import { ConfigPath } from '@lib/vars/config_path';
+import { PackageTreePath } from '@lib/vars/package_tree_path';
 
 export class BuildMode {
     hr_start = null;
@@ -86,13 +89,13 @@ export class BuildMode {
         await this.execute(worker_controller);
 
         // save config for cron and debugging
-        File.write_json('gen/config.json', Config.get());
+        File.write_json(ConfigPath.get(), Config.get());
 
         // save cron file
         const cron = Config.get('cron');
         if (cron) {
             File.write_json(
-                'gen/cron.json',
+                CronStatePath.get(),
                 cron.map((entry) => {
                     entry.last_execution = new Date().getTime();
                     return entry;
@@ -150,7 +153,7 @@ export class BuildMode {
         // collect the files for the generation
         this.perf.start('collect');
         this.package_tree = await collect(this.package_tree);
-        File.write_json(join('gen', 'package_tree.json'), JSON.parse(JSON.stringify(this.package_tree)));
+        File.write_json(PackageTreePath.get(), JSON.parse(JSON.stringify(this.package_tree)));
         this.perf.end('collect');
 
         const contains_routes = changed_files.find((file) => file.rel_path.match(/^routes\//)) != null;

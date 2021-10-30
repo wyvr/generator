@@ -2,13 +2,15 @@ import { IPerformance_Measure } from '@lib/performance_measure';
 import { Logger } from '@lib/logger';
 import { Config } from '@lib/config';
 import { File } from '@lib/file';
-import { join } from 'path';
 import { routes } from '@lib/main/routes';
 import { fail } from '@lib/helper/endings';
 import { WorkerController } from '@lib/worker/controller';
 import { hrtime_to_ms } from '@lib/converter/time';
 import { build_files } from '@lib/main/build';
 import { optimize } from '@lib/main/optimize';
+import { CronStatePath } from '@lib/vars/cron_state_path';
+import { PackageTreePath } from '@lib/vars/package_tree_path';
+import { ConfigPath } from '@lib/vars/config_path';
 
 export class CronMode {
     hr_start = null;
@@ -30,9 +32,10 @@ export class CronMode {
         this.perf.start('cron');
 
         // get the configs
-        Config.set(File.read_json(join('gen', 'config.json')));
-        this.cron_state = File.read_json(join('gen', 'cron.json'));
-        this.package_tree = File.read_json(join('gen', 'package_tree.json'));
+        Config.set(File.read_json(ConfigPath.get()));
+        this.cron_state = File.read_json(CronStatePath.get());
+        console.log(this.cron_state);
+        this.package_tree = File.read_json(PackageTreePath.get());
 
         if (this.cron_state) {
             // use only cron entries which should be executed

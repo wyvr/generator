@@ -9,12 +9,11 @@ import { IPerformance_Measure } from '@lib/performance_measure';
 import { IIdentifier } from '@lib/interface/identifier';
 
 export const optimize = async (perf: IPerformance_Measure, identifier_list: IIdentifier[], worker_controller: WorkerController) => {
-    perf.start('optimize');
     if (Env.is_dev()) {
         Logger.improve('optimize will not be executed in dev mode');
-        perf.end('optimize');
         return;
     }
+    perf.start('optimize');
     // add contenthash to the generated files
     const replace_hash_files = [];
     const [hash_list, file_list] = Optimize.get_hashed_files();

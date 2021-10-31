@@ -34,6 +34,7 @@ export class DeliverMode {
                     await delay(between(350, 1000));
                     res.writeHead(404, { 'Content-Type': 'text/html' });
                     res.end(null);
+                    return;
                 }
                 return Media.serve(
                     res,

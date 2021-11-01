@@ -21,7 +21,7 @@ import { server } from '@lib/server';
 import { IWatchFile } from '@lib/interface/watch';
 import { IBuildFileResult } from '@lib/interface/build';
 import { uniq } from '@lib/helper/uniq';
-import { Exec } from './exec';
+import { Exec } from '@lib/exec';
 
 export class Watch {
     changed_files: IWatchFile[] = [];

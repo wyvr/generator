@@ -1,4 +1,4 @@
-import { IObject } from './object';
+import { IObject } from '@lib/interface/object';
 
 export interface IIdentifier {
     file: IIdentifierFile;

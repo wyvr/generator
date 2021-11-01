@@ -3,7 +3,7 @@
 import { createServer, IncomingMessage, ServerResponse } from 'http';
 import { idle } from '@lib/helper/endings';
 import { Logger } from '@lib/logger';
-import { uniq } from './helper/uniq';
+import { uniq } from '@lib/helper/uniq';
 
 export const server = (
     host: string,

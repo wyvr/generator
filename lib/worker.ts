@@ -15,7 +15,7 @@ import { route } from '@lib/worker/route';
 import { build } from '@lib/worker/build';
 import { script } from '@lib/worker/script';
 import { optimize } from '@lib/worker/optimize';
-import { create_data_result } from './worker/create_data_result';
+import { create_data_result } from '@lib/worker/create_data_result';
 
 export class Worker {
     private root_template_paths = null;

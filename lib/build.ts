@@ -9,9 +9,9 @@ import { Transform } from '@lib/transform';
 import { I18N } from '@lib/i18n';
 import { IBuildResult } from '@lib/interface/build';
 import { IObject } from '@lib/interface/object';
-import { EnvModel } from './model/env';
-import { File } from './file';
-import { ReleasePath } from './vars/release_path';
+import { EnvModel } from '@lib/model/env';
+import { File } from '@lib/file';
+import { ReleasePath } from '@lib/vars/release_path';
 
 register();
 /* eslint-disable @typescript-eslint/no-explicit-any */

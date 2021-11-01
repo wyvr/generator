@@ -1,17 +1,17 @@
-import { Cwd } from './vars/cwd';
+import { Cwd } from '@lib/vars/cwd';
 import { join } from 'path';
-import { Logger } from './logger';
-import { Error } from './error';
-import { IExec, IExecConfig } from './interface/exec';
-import { File } from './file';
+import { Logger } from '@lib/logger';
+import { Error } from '@lib/error';
+import { IExec, IExecConfig } from '@lib/interface/exec';
+import { File } from '@lib/file';
 import { IncomingMessage } from 'http';
-import { hrtime_to_ms } from './converter/time';
-import { Build } from './build';
-import { create_data_result } from './worker/create_data_result';
-import { RootTemplatePaths } from './vars/root_template_paths';
-import { Config } from './config';
-import { Generate } from './generate';
-import { ReleasePath } from './vars/release_path';
+import { hrtime_to_ms } from '@lib/converter/time';
+import { Build } from '@lib/build';
+import { create_data_result } from '@lib/worker/create_data_result';
+import { RootTemplatePaths } from '@lib/vars/root_template_paths';
+import { Config } from '@lib/config';
+import { Generate } from '@lib/generate';
+import { ReleasePath } from '@lib/vars/release_path';
 
 export class Exec {
     static cache = null;
@@ -148,7 +148,7 @@ export class Exec {
             Logger.error('[svelte]', data.url, Error.get(compile_error, config.file, 'build'));
             return null;
         }
-        const [render_error, rendered] = await Build.render(compiled, enhanced_data);
+        const [render_error, rendered, identifier_item] = await Build.render(compiled, enhanced_data);
         if (render_error) {
             // svelte error messages
             Logger.error('[svelte]', data.url, Error.get(render_error, config.file, 'render'));
@@ -159,6 +159,12 @@ export class Exec {
 
         
         const path = File.to_extension(config.file.replace(new RegExp(`^.*?${join('gen', 'exec')}`), ReleasePath.get()), extension);
+
+        if (identifier_item) {
+            identifier_item.path = path;
+            identifier_item.filename = config.file;
+            console.log(identifier_item)
+        }
 
         // remove svelte integrated comment from compiler to avoid broken output
         rendered.result.html = Build.cleanup_page_code(Build.add_debug_code(rendered.result.html, path, extension, data), extension);

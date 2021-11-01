@@ -1,4 +1,3 @@
-
 import { Config } from '@lib/config';
 import { Logger } from '@lib/logger';
 import chokidar from 'chokidar';
@@ -22,6 +21,7 @@ import { server } from '@lib/server';
 import { IWatchFile } from '@lib/interface/watch';
 import { IBuildFileResult } from '@lib/interface/build';
 import { uniq } from '@lib/helper/uniq';
+import { Exec } from './exec';
 
 export class Watch {
     changed_files: IWatchFile[] = [];
@@ -34,7 +34,7 @@ export class Watch {
 
     private readonly IDLE_TEXT = 'changes or requests';
 
-    constructor(private ports: [number, number], private callback: (changed_files: IWatchFile[], watched_files: string[])=>Promise<IBuildFileResult[]> = null) {
+    constructor(private ports: [number, number], private callback: (changed_files: IWatchFile[], watched_files: string[]) => Promise<IBuildFileResult[]> = null) {
         if (!callback || typeof callback != 'function') {
             Logger.warning('can not start watching because no callback is defined');
             return null;
@@ -60,7 +60,7 @@ export class Watch {
         // create simple static server
         const pub = new static_server.Server(join(Cwd.get(), 'pub'), { cache: false, serverInfo: `wyvr` });
         this.host = 'localhost';
-        server('localhost', this.ports[0], this.IDLE_TEXT, null, async (req, res) => {
+        server('localhost', this.ports[0], this.IDLE_TEXT, null, async (req, res, uid) => {
             pub.serve(req, res, async (err) => {
                 if (err) {
                     // check for media files
@@ -78,6 +78,15 @@ export class Watch {
                                 Logger.error(media_config.src, message);
                             }
                         );
+                    }
+                    const exec_config = Exec.match(req.url);
+                    if (exec_config) {
+                        const rendered = await Exec.run(uid, req, exec_config);
+                        if (rendered) {
+                            // res.writeHead(404, { 'Content-Type': 'text/html' });
+                            res.end(rendered.result.html);
+                            return;
+                        }
                     }
                     Logger.error('serve error', Logger.color.bold(err.message), req.method, req.url, err.status);
                     res.writeHead(err.status, err.headers);

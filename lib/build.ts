@@ -9,6 +9,9 @@ import { Transform } from '@lib/transform';
 import { I18N } from '@lib/i18n';
 import { IBuildResult } from '@lib/interface/build';
 import { IObject } from '@lib/interface/object';
+import { EnvModel } from './model/env';
+import { File } from './file';
+import { ReleasePath } from './vars/release_path';
 
 register();
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -191,5 +194,50 @@ export class Build {
     }
     static correct_import_paths(content: string, extension: string): string {
         return Transform.src_import_path(content, 'gen/src', extension);
+    }
+    static add_debug_code(html: string, path: string, extension: string, data: IObject) {
+        // add debug data
+        if (extension.match(/html|htm|php/) && (Env.get() == EnvModel.debug || Env.get() == EnvModel.dev)) {
+            const data_path = File.to_extension(path, 'json');
+            File.write(data_path, JSON.stringify(data));
+            return html.replace(
+                /<\/body>/,
+                `<script>
+                                async function wyvr_fetch(path) {
+                                    try {
+                                        const response = await fetch(path);
+                                        const data = await response.json();
+                                        return data;
+                                    } catch(e){
+                                        console.error(e);
+                                        return null;
+                                    }
+                                }
+                                async function wyvr_debug_inspect_data() {
+                                    window.data = await wyvr_fetch('${data_path.replace(ReleasePath.get(), '')}');
+                                    console.log(window.data);
+                                    console.info('now available inside "data"')
+                                }
+                                async function wyvr_debug_inspect_global_data() {
+                                    window.global_data = await wyvr_fetch('/_global.json');
+                                    console.log(window.global_data);
+                                    console.info('now available inside "global_data"')
+                                }
+                                async function wyvr_debug_inspect_structure_data() {
+                                    window.structure = await wyvr_fetch('/${data._wyvr?.identifier}.json');
+                                    console.log(window.structure);
+                                    console.info('now available inside "structure"')
+                                }
+                                </script></body>`
+            );
+        }
+        return html;
+    }
+    static cleanup_page_code(html: string, extension: string) {
+        if (extension.match(/html|htm|php/)) {
+            return html;
+        }
+        // remove svelte integrated comment from compiler to avoid broken output, when not html compatible
+        return html.replace(/<!-- HTML_TAG_(?:START|END) -->/g, '');
     }
 }

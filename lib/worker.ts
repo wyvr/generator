@@ -3,22 +3,19 @@
 import { WorkerHelper } from '@lib/worker/helper';
 import { WorkerStatus } from '@lib/model/worker/status';
 import { WorkerAction } from '@lib/model/worker/action';
-import { File } from '@lib/file';
-import { join } from 'path';
-import { Client } from '@lib/client';
+
 import { RequireCache } from '@lib/require_cache';
 import { WorkerEmit } from '@lib/model/worker/emit';
 import { Logger } from '@lib/logger';
 import { MediaModel } from '@lib/model/media';
 import { Media } from '@lib/media';
-import { Cwd } from '@lib/vars/cwd';
 import { IWorkerSend } from '@lib/interface/worker';
 import { configure } from '@lib/worker/configure';
 import { route } from '@lib/worker/route';
 import { build } from '@lib/worker/build';
 import { script } from '@lib/worker/script';
 import { optimize } from '@lib/worker/optimize';
-import { IIdentifierEmit } from '@lib/interface/identifier';
+import { create_data_result } from './worker/create_data_result';
 
 export class Worker {
     private root_template_paths = null;
@@ -135,34 +132,15 @@ export class Worker {
             process.exit(1);
         });
     }
-    emit_identifier(data: any): any {
-        const raw_path = join(Cwd.get(), 'gen', 'raw');
-        const doc_file_name = File.find_file(join(raw_path, 'doc'), data._wyvr.template.doc);
-        const layout_file_name = File.find_file(join(raw_path, 'layout'), data._wyvr.template.layout);
-        const page_file_name = File.find_file(join(raw_path, 'page'), data._wyvr.template.page);
-
-        const identifier = Client.get_identifier_name(this.root_template_paths, doc_file_name, layout_file_name, page_file_name);
-        const result: IIdentifierEmit = {
-            type: 'identifier',
-            identifier,
-            doc: doc_file_name,
-            layout: layout_file_name,
-            page: page_file_name,
-        };
+    emit_identifier(data: any) {
+        const result = create_data_result(data, this.root_template_paths)
         // emit identifier only when it was not added to the cache
         // or avoid when the given data has to be static => no JS
-        if (!this.identifiers_cache[identifier] && !data._wyvr.static) {
-            this.identifiers_cache[identifier] = true;
+        const wyvr = result.data._wyvr;
+        if (!this.identifiers_cache[wyvr.identifier] && !wyvr.static) {
+            this.identifiers_cache[wyvr.identifier] = true;
             WorkerHelper.send_action(WorkerAction.emit, result);
         }
-        // add the identifier to the wyvr object
-        data._wyvr.identifier = identifier;
-        (<any>result).data = data;
-
-        // correct doc, layout and page from raw to src
-        result.doc = result.doc.replace(/gen\/raw/, 'gen/src');
-        result.layout = result.layout.replace(/gen\/raw/, 'gen/src');
-        result.page = result.page.replace(/gen\/raw/, 'gen/src');
         return result;
     }
 }

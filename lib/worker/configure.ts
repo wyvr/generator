@@ -3,7 +3,7 @@ import { Logger } from '@lib/logger';
 import { Env } from '@lib/env';
 import { Cwd } from '@lib/vars/cwd';
 import { ReleasePath } from '@lib/vars/release_path';
-import { join } from 'path';
+import { RootTemplatePaths } from '@lib/vars/root_template_paths';
 
 export const configure = (config: IWorkerConfigureValue | null) => {
     if (!config) {
@@ -19,6 +19,5 @@ export const configure = (config: IWorkerConfigureValue | null) => {
         Logger.warning('invalid configure value', config);
         return null;
     }
-    const raw_path = join(Cwd.get(), 'gen', 'raw');
-    return { root_template_paths: [join(raw_path, 'doc'), join(raw_path, 'layout'), join(raw_path, 'page')] };
+    return { root_template_paths: RootTemplatePaths.get() };
 };

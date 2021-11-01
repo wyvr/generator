@@ -11,7 +11,7 @@ export const copy_static_files = (package_tree) => {
     if (packages) {
         packages.forEach((pkg) => {
             // copy the files from the package to the project
-            ['assets', 'routes', 'plugins'].forEach((part) => {
+            ['assets', 'routes', 'plugins', 'exec'].forEach((part) => {
                 if (existsSync(join(pkg.path, part))) {
                     // store the info which file comes from which package
                     const pkg_part_path = join(pkg.path, part);

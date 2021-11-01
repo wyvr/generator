@@ -37,6 +37,7 @@ import { IWatchFile } from '@lib/interface/watch';
 import { CronStatePath } from '@lib/vars/cron_state_path';
 import { ConfigPath } from '@lib/vars/config_path';
 import { PackageTreePath } from '@lib/vars/package_tree_path';
+import { exec } from '@lib/main/exec';
 
 export class BuildMode {
     hr_start = null;
@@ -77,7 +78,7 @@ export class BuildMode {
     async start(worker_controller: WorkerController, identifiers: IObject) {
         this.identifiers = identifiers;
         Logger.block('build');
-        
+
         // collect configured package
         this.perf.start('packages');
         await packages();
@@ -221,6 +222,12 @@ export class BuildMode {
             await scripts(this.perf, worker_controller, this.identifiers, watched_files, watched_files);
         } else {
             Logger.improve('scripts, will not be regenerated');
+        }
+
+        if (!is_regenerating) {
+            await exec(this.perf);
+        } else {
+            Logger.improve('exec, will not be regenerated');
         }
 
         if (!is_regenerating) {

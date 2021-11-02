@@ -68,7 +68,7 @@ export class Client {
         // when no hydrateable files are available create minimal bundle
         if (hydrate_files.length == 0) {
             const empty_bundle = [script_partials.env, script_partials.events, script_partials.debug];
-            File.write(join(Cwd.get(), 'gen', 'js', `${entry.name.replace(/\./g, '-')}.js`), empty_bundle.join(''));
+            File.write(Client.get_identfier_file_path(entry.name), empty_bundle.join(''));
             return [null, null];
         }
         const content = await Promise.all(
@@ -437,5 +437,8 @@ export class Client {
             return true;
         }
         return false;
+    }
+    static get_identfier_file_path(name: string) {
+        return join(Cwd.get(), 'gen', 'js', `${name.replace(/\./g, '-')}.js`)
     }
 }

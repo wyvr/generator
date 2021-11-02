@@ -1,5 +1,6 @@
 import { Cwd } from '@lib/vars/cwd';
 import { join } from 'path';
+import { existsSync } from 'fs-extra';
 import { Logger } from '@lib/logger';
 import { Error } from '@lib/error';
 import { IExec, IExecConfig } from '@lib/interface/exec';
@@ -12,6 +13,10 @@ import { RootTemplatePaths } from '@lib/vars/root_template_paths';
 import { Config } from '@lib/config';
 import { Generate } from '@lib/generate';
 import { ReleasePath } from '@lib/vars/release_path';
+import { build_identifier_script } from './worker/script';
+import { Client } from './client';
+import { Dependency } from './dependency';
+import { IIdentifierDependency } from './interface/identifier';
 
 export class Exec {
     static cache = null;
@@ -118,7 +123,7 @@ export class Exec {
         // replace function properties
         await Promise.all(
             Object.keys(code).map(async (key) => {
-                if(key == 'onExec') {
+                if (key == 'onExec') {
                     return null;
                 }
                 if (typeof code[key] == 'function') {
@@ -134,6 +139,7 @@ export class Exec {
             })
         );
 
+        // build data
         const default_values = Config.get('default_values');
         const enhanced_data = Generate.set_default_values(Generate.enhance_data(code_data), default_values);
 
@@ -148,7 +154,7 @@ export class Exec {
             Logger.error('[svelte]', data.url, Error.get(compile_error, config.file, 'build'));
             return null;
         }
-        const [render_error, rendered, identifier_item] = await Build.render(compiled, enhanced_data);
+        const [render_error, rendered] = await Build.render(compiled, enhanced_data);
         if (render_error) {
             // svelte error messages
             Logger.error('[svelte]', data.url, Error.get(render_error, config.file, 'render'));
@@ -157,13 +163,24 @@ export class Exec {
 
         const extension = page_data.data._wyvr?.extension;
 
-        
         const path = File.to_extension(config.file.replace(new RegExp(`^.*?${join('gen', 'exec')}`), ReleasePath.get()), extension);
 
-        if (identifier_item) {
-            identifier_item.path = path;
-            identifier_item.filename = config.file;
-            console.log(identifier_item)
+        // generate the script for the page
+        const gen_src_folder = join(Cwd.get(), 'gen', 'raw');
+        const identifier = {
+            name: page_data.identifier.replace(gen_src_folder + '/', ''),
+            doc: page_data.doc.replace(gen_src_folder + '/', ''),
+            layout: page_data.layout.replace(gen_src_folder + '/', ''),
+            page: page_data.page.replace(gen_src_folder + '/', ''),
+        };
+        if (!existsSync(Client.get_identfier_file_path(identifier.name))) {
+            Logger.info('create script for', identifier.name)
+
+            const svelte_files = File.collect_svelte_files('gen/client');
+            // get all svelte components which should be hydrated
+            const files = Client.get_hydrateable_svelte_files(svelte_files);
+
+            await build_identifier_script({ file: identifier, dependency: <IIdentifierDependency>Dependency.cache }, files);
         }
 
         // remove svelte integrated comment from compiler to avoid broken output

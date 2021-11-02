@@ -81,6 +81,7 @@ export class Watch {
                     }
                     const exec_config = Exec.match(req.url);
                     if (exec_config) {
+                        Logger.info(uid, 'exec', req.url)
                         const rendered = await Exec.run(uid, req, exec_config);
                         if (rendered) {
                             // res.writeHead(404, { 'Content-Type': 'text/html' });

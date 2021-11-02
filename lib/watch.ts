@@ -81,7 +81,7 @@ export class Watch {
                     }
                     const exec_config = Exec.match(req.url);
                     if (exec_config) {
-                        Logger.info(uid, 'exec', req.url)
+                        Logger.info(uid, 'exec', req.url);
                         const rendered = await Exec.run(uid, req, exec_config);
                         if (rendered) {
                             // res.writeHead(404, { 'Content-Type': 'text/html' });
@@ -259,9 +259,23 @@ export class Watch {
         const routes = Routes.collect_routes(null).map((route) => {
             return { rel_path: route.rel_path, dir_path: dirname(route.rel_path) };
         });
+
+        const exec = this.changed_files
+            .filter((entry) => entry.rel_path.indexOf('exec') == 0)
+            .map((exec) => {
+                fs.copyFileSync(exec.path, join(Cwd.get(), 'gen', exec.rel_path));
+                return exec;
+            });
+
+        if (exec.length > 0) {
+            Logger.info('reloaded', 'exec', `files ${exec.map((exec) => exec.rel_path).join(',')}`);
+        }
+
         if (this.get_watched_files().length == 0) {
-            Logger.improve('nobody is watching, no need to rebuild');
-            Logger.info('open', `http://${this.host}:${this.ports[0]}`, 'to start watching');
+            if (exec.length == 0) {
+                Logger.improve('nobody is watching, no need to rebuild');
+                Logger.info('open', `http://${this.host}:${this.ports[0]}`, 'to start watching');
+            }
             idle(this.IDLE_TEXT);
             return;
         }

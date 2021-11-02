@@ -1,6 +1,6 @@
 import { Cwd } from '@lib/vars/cwd';
 import { join } from 'path';
-import { existsSync } from 'fs-extra';
+import { existsSync, statSync } from 'fs-extra';
 import { Logger } from '@lib/logger';
 import { Error } from '@lib/error';
 import { IExec, IExecConfig } from '@lib/interface/exec';
@@ -20,6 +20,7 @@ import { IIdentifierDependency } from './interface/identifier';
 
 export class Exec {
     static cache = null;
+    static load_cache = {};
     static async init(list: string[]) {
         const cache = {};
         const exec_list = await Promise.all(
@@ -62,10 +63,21 @@ export class Exec {
         return false;
     }
     static async load(file_path: string): Promise<IExec> {
+        const path = join(Cwd.get(), file_path);
+        const stat = statSync(path, {bigint: true});
+        if(Exec.load_cache[path] != null) {
+            if(Exec.load_cache[path] != stat.mtimeMs) {
+                delete require.cache[path];
+            }
+        }
+        Exec.load_cache[path] = stat.mtimeMs;
         try {
-            const result = await import(join(Cwd.get(), file_path));
-            if (result && result.default) {
-                return <IExec>result.default;
+            const result = await require(path);
+            // if (result && result.default) {
+            //     return <IExec>result.default;
+            // }
+            if (result) {
+                return <IExec>result;
             }
             return null;
         } catch (e) {

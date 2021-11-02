@@ -174,7 +174,7 @@ export class Exec {
             page: page_data.page.replace(gen_src_folder + '/', ''),
         };
         if (!existsSync(Client.get_identfier_file_path(identifier.name))) {
-            Logger.info('create script for', identifier.name)
+            Logger.info(uid, 'exec', 'create script for', Logger.color.cyan(identifier.name))
 
             const svelte_files = File.collect_svelte_files('gen/client');
             // get all svelte components which should be hydrated
@@ -186,7 +186,7 @@ export class Exec {
         // remove svelte integrated comment from compiler to avoid broken output
         rendered.result.html = Build.cleanup_page_code(Build.add_debug_code(rendered.result.html, path, extension, data), extension);
 
-        Logger.info(uid, 'exec', hrtime_to_ms(process.hrtime(start)), 'ms');
+        Logger.info(uid, 'exec', 'duration', Math.round(hrtime_to_ms(process.hrtime(start))), Logger.color.dim('ms'));
         return rendered;
     }
     static fill_cache() {

@@ -184,7 +184,7 @@ export class Exec {
         }
 
         // remove svelte integrated comment from compiler to avoid broken output
-        rendered.result.html = Build.cleanup_page_code(Build.add_debug_code(rendered.result.html, path, extension, data), extension);
+        rendered.result.html = Build.cleanup_page_code(Build.add_debug_code(rendered.result.html, path, extension, page_data), extension);
 
         Logger.info(uid, 'exec', 'duration', Math.round(hrtime_to_ms(process.hrtime(start))), Logger.color.dim('ms'));
         return rendered;

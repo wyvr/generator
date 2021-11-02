@@ -5,7 +5,7 @@ import { Client } from '@lib/client';
 import { Cwd } from '@lib/vars/cwd';
 import { IIdentifierEmit } from '@lib/interface/identifier';
 
-export const create_data_result = (data: any, root_template_paths: string[]): any => {
+export const create_data_result = (data: any, root_template_paths: string[], before_modification: (data: any, result: IIdentifierEmit, identifier: string) => void = null): any => {
     const raw_path = join(Cwd.get(), 'gen', 'raw');
     const doc_file_name = File.find_file(join(raw_path, 'doc'), data._wyvr.template.doc);
     const layout_file_name = File.find_file(join(raw_path, 'layout'), data._wyvr.template.layout);
@@ -19,6 +19,10 @@ export const create_data_result = (data: any, root_template_paths: string[]): an
         layout: layout_file_name,
         page: page_file_name,
     };
+
+    if (before_modification && typeof before_modification == 'function') {
+        before_modification(data, result, identifier);
+    }
 
     // add the identifier to the wyvr object
     data._wyvr.identifier = identifier;

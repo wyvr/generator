@@ -133,14 +133,15 @@ export class Worker {
         });
     }
     emit_identifier(data: any) {
-        const result = create_data_result(data, this.root_template_paths)
-        // emit identifier only when it was not added to the cache
-        // or avoid when the given data has to be static => no JS
-        const wyvr = result.data._wyvr;
-        if (!this.identifiers_cache[wyvr.identifier] && !wyvr.static) {
-            this.identifiers_cache[wyvr.identifier] = true;
-            WorkerHelper.send_action(WorkerAction.emit, result);
-        }
+        const result = create_data_result(data, this.root_template_paths, (wyvr_data, result, identifier) => {
+            // emit identifier only when it was not added to the cache
+            // or avoid when the given data has to be static => no JS
+            if (!this.identifiers_cache[identifier] && !wyvr_data.static) {
+                this.identifiers_cache[identifier] = true;
+                WorkerHelper.send_action(WorkerAction.emit, result);
+            }
+        });
+
         return result;
     }
 }

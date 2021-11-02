@@ -270,19 +270,19 @@ export class Watch {
         if (exec.length > 0) {
             Logger.info('reloaded', 'exec', `files ${exec.map((exec) => exec.rel_path).join(',')}`);
         }
-
+        
+        const reversed_packages = this.packages.map((x) => x).reverse();
+        
         if (this.get_watched_files().length == 0) {
-            if (exec.length == 0) {
-                Logger.improve('nobody is watching, no need to rebuild');
-                Logger.info('open', `http://${this.host}:${this.ports[0]}`, 'to start watching');
-            }
+            Logger.improve('nobody is watching, no need to rebuild');
+            Logger.info('open', `http://${this.host}:${this.ports[0]}`, 'to start watching');
             idle(this.IDLE_TEXT);
+            // copy the static files, because they can be used inside the exec
+            // or add exec to the watchers
             return;
         }
+        
         const added_files = [];
-
-        const reversed_packages = this.packages.map((x) => x).reverse();
-
         const files = this.changed_files
             .filter((f) => f)
             .map((file) => {

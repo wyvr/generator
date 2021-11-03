@@ -30,6 +30,7 @@ export class DeliverMode {
                 Logger.block(uid, req.method, req.url, new Date().toISOString());
             },
             async (req, res, uid, start) => {
+                // check for media
                 if (req.url.match(/^\/media\//)) {
                     const media_config = Media.extract_config(req.url);
 
@@ -54,14 +55,19 @@ export class DeliverMode {
                         }
                     );
                 }
+                // check for exec
                 const exec_config = Exec.match(req.url);
                 if (exec_config) {
-                    const rendered = await Exec.run(uid, req, exec_config);
+                    const rendered = await Exec.run(uid, req, res, exec_config);
                     if (rendered) {
                         // res.writeHead(404, { 'Content-Type': 'text/html' });
                         res.end(rendered.result.html);
                         return;
                     }
+                }
+                // check for universal/fallback exec
+                if (await Exec.fallback(uid, req, res)) {
+                    return;
                 }
                 Logger.warning(uid, 'nothing found');
                 await delay(between(350, 1000));

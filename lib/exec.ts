@@ -1,11 +1,11 @@
 import { Cwd } from '@lib/vars/cwd';
 import { join } from 'path';
-import { existsSync, statSync } from 'fs-extra';
+import { existsSync, statSync, removeSync } from 'fs-extra';
 import { Logger } from '@lib/logger';
 import { Error } from '@lib/error';
 import { IExec, IExecConfig } from '@lib/interface/exec';
 import { File } from '@lib/file';
-import { IncomingMessage } from 'http';
+import { IncomingMessage, ServerResponse } from 'http';
 import { hrtime_to_ms } from '@lib/converter/time';
 import { Build } from '@lib/build';
 import { create_data_result } from '@lib/worker/create_data_result';
@@ -21,29 +21,46 @@ import { IIdentifierDependency } from './interface/identifier';
 export class Exec {
     static cache = null;
     static load_cache = {};
+    static fallback_path = join('cache', 'fallback_exec.json');
     static async init(list: string[]) {
         const cache = {};
+        let fallback_exec = null;
+        removeSync(Exec.fallback_path);
         const exec_list = await Promise.all(
-            list.map(async (file) => {
-                const data = await Exec.load(file);
-                if (Exec.is_valid(data)) {
-                    if (Array.isArray(data.url)) {
-                        data.url.map((url) => {
-                            const config = Exec.extract_config(url, file);
+            list
+                .map(async (file) => {
+                    const data = await Exec.load(file);
+                    if (Exec.is_valid(data)) {
+                        if (data.url == '*') {
+                            if (fallback_exec) {
+                                Logger.warning('ignore', file, 'it is another fallback exec,', fallback_exec, 'will be used');
+                                return null;
+                            }
+                            fallback_exec = file;
+                            return null;
+                        }
+                        if (Array.isArray(data.url)) {
+                            data.url.map((url) => {
+                                const config = Exec.extract_config(url, file);
+                                cache[config.match] = config;
+                            });
+                        } else {
+                            const config = Exec.extract_config(data.url, file);
                             cache[config.match] = config;
-                        });
+                        }
+                        return file;
                     } else {
-                        const config = Exec.extract_config(data.url, file);
-                        cache[config.match] = config;
+                        Logger.warning('ignore', file, 'because it is invalid');
                     }
-                    return file;
-                } else {
-                    Logger.warning('ignore', file, 'because it is invalid');
-                }
-                return null;
-            })
+                    return null;
+                })
+                .filter((x) => x)
         );
         File.write_json(join('cache', 'exec.json'), cache);
+        if (fallback_exec) {
+            File.write_json(Exec.fallback_path, fallback_exec);
+        }
+
         return exec_list.filter((x) => x);
     }
     static extract_config(url: string, file: string): IExecConfig {
@@ -105,7 +122,26 @@ export class Exec {
         }
         return Exec.cache[found_match];
     }
-    static async run(uid: string, req: IncomingMessage, config: IExecConfig) {
+    static async fallback(uid: string, req: IncomingMessage, res: ServerResponse): Promise<boolean> {
+        Logger.info(uid, 'exec fallback', req.url);
+        const fallback_exec = File.read_json(Exec.fallback_path);
+        if (fallback_exec) {
+            const config = {
+                url: '*',
+                file: fallback_exec,
+                params: [],
+                match: '.*'
+            }
+            const rendered = await Exec.run(uid, req, res, config);
+            if (rendered && !res.writableEnded) {
+                // res.writeHead(404, { 'Content-Type': 'text/html' });
+                res.end(rendered.result.html);
+            }
+            return true;
+        }
+        return false;
+    }
+    static async run(uid: string, req: IncomingMessage, res: ServerResponse, config: IExecConfig) {
         const start = process.hrtime();
         if (!Exec.cache) {
             Exec.fill_cache();
@@ -128,7 +164,7 @@ export class Exec {
         let data = null;
         if (code.onExec && typeof code.onExec == 'function') {
             try {
-                data = await code.onExec(req, params);
+                data = await code.onExec(req, res, params);
             } catch (e) {
                 Logger.error('[exec]', 'onExec', Error.get(e, config.file, 'onExec'));
             }

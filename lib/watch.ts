@@ -79,16 +79,22 @@ export class Watch {
                             }
                         );
                     }
+                    // check for matching exec
                     const exec_config = Exec.match(req.url);
                     if (exec_config) {
                         Logger.info(uid, 'exec', req.url);
-                        const rendered = await Exec.run(uid, req, exec_config);
-                        if (rendered) {
+                        const rendered = await Exec.run(uid, req, res, exec_config);
+                        if (rendered && !res.writableEnded) {
                             // res.writeHead(404, { 'Content-Type': 'text/html' });
                             res.end(rendered.result.html);
                             return;
                         }
                     }
+                    // check for universal/fallback exec
+                    if (await Exec.fallback(uid, req, res)) {
+                        return;
+                    }
+
                     Logger.error('serve error', Logger.color.bold(err.message), req.method, req.url, err.status);
                     res.writeHead(err.status, err.headers);
                     res.end();
@@ -283,7 +289,6 @@ export class Watch {
                 // when exec files are here force rebuild
                 Logger.info('rebuild', 'required');
             }
-            
         }
 
         const added_files = [];

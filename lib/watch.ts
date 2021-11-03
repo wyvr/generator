@@ -261,7 +261,7 @@ export class Watch {
         });
 
         const exec = this.changed_files
-            .filter((entry) => entry.rel_path.indexOf('exec') == 0)
+            .filter((entry) => entry.rel_path.indexOf('exec') == 0 && entry.event != 'unlink')
             .map((exec) => {
                 fs.copyFileSync(exec.path, join(Cwd.get(), 'gen', exec.rel_path));
                 return exec;

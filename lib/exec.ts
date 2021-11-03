@@ -26,7 +26,7 @@ export class Exec {
         const exec_list = await Promise.all(
             list.map(async (file) => {
                 const data = await Exec.load(file);
-                if (Exec.validate(data)) {
+                if (Exec.is_valid(data)) {
                     if (Array.isArray(data.url)) {
                         data.url.map((url) => {
                             const config = Exec.extract_config(url, file);
@@ -37,6 +37,8 @@ export class Exec {
                         cache[config.match] = config;
                     }
                     return file;
+                } else {
+                    Logger.warning('ignore', file, 'because it is invalid');
                 }
                 return null;
             })
@@ -64,9 +66,9 @@ export class Exec {
     }
     static async load(file_path: string): Promise<IExec> {
         const path = join(Cwd.get(), file_path);
-        const stat = statSync(path, {bigint: true});
-        if(Exec.load_cache[path] != null) {
-            if(Exec.load_cache[path] != stat.mtimeMs) {
+        const stat = statSync(path, { bigint: true });
+        if (Exec.load_cache[path] != null) {
+            if (Exec.load_cache[path] != stat.mtimeMs) {
                 delete require.cache[path];
             }
         }
@@ -85,11 +87,11 @@ export class Exec {
             return null;
         }
     }
-    static async validate(data: IExec): Promise<boolean> {
-        if (!data.url || (typeof data.url != 'string' && !Array.isArray(data.url))) {
-            return false;
+    static is_valid(data: IExec): boolean {
+        if (data && data.url && (typeof data.url == 'string' || Array.isArray(data.url))) {
+            return true;
         }
-        return true;
+        return false;
     }
     static match(url: string): IExecConfig {
         if (!Exec.cache) {
@@ -186,7 +188,7 @@ export class Exec {
             page: page_data.page.replace(gen_src_folder + '/', ''),
         };
         if (!existsSync(Client.get_identfier_file_path(identifier.name))) {
-            Logger.info(uid, 'exec', 'create script for', Logger.color.cyan(identifier.name))
+            Logger.info(uid, 'exec', 'create script for', Logger.color.cyan(identifier.name));
 
             const svelte_files = File.collect_svelte_files('gen/client');
             // get all svelte components which should be hydrated

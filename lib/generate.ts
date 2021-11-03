@@ -71,7 +71,7 @@ export class Generate {
 
         // add simple props
         ['extension', 'language', 'private', 'change_frequence', 'priority', 'static'].forEach((key) => {
-            if (data._wyvr[key] != null) {
+            if (data && data._wyvr && data._wyvr[key] != null) {
                 wyvr_prop[key] = data._wyvr[key];
             }
         });

@@ -38,6 +38,7 @@ import { CronStatePath } from '@lib/vars/cron_state_path';
 import { ConfigPath } from '@lib/vars/config_path';
 import { PackageTreePath } from '@lib/vars/package_tree_path';
 import { exec } from '@lib/main/exec';
+import { Link } from '@lib/link';
 
 export class BuildMode {
     hr_start = null;
@@ -109,6 +110,11 @@ export class BuildMode {
 
         if (Env.is_prod()) {
             return shutdown();
+        }
+        if (Env.is_dev()) {
+            const src = join('node_modules', '@wyvr', 'generator', 'wyvr', 'resource', 'debug.css');
+            const destination = join(ReleasePath.get(), '_debug.css');
+            Link.to(src, destination)
         }
         // watch for file changes
         try {

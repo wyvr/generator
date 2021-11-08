@@ -1,0 +1,127 @@
+.wyvr_debug_toolbar {
+    --wyvr-primary: #6d8ddf;
+    position: fixed;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.75);
+    border-top-left-radius: 10px;
+    right: 0;
+    z-index: 10000;
+}
+.wyvr_debug_toolbar:after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: transparent;
+    border: 2px solid transparent;
+    top: 0px;
+    left: 0px;
+    border-radius: 50%;
+    transition: background 0.2s ease-out, border 0.2s ease-out;
+    pointer-events: none;
+}
+.wyvr_debug_toolbar.connected:after {
+    background: var(--wyvr-primary);
+    border-color: var(--wyvr-primary);
+}
+.wyvr_debug_toolbar.disconnected:after {
+    border-color: #999;
+}
+
+.wyvr_debug_toolbar > span {
+    display: block;
+    padding: 10px;
+}
+.wyvr_debug_toolbar > span > img {
+    display: block;
+}
+.wyvr_debug_toolbar > nav {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.75);
+    padding: 10px;
+    padding-bottom: 30px;
+    border-top-left-radius: 10px;
+    display: none;
+    z-index: 10000;
+}
+.wyvr_debug_toolbar:hover > nav {
+    display: block;
+}
+.wyvr_debug_toolbar button {
+    background: transparent;
+    border: none;
+    color: #fff;
+    padding: 0 10px;
+    width: auto;
+    height: 2em;
+    line-height: 2em;
+    display: block;
+    white-space: nowrap;
+}
+.wyvr_debug_toolbar #wyvr_debug_rebuild {
+    display: none;
+}
+.wyvr_debug_toolbar.connected #wyvr_debug_rebuild {
+    display: block;
+}
+.wyvr_debug_toolbar button:hover,
+.wyvr_debug_toolbar button:active {
+    background: #fff;
+    color: #000;
+}
+.wyvr_debug_toolbar button::after {
+    content: attr(title);
+    padding-left: 10px;
+    opacity: 0.5;
+}
+.wyvr_debug_toolbar button:hover::after {
+    opacity: 1;
+}
+/* outline wyvr components */
+.wyvr_debug_outline:before {
+    content: 'Outlining hydrated elements';
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 100000;
+    opacity: 0.3;
+}
+.wyvr_debug_outline [data-hydrate] {
+    outline: 2px solid rgba(255, 0, 0, 0.5);
+    min-width: 10px;
+    min-height: 10px;
+}
+.wyvr_debug_outline span[data-hydrate] {
+    display: inline-block;
+}
+.wyvr_debug_outline [data-hydrate]:hover {
+    outline: 2px solid #f00;
+}
+.wyvr_debug_outline [data-hydrate]:hover:after {
+    content: attr(data-hydrate-path);
+    position: absolute;
+}
+.wyvr_debug_outline:before,
+.wyvr_debug_outline [data-hydrate]:hover:after {
+    background: #f00;
+    color: #fff;
+    padding: 3px;
+    font-size: 12px;
+    font-family: monospace;
+}
+.wyvr_debug_show_breakpoints:after {
+    content: '';
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 10000;
+    pointer-events: none;
+    background-image: var(--wyvr_debug_show_breakpoints-lines);
+    background-position:  var(--wyvr_debug_show_breakpoints-positions);
+    background-repeat: no-repeat;
+}

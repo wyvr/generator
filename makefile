@@ -8,7 +8,7 @@ SHELL := /bin/bash
 # @see https://spin.atomicobject.com/2021/03/22/makefiles-vs-package-json-scripts/
 # base commands
 WYVR_LINT=npx eslint . --ext .ts
-WYVR_COMPILE=npx tsc
+WYVR_COMPILE=npx tsc && cp lib/resource/*.css wyvr/resource/
 WYVR_BUILD=node ./wyvr/index.js
 WYVR_TEST=npx mocha -R dot './test/**/*.js'
 WYVR_COVERAGE=npx nyc -x 'config/**/*' -x 'test/**/*' -x 'gen/**/*' -x 'wyvr.js' -x 'pub' $(WYVR_TEST)

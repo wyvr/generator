@@ -222,9 +222,6 @@ export class Watch {
 
                 if (data.action) {
                     switch (data.action) {
-                        case 'ping':
-                            this.send(ws.id, { action: 'ping' });
-                            break;
                         case 'path':
                             if (data.path) {
                                 if (this.get_watched_files().indexOf(data.path) == -1) {

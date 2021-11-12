@@ -73,10 +73,12 @@
 .wyvr_debug_toolbar #wyvr_debug_rebuild {
     opacity: 0.5;
     filter: grayscale(1);
+    pointer-events: none;
 }
 .wyvr_debug_toolbar.connected #wyvr_debug_rebuild {
     opacity: 1;
     filter: none;
+    pointer-events: all;
 }
 .wyvr_debug_toolbar button:hover,
 .wyvr_debug_toolbar button:active {

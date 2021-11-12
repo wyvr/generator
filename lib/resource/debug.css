@@ -13,19 +13,29 @@
     width: 10px;
     height: 10px;
     background: transparent;
-    border: 2px solid transparent;
-    top: 0px;
-    left: 0px;
+    top: -2px;
+    left: -2px;
     border-radius: 50%;
     transition: background 0.2s ease-out, border 0.2s ease-out;
     pointer-events: none;
 }
 .wyvr_debug_toolbar.connected:after {
     background: var(--wyvr-primary);
-    border-color: var(--wyvr-primary);
 }
 .wyvr_debug_toolbar.disconnected:after {
-    border-color: #999;
+    background: #999;
+}
+
+.wyvr_debug_toolbar nav:before {
+    content: 'disconnected';
+    color: #999;
+    display: block;
+    font-size: 12px;
+    padding-bottom: 5px;
+}
+.wyvr_debug_toolbar.connected nav:before {
+    content: 'connected to dev server';
+    color: var(--wyvr-primary);
 }
 
 .wyvr_debug_toolbar > span {
@@ -61,10 +71,12 @@
     white-space: nowrap;
 }
 .wyvr_debug_toolbar #wyvr_debug_rebuild {
-    display: none;
+    opacity: 0.5;
+    filter: grayscale(1);
 }
 .wyvr_debug_toolbar.connected #wyvr_debug_rebuild {
-    display: block;
+    opacity: 1;
+    filter: none;
 }
 .wyvr_debug_toolbar button:hover,
 .wyvr_debug_toolbar button:active {

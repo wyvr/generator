@@ -1,5 +1,13 @@
+:root {
+    --wyvr-debug-primary: #6d8ddf;
+    --wyvr-debug-disabled: #999;
+    --wyvr-debug-bg: rgba(0, 0, 0, 0.75);
+    --wyvr-debug-text: #fff;
+    --wyvr-debug-text-shadow: #000;
+    --wyvr-debug-outline: rgba(255, 55, 0, 0.75);
+    --wyvr-debug-outline-active: #f30;
+}
 .wyvr_debug_toolbar {
-    --wyvr-primary: #6d8ddf;
     position: fixed;
     bottom: 0;
     background: rgba(0, 0, 0, 0.75);
@@ -13,19 +21,30 @@
     width: 10px;
     height: 10px;
     background: transparent;
-    border: 2px solid transparent;
-    top: 0px;
-    left: 0px;
+    top: -2px;
+    left: -2px;
     border-radius: 50%;
     transition: background 0.2s ease-out, border 0.2s ease-out;
     pointer-events: none;
 }
 .wyvr_debug_toolbar.connected:after {
-    background: var(--wyvr-primary);
-    border-color: var(--wyvr-primary);
+    background: var(--wyvr-debug-primary);
 }
 .wyvr_debug_toolbar.disconnected:after {
-    border-color: #999;
+    background: var(--wyvr-debug-disabled);
+}
+
+.wyvr_debug_toolbar nav:before {
+    content: 'disconnected';
+    color: var(--wyvr-debug-disabled);
+    display: block;
+    font-size: 12px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+}
+.wyvr_debug_toolbar.connected nav:before {
+    content: 'connected to dev server';
+    color: var(--wyvr-debug-primary);
 }
 
 .wyvr_debug_toolbar > span {
@@ -39,7 +58,7 @@
     position: absolute;
     bottom: 0;
     right: 0;
-    background: rgba(0, 0, 0, 0.75);
+    background: var(--wyvr-debug-bg);
     padding: 10px;
     padding-bottom: 30px;
     border-top-left-radius: 10px;
@@ -52,7 +71,8 @@
 .wyvr_debug_toolbar button {
     background: transparent;
     border: none;
-    color: #fff;
+    color: var(--wyvr-debug-text);
+    text-shadow: 0 0 10px var(--wyvr-debug-text-shadow);
     padding: 0 10px;
     width: auto;
     height: 2em;
@@ -61,20 +81,24 @@
     white-space: nowrap;
 }
 .wyvr_debug_toolbar #wyvr_debug_rebuild {
-    display: none;
+    opacity: 0.5;
+    filter: grayscale(1);
+    pointer-events: none;
 }
 .wyvr_debug_toolbar.connected #wyvr_debug_rebuild {
-    display: block;
+    opacity: 1;
+    filter: none;
+    pointer-events: all;
 }
 .wyvr_debug_toolbar button:hover,
 .wyvr_debug_toolbar button:active {
-    background: #fff;
-    color: #000;
+    background: var(--wyvr-debug-primary);
+    color: var(--wyvr-debug-text);
 }
 .wyvr_debug_toolbar button::after {
     content: attr(title);
     padding-left: 10px;
-    opacity: 0.5;
+    opacity: 0.75;
 }
 .wyvr_debug_toolbar button:hover::after {
     opacity: 1;
@@ -90,7 +114,7 @@
     opacity: 0.3;
 }
 .wyvr_debug_outline [data-hydrate] {
-    outline: 2px solid rgba(255, 0, 0, 0.5);
+    outline: 2px solid var(--wyvr-debug-outline);
     min-width: 10px;
     min-height: 10px;
 }
@@ -98,7 +122,7 @@
     display: inline-block;
 }
 .wyvr_debug_outline [data-hydrate]:hover {
-    outline: 2px solid #f00;
+    outline: 2px solid var(--wyvr-debug-outline-active);
 }
 .wyvr_debug_outline [data-hydrate]:hover:after {
     content: attr(data-hydrate-path);
@@ -106,8 +130,8 @@
 }
 .wyvr_debug_outline:before,
 .wyvr_debug_outline [data-hydrate]:hover:after {
-    background: #f00;
-    color: #fff;
+    background: var(--wyvr-debug-outline-active);
+    color: var(--wyvr-debug-text);
     padding: 3px;
     font-size: 12px;
     font-family: monospace;
@@ -122,19 +146,21 @@
     z-index: 10000;
     pointer-events: none;
     background-image: var(--wyvr_debug_show_breakpoints-lines);
-    background-position:  var(--wyvr_debug_show_breakpoints-positions);
+    background-position: var(--wyvr_debug_show_breakpoints-positions);
     background-repeat: no-repeat;
 }
 .wyvr_debug_message {
     position: fixed;
     bottom: 5px;
     left: 50%;
-    max-width: min(90vw, 250px);
+    max-width: min(80vw, 300px);
     transform: translateX(-50%);
-    background: #fff;
-    color: #000;
-    padding: 5px 15px;
+    background: var(--wyvr-debug-primary);
+    color: var(--wyvr-debug-text);
+    text-shadow: 0 0 10px var(--wyvr-debug-text-shadow);
+    padding: 10px 20px;
     border-radius: 5px;
-    box-shadow: 0 5px 10px #000;
+    box-shadow: 0 5px 10px var(--wyvr-debug-bg);
+    transition: opacity 2s linear;
     pointer-events: none;
 }

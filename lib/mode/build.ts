@@ -114,7 +114,7 @@ export class BuildMode {
         if (Env.is_dev()) {
             const src = join('node_modules', '@wyvr', 'generator', 'wyvr', 'resource', 'debug.css');
             const destination = join(ReleasePath.get(), '_debug.css');
-            Link.to(src, destination)
+            Link.to(src, destination);
         }
         // watch for file changes
         try {
@@ -220,9 +220,13 @@ export class BuildMode {
         this.perf.end('inject');
 
         // check if the execution should stop after the build
-        const exec_scripts = !is_regenerating || changed_files.some((file) => file.rel_path.match(/^src\//));
+        const build_scripts =
+            !is_regenerating ||
+            changed_files.some((file) => file.rel_path.match(/^src\//)) ||
+            // has missing scripts
+            Object.keys(this.identifiers).find((identifier) => !File.is_file(join('gen', 'js', `${identifier}.js`)));
 
-        if (exec_scripts) {
+        if (build_scripts) {
             dependencies(this.perf, build_pages, shortcode_identifier, this.identifiers, this.package_tree);
 
             await scripts(this.perf, worker_controller, this.identifiers, watched_files, watched_files);

@@ -304,7 +304,7 @@ export class Client {
         content = script_result.content;
         file.props = this.extract_props_from_scripts(script_result.result);
         // create props which gets hydrated
-        const props_include = `data-props="${file.props.map((prop) => `'${prop}':{JSON.stringify(${prop}).replace(/"/g, "'")}`).join(',')}"`;
+        const props_include = `data-props="${file.props.map((prop) => `|${prop}|:{JSON.stringify(${prop}).replace(/\\|/g, '§|§').replace(/"/g, "|")}`).join(',')}"`;
         // add portal when set
         const portal = file.config.portal ? `data-portal="${file.config.portal}"` : '';
         // add media when loading is media

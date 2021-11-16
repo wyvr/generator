@@ -100,7 +100,7 @@ export class Client {
                     if (file.config?.loading == WyvrFileLoading.none) {
                         none_input_files.push(file);
                     }
-                    // write the lazy file fro the component
+                    // write the lazy file from the component
                     if (!fs.existsSync(lazy_input_path)) {
                         File.write(
                             lazy_input_path,

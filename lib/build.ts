@@ -214,19 +214,26 @@ export class Build {
                                     }
                                 }
                                 async function wyvr_debug_inspect_data() {
+                                    console.group('wyvr: Inspect data');
                                     window.data = await wyvr_fetch('${data_path.replace(ReleasePath.get(), '')}');
                                     console.log(window.data);
                                     console.info('now available inside "data"')
+                                    console.groupEnd();
                                 }
                                 async function wyvr_debug_inspect_global_data() {
+                                    console.group('wyvr: Inspect global data');
                                     window.global_data = await wyvr_fetch('/_global.json');
                                     console.log(window.global_data);
                                     console.info('now available inside "global_data"')
+                                    console.groupEnd();
                                 }
                                 async function wyvr_debug_inspect_structure_data() {
+                                    console.group('wyvr: Inspect structure');
                                     window.structure = await wyvr_fetch('/${data._wyvr?.identifier}.json');
                                     console.log(window.structure);
                                     console.info('now available inside "structure"')
+                                    console.groupEnd();
+
                                 }
                                 </script></body>`
             );

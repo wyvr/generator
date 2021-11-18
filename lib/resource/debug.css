@@ -103,6 +103,13 @@
 .wyvr_debug_toolbar button:hover::after {
     opacity: 1;
 }
+.wyvr_debug_toolbar nav > a, .wyvr_debug_toolbar nav > span {
+    display: inline-block;
+    font-size: 12px;
+    margin-left: 3.2em;
+    position: relative;
+    top: -0.5em;
+}
 /* outline wyvr components */
 .wyvr_debug_outline:before {
     content: 'Outlining hydrated elements';

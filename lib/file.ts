@@ -166,13 +166,13 @@ export class File {
      * @returns void
      */
     /* eslint-disable @typescript-eslint/no-explicit-any*/
-    static write_json(filename: string, data: any = null): boolean {
+    static write_json(filename: string, data: any = null, check_circular = true): boolean {
         if (!filename) {
             return false;
         }
         // create containing folder
         const spaces = Env.json_spaces(process.env);
-        return this.write(filename, JSON.stringify(data, circular(), spaces));
+        return this.write(filename, JSON.stringify(data, check_circular ? circular() : null, spaces));
     }
     /* eslint-enable @typescript-eslint/no-explicit-any*/
     /**

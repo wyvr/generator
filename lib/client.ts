@@ -65,10 +65,13 @@ export class Client {
                 Logger.error('[client]', Error.extract(e, 'i18n'));
             }
         }
+        const base_bundle = [script_partials.env, script_partials.events, script_partials.debug];
+        if (Env.is_dev()) {
+            base_bundle.push(script_partials.props);
+        }
         // when no hydrateable files are available create minimal bundle
         if (hydrate_files.length == 0) {
-            const empty_bundle = [script_partials.env, script_partials.events, script_partials.debug];
-            File.write(Client.get_identfier_file_path(entry.name), empty_bundle.join(''));
+            File.write(Client.get_identfier_file_path(entry.name), base_bundle.join(''));
             return [null, null];
         }
         const content = await Promise.all(
@@ -146,15 +149,10 @@ export class Client {
                 }
             })
         );
-        const script_content = [
-            script_partials.hydrate,
-            script_partials.props,
-            script_partials.portal,
-            script_partials.debug,
-            script_partials.env,
-            script_partials.events,
-            script_partials.i18n,
-        ];
+        const script_content = [].concat(base_bundle, [script_partials.hydrate, script_partials.portal, script_partials.i18n]);
+        if (!Env.is_dev()) {
+            script_content.push(script_partials.props);
+        }
         if (lazy_input_files.length > 0) {
             script_content.push(script_partials.lazy);
         }
@@ -439,6 +437,6 @@ export class Client {
         return false;
     }
     static get_identfier_file_path(name: string) {
-        return join(Cwd.get(), 'gen', 'js', `${name.replace(/\./g, '-')}.js`)
+        return join(Cwd.get(), 'gen', 'js', `${name.replace(/\./g, '-')}.js`);
     }
 }

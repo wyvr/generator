@@ -22,7 +22,7 @@ export const dependencies = (perf: IPerformance_Measure, build_pages: IIdentifie
                 structure.layout = Dependency.get_structure(identifier.layout, package_tree);
                 structure.layout.page = Dependency.get_structure(identifier.page, package_tree);
             }
-            File.write_json(join(ReleasePath.get(), `${id}.json`), structure);
+            File.write_json(join(ReleasePath.get(), `${id}.json`), structure, false);
         });
     }
     File.write_json(join('gen', 'dependencies.json'), Dependency.cache);

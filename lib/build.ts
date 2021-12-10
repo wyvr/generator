@@ -204,12 +204,19 @@ export class Build {
                 /<\/body>/,
                 `<script>
                                 async function wyvr_fetch(path) {
+                                    let response = null;
                                     try {
-                                        const response = await fetch(path);
+                                        response = await fetch(path);
+                                    } catch(e) {
+                                        return null;
+                                    }
+                                    if(!response) {
+                                        return null;
+                                    }
+                                    try {
                                         const data = await response.json();
                                         return data;
                                     } catch(e){
-                                        console.error(e);
                                         return null;
                                     }
                                 }
@@ -229,7 +236,26 @@ export class Build {
                                 }
                                 async function wyvr_debug_inspect_structure_data() {
                                     console.group('wyvr: Inspect structure');
+                                    if(window.structure) {
+                                        console.log(window.structure);
+                                        console.groupEnd();
+                                        return;
+                                    }
                                     window.structure = await wyvr_fetch('/${data._wyvr?.identifier}.json');
+                                    if(! window.structure) {
+                                        console.warn('structure not available')
+                                        console.info('in exec only is the structure not available')
+                                        console.groupEnd();
+                                        return;
+                                    }
+                                    // append shortcodes when available
+                                    const shortcode_path = '${path.replace(ReleasePath.get(), '')}';
+                                    if(shortcode_path) {
+                                        const shortcodes = await wyvr_fetch(shortcode_path + '.json');
+                                        if(shortcodes) {
+                                            window.structure.shortcodes = shortcodes;
+                                        }
+                                    }
                                     console.log(window.structure);
                                     console.info('now available inside "structure"')
                                     console.groupEnd();

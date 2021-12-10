@@ -113,7 +113,7 @@ export class BuildMode {
         }
         if (Env.is_dev()) {
             const src = join('node_modules', '@wyvr', 'generator', 'wyvr', 'resource', 'debug.css');
-            const destination = join(ReleasePath.get(), '_debug.css');
+            const destination = join(ReleasePath.get(), 'debug.css');
             Link.to(src, destination);
         }
         // watch for file changes

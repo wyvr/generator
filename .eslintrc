@@ -4,7 +4,7 @@
     "plugins": ["@typescript-eslint"],
     "extends": ["eslint:recommended", "plugin:@typescript-eslint/eslint-recommended", "plugin:@typescript-eslint/recommended"],
     "rules": {
-        "no-console": 2, // Remember, this means error!
+        "no-console": 2,
         "@typescript-eslint/no-explicit-any": 1
     }
 }

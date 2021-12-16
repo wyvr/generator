@@ -22,11 +22,16 @@ export class Storage {
         if (!existsSync('cache')) {
             mkdirSync('cache');
         }
-        // save and store the connection
-        this.db = await open({
-            filename: 'cache/storage.db',
-            driver: sqlite3.Database,
-        });
+        try {
+            // save and store the connection
+            this.db = await open({
+                filename: 'cache/storage.db',
+                driver: sqlite3.Database,
+            });
+        } catch(error) {
+            Logger.error(error);
+            return false;
+        }
         // tables
         await this.db.exec(`CREATE TABLE IF NOT EXISTS global (
             key VARCHAR(255) NOT NULL PRIMARY KEY,

@@ -56,9 +56,11 @@
 }
 .wyvr_floating_window code {
     color: var(--wyvr-debug-text);
-    text-shadow: 0 0 10px var(--wyvr-debug-text-shadow);
-    background: var(--wyvr-debug-bg);
-    outline: 1px solid var(--wyvr-debug-text);
+    text-shadow: none;
+    background: var(--wyvr-debug-primary);
+    border-radius: 2px;
+    margin-top: -3px;
+    white-space: nowrap;
 }
 .wyvr_floating_window pre {
     color: var(--wyvr-debug-text-shadow);

@@ -95,6 +95,7 @@
     border-radius: 50%;
     transition: background 0.2s ease-out, border 0.2s ease-out;
     pointer-events: none;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 .wyvr_debug_toolbar.connected:after {
     background: var(--wyvr-debug-primary);

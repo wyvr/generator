@@ -8,6 +8,7 @@ export class WyvrFile {
     props?: string[];
     path: string = null;
     rel_path: string = null;
+    from_lazy?: boolean = null;
     constructor(path: string = null) {
         if (path && typeof path == 'string') {
             this.path = path;
@@ -121,5 +122,5 @@ export enum WyvrFileLoading {
     none = 'none',
 }
 export class WyvrCssMediaCollection {
-    [key: string]: string
+    [key: string]: string;
 }

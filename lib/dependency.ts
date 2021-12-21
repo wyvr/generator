@@ -6,6 +6,7 @@ import { Cwd } from '@lib/vars/cwd';
 import { IObject } from '@lib/interface/object';
 import { IPackageTree } from '@lib/interface/package_tree';
 import { IIdentifierDependency } from '@lib/interface/identifier';
+import { is_lazy } from '@lib/helper/wyvr_file';
 
 export class Dependency {
     static cache: IObject = null;
@@ -181,7 +182,7 @@ export class Dependency {
             components,
         };
     }
-    static get_dependencies(file: string, wyvr_files: WyvrFile[], dependency: IObject): IObject[] {
+    static get_dependencies(file: string, wyvr_files: WyvrFile[], dependency: IObject, from_lazy_file = false): IObject[] {
         const dep_files = [];
         if (file && dependency) {
             Object.keys(dependency).forEach((type) => {
@@ -192,10 +193,11 @@ export class Dependency {
                         // search if the file is hydrateable
                         const wyvr_file = wyvr_files.find((wyvr_file) => wyvr_file.path == join('gen/client', file_path));
                         if (wyvr_file) {
+                            wyvr_file.from_lazy = from_lazy_file;
                             dep_files.push(wyvr_file);
                         }
                         // even when the current file is not hydrateable, search if it contains one
-                        dep_files.push(...this.get_dependencies(file_path, wyvr_files, dependency));
+                        dep_files.push(...this.get_dependencies(file_path, wyvr_files, dependency, from_lazy_file ? true : is_lazy(wyvr_file)));
                         return wyvr_file;
                     });
                 }

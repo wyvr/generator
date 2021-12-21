@@ -16,12 +16,14 @@ import { Transform } from '@lib/transform';
 import { Logger } from '@lib/logger';
 import { Cwd } from '@lib/vars/cwd';
 import { IIdentifierFile } from '@lib/interface/identifier';
+import { is_lazy } from '@lib/helper/wyvr_file';
 
 export class Client {
     static transform_resource(content) {
         return content.replace(/\/\/# sourceMappingURL=[^\n]*/g, '');
     }
     static async create_bundle(entry: IIdentifierFile, hydrate_files: WyvrFile[]) {
+        // File.write_json(join(Cwd.get(), 'cache', 'client', `${entry.name.replace(/\./g, '-')}.json`), hydrate_files)
         Env.set(process.env.WYVR_ENV);
         const client_root = join(Cwd.get(), 'gen', 'client');
 
@@ -76,6 +78,10 @@ export class Client {
         }
         const content = await Promise.all(
             hydrate_files.map(async (file) => {
+                // file which are childs of lazy files(wyvr loading != instant) are not allowed to be generated, otherwise the code is included twice
+                if(file.from_lazy) {
+                    return '';
+                }
                 const import_path = join(Cwd.get(), file.path);
                 const var_name = file.name.toLowerCase().replace(/\s/g, '_');
 
@@ -88,8 +94,8 @@ export class Client {
                 const lazy_input_name = File.to_extension(lazy_input_path, '')
                     .replace(client_root + '/', '')
                     .replace(/\./g, '-');
-                const is_lazy = [WyvrFileLoading.lazy, WyvrFileLoading.idle, WyvrFileLoading.media, WyvrFileLoading.none].indexOf(file.config?.loading) > -1;
-                if (is_lazy) {
+                const is_file_lazy = is_lazy(file);
+                if (is_file_lazy) {
                     // add to the list of lazy type
                     if (file.config?.loading == WyvrFileLoading.lazy) {
                         lazy_input_files.push(file);

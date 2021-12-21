@@ -128,15 +128,13 @@ export class Client {
                     case WyvrFileLoading.lazy:
                     case WyvrFileLoading.idle:
                     case WyvrFileLoading.media:
+                    case WyvrFileLoading.none: {
+                        const trigger = file.config.loading == WyvrFileLoading.none ? `, '${file.config.trigger}'` : '';
                         return `
-                            const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
-                            wyvr_hydrate_${file.config.loading}('/js/${lazy_input_name}.js', ${var_name}_target, '${file.name}', '${var_name}');
-                            `;
-                    case WyvrFileLoading.none:
-                        return `
-                            const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
-                            wyvr_hydrate_${file.config.loading}('/js/${lazy_input_name}.js', ${var_name}_target, '${file.name}', '${var_name}', '${file.config.trigger}');
-                            `;
+                        const ${var_name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');
+                        wyvr_hydrate_${file.config.loading}('/js/${lazy_input_name}.js', ${var_name}_target, '${file.name}', '${var_name}'${trigger});
+                        `;
+                    }
 
                     //case WyvrFileLoading.instant:
                     default:

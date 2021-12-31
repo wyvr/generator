@@ -71,7 +71,7 @@ export class Logger {
         this.output(LogType.error, color.red, '✘', ...values);
     }
     static improve(...values) {
-        this.output(LogType.improve, color.magenta, '⚡️', ...values);
+        this.output(LogType.improve, color.magentaBright, '⚡️', ...values);
     }
     static report(duration, ...values) {
         if (this.show_report) {

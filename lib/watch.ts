@@ -2,7 +2,7 @@ import { Config } from '@lib/config';
 import { Logger } from '@lib/logger';
 import chokidar from 'chokidar';
 import fs from 'fs';
-import { join, dirname, basename, extname } from 'path';
+import { join, dirname, basename, extname, sep } from 'path';
 import { hrtime_to_ms } from '@lib/converter/time';
 import { RequireCache } from '@lib/require_cache';
 import { Routes } from '@lib/routes';
@@ -34,7 +34,10 @@ export class Watch {
 
     private readonly IDLE_TEXT = 'changes or requests';
 
-    constructor(private ports: [number, number], private callback: (changed_files: IWatchFile[], watched_files: string[]) => Promise<IBuildFileResult[]> = null) {
+    constructor(
+        private ports: [number, number],
+        private callback: (changed_files: IWatchFile[], watched_files: string[]) => Promise<IBuildFileResult[]> = null
+    ) {
         if (!callback || typeof callback != 'function') {
             Logger.warning('can not start watching because no callback is defined');
             return null;
@@ -58,7 +61,10 @@ export class Watch {
         }
 
         // create simple static server
-        const pub = new static_server.Server(join(Cwd.get(), 'pub'), { cache: false, serverInfo: `wyvr` });
+        const pub = new static_server.Server(join(Cwd.get(), 'pub'), {
+            cache: false,
+            serverInfo: `wyvr`,
+        });
         this.host = 'localhost';
         server('localhost', this.ports[0], this.IDLE_TEXT, null, async (req, res, uid) => {
             pub.serve(req, res, async (err) => {
@@ -168,6 +174,17 @@ export class Watch {
                 if (event != 'unlink' && (!content || content.trim() == '')) {
                     Logger.warning('the file is empty, empty files are ignored');
                     return;
+                }
+                // when file gets deleted, delete it from the gen folder
+                if (event == 'unlink') {
+                    // remove first part => "[src]/layout..."
+                    const parts = rel_path.split(sep).filter((x, i) => i != 0);
+                    const gen = join(Cwd.get(), 'gen');
+                    const short_path = parts.join(sep);
+                    // existing files in the gen folder
+                    const existing_paths = fs.readdirSync(gen).map((dir) => join(gen, dir, short_path)).filter((path) => fs.existsSync(path));
+                    // delete the files
+                    existing_paths.forEach((path)=>fs.unlinkSync(path));
                 }
 
                 this.changed_files = [...this.changed_files, { event, path, rel_path }];
@@ -296,7 +313,10 @@ export class Watch {
                 if (file.rel_path.match(/^routes\//)) {
                     // search the real route files and append them
                     const route_files = routes.filter((route) => {
-                        return dirname(file.rel_path).indexOf(route.dir_path) == 0 && basename(file.rel_path).indexOf('_') == 0;
+                        return (
+                            dirname(file.rel_path).indexOf(route.dir_path) == 0 &&
+                            basename(file.rel_path).indexOf('_') == 0
+                        );
                     });
                     if (route_files) {
                         route_files.forEach((route_file) => {
@@ -327,7 +347,10 @@ export class Watch {
                     // check if the file is part of a base svelte file
                     const svelte_file = File.to_extension(join('gen', file.rel_path), '.svelte');
                     if (fs.existsSync(svelte_file)) {
-                        Logger.info('resolved to', `${File.to_extension(file.rel_path, '.svelte')} ${Logger.color.dim(file.rel_path)}`);
+                        Logger.info(
+                            'resolved to',
+                            `${File.to_extension(file.rel_path, '.svelte')} ${Logger.color.dim(file.rel_path)}`
+                        );
                         // find the package file
                         const path = reversed_packages
                             .map((pkg) => {

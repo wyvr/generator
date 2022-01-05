@@ -28,7 +28,7 @@ export class Storage {
                 filename: 'cache/storage.db',
                 driver: sqlite3.Database,
             });
-        } catch(error) {
+        } catch (error) {
             Logger.error(error);
             return false;
         }
@@ -56,7 +56,9 @@ export class Storage {
         if (!this.db) {
             return [];
         }
-        const result = await this.db.all(`SELECT name FROM sqlite_master WHERE type ='table' AND name NOT LIKE 'sqlite_%';`);
+        const result = await this.db.all(
+            `SELECT name FROM sqlite_master WHERE type ='table' AND name NOT LIKE 'sqlite_%';`
+        );
         if (result && Array.isArray(result)) {
             return result.map((table) => table.name);
         }
@@ -137,10 +139,61 @@ export class Storage {
             if (value) {
                 // insert or replace entry
                 // https://stackoverflow.com/questions/418898/sqlite-upsert-not-insert-or-replace
-                await this.db.run(`INSERT OR REPLACE INTO ${this.normalize(table)} (key, value) VALUES (?, ?);`, key, JSON.stringify(value));
+                await this.db.run(
+                    `INSERT OR REPLACE INTO ${this.normalize(table)} (key, value) VALUES (?, ?);`,
+                    key,
+                    JSON.stringify(value)
+                );
                 return [null, true];
             }
             // delete when no value is set
+            await this.db.run(`DELETE from ${this.normalize(table)} WHERE key = ?;`, key);
+            return [null, true];
+        } catch (e) {
+            Logger.debug(e);
+            return [e, false];
+        }
+    }
+    static async insert(table: string, key: string, value: any = null): Promise<[Error | null, boolean]> {
+        if (!table || !key || value == undefined) {
+            return [null, false];
+        }
+        await this.setup();
+        try {
+            await this.db.run(
+                `INSERT INTO ${this.normalize(table)} (key, value) VALUES (?, ?);`,
+                key,
+                JSON.stringify(value)
+            );
+            return [null, true];
+        } catch (e) {
+            Logger.debug(e);
+            return [e, false];
+        }
+    }
+    static async update(table: string, key: string, value: any = null): Promise<[Error | null, boolean]> {
+        if (!table || !key || value == undefined) {
+            return [null, false];
+        }
+        await this.setup();
+        try {
+            await this.db.run(
+                `UPDATE ${this.normalize(table)} SET value=? WHERE key=?;`,
+                JSON.stringify(value),
+                key
+            );
+            return [null, true];
+        } catch (e) {
+            Logger.debug(e);
+            return [e, false];
+        }
+    }
+    static async delete(table: string, key: string): Promise<[Error | null, boolean]> {
+        if (!table || !key) {
+            return [null, false];
+        }
+        await this.setup();
+        try {
             await this.db.run(`DELETE from ${this.normalize(table)} WHERE key = ?;`, key);
             return [null, true];
         } catch (e) {
@@ -158,8 +211,8 @@ export class Storage {
             return [get_error, null];
         }
         // when not exists use the new value
-        if (orig == null || typeof value != 'object') {
-            const result = await this.set(table, key, value);
+        if (orig == null) {
+            const result = await this.insert(table, key, value);
             return result;
         }
         let merged_value = merge(orig, value);
@@ -170,7 +223,7 @@ export class Storage {
             });
             // console.log(key, merged_value);
         }
-        const result = await this.set(table, key, merged_value);
+        const result = await this.update(table, key, merged_value);
         return result;
     }
     static normalize(text = '') {

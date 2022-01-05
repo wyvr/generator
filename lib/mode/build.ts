@@ -69,6 +69,7 @@ export class BuildMode {
             Logger.present('socket port', this.watcher_ports[1]);
         }
         // add to Global
+        // @todo this is realy slow ~10sec, when the db already exists or gets already written
         const config = Config.get(null);
         config.env = EnvModel[Env.get()];
         config.https = !!config.https;

@@ -15,7 +15,9 @@ export const cleanup = async (perf: IPerformance_Measure) => {
         // delete old releases on new build
         Dir.create('releases');
         const deleted_releases = Publish.cleanup(keep);
-        Logger.info(`keep ${keep} release(s), deleted ${deleted_releases.length}`);
+        Logger.info(
+            `keep ${Logger.color.cyan(keep)} release(s), deleted ${Logger.color.green(deleted_releases.length)}`
+        );
     }
     Dir.create(ReleasePath.get());
     perf.end('cleanup');

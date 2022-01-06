@@ -26,6 +26,17 @@ export const inject = async (list: string[], socket_port = 0): Promise<[IObject,
     const shortcode_identifiers = {};
     const media = {};
     let has_media = false;
+
+    let socket_script = '';
+    if (Env.is_dev()) {
+        const client_socket = File.read(join(__dirname, '..', 'resource', 'client_socket.js'));
+        if (client_socket) {
+            socket_script = `<script id="wyvr_client_socket">${Client.transform_resource(
+                client_socket.replace(/\{port\}/g, socket_port + '')
+            )}</script>`;
+        }
+    }
+
     await Promise.all(
         list_before.map(async (file) => {
             // because of an compilation error the page can be non existing
@@ -36,11 +47,8 @@ export const inject = async (list: string[], socket_port = 0): Promise<[IObject,
             const head = [],
                 body = [];
             // inject dev socket connection
-            if (Env.is_dev()) {
-                const client_socket = File.read(join(__dirname, '..', 'resource', 'client_socket.js'));
-                if (client_socket) {
-                    body.push(`<script id="wyvr_client_socket">${Client.transform_resource(client_socket.replace(/\{port\}/g, socket_port + ''))}</script>`);
-                }
+            if (Env.is_dev() && socket_script) {
+                body.push(socket_script);
             }
 
             // @INFO shortcodes
@@ -61,6 +69,7 @@ export const inject = async (list: string[], socket_port = 0): Promise<[IObject,
                     }
                     return match;
                 }
+
                 // check wheter the path was given or the name
                 if (value.indexOf('/') > -1) {
                     name = value.replace(/\//g, '_');
@@ -118,23 +127,37 @@ export const inject = async (list: string[], socket_port = 0): Promise<[IObject,
 
                 return `<${name} ${props_component} />`;
             });
+
             /* eslint-disable @typescript-eslint/no-unused-vars */
-            const [err_after, config_after, file_after, content_after, head_after, body_after] = await Plugin.after('inject', file, replaced_content, head, body);
+            const [err_after, config_after, file_after, content_after, head_after, body_after] = await Plugin.after(
+                'inject',
+                file,
+                replaced_content,
+                head,
+                body
+            );
             /* eslint-enable */
+
             if (err_after) {
                 fail(err_after);
             }
-            const injected_content = content_after.replace(/<\/head>/, `${head_after.join('')}</head>`).replace(/<\/body>/, `${body_after.join('')}</body>`);
+            const injected_content = content_after
+                .replace(/<\/head>/, `${head_after.join('')}</head>`)
+                .replace(/<\/body>/, `${body_after.join('')}</body>`);
 
             // @INFO media before shortcode replacement
             // replace media
-            const media_content = await replaceAsync(injected_content, /\(media\(([\s\S]*?)\)\)/g, async (match_media, inner) => {
-                const config = await Media.get_config(inner);
-                // store for later transformation
-                has_media = true;
-                media[config.result] = config;
-                return config.result;
-            });
+            const media_content = await replaceAsync(
+                injected_content,
+                /\(media\(([\s\S]*?)\)\)/g,
+                async (match_media, inner) => {
+                    const config = await Media.get_config(inner);
+                    // store for later transformation
+                    has_media = true;
+                    media[config.result] = config;
+                    return config.result;
+                }
+            );
 
             if (!shortcode_imports) {
                 writeFileSync(file, media_content);
@@ -157,7 +180,9 @@ export const inject = async (list: string[], socket_port = 0): Promise<[IObject,
                 writeFileSync(file, media_content);
                 return file;
             }
-            const [render_error, rendered, identifier_item] = await Build.render(compiled, { _wyvr: { identifier: file.replace(ReleasePath.get() + sep, '') } });
+            const [render_error, rendered, identifier_item] = await Build.render(compiled, {
+                _wyvr: { identifier: file.replace(ReleasePath.get() + sep, '') },
+            });
             if (render_error) {
                 // svelte error messages
                 Logger.error('[svelte]', file, Error.get(render_error, file, 'render shortcodes'));
@@ -167,13 +192,17 @@ export const inject = async (list: string[], socket_port = 0): Promise<[IObject,
 
             // @INFO media after shortcode replacement
             // replace media
-            rendered.result.html = await replaceAsync(rendered.result.html, /\(media\(([\s\S]*?)\)\)/g, async (match_media, inner) => {
-                const config = await Media.get_config(inner);
-                // store for later transformation
-                has_media = true;
-                media[config.result] = config;
-                return config.result;
-            });
+            rendered.result.html = await replaceAsync(
+                rendered.result.html,
+                /\(media\(([\s\S]*?)\)\)/g,
+                async (match_media, inner) => {
+                    const config = await Media.get_config(inner);
+                    // store for later transformation
+                    has_media = true;
+                    media[config.result] = config;
+                    return config.result;
+                }
+            );
 
             shortcode_identifiers[identifier_item.identifier] = {
                 name: identifier_item.identifier,

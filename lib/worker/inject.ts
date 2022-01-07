@@ -30,7 +30,6 @@ export const inject = async (list: string[], socket_port: number) => {
 
     const files = await Promise.all(
         list.map(async (file) => {
-            Logger.info(file);
             // because of an compilation error the page can be non existing
             if (!file || !existsSync(file)) {
                 return null;

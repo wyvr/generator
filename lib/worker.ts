@@ -14,11 +14,13 @@ import { configure } from '@lib/worker/configure';
 import { route } from '@lib/worker/route';
 import { build } from '@lib/worker/build';
 import { script } from '@lib/worker/script';
+import { inject } from '@lib/worker/inject';
 import { optimize } from '@lib/worker/optimize';
 import { create_data_result } from '@lib/worker/create_data_result';
 
 export class Worker {
     private root_template_paths = null;
+    private socket_port: number = null;
     private identifiers_cache = {};
     constructor() {
         this.init();
@@ -41,6 +43,7 @@ export class Worker {
                     const config_result = configure(value);
                     if (config_result) {
                         this.root_template_paths = config_result.root_template_paths;
+                        this.socket_port = config_result.socket_port;
                     }
                     WorkerHelper.send_complete();
                     break;
@@ -64,7 +67,9 @@ export class Worker {
                 case WorkerAction.build: {
                     WorkerHelper.send_status(WorkerStatus.busy);
 
-                    const [identifier_list, build_result] = await build(value, (data: any) => this.emit_identifier(data));
+                    const [identifier_list, build_result] = await build(value, (data: any) =>
+                        this.emit_identifier(data)
+                    );
 
                     // clear cache
                     this.identifiers_cache = {};
@@ -79,6 +84,25 @@ export class Worker {
                         data: build_result.filter((x) => x),
                     });
                     // console.log('result', result);
+                    WorkerHelper.send_complete();
+                    break;
+                }
+                case WorkerAction.inject: {
+                    WorkerHelper.send_status(WorkerStatus.busy);
+
+                    const { media, shortcode_identifiers } = await inject(value, this.socket_port);
+
+                    WorkerHelper.send_action(WorkerAction.emit, {
+                        type: 'inject_shortcode_identifier',
+                        data: shortcode_identifiers,
+                    });
+                    if (media) {
+                        WorkerHelper.send_action(WorkerAction.emit, {
+                            type: 'inject_media',
+                            data: media,
+                        });
+                    }
+
                     WorkerHelper.send_complete();
                     break;
                 }

@@ -76,9 +76,11 @@ export class BuildMode {
         await Global.set('global', config);
 
         this.perf.end('config');
+        return { socket_port: this.watcher_ports[1] };
     }
     async start(worker_controller: WorkerController, identifiers: IObject) {
         this.identifiers = identifiers;
+
         Logger.block('build');
 
         // collect configured package
@@ -127,7 +129,11 @@ export class BuildMode {
             fail(e);
         }
     }
-    async execute(worker_controller: WorkerController, changed_files: IWatchFile[] = [], watched_files: string[] = null) {
+    async execute(
+        worker_controller: WorkerController,
+        changed_files: IWatchFile[] = [],
+        watched_files: string[] = null
+    ) {
         this.is_executing = true;
 
         const is_regenerating = changed_files.length > 0;
@@ -212,8 +218,8 @@ export class BuildMode {
         // inject data into the pages
         this.perf.start('inject');
         const [shortcode_identifier, media_entries] = await inject(
-            build_pages.map((d) => d.path),
-            this.watcher_ports[1]
+            worker_controller,
+            build_pages.map((d) => d.path)
         );
         Object.keys(shortcode_identifier).forEach((key) => {
             this.identifiers[key] = shortcode_identifier[key];

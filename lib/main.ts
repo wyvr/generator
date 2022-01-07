@@ -18,6 +18,7 @@ import { UniqId } from '@lib/vars/uniq_id';
 import { IObject } from '@lib/interface/object';
 import { cpus } from 'os';
 import { IIdentifierEmit } from '@lib/interface/identifier';
+import { IWorkerControllerConfig } from '@lib/interface/worker';
 
 export class Main {
     worker_controller: WorkerController = null;
@@ -28,7 +29,6 @@ export class Main {
     cron_state = [];
     cron_config = [];
     identifier_data_list = [];
-    watcher_ports: [number, number] = [3000, 3001];
 
     constructor() {
         this.start();
@@ -57,15 +57,17 @@ export class Main {
         Logger.present('build', UniqId.get());
         Logger.present('env', EnvModel[Env.get()]);
         Logger.present('mode', WyvrMode[Mode.get()]);
-        this.perf = Config.get('import.measure_performance') ? new Performance_Measure() : new Performance_Measure_Blank();
+        this.perf = Config.get('import.measure_performance')
+            ? new Performance_Measure()
+            : new Performance_Measure_Blank();
 
         switch (Mode.get()) {
             case WyvrMode.build: {
                 const build = new BuildMode(this.perf);
-                await build.init();
+                const { socket_port } = await build.init();
                 this.validate_config();
                 cleanup(this.perf);
-                this.worker();
+                this.worker({ socket_port });
                 await build.start(this.worker_controller, this.identifiers);
                 break;
             }
@@ -104,10 +106,13 @@ export class Main {
             return;
         }
     }
-    worker() {
+    worker(config: IWorkerControllerConfig | null = null) {
         this.perf.start('worker');
 
         this.worker_controller = new WorkerController();
+        if (config?.socket_port) {
+            this.worker_controller.socket_port = config?.socket_port;
+        }
         this.worker_amount = this.worker_controller.get_worker_amount();
         Logger.present('workers', this.worker_amount, Logger.color.dim(`of ${cpus().length} cores`));
         this.worker_controller.create_workers(this.worker_amount);

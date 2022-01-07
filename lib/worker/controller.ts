@@ -21,6 +21,7 @@ export class WorkerController {
     public events: Events = new Events();
     private queue: Queue = null;
     private worker_amount: number = null;
+    public socket_port: number = null;
 
     constructor() {
         Env.set(process.env.WYVR_ENV);
@@ -193,6 +194,7 @@ export class WorkerController {
             env: Env.get(),
             cwd: Cwd.get(),
             release_path: ReleasePath.get(),
+            socket_port: this.socket_port
         });
     }
     ticks = 0;

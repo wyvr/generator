@@ -19,5 +19,5 @@ export const configure = (config: IWorkerConfigureValue | null) => {
         Logger.warning('invalid configure value', config);
         return null;
     }
-    return { root_template_paths: RootTemplatePaths.get() };
+    return { root_template_paths: RootTemplatePaths.get(), socket_port: config?.socket_port };
 };

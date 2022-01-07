@@ -20,6 +20,7 @@ export interface IWorkerConfigureValue {
     env?: EnvModel;
     cwd?: string;
     release_path?: string;
+    socket_port?: number;
 }
 export interface IWorkerRouteValue {
     route: Route;
@@ -33,4 +34,7 @@ export interface IWorkerOptimizeValue {
 export interface IWorkerOptimizeHashEntry {
     before: string;
     after: string;
+}
+export interface IWorkerControllerConfig {
+    socket_port?: number;
 }

@@ -7,7 +7,8 @@ export enum WorkerAction {
     generate = 1 << 5,
     build = 1 << 6,
     scripts = 1 << 7,
-    cleanup = 1 << 8,
-    optimize = 1 << 9,
-    media = 1 << 10,
+    inject = 1 << 8,
+    cleanup = 1 << 9,
+    optimize = 1 << 10,
+    media = 1 << 11,
 }

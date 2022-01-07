@@ -3,12 +3,13 @@
 import { Logger } from '@lib/logger';
 import sqlite3 from 'sqlite3';
 import { open, Database } from 'sqlite';
-import { mkdirSync, existsSync } from 'fs-extra';
 import merge from 'deepmerge';
+import { File } from '@lib/file';
 
 export class Storage {
     static is_setup = false;
     static db: Database = null;
+    static readonly source = 'cache/storage.db';
 
     /**
      * Create database when not existing
@@ -19,13 +20,11 @@ export class Storage {
             return false;
         }
         // create the folder otherwise sqlite can not create file
-        if (!existsSync('cache')) {
-            mkdirSync('cache');
-        }
+        File.create_dir(this.source);
         try {
             // save and store the connection
             this.db = await open({
-                filename: 'cache/storage.db',
+                filename: this.source,
                 driver: sqlite3.Database,
             });
         } catch (error) {
@@ -177,11 +176,7 @@ export class Storage {
         }
         await this.setup();
         try {
-            await this.db.run(
-                `UPDATE ${this.normalize(table)} SET value=? WHERE key=?;`,
-                JSON.stringify(value),
-                key
-            );
+            await this.db.run(`UPDATE ${this.normalize(table)} SET value=? WHERE key=?;`, JSON.stringify(value), key);
             return [null, true];
         } catch (e) {
             Logger.debug(e);

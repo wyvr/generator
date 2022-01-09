@@ -39,6 +39,7 @@ import { ConfigPath } from '@lib/vars/config_path';
 import { PackageTreePath } from '@lib/vars/package_tree_path';
 import { exec } from '@lib/main/exec';
 import { Link } from '@lib/link';
+import { Storage } from '@lib/storage';
 
 export class BuildMode {
     hr_start = null;
@@ -73,6 +74,8 @@ export class BuildMode {
         const config = Config.get(null);
         config.env = EnvModel[Env.get()];
         config.https = !!config.https;
+        // clear the global table
+        await Storage.clear('global');
         await Global.set('global', config);
 
         this.perf.end('config');

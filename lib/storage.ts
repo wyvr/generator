@@ -141,7 +141,7 @@ export class Storage {
                 await this.db.run(
                     `INSERT OR REPLACE INTO ${this.normalize(table)} (key, value) VALUES (?, ?);`,
                     key,
-                    JSON.stringify(value)
+                    this.escape(value)
                 );
                 return [null, true];
             }
@@ -162,7 +162,7 @@ export class Storage {
             await this.db.run(
                 `INSERT INTO ${this.normalize(table)} (key, value) VALUES (?, ?);`,
                 key,
-                JSON.stringify(value)
+                this.escape(value)
             );
             return [null, true];
         } catch (e) {
@@ -170,13 +170,16 @@ export class Storage {
             return [e, false];
         }
     }
+    static escape(value: any) {
+        return JSON.stringify(value).replace(/'/g, "''");
+    }
     static async update(table: string, key: string, value: any = null): Promise<[Error | null, boolean]> {
         if (!table || !key || value == undefined) {
             return [null, false];
         }
         await this.setup();
         try {
-            await this.db.run(`UPDATE ${this.normalize(table)} SET value=? WHERE key=?;`, JSON.stringify(value), key);
+            await this.db.run(`UPDATE ${this.normalize(table)} SET value=? WHERE key=?;`, this.escape(value), key);
             return [null, true];
         } catch (e) {
             Logger.debug(e);
@@ -220,6 +223,55 @@ export class Storage {
         }
         const result = await this.update(table, key, merged_value);
         return result;
+    }
+    static async merge_all(table: string, data: any = null): Promise<[Error | null, boolean]> {
+        if (!table || data == null) {
+            return [null, false];
+        }
+        await this.setup();
+
+        const [get_error, all] = await this.get(table, '*');
+        if (get_error) {
+            return [get_error, null];
+        }
+        const insert = [],
+            update = [];
+        // check what should be inserted and what should be updated
+        Object.keys(data).forEach((key) => {
+            const orig = all.find((item)=>item.key == key)
+            if (orig) {
+                let value = data[key];
+                if(typeof value == 'object') {
+                    value = merge(orig.value, data[key]) 
+                }
+                update.push({ key, value: this.escape(value) });
+                return;
+            }
+            insert.push({ key, value: this.escape(data[key]) });
+        });
+
+        const insert_query =
+            insert.length > 0
+                ? `INSERT INTO ${this.normalize(table)} (key, value) VALUES ${insert
+                      .map((item) => `('${item.key}','${item.value}')`)
+                      .join(',')};`
+                : '';
+        const update_query =
+            update.length > 0
+                ? update
+                      .map(
+                          (item) => `UPDATE ${this.normalize(table)} SET value='${item.value}' WHERE key='${item.key}';`
+                      )
+                      .join('')
+                : '';
+        const query = insert_query + update_query;
+        try {
+            await this.db.run(query);
+        } catch(e) {
+            return [e, false];
+        }
+
+        return [null, true];
     }
     static normalize(text = '') {
         return text.replace(/[A-Z]/g, '-$1').toLowerCase().replace(/^-/, '').replace(/-+/g, '-');

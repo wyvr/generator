@@ -4,6 +4,7 @@ import { Dir } from '@lib/dir';
 import { dirname } from 'path';
 import merge from 'deepmerge';
 import { Storage } from '@lib/storage';
+import { Logger } from './logger';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export class Global {
@@ -96,30 +97,12 @@ export class Global {
         let set_error: Error | null = null,
             result = false;
         if (Array.isArray(corrected_key)) {
-            const all_result = await Promise.all(
-                corrected_key.map(async (key) => {
-                    return await Storage.merge(table, key, value[key]);
-                })
-            );
-            set_error = all_result.reduce((acc: Error | null, cur): Error | null => {
-                if (cur[0]) {
-                    return cur[0];
-                }
-                return acc;
-            }, null);
-            result = all_result.reduce((acc: boolean, cur): boolean => {
-                if (!cur[1]) {
-                    return false;
-                }
-                return acc;
-            }, true);
+            [set_error, result] = await Storage.merge_all(table, value);
         } else {
             [set_error, result] = await Storage.set(table, corrected_key, value);
         }
         if (set_error) {
-            /* eslint-disable no-console */
-            console.log(set_error);
-            /* eslint-enable no-console */
+            Logger.error(set_error, table, value);
             return false;
         }
         return result;

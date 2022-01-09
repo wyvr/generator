@@ -35,6 +35,10 @@ export const inject = async (list: string[], socket_port: number) => {
                 return null;
             }
             const content = File.read(file);
+            if(!content || !content.trim()) {
+                Logger.debug('empty file', file);
+                return file;
+            }
             const head = [],
                 body = [];
             // inject dev socket connection

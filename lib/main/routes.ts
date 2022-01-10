@@ -21,7 +21,7 @@ export const routes = async (
     let completed_routes = 0;
     const on_global_index = worker_controller.events.on('emit', WorkerEmit.global, async (data) => {
         // add the results to the global data
-        if (data) {
+        if (data && data.data) {
             await Global.set('global', data.data);
         }
         completed_routes++;

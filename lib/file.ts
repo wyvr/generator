@@ -1,4 +1,4 @@
-import { mkdirSync, existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'fs';
+import { mkdirSync, existsSync, readFileSync, readdirSync, statSync, writeFileSync, unlinkSync } from 'fs';
 import { extname, dirname, join } from 'path';
 import circular from 'circular';
 import { WyvrFile } from '@lib/model/wyvr/file';
@@ -268,5 +268,13 @@ export class File {
             .filter((entry) => {
                 return !this.is_file(entry.path);
             });
+    }
+
+    static remove(file: string): boolean {
+        if (existsSync(file)) {
+            unlinkSync(file);
+            return true;
+        }
+        return false;
     }
 }

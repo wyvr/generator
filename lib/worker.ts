@@ -17,6 +17,7 @@ import { script } from '@lib/worker/script';
 import { inject } from '@lib/worker/inject';
 import { optimize } from '@lib/worker/optimize';
 import { create_data_result } from '@lib/worker/create_data_result';
+import { transform } from '@lib/worker/transform';
 
 export class Worker {
     private root_template_paths = null;
@@ -61,6 +62,14 @@ export class Worker {
                         type: WorkerEmit.global,
                         data: global_data,
                     });
+                    WorkerHelper.send_complete();
+                    break;
+                }
+                case WorkerAction.transform: {
+                    WorkerHelper.send_status(WorkerStatus.busy);
+
+                    await transform(value);
+                   
                     WorkerHelper.send_complete();
                     break;
                 }

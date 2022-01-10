@@ -121,7 +121,13 @@ export class Transform {
             return [null, ''];
         }
         const style_result = Transform.extract_tags_from_content(content, 'style');
-        if (style_result && style_result.result && style_result.result.some((entry) => entry.indexOf('type="text/scss"') > -1 || entry.indexOf('lang="sass"') > -1)) {
+        if (
+            style_result &&
+            style_result.result &&
+            style_result.result.some(
+                (entry) => entry.indexOf('type="text/scss"') > -1 || entry.indexOf('lang="sass"') > -1
+            )
+        ) {
             let sass_result = null;
             try {
                 sass_result = sass.renderSync({
@@ -153,20 +159,28 @@ export class Transform {
             const import_css = File.read(import_path);
             // @NOTE scss has another syntax e.g. folder/file => folder/_file.scss
             if (import_css == null) {
-                Logger.warning(`${Logger.color.dim('[css]')}' can not import ${url} into ${file_path}, maybe the file doesn't exist`);
+                Logger.warning(
+                    `${Logger.color.dim(
+                        '[css]'
+                    )}' can not import ${url} into ${file_path}, maybe the file doesn't exist`
+                );
                 return '';
             }
             return import_css;
         });
     }
 
-    static insert_splits(file_path: string, content: string): string {
+    static insert_splits(file_path: string, content: string): { content: string; css: string; js: string } {
         if (!file_path || !existsSync(file_path) || !content || typeof content != 'string') {
-            return '';
+            return {
+                content,
+                css: '',
+                js: '',
+            };
         }
-        const css_file = File.to_extension(file_path, 'css');
-        if (existsSync(css_file)) {
-            const css_content = File.read(css_file);
+        const css = File.to_extension(file_path, 'css');
+        if (existsSync(css)) {
+            const css_content = File.read(css);
             const css_result = this.extract_tags_from_content(content, 'style');
             const combined_css = css_result.result
                 .map((style) => {
@@ -175,9 +189,9 @@ export class Transform {
                 .join('\n');
             content = `${css_result.content}<style>${combined_css}${css_content}</style>`;
         }
-        const js_file = File.to_extension(file_path, 'js');
-        if (existsSync(js_file)) {
-            const js_content = File.read(js_file);
+        const js = File.to_extension(file_path, 'js');
+        if (existsSync(js)) {
+            const js_content = File.read(js);
             const js_result = this.extract_tags_from_content(content, 'script');
             const combined_js = js_result.result
                 .map((script) => {
@@ -186,6 +200,10 @@ export class Transform {
                 .join('\n');
             content = `<script>${combined_js}${js_content}</script>${js_result.content}`;
         }
-        return content;
+        return {
+            content,
+            css,
+            js,
+        };
     }
 }

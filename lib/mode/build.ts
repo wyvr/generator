@@ -74,8 +74,8 @@ export class BuildMode {
         const config = Config.get(null);
         config.env = EnvModel[Env.get()];
         config.https = !!config.https;
-        // clear the global table
-        await Storage.clear('global');
+        // start from scratch
+        Logger.info('delete storage', Storage.destroy());
         await Global.set('global', config);
 
         this.perf.end('config');
@@ -189,7 +189,7 @@ export class BuildMode {
         // update the navigation entries
         await Generate.build_nav();
 
-        const collected_files = await transform();
+        const collected_files = await transform(worker_controller);
         if (!collected_files) {
             fail('no collected files');
         }

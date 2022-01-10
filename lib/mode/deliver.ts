@@ -7,7 +7,7 @@ import { Config } from '@lib/config';
 import { delay } from '@lib/helper/delay';
 import { between } from '@lib/helper/random';
 import { server } from '@lib/server';
-import { Exec } from '../exec';
+import { Exec } from '@lib/exec';
 
 export class DeliverMode {
     constructor(private on_demand_port: number = 4000) {

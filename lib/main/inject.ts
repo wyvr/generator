@@ -7,10 +7,7 @@ import { WorkerAction } from '@lib/model/worker/action';
 import { WorkerEmit } from '@lib/model/worker/emit';
 import { File } from '@lib/file';
 
-export const inject = async (
-    worker_controller: WorkerController,
-    list: string[]
-): Promise<[IObject, IObject]> => {
+export const inject = async (worker_controller: WorkerController, list: string[]): Promise<[IObject, IObject]> => {
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const [err_before, config_before, list_before] = await Plugin.before('inject', list);
     /* eslint-enable */
@@ -43,9 +40,8 @@ export const inject = async (
         }
     });
 
-    /* eslint-disable @typescript-eslint/no-explicit-any */
+    // process in worker
     await worker_controller.process_in_workers('inject', WorkerAction.inject, list_before, 100);
-    /* eslint-enable */
 
     // remove the events
     worker_controller.events.off('emit', WorkerEmit.inject_shortcode_identifier, on_identifier_index);
@@ -56,6 +52,9 @@ export const inject = async (
             const head = [],
                 body = [];
             const content = File.read(file);
+            if (!content) {
+                return null;
+            }
             /* eslint-disable @typescript-eslint/no-unused-vars */
             const [err_after, config_after, file_after, content_after, head_after, body_after] = await Plugin.after(
                 'inject',

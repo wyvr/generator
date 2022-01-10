@@ -40,6 +40,7 @@ import { PackageTreePath } from '@lib/vars/package_tree_path';
 import { exec } from '@lib/main/exec';
 import { Link } from '@lib/link';
 import { Storage } from '@lib/storage';
+import { UniqId } from '@lib/vars/uniq_id';
 
 export class BuildMode {
     hr_start = null;
@@ -74,6 +75,7 @@ export class BuildMode {
         const config = Config.get(null);
         config.env = EnvModel[Env.get()];
         config.https = !!config.https;
+        config.build = UniqId.get();
         // start from scratch
         Logger.info('delete storage', Storage.destroy());
         await Global.set('global', config);

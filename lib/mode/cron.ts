@@ -11,6 +11,7 @@ import { optimize } from '@lib/main/optimize';
 import { CronStatePath } from '@lib/vars/cron_state_path';
 import { PackageTreePath } from '@lib/vars/package_tree_path';
 import { ConfigPath } from '@lib/vars/config_path';
+import { UniqId } from '@lib/vars/uniq_id';
 
 export class CronMode {
     hr_start = null;
@@ -32,7 +33,9 @@ export class CronMode {
         this.perf.start('cron');
 
         // get the configs
-        Config.set(File.read_json(ConfigPath.get()));
+        const config = File.read_json(ConfigPath.get());
+        config.build = UniqId.get();
+        Config.set(config);
         this.cron_state = File.read_json(CronStatePath.get());
         this.package_tree = File.read_json(PackageTreePath.get());
 

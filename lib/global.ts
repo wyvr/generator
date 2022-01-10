@@ -79,9 +79,7 @@ export class Global {
             // console.log(table, corrected_key)
             const [get_error, result] = await Storage.get(table, corrected_key, fallback);
             if (get_error) {
-                /* eslint-disable no-console */
-                console.log(get_error);
-                /* eslint-enable no-console */
+                Logger.error('global get', get_error, key);
                 return this.apply_callback(fallback, callback);
             }
             return this.apply_callback(result, callback);
@@ -102,7 +100,7 @@ export class Global {
             [set_error, result] = await Storage.set(table, corrected_key, value);
         }
         if (set_error) {
-            Logger.error(set_error, table, value);
+            Logger.error('global set error', set_error, { table, corrected_key }, value);
             return false;
         }
         return result;
@@ -133,6 +131,7 @@ export class Global {
         return result;
     }
     static async merge_all(data) {
+        Logger.warning('using slow Global.merge_all');
         // @NOTE maybe this is slow, can be changed into a prepared statement or a hugh insert statement
         const result = await Promise.all(
             Object.keys(data).map(async (key) => {

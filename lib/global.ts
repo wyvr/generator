@@ -95,6 +95,9 @@ export class Global {
         let set_error: Error | null = null,
             result = false;
         if (Array.isArray(corrected_key)) {
+            if(corrected_key.length == 0) {
+                return false;
+            }
             [set_error, result] = await Storage.merge_all(table, value);
         } else {
             [set_error, result] = await Storage.set(table, corrected_key, value);

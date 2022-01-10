@@ -89,7 +89,9 @@ export class Storage {
                 try {
                     let result = null;
                     if (step == '*') {
-                        result = await this.db.all(`SELECT key, value FROM ${this.normalize(table)}`);
+                        result = await this.db.all(
+                            `SELECT key, value FROM ${this.normalize(table)}`
+                        );
                         if (result) {
                             return [
                                 null,
@@ -100,7 +102,10 @@ export class Storage {
                         }
                         // console.log(result)
                     } else {
-                        result = await this.db.get(`SELECT value FROM ${this.normalize(table)} WHERE key = ?`, step);
+                        result = await this.db.get(
+                            `SELECT value FROM ${this.normalize(table)} WHERE key = ?`,
+                            step
+                        );
                     }
                     if (!result || !result.value) {
                         return [null, fallback];
@@ -238,11 +243,11 @@ export class Storage {
             update = [];
         // check what should be inserted and what should be updated
         Object.keys(data).forEach((key) => {
-            const orig = all.find((item)=>item.key == key)
+            const orig = all.find((item) => item.key == key);
             if (orig) {
                 let value = data[key];
-                if(typeof value == 'object') {
-                    value = merge(orig.value, data[key]) 
+                if (typeof value == 'object') {
+                    value = merge(orig.value, data[key]);
                 }
                 update.push({ key, value: this.escape(value) });
                 return;
@@ -267,7 +272,7 @@ export class Storage {
         const query = insert_query + update_query;
         try {
             await this.db.run(query);
-        } catch(e) {
+        } catch (e) {
             return [e, false];
         }
 
@@ -289,5 +294,9 @@ export class Storage {
         } catch (e) {
             return [e, false];
         }
+    }
+    static destroy() {
+        this.db = null;
+        return File.remove(this.source);
     }
 }

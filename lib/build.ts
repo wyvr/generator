@@ -75,7 +75,11 @@ export class Build {
         }
         // write css file
         const css_file_path = join('gen', 'css', `${props._wyvr.identifier.replace(/\./g, '-')}.css`);
-        const identifier_item = { url: props.url, identifier: props._wyvr.identifier, extension: props._wyvr.extension };
+        const identifier_item = {
+            url: props.url,
+            identifier: props._wyvr.identifier,
+            extension: props._wyvr.extension,
+        };
         let media_files = {};
         if (!fs.existsSync(css_file_path)) {
             media_files = await this.write_css_file(css_file_path, svelte_render_item.result.css.code);
@@ -91,11 +95,18 @@ export class Build {
         await this.write_media_files(css_file_path, media_files);
         if (Object.keys(media_files).length > 0) {
             // inject media css files
-            svelte_render_item.result.html = await this.inject_media_files(svelte_render_item.result.html, css_file_path, media_files);
+            svelte_render_item.result.html = await this.inject_media_files(
+                svelte_render_item.result.html,
+                css_file_path,
+                media_files
+            );
         }
         // inject translations
         if (translations) {
-            svelte_render_item.result.html = svelte_render_item.result.html.replace(/<\/body>/, `<script>var wyvr_i18n_tr = ${JSON.stringify(translations)}</script></body>`);
+            svelte_render_item.result.html = svelte_render_item.result.html.replace(
+                /<\/body>/,
+                `<script>var wyvr_i18n_tr = ${JSON.stringify(translations)}</script></body>`
+            );
         }
 
         // svelte_render_item.result.html = svelte_render_item.result.html.replace('</head>', `<style>${svelte_render_item.result.css.code}</style></head>`);

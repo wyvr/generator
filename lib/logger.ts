@@ -75,6 +75,10 @@ export class Logger {
     }
     static report(duration, ...values) {
         if (this.show_report) {
+            if (cluster.isWorker) {
+                this.output(LogType.report, color.yellow, '#', duration, ...values, color.dim('ms'));
+                return;
+            }
             this.output(LogType.report, color.yellow, '#', ...values, duration, color.dim('ms'));
         }
     }

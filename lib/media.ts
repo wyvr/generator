@@ -2,7 +2,7 @@ import { Logger } from '@lib/logger';
 import { File } from '@lib/file';
 import { Dir } from '@lib/dir';
 import { Error } from '@lib/error';
-import { MediaModel, MediaModelOutput } from '@lib/model/media';
+import { MediaModel, MediaModelMode, MediaModelOutput } from '@lib/model/media';
 import { dirname, join } from 'path';
 import sharp from 'sharp';
 import { ServerResponse } from 'http';
@@ -126,6 +126,10 @@ export class Media {
             options.height = Math.ceil(media.height);
         }
         try {
+            // add white background when empty space can be added and format is not transparent able
+            if (['jpg', 'jpeg'].indexOf(media.format) > -1 && media.mode != MediaModelMode.Cover) {
+                options.background = { r: 255, g: 255, b: 255 };
+            }
             Logger.debug(media.src, JSON.stringify(options));
             const modified_image = await sharp(buffer).resize(options);
             if (media.output != MediaModelOutput.Path) {
@@ -163,7 +167,12 @@ export class Media {
         }
         return null;
     }
-    static async serve(res: ServerResponse, media_config: MediaModel, on_end: () => Promise<void> = null, on_fail: (message: string) => Promise<void> = null) {
+    static async serve(
+        res: ServerResponse,
+        media_config: MediaModel,
+        on_end: () => Promise<void> = null,
+        on_fail: (message: string) => Promise<void> = null
+    ) {
         if (!Media.allowed_domains) {
             Media.allowed_domains = Config.get('media.allowed_domains');
         }
@@ -182,7 +191,10 @@ export class Media {
             return;
         };
         // check for allowed domain
-        const allowed = !media_config.domain || (Array.isArray(this.allowed_domains) && this.allowed_domains.find((domain) => media_config.domain == domain));
+        const allowed =
+            !media_config.domain ||
+            (Array.isArray(this.allowed_domains) &&
+                this.allowed_domains.find((domain) => media_config.domain == domain));
         if (!allowed) {
             return await fail(res, `domain "${media_config.domain}" not allowed`);
         }

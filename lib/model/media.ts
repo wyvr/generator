@@ -17,14 +17,16 @@ export class MediaModel {
     domain?: string;
 
     constructor(config: IObject) {
-        Object.keys(this).forEach((key) => {
-            if (config[key]) {
-                if (key == 'src') {
-                    config[key] = config[key].replace(/^\//, '');
+        if(config) {
+            Object.keys(this).forEach((key) => {
+                if (config[key]) {
+                    if (key == 'src') {
+                        config[key] = config[key].replace(/^\//, '');
+                    }
+                    this[key] = config[key];
                 }
-                this[key] = config[key];
-            }
-        });
+            });
+        }
     }
 
     static get_config_hash(config: MediaModel) {

@@ -7,6 +7,7 @@ import { File } from '@lib/file';
 import { Logger } from '@lib/logger';
 import { WyvrFile } from '@lib/model/wyvr/file';
 import { IIdentifier } from '@lib/interface/identifier';
+import { hrtime_to_ms } from '@lib/converter/time';
 
 export const script = async (value: IIdentifier[]) => {
     const svelte_files = File.collect_svelte_files('gen/client');
@@ -20,6 +21,7 @@ export const script = async (value: IIdentifier[]) => {
     );
 };
 export const build_identifier_script = async (identifier: IIdentifier, files: WyvrFile[]) => {
+    const start = process.hrtime();
     let dep_files = [];
     ['doc', 'layout', 'page'].forEach((type) => {
         if (identifier.file[type]) {
@@ -39,6 +41,7 @@ export const build_identifier_script = async (identifier: IIdentifier, files: Wy
         if (error) {
             Logger.error(Error.get({ message: error }, identifier.file.name, 'build identifier script'));
         }
+        Logger.report(hrtime_to_ms(process.hrtime(start)), 'script', identifier.file.name);
         return result;
     } catch (e) {
         // svelte error messages

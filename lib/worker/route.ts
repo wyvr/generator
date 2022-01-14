@@ -5,6 +5,7 @@ import { Generate } from '@lib/generate';
 import { IWorkerRouteValue } from '@lib/interface/worker';
 import { Logger } from '@lib/logger';
 import { Routes } from '@lib/routes';
+import { hrtime_to_ms } from '@lib/converter/time';
 
 export const route = async (value: IWorkerRouteValue[], create_identifier: (any) => any) => {
     const default_values = Config.get('default_values');
@@ -15,6 +16,7 @@ export const route = async (value: IWorkerRouteValue[], create_identifier: (any)
     }
     await Promise.all(
         value.map(async (entry) => {
+            const start = process.hrtime();
             const filename = entry.route.path;
             const [error, route_result] = await Routes.execute_route(entry.route);
             if (error) {
@@ -35,6 +37,7 @@ export const route = async (value: IWorkerRouteValue[], create_identifier: (any)
                 return result.data;
             });
             route_data = [].concat(route_data, route_url);
+            Logger.report(hrtime_to_ms(process.hrtime(start)), 'route', entry.route.path);
             return filename;
         })
     );

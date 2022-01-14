@@ -84,8 +84,9 @@ export class CronMode {
                 entry.last_execution = new Date().getTime();
             }
         });
+        /* eslint-enable */
         const timeInMs = hrtime_to_ms(process.hrtime(this.hr_start));
         Logger.stop('cron total', timeInMs);
-        /* eslint-enable */
+        Logger.write_report();
     }
 }

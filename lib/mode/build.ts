@@ -116,6 +116,8 @@ export class BuildMode {
         const timeInMs = hrtime_to_ms(process.hrtime(this.hr_start));
         Logger.stop('initial total', timeInMs);
 
+        Logger.write_report();
+
         if (Env.is_prod()) {
             return shutdown();
         }

@@ -13,6 +13,7 @@ export class Logger {
     static last_text = null;
     static env = process.env.WYVR_ENV || 'development';
     static show_report = process.env.WYVR_REPORT != null;
+    static report_content = [];
     static set_env(env: string) {
         if (['development', 'debug', 'production'].indexOf(env) == -1) {
             return;
@@ -46,7 +47,9 @@ export class Logger {
         const symbol = has_color_fn ? color_fn(char) : char;
 
         if (this.spinner) {
-            this.spinner.stopAndPersist({ text: `${symbol} ${text}`, symbol: color.dim('│') }).start(this.last_text).spinner = 'dots';
+            this.spinner
+                .stopAndPersist({ text: `${symbol} ${text}`, symbol: color.dim('│') })
+                .start(this.last_text).spinner = 'dots';
             return;
         }
         console.log(symbol, text);
@@ -80,6 +83,8 @@ export class Logger {
                 return;
             }
             this.output(LogType.report, color.yellow, '#', ...values, duration, color.dim('ms'));
+
+            this.report_content.push([duration, ...values]);
         }
     }
     static block(...values) {
@@ -122,13 +127,18 @@ export class Logger {
     static logo() {
         const pkg = File.read_json(join(__dirname, '..', 'package.json'));
         const version = pkg ? pkg.version : 'missing version';
-        const logo = [`__  __  __  __  __  ____`, `\\ \\/ /\\/ /\\/ /\\/ /\\/ /_/`, ` \\/_/\\/_/\\/ /\\/_/\\/_/`, `         /_/ generator ${color.dim(version)}`].join('\n');
+        const logo = [
+            `__  __  __  __  __  ____`,
+            `\\ \\/ /\\/ /\\/ /\\/ /\\/ /_/`,
+            ` \\/_/\\/_/\\/ /\\/_/\\/_/`,
+            `         /_/ generator ${color.dim(version)}`,
+        ].join('\n');
         /* eslint-disable */
         console.log(color.cyan(logo));
         console.log('');
         /* eslint-enable */
     }
-    
+
     /* eslint-disable */
     static stringify(data: any): string {
         if (typeof data == 'string' || typeof data == 'number' || typeof data == 'bigint') {
@@ -137,4 +147,23 @@ export class Logger {
         return JSON.stringify(data, circular());
     }
     /* eslint-enable */
+
+    static write_report() {
+        if (this.show_report) {
+            File.write(
+                join('gen', 'report.csv'),
+                '"ms","...values"\n' +
+                    this.report_content
+                        .map(
+                            (line) =>
+                                `"${line
+                                    .map((col) => color.unstyle(col))
+                                    .filter((col) => col != 'ms' && !col.match(/^PID \d+$/))
+                                    .join('","')}"`
+                        )
+                        .join('\n')
+            );
+            this.warning('report file', join('gen', 'report.csv'));
+        }
+    }
 }

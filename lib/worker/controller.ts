@@ -13,6 +13,7 @@ import { Cwd } from '@lib/vars/cwd';
 import { ReleasePath } from '@lib/vars/release_path';
 import { cpus } from 'os';
 import { ILoggerObject } from '@lib/interface/logger';
+import { WorkerEmit } from '@lib/model/worker/emit';
 
 export class WorkerController {
     private workers: WorkerModel[] = [];
@@ -136,7 +137,7 @@ export class WorkerController {
                 }
                 break;
             case WorkerAction.emit:
-                if (data.type && ['identifier', 'route', 'global', 'build', 'identifier_list'].indexOf(data.type) > -1) {
+                if (data.type && WorkerEmit[data.type]) {
                     this.events.emit('emit', data.type, data);
                 }
                 break;

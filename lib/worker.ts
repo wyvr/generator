@@ -69,7 +69,7 @@ export class Worker {
                     WorkerHelper.send_status(WorkerStatus.busy);
 
                     await transform(value);
-                   
+
                     WorkerHelper.send_complete();
                     break;
                 }
@@ -84,12 +84,12 @@ export class Worker {
                     this.identifiers_cache = {};
                     // bulk sending the css root elements
                     WorkerHelper.send_action(WorkerAction.emit, {
-                        type: 'identifier_list',
+                        type: WorkerEmit.identifier_list,
                         data: identifier_list,
                     });
                     // bulk sending the build paths
                     WorkerHelper.send_action(WorkerAction.emit, {
-                        type: 'build',
+                        type: WorkerEmit.build,
                         data: build_result.filter((x) => x),
                     });
                     // console.log('result', result);
@@ -100,14 +100,15 @@ export class Worker {
                     WorkerHelper.send_status(WorkerStatus.busy);
 
                     const { media, shortcode_identifiers } = await inject(value, this.socket_port);
-
-                    WorkerHelper.send_action(WorkerAction.emit, {
-                        type: 'inject_shortcode_identifier',
-                        data: shortcode_identifiers,
-                    });
+                    if (Object.keys(shortcode_identifiers).length > 0) {
+                        WorkerHelper.send_action(WorkerAction.emit, {
+                            type: WorkerEmit.inject_shortcode_identifier,
+                            data: shortcode_identifiers,
+                        });
+                    }
                     if (media) {
                         WorkerHelper.send_action(WorkerAction.emit, {
-                            type: 'inject_media',
+                            type: WorkerEmit.inject_media,
                             data: media,
                         });
                     }

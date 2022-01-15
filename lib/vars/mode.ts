@@ -1,11 +1,11 @@
-import { WyvrMode } from '@lib/model/wyvr/mode';
+import { ModeType } from '@lib/struc/mode';
 
 export class Mode {
-    static value: WyvrMode = null;
-    static get(): WyvrMode {
+    static value: ModeType = null;
+    static get(): ModeType {
         return this.value;
     }
-    static set(value: WyvrMode) {
+    static set(value: ModeType) {
         this.value = value;
     }
 }

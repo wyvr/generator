@@ -1,7 +1,7 @@
 import { join } from 'path';
 import { File } from '@lib/file';
 import { Mode } from '@lib/vars/mode';
-import { WyvrMode } from '@lib/model/wyvr/mode';
+import { ModeType } from '@lib/struc/mode';
 import { uniq } from '@lib/helper/uniq';
 import { Logger } from '@lib/logger';
 
@@ -24,7 +24,7 @@ export class UniqId {
             return null;
         }
         let value = null;
-        if ([WyvrMode.deliver, WyvrMode.cron].includes(mode)) {
+        if ([ModeType.deliver, ModeType.cron].includes(mode)) {
             value = File.read(this.uniq_id_file);
             if (!value) {
                 Logger.error('no previous version found in', this.uniq_id_file);

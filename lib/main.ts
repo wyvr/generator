@@ -5,7 +5,7 @@ import { Config } from '@lib/config';
 import { Env } from '@lib/env';
 import { EnvType } from '@lib/struc/env';
 import { IPerformance_Measure, Performance_Measure, Performance_Measure_Blank } from '@lib/performance_measure';
-import { WyvrMode } from '@lib/model/wyvr/mode';
+import { ModeType } from '@lib/struc/mode';
 import { WorkerEmit } from '@lib/struc/worker/emit';
 import { DeliverMode } from '@lib/mode/deliver';
 import { CronMode } from '@lib/mode/cron';
@@ -42,7 +42,7 @@ export class Main {
         const args = process.argv.slice(2).map((arg) => arg.toLowerCase().trim());
         Mode.set(this.get_mode(args));
         // load build id
-        const uniq = [WyvrMode.deliver, WyvrMode.cron].includes(Mode.get()) ? UniqId.load() : UniqId.new();
+        const uniq = [ModeType.deliver, ModeType.cron].includes(Mode.get()) ? UniqId.load() : UniqId.new();
         if (!uniq) {
             process.exit(1);
             return;
@@ -51,18 +51,18 @@ export class Main {
         // create release folder
         ReleasePath.set(`releases/${UniqId.get()}`);
 
-        process.title = `wyvr ${WyvrMode[Mode.get()]} ${process.pid}`;
+        process.title = `wyvr ${ModeType[Mode.get()]} ${process.pid}`;
         Logger.present('PID', process.pid, Logger.color.dim(`"${process.title}"`));
         Logger.present('cwd', Cwd.get());
         Logger.present('build', UniqId.get());
         Logger.present('env', EnvType[Env.get()]);
-        Logger.present('mode', WyvrMode[Mode.get()]);
+        Logger.present('mode', ModeType[Mode.get()]);
         this.perf = Config.get('import.measure_performance')
             ? new Performance_Measure()
             : new Performance_Measure_Blank();
 
         switch (Mode.get()) {
-            case WyvrMode.build: {
+            case ModeType.build: {
                 const build = new BuildMode(this.perf);
                 const { socket_port } = await build.init();
                 this.validate_config();
@@ -71,7 +71,7 @@ export class Main {
                 await build.start(this.worker_controller, this.identifiers);
                 break;
             }
-            case WyvrMode.cron: {
+            case ModeType.cron: {
                 const cron = new CronMode(this.perf);
                 await cron.init();
                 this.validate_config();
@@ -80,7 +80,7 @@ export class Main {
                 await cron.start(this.worker_controller);
                 break;
             }
-            case WyvrMode.deliver: {
+            case ModeType.deliver: {
                 const deliver = new DeliverMode();
                 deliver.start();
                 break;
@@ -90,14 +90,14 @@ export class Main {
         }
     }
     get_mode(args: string[]) {
-        if (args.includes(WyvrMode[WyvrMode.deliver])) {
-            return WyvrMode.deliver;
+        if (args.includes(ModeType[ModeType.deliver])) {
+            return ModeType.deliver;
         }
-        if (args.includes(WyvrMode[WyvrMode.cron])) {
-            return WyvrMode.cron;
+        if (args.includes(ModeType[ModeType.cron])) {
+            return ModeType.cron;
         }
         // build is default
-        return WyvrMode.build;
+        return ModeType.build;
     }
     validate_config() {
         if (!Config.get('packages')) {

@@ -1,4 +1,4 @@
-export enum WyvrMode {
+export enum ModeType {
     build,
     cron,
     deliver

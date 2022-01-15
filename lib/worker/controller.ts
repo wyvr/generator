@@ -4,7 +4,7 @@ import { WorkerAction } from '@lib/struc/worker/action';
 
 import { Logger } from '@lib/logger';
 import { Env } from '@lib/env';
-import { WorkerModel } from '@lib/model/worker/worker';
+import { WorkerModel } from '@lib/model/worker';
 import { LogType } from '@lib/model/log';
 import { Events } from '@lib/events';
 import { Error } from '@lib/error';

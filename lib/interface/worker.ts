@@ -1,5 +1,5 @@
-import { EnvModel } from '@lib/model/env';
-import { Route } from '../model/route';
+import { EnvType } from '@lib/struc/env';
+import { Route } from '@lib/model/route';
 
 export interface IWorkerSend {
     action: IWorkerSendAction;
@@ -17,7 +17,7 @@ export interface IWorkerSendAction {
 }
 // export interface IWorkerValue {}
 export interface IWorkerConfigureValue {
-    env?: EnvModel;
+    env?: EnvType;
     cwd?: string;
     release_path?: string;
     socket_port?: number;

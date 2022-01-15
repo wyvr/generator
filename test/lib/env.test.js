@@ -3,7 +3,7 @@ require('module-alias/register');
 describe('Lib/Env', () => {
     const assert = require('assert');
     const { Env } = require('@lib/env');
-    const { EnvModel } = require('@lib/model/env');
+    const { EnvModel } = require('@lib/struc/env');
     before(() => {
         Env.set(EnvModel.prod);
     });

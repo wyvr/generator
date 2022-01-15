@@ -9,7 +9,7 @@ import { Transform } from '@lib/transform';
 import { I18N } from '@lib/i18n';
 import { IBuildResult } from '@lib/interface/build';
 import { IObject } from '@lib/interface/object';
-import { EnvModel } from '@lib/model/env';
+import { EnvType } from '@lib/struc/env';
 import { File } from '@lib/file';
 import { ReleasePath } from '@lib/vars/release_path';
 
@@ -208,7 +208,7 @@ export class Build {
     }
     static add_debug_code(html: string, path: string, extension: string, data: IObject) {
         // add debug data
-        if (extension.match(/html|htm|php/) && (Env.get() == EnvModel.debug || Env.get() == EnvModel.dev)) {
+        if (extension.match(/html|htm|php/) && (Env.get() == EnvType.debug || Env.get() == EnvType.dev)) {
             const data_path = File.to_extension(path, 'json');
             File.write(data_path, JSON.stringify(data));
             return html.replace(

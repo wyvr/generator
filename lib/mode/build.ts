@@ -5,7 +5,7 @@ import { Env } from '@lib/env';
 import { Port } from '@lib/port';
 import { Config } from '@lib/config';
 import { packages } from '@lib/main/packages';
-import { EnvModel } from '@lib/model/env';
+import { EnvType } from '@lib/struc/env';
 import { Global } from '@lib/global';
 import { WorkerController } from '@lib/worker/controller';
 import { File } from '@lib/file';
@@ -73,7 +73,7 @@ export class BuildMode {
         // add to Global
         // @todo this is realy slow ~10sec, when the db already exists or gets already written
         const config = Config.get(null);
-        config.env = EnvModel[Env.get()];
+        config.env = EnvType[Env.get()];
         config.https = !!config.https;
         config.build = UniqId.get();
         // start from scratch

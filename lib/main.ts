@@ -3,7 +3,7 @@ import { Logger } from '@lib/logger';
 import { WorkerController } from '@lib/worker/controller';
 import { Config } from '@lib/config';
 import { Env } from '@lib/env';
-import { EnvModel } from '@lib/model/env';
+import { EnvType } from '@lib/struc/env';
 import { IPerformance_Measure, Performance_Measure, Performance_Measure_Blank } from '@lib/performance_measure';
 import { WyvrMode } from '@lib/model/wyvr/mode';
 import { WorkerEmit } from '@lib/struc/worker/emit';
@@ -55,7 +55,7 @@ export class Main {
         Logger.present('PID', process.pid, Logger.color.dim(`"${process.title}"`));
         Logger.present('cwd', Cwd.get());
         Logger.present('build', UniqId.get());
-        Logger.present('env', EnvModel[Env.get()]);
+        Logger.present('env', EnvType[Env.get()]);
         Logger.present('mode', WyvrMode[Mode.get()]);
         this.perf = Config.get('import.measure_performance')
             ? new Performance_Measure()

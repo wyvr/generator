@@ -3,7 +3,7 @@ import { Env } from '@lib/env';
 import { File } from '@lib/file';
 import { Global } from '@lib/global';
 import { fail } from '@lib/helper/endings';
-import { EnvModel } from '@lib/model/env';
+import { EnvType } from '@lib/struc/env';
 import { Plugin } from '@lib/plugin';
 import { join } from 'path';
 import { ReleasePath } from '@lib/vars/release_path';
@@ -12,7 +12,7 @@ export const plugins = async () => {
     const plugin_files = File.collect_files(join('gen', 'plugins'));
     await Plugin.init(plugin_files, {
         release_path: ReleasePath.get(),
-        env: EnvModel[Env.get()],
+        env: EnvType[Env.get()],
     });
     // allow plugins to modify the global config
     let global = Config.get(null);

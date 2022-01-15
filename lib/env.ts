@@ -1,37 +1,37 @@
-import { EnvModel } from '@lib/model/env';
+import { EnvType } from '@lib/struc/env';
 
 export class Env {
-    private static env: EnvModel = EnvModel.prod;
+    private static env: EnvType = EnvType.prod;
     
-    static set(value: string | number | EnvModel) {
+    static set(value: string | number | EnvType) {
         if (!value) {
             return this.get();
         }
         let env = null;
         // string to enum
-        if (typeof value == 'string' && EnvModel[value] != null) {
-            env = EnvModel[value];
+        if (typeof value == 'string' && EnvType[value] != null) {
+            env = EnvType[value];
         }
         // number to enum
-        if (typeof value == 'number' && EnvModel[value] != null && EnvModel[EnvModel[value]] != null) {
-            env = EnvModel[EnvModel[value]];
+        if (typeof value == 'number' && EnvType[value] != null && EnvType[EnvType[value]] != null) {
+            env = EnvType[EnvType[value]];
         }
         if (env) {
-            this.env = <EnvModel>env;
+            this.env = <EnvType>env;
         }
         return this.get();
     }
-    static get(): EnvModel {
+    static get(): EnvType {
         return this.env;
     }
     static is_debug() {
-        return this.get() == EnvModel.debug || this.is_dev();
+        return this.get() == EnvType.debug || this.is_dev();
     }
     static is_dev() {
-        return this.get() == EnvModel.dev;
+        return this.get() == EnvType.dev;
     }
     static is_prod() {
-        return this.get() == EnvModel.prod;
+        return this.get() == EnvType.prod;
     }
     static json_spaces(env) {
         if(env?.WYVR_ENV === 'prod') {

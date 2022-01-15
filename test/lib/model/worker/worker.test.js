@@ -2,8 +2,8 @@ require('module-alias/register');
 
 describe('Lib/Model/Worker/Worker', () => {
     const assert = require('assert');
-    const { WorkerModel } = require('@lib/model/worker/worker');
-    const { WorkerStatus } = require('@lib/model/worker/status');
+    const { WorkerModel } = require('@lib/struc/worker/worker');
+    const { WorkerStatus } = require('@lib/struc/worker/status');
 
     const fork = () => {
         return {

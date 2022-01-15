@@ -3,8 +3,8 @@ require('module-alias/register');
 describe('Lib/Worker/WorkerHelper', () => {
     const assert = require('assert');
     const { WorkerHelper } = require('@lib/worker/helper');
-    const { WorkerStatus } = require('@lib/model/worker/status');
-    const { WorkerAction } = require('@lib/model/worker/action');
+    const { WorkerStatus } = require('@lib/struc/worker/status');
+    const { WorkerAction } = require('@lib/struc/worker/action');
     const { LogType } = require('@lib/model/log');
     let send = null;
     let messages = [];

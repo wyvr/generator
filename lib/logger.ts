@@ -1,7 +1,7 @@
 import circular from 'circular';
 import * as color from 'ansi-colors';
 import ora from 'ora';
-import { WorkerAction } from '@lib/model/worker/action';
+import { WorkerAction } from '@lib/struc/worker/action';
 import cluster from 'cluster';
 import { LogType } from '@lib/model/log';
 import { File } from '@lib/file';

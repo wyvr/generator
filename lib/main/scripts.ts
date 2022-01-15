@@ -1,6 +1,6 @@
 import { Dependency } from '@lib/dependency';
 import { Dir } from '@lib/dir';
-import { WorkerAction } from '@lib/model/worker/action';
+import { WorkerAction } from '@lib/struc/worker/action';
 import { Plugin } from '@lib/plugin';
 import { WorkerController } from '@lib/worker/controller';
 import { removeSync } from 'fs-extra';

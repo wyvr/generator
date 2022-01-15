@@ -1,6 +1,6 @@
 import { Config } from '@lib/config';
-import { WorkerStatus } from '@lib/model/worker/status';
-import { WorkerAction } from '@lib/model/worker/action';
+import { WorkerStatus } from '@lib/struc/worker/status';
+import { WorkerAction } from '@lib/struc/worker/action';
 
 import { Logger } from '@lib/logger';
 import { Env } from '@lib/env';
@@ -13,7 +13,7 @@ import { Cwd } from '@lib/vars/cwd';
 import { ReleasePath } from '@lib/vars/release_path';
 import { cpus } from 'os';
 import { ILoggerObject } from '@lib/interface/logger';
-import { WorkerEmit } from '@lib/model/worker/emit';
+import { WorkerEmit } from '@lib/struc/worker/emit';
 
 export class WorkerController {
     private workers: WorkerModel[] = [];

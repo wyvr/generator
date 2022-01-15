@@ -3,8 +3,8 @@ import { Plugin } from '@lib/plugin';
 import { Logger } from '@lib/logger';
 import { IObject } from '@lib/interface/object';
 import { WorkerController } from '@lib/worker/controller';
-import { WorkerAction } from '@lib/model/worker/action';
-import { WorkerEmit } from '@lib/model/worker/emit';
+import { WorkerAction } from '@lib/struc/worker/action';
+import { WorkerEmit } from '@lib/struc/worker/emit';
 import { File } from '@lib/file';
 
 export const inject = async (worker_controller: WorkerController, list: string[]): Promise<[IObject, IObject]> => {

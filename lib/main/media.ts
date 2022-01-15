@@ -1,4 +1,4 @@
-import { WorkerAction } from '@lib/model/worker/action';
+import { WorkerAction } from '@lib/struc/worker/action';
 import { Plugin } from '@lib/plugin';
 import { WorkerController } from '@lib/worker/controller';
 import { IPerformance_Measure } from '@lib/performance_measure';

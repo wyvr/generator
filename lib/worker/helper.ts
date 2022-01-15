@@ -1,5 +1,5 @@
-import { WorkerStatus } from '@lib/model/worker/status';
-import { WorkerAction } from '@lib/model/worker/action';
+import { WorkerStatus } from '@lib/struc/worker/status';
+import { WorkerAction } from '@lib/struc/worker/action';
 import { IWorkerSend } from '@lib/interface/worker';
 
 export class WorkerHelper {

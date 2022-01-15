@@ -1,4 +1,4 @@
-import { WorkerStatus } from '@lib/model/worker/status';
+import { WorkerStatus } from '@lib/struc/worker/status';
 import cluster from 'cluster';
 import { ChildProcess } from 'child_process';
 

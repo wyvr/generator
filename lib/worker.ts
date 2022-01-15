@@ -1,11 +1,11 @@
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
 import { WorkerHelper } from '@lib/worker/helper';
-import { WorkerStatus } from '@lib/model/worker/status';
-import { WorkerAction } from '@lib/model/worker/action';
+import { WorkerStatus } from '@lib/struc/worker/status';
+import { WorkerAction } from '@lib/struc/worker/action';
 
 import { RequireCache } from '@lib/require_cache';
-import { WorkerEmit } from '@lib/model/worker/emit';
+import { WorkerEmit } from '@lib/struc/worker/emit';
 import { Logger } from '@lib/logger';
 import { MediaModel } from '@lib/model/media';
 import { Media } from '@lib/media';

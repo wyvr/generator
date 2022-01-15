@@ -4,7 +4,7 @@ import { Logger } from '@lib/logger';
 import { Plugin } from '@lib/plugin';
 import { Client } from '@lib/client';
 import { WyvrFileLoading } from '@lib/model/wyvr/file';
-import { WorkerAction } from '@lib/model/worker/action';
+import { WorkerAction } from '@lib/struc/worker/action';
 import { WorkerController } from '@lib/worker/controller';
 import { Global } from '@lib/global';
 import { Error } from '@lib/error';

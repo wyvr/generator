@@ -1,6 +1,6 @@
 import { Logger } from '@lib/logger';
-import { WorkerAction } from '@lib/model/worker/action';
-import { WorkerEmit } from '@lib/model/worker/emit';
+import { WorkerAction } from '@lib/struc/worker/action';
+import { WorkerEmit } from '@lib/struc/worker/emit';
 import { Plugin } from '@lib/plugin';
 import { WorkerController } from '@lib/worker/controller';
 import { IBuildFileResult } from '@lib/interface/build';

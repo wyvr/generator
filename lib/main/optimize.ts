@@ -1,6 +1,6 @@
 import { Env } from '@lib/env';
 import { Logger } from '@lib/logger';
-import { WorkerAction } from '@lib/model/worker/action';
+import { WorkerAction } from '@lib/struc/worker/action';
 import { Optimize } from '@lib/optimize';
 import { Plugin } from '@lib/plugin';
 import { WorkerController } from '@lib/worker/controller';

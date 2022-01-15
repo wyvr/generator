@@ -1,8 +1,8 @@
 import { Global } from '@lib/global';
 import { Logger } from '@lib/logger';
 import { Route } from '@lib/model/route';
-import { WorkerAction } from '@lib/model/worker/action';
-import { WorkerEmit } from '@lib/model/worker/emit';
+import { WorkerAction } from '@lib/struc/worker/action';
+import { WorkerEmit } from '@lib/struc/worker/emit';
 import { Plugin } from '@lib/plugin';
 import { Routes } from '@lib/routes';
 import { WorkerController } from '@lib/worker/controller';

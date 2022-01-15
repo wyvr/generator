@@ -6,7 +6,7 @@ import { Env } from '@lib/env';
 import { EnvModel } from '@lib/model/env';
 import { IPerformance_Measure, Performance_Measure, Performance_Measure_Blank } from '@lib/performance_measure';
 import { WyvrMode } from '@lib/model/wyvr/mode';
-import { WorkerEmit } from '@lib/model/worker/emit';
+import { WorkerEmit } from '@lib/struc/worker/emit';
 import { DeliverMode } from '@lib/mode/deliver';
 import { CronMode } from '@lib/mode/cron';
 import { BuildMode } from '@lib/mode/build';

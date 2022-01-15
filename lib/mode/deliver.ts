@@ -2,7 +2,7 @@ import { Port } from '@lib/port';
 import { Logger } from '@lib/logger';
 import { Media } from '@lib/media';
 import { hrtime_to_ms } from '@lib/converter/time';
-import { LogType } from '@lib/model/log';
+import { LogType } from '@lib/struc/log';
 import { Config } from '@lib/config';
 import { delay } from '@lib/helper/delay';
 import { between } from '@lib/helper/random';

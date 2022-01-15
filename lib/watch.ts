@@ -13,7 +13,7 @@ import { Cwd } from '@lib/vars/cwd';
 import { Media } from '@lib/media';
 import { delay } from '@lib/helper/delay';
 import { between } from '@lib/helper/random';
-import { LogType } from '@lib/model/log';
+import { LogType } from '@lib/struc/log';
 import static_server from 'node-static';
 import { ServerResponse } from 'http';
 import { Error } from '@lib/error';

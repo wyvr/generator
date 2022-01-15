@@ -3,7 +3,7 @@ import * as color from 'ansi-colors';
 import ora from 'ora';
 import { WorkerAction } from '@lib/struc/worker/action';
 import cluster from 'cluster';
-import { LogType } from '@lib/model/log';
+import { LogType } from '@lib/struc/log';
 import { File } from '@lib/file';
 import { join } from 'path';
 

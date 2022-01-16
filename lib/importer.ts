@@ -173,6 +173,7 @@ export class Importer {
         return true;
     }
     get_global() {
+        Logger.warning('execute dead code')
         return new Promise((resolve) => {
             try {
                 const jsonStream = stream_object.withParser();

@@ -95,7 +95,7 @@ export class Global {
         let set_error: Error | null = null,
             result = false;
         if (Array.isArray(corrected_key)) {
-            if(corrected_key.length == 0) {
+            if (corrected_key.length == 0) {
                 return false;
             }
             [set_error, result] = await Storage.merge_all(table, value);
@@ -207,6 +207,10 @@ export class Global {
             // use the keys from the value to extract keys
             if (value && typeof value == 'object') {
                 corrected_key = Object.keys(value);
+                if (corrected_key.length == 1) {
+                    // use first as only value
+                    return [table, corrected_key[0]];
+                }
             }
         }
 

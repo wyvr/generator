@@ -2,6 +2,7 @@ import { File } from '@lib/file';
 import arrayToTree from 'array-to-tree';
 import { Global } from '@lib/global';
 import { IObject } from '@lib/interface/object';
+import { Logger } from './logger';
 
 export class Generate {
     static enhance_data(data: IObject): IObject {
@@ -39,10 +40,16 @@ export class Generate {
                         wyvr_prop.template.doc = this.merge_property(data._wyvr.template.doc, wyvr_prop.template.doc);
                     }
                     if (data._wyvr.template.layout) {
-                        wyvr_prop.template.layout = this.merge_property(data._wyvr.template.layout, wyvr_prop.template.layout);
+                        wyvr_prop.template.layout = this.merge_property(
+                            data._wyvr.template.layout,
+                            wyvr_prop.template.layout
+                        );
                     }
                     if (data._wyvr.template.page) {
-                        wyvr_prop.template.page = this.merge_property(data._wyvr.template.page, wyvr_prop.template.page);
+                        wyvr_prop.template.page = this.merge_property(
+                            data._wyvr.template.page,
+                            wyvr_prop.template.page
+                        );
                     }
                 }
             }
@@ -81,32 +88,28 @@ export class Generate {
 
         return data;
     }
-    static add_to_global(data: IObject, global: IObject) {
-        if (!global || !data) {
-            return global;
+    static add_to_nav(data: IObject, nav_store: IObject) {
+        if (!nav_store || !data) {
+            return nav_store;
         }
         // extract navigation data
         const nav_result = data._wyvr?.nav;
 
         if (!nav_result) {
-            return global;
-        }
-        // ensure global data structure
-        if (!global.navigation) {
-            global.navigation = {};
+            return nav_store;
         }
         if (!Array.isArray(nav_result)) {
-            return global;
+            return nav_store;
         }
         nav_result.forEach((nav) => {
             if (nav.scope) {
-                if (!global.navigation[nav.scope]) {
-                    global.navigation[nav.scope] = [];
+                if (!nav_store[nav.scope]) {
+                    nav_store[nav.scope] = [];
                 }
-                global.navigation[nav.scope].push(nav);
+                nav_store[nav.scope].push(nav);
             }
         });
-        return global;
+        return nav_store;
     }
     static set_default_values(data: IObject, default_values: IObject) {
         if (default_values) {
@@ -125,40 +128,60 @@ export class Generate {
         return [].concat(prop_value, default_value).filter((x, index, arr) => arr.indexOf(x) == index);
     }
     static async build_nav() {
-        const nav = await Global.get('navigation');
+        let nav = await Global.get('navigation');
+        Logger.warning('build_nav', nav);
         if (!nav) {
             return null;
         }
 
-        await Promise.all(
-            Object.keys(nav).map(async (index) => {
-                const entry = nav[index];
-                if (!Array.isArray(entry.value)) {
-                    return null;
-                }
-                const data = entry.value
-                    // sort the nav by the field order
-                    .sort((a, b) => {
-                        if (a.order > b.order) {
-                            return -1;
-                        }
-                        if (a.order < b.order) {
-                            return 1;
-                        }
-                        return 0;
-                    })
-                    // make the nav deep, by url
-                    .map((nav) => {
-                        const hierachy = nav.url.split('/').filter((x) => x);
-                        nav.id = hierachy.join('/');
-                        nav.parent_id = hierachy.reverse().slice(1).reverse().join('/');
-                        return nav;
-                    });
-                const tree = arrayToTree(data);
-                await Global.set(`nav.${entry.key}`, tree);
+        if (nav && !Array.isArray(nav)) {
+            nav = [nav];
+        }
+
+        let result = undefined;
+
+        return result;
+        nav.forEach(scope => {
+            
+        });
+
+
+        Object.keys(nav).forEach((index) => {
+            const entry = nav[index];
+            if (!Array.isArray(entry.value)) {
                 return null;
-            })
-        );
+            }
+            const data = entry.value
+                // sort the nav by the field order
+                .sort((a, b) => {
+                    if (a.order > b.order) {
+                        return -1;
+                    }
+                    if (a.order < b.order) {
+                        return 1;
+                    }
+                    return 0;
+                })
+                // make the nav deep, by url
+                .map((nav) => {
+                    const hierachy = nav.url.split('/').filter((x) => x);
+                    nav.id = hierachy.join('/');
+                    nav.parent_id = hierachy.reverse().slice(1).reverse().join('/');
+                    return nav;
+                });
+            const tree = arrayToTree(data);
+            if (!result) {
+                result = {};
+            }
+
+            Logger.warning('=>', entry.key, tree);
+            result[entry.key] = tree;
+        });
+
+        Logger.warning('result', result);
+        if (result) {
+            await Global.set('nav', result);
+        }
 
         return nav;
     }

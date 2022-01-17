@@ -9,7 +9,7 @@ import { hrtime_to_ms } from '@lib/converter/time';
 
 export const route = async (value: IWorkerRouteValue[], create_identifier: (any) => any) => {
     const default_values = Config.get('default_values');
-    let global_data = {};
+    let nav_data = {};
     let route_data = [];
     if (!create_identifier || typeof create_identifier != 'function') {
         return [null, null];
@@ -32,7 +32,7 @@ export const route = async (value: IWorkerRouteValue[], create_identifier: (any)
                 if (!entry.add_to_global) {
                     return result.data;
                 }
-                global_data = Generate.add_to_global(enhanced_data, global_data);
+                nav_data = Generate.add_to_nav(enhanced_data, nav_data);
 
                 return result.data;
             });
@@ -41,5 +41,5 @@ export const route = async (value: IWorkerRouteValue[], create_identifier: (any)
             return filename;
         })
     );
-    return [global_data, route_data];
+    return [nav_data, route_data];
 };

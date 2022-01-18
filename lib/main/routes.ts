@@ -55,7 +55,6 @@ export const routes = async (
         Logger.error(nav_error);
         return [route_files, cron_routes];
     }
-    Logger.warning('route', nav_result);
     const nav_uniq = {};
     nav_data.forEach((entry) => {
         Object.keys(entry).forEach((scope) => {

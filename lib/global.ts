@@ -94,7 +94,6 @@ export class Global {
         const [table, corrected_key] = this.correct(key, value);
         let set_error: Error | null = null,
             result = false;
-            Logger.warning(table, corrected_key)
         if (Array.isArray(corrected_key)) {
             if (corrected_key.length == 0) {
                 return false;
@@ -120,17 +119,7 @@ export class Global {
             return result;
         }
         const merged = merge(orig, value);
-        // const [table] = this.correct(key);
-        // if (table == 'navigation' && Array.isArray(merged)) {
-        //     const urls = [];
-        //     merged = merged.filter((entry) => {
-        //         if (urls.indexOf(entry.url) > -1) {
-        //             return false;
-        //         }
-        //         urls.push(entry.url);
-        //         return true;
-        //     });
-        // }
+       
         const result = await this.set(key, merged);
         return result;
     }

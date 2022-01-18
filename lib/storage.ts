@@ -63,7 +63,11 @@ export class Storage {
         }
         return [];
     }
-    static async get(table: string, key: string, fallback: any = null): Promise<[Error | null, any]> {
+    static async get(
+        table: string,
+        key: string,
+        fallback: any = null
+    ): Promise<[Error | null, any]> {
         if (!table || !key) {
             return [null, fallback];
         }
@@ -96,14 +100,19 @@ export class Storage {
                             return [
                                 null,
                                 result.map((entry) => {
-                                    return { key: entry.key, value: JSON.parse(entry.value) };
+                                    return {
+                                        key: entry.key,
+                                        value: JSON.parse(entry.value),
+                                    };
                                 }),
                             ];
                         }
                         // console.log(result)
                     } else {
                         result = await this.db.get(
-                            `SELECT value FROM ${this.normalize(table)} WHERE key = ?`,
+                            `SELECT value FROM ${this.normalize(
+                                table
+                            )} WHERE key = ?`,
                             step
                         );
                     }
@@ -113,7 +122,11 @@ export class Storage {
                     value = JSON.parse(result.value);
 
                     // when there was an index on the first element, select the item
-                    if (value !== undefined && index != null && Array.isArray(value)) {
+                    if (
+                        value !== undefined &&
+                        index != null &&
+                        Array.isArray(value)
+                    ) {
                         value = value[index];
                     }
                 } catch (e) {
@@ -134,7 +147,11 @@ export class Storage {
 
         return [null, value];
     }
-    static async set(table: string, key: string, value: any = null): Promise<[Error | null, boolean]> {
+    static async set(
+        table: string,
+        key: string,
+        value: any = null
+    ): Promise<[Error | null, boolean]> {
         if (!table || !key) {
             return [null, false];
         }
@@ -144,28 +161,39 @@ export class Storage {
                 // insert or replace entry
                 // https://stackoverflow.com/questions/418898/sqlite-upsert-not-insert-or-replace
                 await this.db.run(
-                    `INSERT OR REPLACE INTO ${this.normalize(table)} (key, value) VALUES (?, ?);`,
+                    `INSERT OR REPLACE INTO ${this.normalize(
+                        table
+                    )} (key, value) VALUES (?, ?);`,
                     key,
                     this.escape(value)
                 );
                 return [null, true];
             }
             // delete when no value is set
-            await this.db.run(`DELETE from ${this.normalize(table)} WHERE key = ?;`, key);
+            await this.db.run(
+                `DELETE from ${this.normalize(table)} WHERE key = ?;`,
+                key
+            );
             return [null, true];
         } catch (e) {
             Logger.debug(e);
             return [e, false];
         }
     }
-    static async insert(table: string, key: string, value: any = null): Promise<[Error | null, boolean]> {
+    static async insert(
+        table: string,
+        key: string,
+        value: any = null
+    ): Promise<[Error | null, boolean]> {
         if (!table || !key || value == undefined) {
             return [null, false];
         }
         await this.setup();
         try {
             await this.db.run(
-                `INSERT INTO ${this.normalize(table)} (key, value) VALUES (?, ?);`,
+                `INSERT INTO ${this.normalize(
+                    table
+                )} (key, value) VALUES (?, ?);`,
                 key,
                 this.escape(value)
             );
@@ -178,33 +206,51 @@ export class Storage {
     static escape(value: any) {
         return JSON.stringify(value).replace(/'/g, "''");
     }
-    static async update(table: string, key: string, value: any = null): Promise<[Error | null, boolean]> {
+    static async update(
+        table: string,
+        key: string,
+        value: any = null
+    ): Promise<[Error | null, boolean]> {
         if (!table || !key || value == undefined) {
             return [null, false];
         }
         await this.setup();
         try {
-            await this.db.run(`UPDATE ${this.normalize(table)} SET value=? WHERE key=?;`, this.escape(value), key);
+            await this.db.run(
+                `UPDATE ${this.normalize(table)} SET value=? WHERE key=?;`,
+                this.escape(value),
+                key
+            );
             return [null, true];
         } catch (e) {
             Logger.debug(e);
             return [e, false];
         }
     }
-    static async delete(table: string, key: string): Promise<[Error | null, boolean]> {
+    static async delete(
+        table: string,
+        key: string
+    ): Promise<[Error | null, boolean]> {
         if (!table || !key) {
             return [null, false];
         }
         await this.setup();
         try {
-            await this.db.run(`DELETE from ${this.normalize(table)} WHERE key = ?;`, key);
+            await this.db.run(
+                `DELETE from ${this.normalize(table)} WHERE key = ?;`,
+                key
+            );
             return [null, true];
         } catch (e) {
             Logger.debug(e);
             return [e, false];
         }
     }
-    static async merge(table: string, key: string, value: any = null): Promise<[Error | null, boolean]> {
+    static async merge(
+        table: string,
+        key: string,
+        value: any = null
+    ): Promise<[Error | null, boolean]> {
         if (!table || !key || value == null) {
             return [null, false];
         }
@@ -229,7 +275,23 @@ export class Storage {
         const result = await this.update(table, key, merged_value);
         return result;
     }
-    static async merge_all(table: string, data: any = null): Promise<[Error | null, boolean]> {
+    static async merge_all(
+        table: string,
+        data: any = null
+    ): Promise<[Error | null, boolean]> {
+        return await this.set_all(table, data, undefined, (prev, value) => {
+            if (typeof value == 'object') {
+                return merge(prev, value);
+            }
+            return value;
+        });
+    }
+    static async set_all(
+        table: string,
+        data: any = null,
+        before_insert: (prev, value) => any = null,
+        before_update: (prev, value) => any = null
+    ): Promise<[Error | null, boolean]> {
         if (!table || data == null) {
             return [null, false];
         }
@@ -244,20 +306,25 @@ export class Storage {
         // check what should be inserted and what should be updated
         Object.keys(data).forEach((key) => {
             const orig = all.find((item) => item.key == key);
+            let value = data[key];
             if (orig) {
-                let value = data[key];
-                if (typeof value == 'object') {
-                    value = merge(orig.value, data[key]);
+                if (before_update && typeof before_update == 'function') {
+                    value = before_update(orig.value, value);
                 }
                 update.push({ key, value: this.escape(value) });
                 return;
             }
-            insert.push({ key, value: this.escape(data[key]) });
+            if (before_insert && typeof before_insert == 'function') {
+                value = before_insert(orig.value, value);
+            }
+            insert.push({ key, value: this.escape(value) });
         });
 
         const insert_query =
             insert.length > 0
-                ? `INSERT INTO ${this.normalize(table)} (key, value) VALUES ${insert
+                ? `INSERT INTO ${this.normalize(
+                      table
+                  )} (key, value) VALUES ${insert
                       .map((item) => `('${item.key}','${item.value}')`)
                       .join(',')};`
                 : '';
@@ -265,7 +332,10 @@ export class Storage {
             update.length > 0
                 ? update
                       .map(
-                          (item) => `UPDATE ${this.normalize(table)} SET value='${item.value}' WHERE key='${item.key}';`
+                          (item) =>
+                              `UPDATE ${this.normalize(table)} SET value='${
+                                  item.value
+                              }' WHERE key='${item.key}';`
                       )
                       .join('')
                 : '';
@@ -279,7 +349,11 @@ export class Storage {
         return [null, true];
     }
     static normalize(text = '') {
-        return text.replace(/[A-Z]/g, '-$1').toLowerCase().replace(/^-/, '').replace(/-+/g, '-');
+        return text
+            .replace(/[A-Z]/g, '-$1')
+            .toLowerCase()
+            .replace(/^-/, '')
+            .replace(/-+/g, '-');
     }
     static async clear(table: string): Promise<[Error | null, boolean]> {
         if (!table) {

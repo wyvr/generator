@@ -1,6 +1,6 @@
 import { File } from '@lib/file';
 import arrayToTree from 'array-to-tree';
-import { Global } from '@lib/global';
+import { Storage } from '@lib/storage';
 import { IObject } from '@lib/interface/object';
 import { Logger } from './logger';
 
@@ -40,16 +40,10 @@ export class Generate {
                         wyvr_prop.template.doc = this.merge_property(data._wyvr.template.doc, wyvr_prop.template.doc);
                     }
                     if (data._wyvr.template.layout) {
-                        wyvr_prop.template.layout = this.merge_property(
-                            data._wyvr.template.layout,
-                            wyvr_prop.template.layout
-                        );
+                        wyvr_prop.template.layout = this.merge_property(data._wyvr.template.layout, wyvr_prop.template.layout);
                     }
                     if (data._wyvr.template.page) {
-                        wyvr_prop.template.page = this.merge_property(
-                            data._wyvr.template.page,
-                            wyvr_prop.template.page
-                        );
+                        wyvr_prop.template.page = this.merge_property(data._wyvr.template.page, wyvr_prop.template.page);
                     }
                 }
             }
@@ -128,30 +122,23 @@ export class Generate {
         return [].concat(prop_value, default_value).filter((x, index, arr) => arr.indexOf(x) == index);
     }
     static async build_nav() {
-        let nav = await Global.get('navigation');
-        Logger.warning('build_nav', nav);
-        if (!nav) {
+        const [nav_error, nav] = await Storage.get('navigation', '*', []);
+        // @note nav should be array of key/value
+        if (nav_error) {
+            Logger.error(nav_error);
+            return null;
+        }
+        if (!Array.isArray(nav)) {
             return null;
         }
 
-        if (nav && !Array.isArray(nav)) {
-            nav = [nav];
-        }
-
+        // convert the lists in the scopes to tree structures
         let result = undefined;
-
-        return result;
-        nav.forEach(scope => {
-            
-        });
-
-
-        Object.keys(nav).forEach((index) => {
-            const entry = nav[index];
-            if (!Array.isArray(entry.value)) {
+        nav.forEach((scope) => {
+            if (!Array.isArray(scope.value)) {
                 return null;
             }
-            const data = entry.value
+            const data = scope.value
                 // sort the nav by the field order
                 .sort((a, b) => {
                     if (a.order > b.order) {
@@ -174,15 +161,14 @@ export class Generate {
                 result = {};
             }
 
-            Logger.warning('=>', entry.key, tree);
-            result[entry.key] = tree;
+            result[scope.key] = tree;
         });
 
-        Logger.warning('result', result);
+        // store the generated nav in the nav table
         if (result) {
-            await Global.set('nav', result);
+            await Storage.set_all('nav', result);
         }
 
-        return nav;
+        return result;
     }
 }

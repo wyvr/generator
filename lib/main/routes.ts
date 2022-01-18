@@ -1,4 +1,3 @@
-import { Global } from '@lib/global';
 import { Logger } from '@lib/logger';
 import { Route } from '@lib/model/route';
 import { WorkerAction } from '@lib/struc/worker/action';
@@ -28,13 +27,7 @@ export const routes = async (
         }
         completed_routes++;
     });
-    const [route_files, cron_routes, routes_count] = await execute_routes(
-        worker_controller,
-        package_tree,
-        changed_files,
-        enhance_data,
-        cron_state
-    );
+    const [route_files, cron_routes, routes_count] = await execute_routes(worker_controller, package_tree, changed_files, enhance_data, cron_state);
 
     // wait for the global event actions to complete
     Logger.text('waiting for the events to finish');
@@ -57,22 +50,32 @@ export const routes = async (
     worker_controller.events.off('emit', WorkerEmit.navigation, on_nav_index);
 
     // merge nav_data and replace or insert into navigation storage
-    const nav_result = await Global.get('global.navigation', {});
+    const [nav_error, nav_result] = await Storage.get('navigation', '*', []);
+    if(nav_error) {
+        Logger.error(nav_error);
+        return [route_files, cron_routes];
+    }
+    Logger.warning('route', nav_result);
+    const nav_uniq = {};
     nav_data.forEach((entry) => {
         Object.keys(entry).forEach((scope) => {
             if (!nav_result[scope]) {
                 nav_result[scope] = [];
             }
-            nav_result[scope] = [].concat(nav_result[scope], entry[scope]).filter((item, index, arr) => {
-                return (
-                    arr.findIndex((a) => {
-                        a.url == item.url;
-                    }) == index
-                );
+            if (!nav_uniq[scope]) {
+                nav_uniq[scope] = [];
+            }
+            nav_result[scope] = [].concat(nav_result[scope], entry[scope]).filter((item) => {
+                if (nav_uniq[scope].indexOf(item.ur) > -1) {
+                    return false;
+                }
+                nav_uniq[scope].push(item.url);
+                return true;
             });
         });
     });
-    await Global.set('global.navigation', nav_result);
+    await Storage.set_all('navigation', nav_result);
+    // await Global.set('global.navigation', nav_result);
 
     return [route_files, cron_routes];
 };

@@ -12,6 +12,7 @@ import { IObject } from '@lib/interface/object';
 import { EnvType } from '@lib/struc/env';
 import { File } from '@lib/file';
 import { ReleasePath } from '@lib/vars/release_path';
+import { Optimize } from './optimize';
 
 register();
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -23,6 +24,15 @@ register();
         return await callback();
     }
     return null;
+};
+(<any>global)._wyvrGenerateProp = (prop: string, value: any) => {
+    const converted = JSON.stringify(value);
+    if(converted.length > 1000) {
+        const hash = Optimize.create_hash(converted);
+        File.write(join('gen', 'prop', `${prop}_${hash}.json`), converted);
+        return `|${prop}|:|@(/prop/${prop}_${hash}.json)|`
+    }
+    return `|${prop}|:${converted.replace(/\|/g, '§|§').replace(/"/g, "|")}`;
 };
 (<any>global).isServer = true;
 (<any>global).isClient = false;

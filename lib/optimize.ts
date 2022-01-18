@@ -6,15 +6,18 @@ import { Error } from '@lib/error';
 import { OptimizeFileListEntry, OptimizeHashListEntry } from '@lib/interface/optimize';
 
 export class Optimize {
+    static create_hash(value:string): string {
+        const hash = cryptoCreateHash('sha256');
+        hash.update(value);
+        return hash.digest('hex').substring(0, 8);
+    }
     static create_hash_of_file(file_path: string): string {
         const content = File.read(file_path);
         if (!content) {
             Logger.debug(Error.get({ message: 'file does not exist or is empty' }, file_path, 'optimize'));
             return null;
         }
-        const hash = cryptoCreateHash('sha256');
-        hash.update(content);
-        const content_hash = hash.digest('hex').substr(0, 8);
+        const content_hash = Optimize.create_hash(content);
         const ext = extname(file_path);
         const dir = dirname(file_path);
         const file = basename(file_path, ext);

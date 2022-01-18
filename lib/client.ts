@@ -79,7 +79,7 @@ export class Client {
         const content = await Promise.all(
             hydrate_files.map(async (file) => {
                 // file which are childs of lazy files(wyvr loading != instant) are not allowed to be generated, otherwise the code is included twice
-                if(file.from_lazy) {
+                if (file.from_lazy) {
                     return '';
                 }
                 const import_path = join(Cwd.get(), file.path);
@@ -153,7 +153,11 @@ export class Client {
                 }
             })
         );
-        const script_content = [].concat(base_bundle, [script_partials.hydrate, script_partials.portal, script_partials.i18n]);
+        const script_content = [].concat(base_bundle, [
+            script_partials.hydrate,
+            script_partials.portal,
+            script_partials.i18n,
+        ]);
         if (!Env.is_dev()) {
             script_content.push(script_partials.props);
         }
@@ -306,7 +310,10 @@ export class Client {
         content = script_result.content;
         file.props = this.extract_props_from_scripts(script_result.result);
         // create props which gets hydrated
-        const props_include = `data-props="${file.props.map((prop) => `|${prop}|:{JSON.stringify(${prop}).replace(/\\|/g, '§|§').replace(/"/g, "|")}`).join(',')}"`;
+        const props_include = `data-props="${file.props
+            .map((prop) => `{_wyvrGenerateProp('${prop}', ${prop})}`)
+            .join(',')}"`;
+
         // add portal when set
         const portal = file.config.portal ? `data-portal="${file.config.portal}"` : '';
         // add media when loading is media
@@ -329,7 +336,9 @@ export class Client {
         if (!root_paths || root_paths.length == 0 || !parts || parts.length == 0) {
             return default_sign;
         }
-        const replace_pattern = new RegExp(`^${root_paths.map((path) => path.replace(/\//g, '/').replace(/\/$/, '') + '/').join('|')}`);
+        const replace_pattern = new RegExp(
+            `^${root_paths.map((path) => path.replace(/\//g, '/').replace(/\/$/, '') + '/').join('|')}`
+        );
         const result = parts
             .filter((x) => x)
             .map((part) => {
@@ -416,7 +425,10 @@ export class Client {
         return content;
     }
     static replace_slots_client(content: string): string {
-        return this.replace_slots(content, (name: string, slot: string) => `<div data-client-slot="${name}">${slot}</div>`);
+        return this.replace_slots(
+            content,
+            (name: string, slot: string) => `<div data-client-slot="${name}">${slot}</div>`
+        );
     }
 
     static css_hash(data: { hash; css; name; filename }) {
@@ -427,7 +439,10 @@ export class Client {
     }
     static ignore_warning(warning): boolean {
         // caused by the combining of the files
-        if (warning.message == "Error when using sourcemap for reporting an error: Can't resolve original location of error.") {
+        if (
+            warning.message ==
+            "Error when using sourcemap for reporting an error: Can't resolve original location of error."
+        ) {
             return true;
         }
         // axios warning, don't know if it's really critical

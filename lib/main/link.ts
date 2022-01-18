@@ -10,7 +10,7 @@ export const link = async (perf: IPerformance_Measure) => {
     if (error_before) {
         fail(error_before);
     }
-    const static_folders = ['assets', 'js', 'css', 'i18n'];
+    const static_folders = ['assets', 'js', 'prop', 'css', 'i18n'];
     // symlink the "static" folders to release
     static_folders.forEach((folder) => {
         Link.to(`gen/${folder}`, `releases/${UniqId.get()}/${folder}`);

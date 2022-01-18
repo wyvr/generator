@@ -1,5 +1,5 @@
 export enum WorkerEmit {
-    global = 'global',
+    navigation = 'navigation',
     route = 'route',
     identifier = 'identifier',
     identifier_list = 'identifier_list',

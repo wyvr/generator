@@ -118,18 +118,8 @@ export class Global {
             const result = await this.set(key, value);
             return result;
         }
-        let merged = merge(orig, value);
-        const [table] = this.correct(key);
-        if (table == 'navigation' && Array.isArray(merged)) {
-            const urls = [];
-            merged = merged.filter((entry) => {
-                if (urls.indexOf(entry.url) > -1) {
-                    return false;
-                }
-                urls.push(entry.url);
-                return true;
-            });
-        }
+        const merged = merge(orig, value);
+       
         const result = await this.set(key, merged);
         return result;
     }

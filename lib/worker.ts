@@ -52,15 +52,16 @@ export class Worker {
                 case WorkerAction.route: {
                     WorkerHelper.send_status(WorkerStatus.busy);
 
-                    const [global_data, route_data] = await route(value, (data: any) => this.emit_identifier(data));
+                    const [nav_data, route_data] = await route(value, (data: any) => this.emit_identifier(data));
 
                     WorkerHelper.send_action(WorkerAction.emit, {
                         type: WorkerEmit.route,
                         data: route_data,
                     });
+                    // @Note: must be fired for every route to determin when routes are completed
                     WorkerHelper.send_action(WorkerAction.emit, {
-                        type: WorkerEmit.global,
-                        data: global_data,
+                        type: WorkerEmit.navigation,
+                        data: nav_data,
                     });
                     WorkerHelper.send_complete();
                     break;

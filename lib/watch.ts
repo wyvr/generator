@@ -114,6 +114,7 @@ export class Watch {
                                 );
                                 if (page && client_socket) {
                                     socket_script = `<script id="wyvr_client_socket">
+                                    window.wyvr_generate_page = true;
                                     (function wyvr_generate_page() {
                                         localStorage.removeItem('wyvr_socket_history');
                                         window.setTimeout(() => {

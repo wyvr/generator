@@ -41,6 +41,7 @@ import { exec } from '@lib/main/exec';
 import { Link } from '@lib/link';
 import { Storage } from '@lib/storage';
 import { UniqId } from '@lib/vars/uniq_id';
+import { SocketPort } from '@lib/vars/socket_port';
 
 export class BuildMode {
     hr_start = null;
@@ -49,6 +50,7 @@ export class BuildMode {
     package_tree = {};
     identifier_data_list = [];
     identifiers: IObject = null;
+    avoid_initial_build = false;
 
     constructor(private perf: IPerformance_Measure) {
         this.hr_start = process.hrtime();
@@ -80,8 +82,13 @@ export class BuildMode {
         Logger.info('delete storage', Storage.destroy());
         await Global.set('global', config);
 
+        if (Env.is_dev()) {
+            this.avoid_initial_build = true;
+        }
+
         this.perf.end('config');
-        return { socket_port: this.watcher_ports[1] };
+        SocketPort.set(this.watcher_ports[1]);
+        return { socket_port: SocketPort.get() };
     }
     async start(worker_controller: WorkerController, identifiers: IObject) {
         this.identifiers = identifiers;
@@ -122,16 +129,34 @@ export class BuildMode {
             return shutdown();
         }
         if (Env.is_dev()) {
-            const src = join('node_modules', '@wyvr', 'generator', 'wyvr', 'resource', 'debug.css');
-            const destination = join(ReleasePath.get(), 'debug.css');
-            Link.to(src, destination);
+            Link.to(
+                join(
+                    'node_modules',
+                    '@wyvr',
+                    'generator',
+                    'wyvr',
+                    'resource',
+                    'debug.css'
+                ),
+                join(ReleasePath.get(), 'debug.css')
+            );
         }
         // watch for file changes
         try {
-            new Watch(this.watcher_ports, async (changed_files: IWatchFile[], watched_files: string[]) => {
-                Plugin.clear();
-                return await this.execute(worker_controller, changed_files, watched_files);
-            });
+            new Watch(
+                this.watcher_ports,
+                async (
+                    changed_files: IWatchFile[],
+                    watched_files: string[]
+                ) => {
+                    Plugin.clear();
+                    return await this.execute(
+                        worker_controller,
+                        changed_files,
+                        watched_files
+                    );
+                }
+            );
         } catch (e) {
             fail(e);
         }
@@ -145,12 +170,17 @@ export class BuildMode {
 
         const is_regenerating = changed_files.length > 0;
 
-        const only_static = is_regenerating && changed_files.every((file) => file.rel_path.match(/^assets\//));
+        const only_static =
+            is_regenerating &&
+            changed_files.every((file) => file.rel_path.match(/^assets\//));
 
         let watched_json_files = null;
         if (watched_files) {
             watched_json_files = watched_files.map((path) => {
-                return File.to_index(join(Cwd.get(), 'gen', 'data', path), 'json');
+                return File.to_index(
+                    join(Cwd.get(), 'gen', 'data', path),
+                    'json'
+                );
             });
         }
 
@@ -174,15 +204,26 @@ export class BuildMode {
         // collect the files for the generation
         this.perf.start('collect');
         this.package_tree = await collect(this.package_tree);
-        File.write_json(PackageTreePath.get(), JSON.parse(JSON.stringify(this.package_tree)));
+        File.write_json(
+            PackageTreePath.get(),
+            JSON.parse(JSON.stringify(this.package_tree))
+        );
         this.perf.end('collect');
 
-        const contains_routes = changed_files.find((file) => file.rel_path.match(/^routes\//)) != null;
+        const contains_routes =
+            changed_files.find((file) => file.rel_path.match(/^routes\//)) !=
+            null;
         let route_urls = [];
         this.perf.start('routes');
         if (!is_regenerating || contains_routes) {
             // get the route files
-            [route_urls] = await routes(worker_controller, this.package_tree, changed_files, !is_regenerating, null);
+            [route_urls] = await routes(
+                worker_controller,
+                this.package_tree,
+                changed_files,
+                !is_regenerating,
+                null
+            );
         } else {
             Logger.improve('routes, will not be regenerated');
         }
@@ -204,21 +245,42 @@ export class BuildMode {
             // write global data to release
             Global.export(join(ReleasePath.get(), '_global.json'));
         }
-        // read all imported files
-        const files = route_urls.length > 0 ? route_urls : File.collect_files(join(Cwd.get(), 'gen', 'data'), 'json');
-
-        // build static files
-        // console.log('identifier_data_list before', this.identifier_data_list)
         let build_pages = [];
         let identifier_data_list = [];
-        if (watched_json_files) {
-            [build_pages, identifier_data_list] = await build_files(worker_controller, files, watched_json_files);
+
+        if (this.avoid_initial_build) {
+            Logger.improve(
+                'avoid initial build, will be generated when opened in browser'
+            );
+            this.avoid_initial_build = false;
         } else {
-            [build_pages, identifier_data_list] = await build_list(worker_controller, files);
-        }
-        // console.log('identifier_data_list', identifier_data_list)
-        if (this.identifier_data_list.length == 0) {
-            this.identifier_data_list = identifier_data_list;
+            // read all imported files
+            const files =
+                route_urls.length > 0
+                    ? route_urls
+                    : File.collect_files(
+                          join(Cwd.get(), 'gen', 'data'),
+                          'json'
+                      );
+
+            // build static files
+            // console.log('identifier_data_list before', this.identifier_data_list)
+            if (watched_json_files) {
+                [build_pages, identifier_data_list] = await build_files(
+                    worker_controller,
+                    files,
+                    watched_json_files
+                );
+            } else {
+                [build_pages, identifier_data_list] = await build_list(
+                    worker_controller,
+                    files
+                );
+            }
+            // console.log('identifier_data_list', identifier_data_list)
+            if (this.identifier_data_list.length == 0) {
+                this.identifier_data_list = identifier_data_list;
+            }
         }
         this.perf.end('build');
 
@@ -238,12 +300,27 @@ export class BuildMode {
             !is_regenerating ||
             changed_files.some((file) => file.rel_path.match(/^src\//)) ||
             // has missing scripts
-            Object.keys(this.identifiers).find((identifier) => !File.is_file(join('gen', 'js', `${identifier}.js`)));
+            Object.keys(this.identifiers).find(
+                (identifier) =>
+                    !File.is_file(join('gen', 'js', `${identifier}.js`))
+            );
 
         if (build_scripts) {
-            dependencies(this.perf, build_pages, shortcode_identifier, this.identifiers, this.package_tree);
+            dependencies(
+                this.perf,
+                build_pages,
+                shortcode_identifier,
+                this.identifiers,
+                this.package_tree
+            );
 
-            await scripts(this.perf, worker_controller, this.identifiers, watched_files, watched_files);
+            await scripts(
+                this.perf,
+                worker_controller,
+                this.identifiers,
+                watched_files,
+                watched_files
+            );
         } else {
             Logger.improve('scripts, will not be regenerated');
         }

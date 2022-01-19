@@ -22,6 +22,9 @@ import { IWatchFile } from '@lib/interface/watch';
 import { IBuildFileResult } from '@lib/interface/build';
 import { uniq } from '@lib/helper/uniq';
 import { Exec } from '@lib/exec';
+import { Env } from './env';
+import { SocketPort } from './vars/socket_port';
+import { Client } from './client';
 
 export class Watch {
     changed_files: IWatchFile[] = [];
@@ -36,10 +39,15 @@ export class Watch {
 
     constructor(
         private ports: [number, number],
-        private callback: (changed_files: IWatchFile[], watched_files: string[]) => Promise<IBuildFileResult[]> = null
+        private callback: (
+            changed_files: IWatchFile[],
+            watched_files: string[]
+        ) => Promise<IBuildFileResult[]> = null
     ) {
         if (!callback || typeof callback != 'function') {
-            Logger.warning('can not start watching because no callback is defined');
+            Logger.warning(
+                'can not start watching because no callback is defined'
+            );
             return null;
         }
         this.allowed_domains = Config.get('media.allowed_domains');
@@ -56,7 +64,11 @@ export class Watch {
     private init() {
         Logger.block('watch');
         this.packages = Config.get('packages');
-        if (!this.packages || !Array.isArray(this.packages) || this.packages.length == 0) {
+        if (
+            !this.packages ||
+            !Array.isArray(this.packages) ||
+            this.packages.length == 0
+        ) {
             throw 'no packages to watch';
         }
 
@@ -66,47 +78,131 @@ export class Watch {
             serverInfo: `wyvr`,
         });
         this.host = 'localhost';
-        server('localhost', this.ports[0], this.IDLE_TEXT, null, async (req, res, uid) => {
-            pub.serve(req, res, async (err) => {
-                if (err) {
-                    // check for media files
-                    const media_config = Media.extract_config(req.url);
-                    if (media_config) {
-                        const start = process.hrtime();
-                        return Media.serve(
-                            res,
-                            media_config,
-                            async () => {
-                                const duration = Math.round(hrtime_to_ms(process.hrtime(start)) * 100) / 100;
-                                Logger.block(`processed ${media_config.src} in ${duration} ms`);
-                            },
-                            async (message) => {
-                                Logger.error(media_config.src, message);
+        server(
+            'localhost',
+            this.ports[0],
+            this.IDLE_TEXT,
+            null,
+            async (req, res, uid) => {
+                pub.serve(req, res, async (err) => {
+                    if (err) {
+                        // check if the url is a page which should be generated
+                        if (Env.is_dev()) {
+                            // collect files
+                            const data_path = join(
+                                Cwd.get(),
+                                'gen',
+                                'data',
+                                File.to_index(req.url, '.json')
+                            );
+                            const exists = File.is_file(data_path);
+                            Logger.debug('request', req.url, data_path, exists);
+                            if (exists) {
+                                // build the page
+                                Logger.block('generate', req.url);
+                                let socket_script = '';
+
+                                const page = File.read(
+                                    join(__dirname, 'resource', 'page.html')
+                                );
+                                const client_socket = File.read(
+                                    join(
+                                        __dirname,
+                                        'resource',
+                                        'client_socket.js'
+                                    )
+                                );
+                                if (page && client_socket) {
+                                    socket_script = `<script id="wyvr_client_socket">
+                                    (function wyvr_generate_page() {
+                                        localStorage.removeItem('wyvr_socket_history');
+                                        window.setTimeout(() => {
+                                            location.href = location.href;
+                                        }, 30000);
+                                    })();
+                                    ${Client.transform_resource(
+                                        client_socket.replace(
+                                            /\{port\}/g,
+                                            SocketPort.get() + ''
+                                        )
+                                    )}</script>`;
+                                    res.writeHead(200, {
+                                        'Content-Type': 'text/html',
+                                    });
+
+                                    res.end(
+                                        page
+                                            .replace(
+                                                /\{content\}/g,
+                                                'Page will be generated, please wait &hellip;'
+                                            )
+                                            .replace(
+                                                /\{script\}/g,
+                                                socket_script
+                                            )
+                                    );
+                                    return;
+                                }
                             }
-                        );
-                    }
-                    // check for matching exec
-                    const exec_config = Exec.match(req.url);
-                    if (exec_config) {
-                        Logger.info(uid, 'exec', req.url);
-                        const rendered = await Exec.run(uid, req, res, exec_config);
-                        if (rendered && !res.writableEnded) {
-                            // res.writeHead(404, { 'Content-Type': 'text/html' });
-                            res.end(rendered.result.html);
+                        }
+
+                        // check for media files
+                        const media_config = Media.extract_config(req.url);
+                        if (media_config) {
+                            const start = process.hrtime();
+                            return Media.serve(
+                                res,
+                                media_config,
+                                async () => {
+                                    const duration =
+                                        Math.round(
+                                            hrtime_to_ms(
+                                                process.hrtime(start)
+                                            ) * 100
+                                        ) / 100;
+                                    Logger.block(
+                                        `processed ${media_config.src} in ${duration} ms`
+                                    );
+                                },
+                                async (message) => {
+                                    Logger.error(media_config.src, message);
+                                }
+                            );
+                        }
+                        // check for matching exec
+                        const exec_config = Exec.match(req.url);
+                        if (exec_config) {
+                            Logger.info(uid, 'exec', req.url);
+                            const rendered = await Exec.run(
+                                uid,
+                                req,
+                                res,
+                                exec_config
+                            );
+                            if (rendered && !res.writableEnded) {
+                                // res.writeHead(404, { 'Content-Type': 'text/html' });
+                                res.end(rendered.result.html);
+                                return;
+                            }
+                        }
+                        // check for universal/fallback exec
+                        if (await Exec.fallback(uid, req, res)) {
                             return;
                         }
-                    }
-                    // check for universal/fallback exec
-                    if (await Exec.fallback(uid, req, res)) {
-                        return;
-                    }
 
-                    Logger.error('serve error', Logger.color.bold(err.message), req.method, req.url, err.status);
-                    res.writeHead(err.status, err.headers);
-                    res.end();
-                }
-            });
-        });
+                        Logger.error(
+                            'serve error',
+                            Logger.color.bold(err.message),
+                            req.method,
+                            req.url,
+                            err.status
+                        );
+                        res.writeHead(err.status, err.headers);
+                        res.end();
+                    }
+                });
+            }
+        );
 
         this.connect();
 
@@ -119,6 +215,7 @@ export class Watch {
                 ignoreInitial: true,
             })
             .on('all', (event, path) => {
+                Logger.info(event, path);
                 if (
                     path.indexOf('package.json') > -1 ||
                     path.indexOf('package-lock.json') > -1 ||
@@ -131,15 +228,25 @@ export class Watch {
                 }
                 // when config file is changed restart
                 if (path.indexOf('wyvr.js') > -1) {
-                    Logger.warning('config file has changed', path, ', restart required');
+                    Logger.warning(
+                        'config file has changed',
+                        path,
+                        ', restart required'
+                    );
 
                     return this.restart();
                 }
                 // find the package of the changed file
                 let pkg_index = -1;
                 let pkg = null;
-                for (let index = this.packages.length - 1; index >= 0; index--) {
-                    const cur_pkg_index = path.indexOf(this.packages[index].path.replace(/^\.\//, ''));
+                for (
+                    let index = this.packages.length - 1;
+                    index >= 0;
+                    index--
+                ) {
+                    const cur_pkg_index = path.indexOf(
+                        this.packages[index].path.replace(/^\.\//, '')
+                    );
                     if (cur_pkg_index > -1) {
                         pkg_index = index;
                         pkg = this.packages[index];
@@ -150,9 +257,20 @@ export class Watch {
                 if (pkg) {
                     rel_path = path.replace(pkg.path + '/', '');
                     // check if the changed file gets overwritten in another pkg
-                    if (event != 'unlink' && pkg_index > -1 && pkg_index < this.packages.length - 1) {
-                        for (let i = pkg_index + 1; i < this.packages.length; i++) {
-                            const pkg_path = join(this.packages[i].path, rel_path);
+                    if (
+                        event != 'unlink' &&
+                        pkg_index > -1 &&
+                        pkg_index < this.packages.length - 1
+                    ) {
+                        for (
+                            let i = pkg_index + 1;
+                            i < this.packages.length;
+                            i++
+                        ) {
+                            const pkg_path = join(
+                                this.packages[i].path,
+                                rel_path
+                            );
                             if (fs.existsSync(pkg_path) && pkg_path != path) {
                                 Logger.warning(
                                     'ignore',
@@ -165,14 +283,23 @@ export class Watch {
                             }
                         }
                     }
-                    Logger.info('detect', `${event} ${pkg.name} ${Logger.color.dim(rel_path)}`);
+                    Logger.info(
+                        'detect',
+                        `${event} ${pkg.name} ${Logger.color.dim(rel_path)}`
+                    );
                 } else {
-                    Logger.warning('detect', `${event}@${Logger.color.dim(path)}`, 'from unknown pkg');
+                    Logger.warning(
+                        'detect',
+                        `${event}@${Logger.color.dim(path)}`,
+                        'from unknown pkg'
+                    );
                 }
                 // check if the file is empty >= ignore it for now
                 const content = File.read(path);
                 if (event != 'unlink' && (!content || content.trim() == '')) {
-                    Logger.warning('the file is empty, empty files are ignored');
+                    Logger.warning(
+                        'the file is empty, empty files are ignored'
+                    );
                     return;
                 }
                 // when file gets deleted, delete it from the gen folder
@@ -182,12 +309,18 @@ export class Watch {
                     const gen = join(Cwd.get(), 'gen');
                     const short_path = parts.join(sep);
                     // existing files in the gen folder
-                    const existing_paths = fs.readdirSync(gen).map((dir) => join(gen, dir, short_path)).filter((path) => fs.existsSync(path));
+                    const existing_paths = fs
+                        .readdirSync(gen)
+                        .map((dir) => join(gen, dir, short_path))
+                        .filter((path) => fs.existsSync(path));
                     // delete the files
-                    existing_paths.forEach((path)=>fs.unlinkSync(path));
+                    existing_paths.forEach((path) => fs.unlinkSync(path));
                 }
 
-                this.changed_files = [...this.changed_files, { event, path, rel_path }];
+                this.changed_files = [
+                    ...this.changed_files,
+                    { event, path, rel_path },
+                ];
                 if (debounce) {
                     clearTimeout(debounce);
                 }
@@ -241,7 +374,11 @@ export class Watch {
                     switch (data.action) {
                         case 'path':
                             if (data.path) {
-                                if (this.get_watched_files().indexOf(data.path) == -1) {
+                                if (
+                                    this.get_watched_files().indexOf(
+                                        data.path
+                                    ) == -1
+                                ) {
                                     this.watchers[ws.id] = data.path;
                                 }
                             }
@@ -264,7 +401,9 @@ export class Watch {
     async rebuild(force_complete_rebuild = false) {
         // avoid that 2 commands get sent
         if (this.is_executing == true) {
-            Logger.warning('currently running, try again after current execution');
+            Logger.warning(
+                'currently running, try again after current execution'
+            );
             return;
         }
         if (force_complete_rebuild) {
@@ -277,18 +416,32 @@ export class Watch {
             return;
         }
         const routes = Routes.collect_routes(null).map((route) => {
-            return { rel_path: route.rel_path, dir_path: dirname(route.rel_path) };
+            return {
+                rel_path: route.rel_path,
+                dir_path: dirname(route.rel_path),
+            };
         });
 
         const exec = this.changed_files
-            .filter((entry) => entry.rel_path.indexOf('exec') == 0 && entry.event != 'unlink')
+            .filter(
+                (entry) =>
+                    entry.rel_path.indexOf('exec') == 0 &&
+                    entry.event != 'unlink'
+            )
             .map((exec) => {
-                fs.copyFileSync(exec.path, join(Cwd.get(), 'gen', exec.rel_path));
+                fs.copyFileSync(
+                    exec.path,
+                    join(Cwd.get(), 'gen', exec.rel_path)
+                );
                 return exec;
             });
 
         if (exec.length > 0) {
-            Logger.info('reloaded', 'exec', `files ${exec.map((exec) => exec.rel_path).join(',')}`);
+            Logger.info(
+                'reloaded',
+                'exec',
+                `files ${exec.map((exec) => exec.rel_path).join(',')}`
+            );
         }
 
         const reversed_packages = this.packages.map((x) => x).reverse();
@@ -296,7 +449,11 @@ export class Watch {
         if (this.get_watched_files().length == 0) {
             if (exec.length == 0) {
                 Logger.improve('nobody is watching, no need to rebuild');
-                Logger.info('open', `http://${this.host}:${this.ports[0]}`, 'to start watching');
+                Logger.info(
+                    'open',
+                    `http://${this.host}:${this.ports[0]}`,
+                    'to start watching'
+                );
                 idle(this.IDLE_TEXT);
                 return;
             } else {
@@ -314,16 +471,24 @@ export class Watch {
                     // search the real route files and append them
                     const route_files = routes.filter((route) => {
                         return (
-                            dirname(file.rel_path).indexOf(route.dir_path) == 0 &&
-                            basename(file.rel_path).indexOf('_') == 0
+                            dirname(file.rel_path).indexOf(route.dir_path) ==
+                                0 && basename(file.rel_path).indexOf('_') == 0
                         );
                     });
                     if (route_files) {
                         route_files.forEach((route_file) => {
-                            Logger.info('resolved to', `${route_file.rel_path} ${Logger.color.dim(file.rel_path)}`);
+                            Logger.info(
+                                'resolved to',
+                                `${route_file.rel_path} ${Logger.color.dim(
+                                    file.rel_path
+                                )}`
+                            );
                             const path = reversed_packages
                                 .map((pkg) => {
-                                    const pkg_path = join(pkg.path, route_file.rel_path);
+                                    const pkg_path = join(
+                                        pkg.path,
+                                        route_file.rel_path
+                                    );
                                     if (fs.existsSync(pkg_path)) {
                                         return pkg_path;
                                     }
@@ -343,13 +508,22 @@ export class Watch {
                     }
                 }
                 // source handling of combined files
-                if (file.rel_path.match(/^src\//) && extname(file.rel_path) != '.svelte') {
+                if (
+                    file.rel_path.match(/^src\//) &&
+                    extname(file.rel_path) != '.svelte'
+                ) {
                     // check if the file is part of a base svelte file
-                    const svelte_file = File.to_extension(join('gen', file.rel_path), '.svelte');
+                    const svelte_file = File.to_extension(
+                        join('gen', file.rel_path),
+                        '.svelte'
+                    );
                     if (fs.existsSync(svelte_file)) {
                         Logger.info(
                             'resolved to',
-                            `${File.to_extension(file.rel_path, '.svelte')} ${Logger.color.dim(file.rel_path)}`
+                            `${File.to_extension(
+                                file.rel_path,
+                                '.svelte'
+                            )} ${Logger.color.dim(file.rel_path)}`
                         );
                         // find the package file
                         const path = reversed_packages
@@ -364,7 +538,10 @@ export class Watch {
                         added_files.push({
                             event: 'change',
                             path,
-                            rel_path: File.to_extension(file.rel_path, '.svelte'),
+                            rel_path: File.to_extension(
+                                file.rel_path,
+                                '.svelte'
+                            ),
                         });
                         return null;
                     }
@@ -375,26 +552,27 @@ export class Watch {
         // reset the files
         this.changed_files = [];
 
-        const build_pages = await this.build([].concat(added_files, files), this.get_watched_files());
+        const build_pages = await this.build(
+            [].concat(added_files, files),
+            this.get_watched_files()
+        );
         // reload only whole page when no static asset is given
         const rel_file_paths = files.map((f) => f.rel_path);
         const reload_files = []
             .concat(
-                build_pages.map((page) => page.path.replace(/releases\/[^/]*\//, '/').replace(/index.html$/, '')),
+                build_pages.map((page) =>
+                    page.path
+                        .replace(/releases\/[^/]*\//, '/')
+                        .replace(/index.html$/, '')
+                ),
                 rel_file_paths.filter((p) => {
                     return p.match(/^(assets|css|js|md)\//);
                 })
             )
             .filter((x) => x);
-        // console.log('watch files', files);
-        // search for watchers which has the pages open
-        const watcher_ids = [];
-        Object.keys(this.watchers).forEach((key) => {
-            if (reload_files.indexOf(this.watchers[key]) > -1) {
-                watcher_ids.push(key);
-            }
-        });
-        watcher_ids.forEach((id) => {
+
+        // reload all watchers
+        Object.keys(this.watchers).forEach((id) => {
             this.send(id, { action: 'reload' });
         });
         // send update for static files to client
@@ -424,9 +602,22 @@ export class Watch {
         res.writeHead(404, { 'Content-Type': 'text/html' });
         return this.end(uid, res, hr_start, '');
     }
-    end(uid: string, res: ServerResponse, hr_start: [number, number], value: string = null) {
-        const duration = Math.round(hrtime_to_ms(process.hrtime(hr_start)) * 100) / 100;
-        Logger.output(LogType.log, Logger.color.dim, '░', uid, Logger.color.reset(duration + ''), 'ms');
+    end(
+        uid: string,
+        res: ServerResponse,
+        hr_start: [number, number],
+        value: string = null
+    ) {
+        const duration =
+            Math.round(hrtime_to_ms(process.hrtime(hr_start)) * 100) / 100;
+        Logger.output(
+            LogType.log,
+            Logger.color.dim,
+            '░',
+            uid,
+            Logger.color.reset(duration + ''),
+            'ms'
+        );
         res.end(value);
         return;
     }

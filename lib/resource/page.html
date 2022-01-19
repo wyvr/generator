@@ -1,0 +1,57 @@
+<html>
+    <head>
+        <style>
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+                font: 16px/1em sans-serif;
+            }
+            body {
+                display: flex;
+                height: 100%;
+                align-items: center;
+                justify-content: center;
+                background: #333;
+                background: linear-gradient(180deg,#333, #111);
+                color: #ccc;
+                text-shadow: 0 0.1em 0.3em #000;
+            }
+            .content {
+                padding: 1em;
+            }
+            @keyframes rotation {
+                from {
+                    transform: rotate(0deg);
+                }
+                to {
+                    transform: rotate(359deg);
+                }
+            }
+            .loader {
+                width: 4em;
+                height: 4em;
+                display: inline-block;
+                border-radius: 50%;
+                border: 0.75em solid #ccc;
+                border-bottom-color: transparent;
+                border-top-color: transparent;
+                animation: rotation 1s;
+                animation-timing-function: ease;
+                animation-iteration-count: infinite;
+            }
+            .loader-container {
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="content">
+            <p>{content}</p>
+            <div class="loader-container">
+                <span class="loader" aria-hidden="true"></span>
+            </div>
+        </div>
+        {script}
+    </body>
+</html>

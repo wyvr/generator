@@ -552,24 +552,8 @@ export class Watch {
         // reset the files
         this.changed_files = [];
 
-        const build_pages = await this.build(
-            [].concat(added_files, files),
-            this.get_watched_files()
-        );
         // reload only whole page when no static asset is given
         const rel_file_paths = files.map((f) => f.rel_path);
-        const reload_files = []
-            .concat(
-                build_pages.map((page) =>
-                    page.path
-                        .replace(/releases\/[^/]*\//, '/')
-                        .replace(/index.html$/, '')
-                ),
-                rel_file_paths.filter((p) => {
-                    return p.match(/^(assets|css|js|md)\//);
-                })
-            )
-            .filter((x) => x);
 
         // reload all watchers
         Object.keys(this.watchers).forEach((id) => {
@@ -582,7 +566,6 @@ export class Watch {
                 this.send(id, { action: 'assets', list: assets });
             });
         }
-        // bs.reload(reload_files.length > 0 ? reload_files : undefined);
     }
 
     async build(changed_files: IWatchFile[], watched_files: string[]) {

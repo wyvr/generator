@@ -552,6 +552,12 @@ export class Watch {
         // reset the files
         this.changed_files = [];
 
+        // build the files
+        await this.build(
+            [].concat(added_files, files),
+            this.get_watched_files()
+        );
+
         // reload only whole page when no static asset is given
         const rel_file_paths = files.map((f) => f.rel_path);
 

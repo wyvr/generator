@@ -51,6 +51,7 @@ export class BuildMode {
     identifier_data_list = [];
     identifiers: IObject = null;
     avoid_initial_build = false;
+    runs = 0;
 
     constructor(private perf: IPerformance_Measure) {
         this.hr_start = process.hrtime();
@@ -169,8 +170,8 @@ export class BuildMode {
         watched_files: string[] = null
     ) {
         this.is_executing = true;
-
-        const is_regenerating = changed_files.length > 0;
+        const first_run = this.runs == 0;
+        const is_regenerating = changed_files.length > 0 && !first_run;
 
         const only_static =
             is_regenerating &&
@@ -185,6 +186,8 @@ export class BuildMode {
                 );
             });
         }
+
+        this.runs++;
 
         this.perf.start('static');
         this.package_tree = copy_static_files(this.package_tree);
@@ -217,7 +220,8 @@ export class BuildMode {
             null;
         let route_urls = [];
         this.perf.start('routes');
-        if (!is_regenerating || contains_routes) {
+
+        if (contains_routes || first_run) {
             // get the route files
             [route_urls] = await routes(
                 worker_controller,

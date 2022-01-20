@@ -49,6 +49,19 @@
             "env": {
                 "WYVR_ENV": "dev"
             }
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Run wyvr",
+            "skipFiles": ["<node_internals>/**"],
+            "program": "${workspaceFolder}/lib/index.ts",
+            "preLaunchTask": "tsc: build - tsconfig.json",
+            "outFiles": ["${workspaceFolder}/wyvr/**/*.js"],
+            "autoAttachChildProcesses": false,
+            "env": {
+                "WYVR_ENV": "dev"
+            }
         }
     ]
 }

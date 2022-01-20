@@ -1,8 +1,7 @@
 import { Config } from '@lib/config';
 import { Logger } from '@lib/logger';
-import chokidar from 'chokidar';
 import fs from 'fs';
-import { join, dirname, basename, extname, sep } from 'path';
+import { join, dirname, basename, extname } from 'path';
 import { hrtime_to_ms } from '@lib/converter/time';
 import { RequireCache } from '@lib/require_cache';
 import { Routes } from '@lib/routes';
@@ -22,9 +21,9 @@ import { IBuildFileResult } from '@lib/interface/build';
 import { uniq } from '@lib/helper/uniq';
 
 import fallback from '@lib/watch/fallback';
+import file_watcher from '@lib/watch/file_watcher';
 
 export class Watch {
-    changed_files: IWatchFile[] = [];
     is_executing = false;
     watchers = {};
     websocket_server = null;
@@ -46,10 +45,7 @@ export class Watch {
         RequireCache.clear();
         this.init();
     }
-    private restart() {
-        Logger.warning('type "rs" and press [enter] to restart nodemon');
-        process.exit(1);
-    }
+
     private get_watched_files(): string[] {
         return (<string[]>Object.values(this.watchers)).filter((x) => x);
     }
@@ -77,99 +73,13 @@ export class Watch {
         this.connect();
 
         // watch for file changes
-        let debounce = null;
-        const watch_folder = this.packages.map((pkg) => pkg.path);
-        watch_folder.push(join(Cwd.get(), 'wyvr.js'));
-        chokidar
-            .watch(watch_folder, {
-                ignoreInitial: true,
-            })
-            .on('all', (event, path) => {
-                Logger.info(event, path);
-                if (
-                    path.indexOf('package.json') > -1 ||
-                    path.indexOf('package-lock.json') > -1 ||
-                    path.indexOf('/node_modules') > -1 ||
-                    path.indexOf('/.git/') > -1 ||
-                    event == 'addDir' ||
-                    event == 'unlinkDir'
-                ) {
-                    return;
-                }
-                // when config file is changed restart
-                if (path.indexOf('wyvr.js') > -1) {
-                    Logger.warning('config file has changed', path, ', restart required');
-
-                    return this.restart();
-                }
-                // find the package of the changed file
-                let pkg_index = -1;
-                let pkg = null;
-                for (let index = this.packages.length - 1; index >= 0; index--) {
-                    const cur_pkg_index = path.indexOf(this.packages[index].path.replace(/^\.\//, ''));
-                    if (cur_pkg_index > -1) {
-                        pkg_index = index;
-                        pkg = this.packages[index];
-                        break;
-                    }
-                }
-                let rel_path = path;
-                if (pkg) {
-                    rel_path = path.replace(pkg.path + '/', '');
-                    // check if the changed file gets overwritten in another pkg
-                    if (event != 'unlink' && pkg_index > -1 && pkg_index < this.packages.length - 1) {
-                        for (let i = pkg_index + 1; i < this.packages.length; i++) {
-                            const pkg_path = join(this.packages[i].path, rel_path);
-                            if (fs.existsSync(pkg_path) && pkg_path != path) {
-                                Logger.warning(
-                                    'ignore',
-                                    `${event}@${Logger.color.dim(path)}`,
-                                    'because it gets overwritten by pkg',
-                                    Logger.color.bold(this.packages[i].name),
-                                    Logger.color.dim(pkg_path)
-                                );
-                                return;
-                            }
-                        }
-                    }
-                    Logger.info('detect', `${event} ${pkg.name} ${Logger.color.dim(rel_path)}`);
-                } else {
-                    Logger.warning('detect', `${event}@${Logger.color.dim(path)}`, 'from unknown pkg');
-                }
-                // check if the file is empty >= ignore it for now
-                const content = File.read(path);
-                if (event != 'unlink' && (!content || content.trim() == '')) {
-                    Logger.warning('the file is empty, empty files are ignored');
-                    return;
-                }
-                // when file gets deleted, delete it from the gen folder
-                if (event == 'unlink') {
-                    // remove first part => "[src]/layout..."
-                    const parts = rel_path.split(sep).filter((x, i) => i != 0);
-                    const gen = join(Cwd.get(), 'gen');
-                    const short_path = parts.join(sep);
-                    // existing files in the gen folder
-                    const existing_paths = fs
-                        .readdirSync(gen)
-                        .map((dir) => join(gen, dir, short_path))
-                        .filter((path) => fs.existsSync(path));
-                    // delete the files
-                    existing_paths.forEach((path) => fs.unlinkSync(path));
-                }
-
-                this.changed_files = [...this.changed_files, { event, path, rel_path }];
-                if (debounce) {
-                    clearTimeout(debounce);
-                }
-                debounce = setTimeout(() => {
-                    Logger.block('rebuild');
-                    this.rebuild(
-                        !!this.changed_files.find((file) => {
-                            return file.rel_path.indexOf('plugin') > -1;
-                        })
-                    );
-                }, 500);
+        file_watcher(this.packages, (changed_files: IWatchFile[]) => {
+            const force_complete_rebuild = !!changed_files.find((file) => {
+                return file.rel_path.indexOf('plugin') > -1;
             });
+            this.rebuild(force_complete_rebuild, changed_files);
+        });
+
         Logger.info('watching', this.packages.length, 'packages');
     }
     private send(id, data) {
@@ -231,7 +141,7 @@ export class Watch {
         });
     }
 
-    async rebuild(force_complete_rebuild = false) {
+    async rebuild(force_complete_rebuild = false, changed_files: IWatchFile[] = []) {
         // avoid that 2 commands get sent
         if (this.is_executing == true) {
             Logger.warning('currently running, try again after current execution');
@@ -253,7 +163,7 @@ export class Watch {
             };
         });
 
-        const exec = this.changed_files
+        const exec = changed_files
             .filter((entry) => entry.rel_path.indexOf('exec') == 0 && entry.event != 'unlink')
             .map((exec) => {
                 fs.copyFileSync(exec.path, join(Cwd.get(), 'gen', exec.rel_path));
@@ -279,7 +189,7 @@ export class Watch {
         }
 
         const added_files = [];
-        const files = this.changed_files
+        const files = changed_files
             .filter((f) => f)
             .map((file) => {
                 // route handling
@@ -345,8 +255,6 @@ export class Watch {
                 return file;
             })
             .filter((f) => f);
-        // reset the files
-        this.changed_files = [];
 
         // build the files
         await this.build([].concat(added_files, files), this.get_watched_files());

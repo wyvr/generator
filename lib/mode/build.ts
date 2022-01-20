@@ -80,6 +80,8 @@ export class BuildMode {
         config.build = UniqId.get();
         // start from scratch
         Logger.info('delete storage', Storage.destroy());
+        // remove old cached files
+        File.remove(join(Cwd.get(), 'cache', 'loading_page.html'));
         await Global.set('global', config);
 
         if (Env.is_dev()) {

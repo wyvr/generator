@@ -11,6 +11,14 @@ import { hrtime_to_ms } from '@lib/converter/time';
 import { Exec } from '@lib/exec';
 
 function generate_loading_page() {
+    const cache_file_path = join(Cwd.get(), 'cache', 'loading_page.html');
+
+    const cache_file = File.read(cache_file_path);
+    if (cache_file) {
+        Logger.debug('loaded loading page');
+        return cache_file;
+    }
+
     let socket_script = '';
     const page_path = join(__dirname, '..', 'resource', 'page.html');
     const page = File.read(page_path);
@@ -34,9 +42,14 @@ function generate_loading_page() {
         })();
         ${Client.transform_resource(client_socket.replace(/\{port\}/g, SocketPort.get() + ''))}</script>`;
 
-    return page
+    const content = page
         .replace(/\{content\}/g, 'Page will be generated, please wait &hellip;')
         .replace(/\{script\}/g, socket_script);
+
+    File.write(cache_file_path, content);
+    Logger.debug('generated loading page');
+
+    return content;
 }
 
 export default async (req: IncomingMessage, res: ServerResponse, uid: string, err) => {

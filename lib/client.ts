@@ -69,7 +69,9 @@ export class Client {
         }
         const base_bundle = [script_partials.env, script_partials.events, script_partials.debug];
         if (Env.is_dev()) {
+            base_bundle.push('/* BEGIN NOTE: \n * added wyvr_props because of env dev \n */\n');
             base_bundle.push(script_partials.props);
+            base_bundle.push('/* END NOTE */');
         }
         // when no hydrateable files are available create minimal bundle
         if (hydrate_files.length == 0) {

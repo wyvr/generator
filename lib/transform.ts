@@ -188,7 +188,20 @@ export class Transform {
                 })
                 .join('\n');
             content = `${css_result.content}<style>${combined_css}${css_content}</style>`;
+        } else {
+            const scss = File.to_extension(file_path, 'scss');
+            if (existsSync(scss)) {
+                const scss_content = File.read(scss);
+                const scss_result = this.extract_tags_from_content(content, 'style');
+                const combined_scss = scss_result.result
+                    .map((style) => {
+                        return style.replace(/^<style>/, '').replace(/<\/style>$/, '');
+                    })
+                    .join('\n');
+                content = `${scss_result.content}<style type="text/scss">${combined_scss}${scss_content}</style>`;
+            }
         }
+
         const js = File.to_extension(file_path, 'js');
         if (existsSync(js)) {
             const js_content = File.read(js);

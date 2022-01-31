@@ -8,6 +8,7 @@ import { File } from '@lib/file';
 import { Route } from '@lib/model/route';
 import { Global } from '@lib/global';
 import { Cwd } from '@lib/vars/cwd';
+import { Env } from '@lib/env';
 
 export class Routes {
     static collect_routes(dir: string = null, package_tree: any = null) {
@@ -50,6 +51,7 @@ export class Routes {
                 return result;
             };
         }
+        route.env = Env.get();
         if (route.path.match(/\.md$/)) {
             const content = File.read(route.path);
             if (!content) {

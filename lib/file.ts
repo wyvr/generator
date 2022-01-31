@@ -174,6 +174,8 @@ export class File {
 
         // @see https://dev.to/madhunimmo/json-stringify-rangeerror-invalid-string-length-3977
         if (Array.isArray(data)) {
+            // create containing folder
+            mkdirSync(dirname(filename), { recursive: true });
             // arrays can be inserted per entry, to avoid overflow
             const len = data.length;
             writeFileSync(filename, '[', { flag: 'a' });

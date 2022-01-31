@@ -96,14 +96,14 @@ export class File {
     static read_json(filename: string): any {
         const content = this.read(filename);
         if (!content) {
-            return null;
+            return undefined;
         }
-        let data = null;
+        let data = undefined;
         try {
             data = JSON.parse(<string>content);
         } catch (e) {
             Logger.error(Error.get(e, filename, 'read json'));
-            return null;
+            return undefined;
         }
         return data;
     }
@@ -170,8 +170,24 @@ export class File {
         if (!filename) {
             return false;
         }
-        // create containing folder
         const spaces = Env.json_spaces(process.env);
+
+        // @see https://dev.to/madhunimmo/json-stringify-rangeerror-invalid-string-length-3977
+        if (Array.isArray(data)) {
+            // arrays can be inserted per entry, to avoid overflow
+            const len = data.length;
+            writeFileSync(filename, '[', { flag: 'a' });
+            for (let i = 0; i < len; i++) {
+                writeFileSync(
+                    filename,
+                    JSON.stringify(data[i], check_circular ? circular() : null, spaces) + (i + 1 < len ? ',' : ''),
+                    { flag: 'a' }
+                );
+            }
+            writeFileSync(filename, ']', { flag: 'a' });
+            return;
+        }
+
         return this.write(filename, JSON.stringify(data, check_circular ? circular() : null, spaces));
     }
     /* eslint-enable @typescript-eslint/no-explicit-any*/

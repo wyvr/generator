@@ -85,7 +85,7 @@ export class Client {
                     return '';
                 }
                 const import_path = join(Cwd.get(), file.path);
-                const var_name = file.name.toLowerCase().replace(/\s/g, '_');
+                const var_name = file.name.toLowerCase().replace(/\s/g, '_').replace(/-/g, '_');
 
                 const lazy_input_path = join(
                     client_root,

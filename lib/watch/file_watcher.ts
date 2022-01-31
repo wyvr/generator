@@ -27,10 +27,10 @@ export default (packages, on_complete: (changed_files: IWatchFile[]) => void) =>
             ignoreInitial: true,
         })
         .on('all', (event, path) => {
-            Logger.info(event, path);
             if (stop(path, event)) {
                 return;
             }
+            Logger.info(event, path);
             // when config file is changed restart
             if (path.indexOf('wyvr.js') > -1) {
                 Logger.warning('config file has changed', path, ', restart required');

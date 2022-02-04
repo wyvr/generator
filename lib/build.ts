@@ -179,7 +179,7 @@ export class Build {
                 return `<link rel="stylesheet" href="${path}" media="${key}">`;
             })
             .join('\n');
-        return html.replace('</head>', media_includes);
+        return html.replace('</head>', `${media_includes}</head>`);
     }
     /**
      * add text to a file path

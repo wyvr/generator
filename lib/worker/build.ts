@@ -19,65 +19,65 @@ export const build = async (
         return [null, null];
     }
     const identifier_list = [];
-    const build_result = await Promise.all(
-        value.map(async (filename) => {
-            const start = process.hrtime();
-            const data = File.read_json(filename);
-            if (!data) {
-                Logger.error('broken/missing/empty file', filename);
-                return null;
-            }
-            const result = create_identifier(data);
+    const build_result = [];
+    const len = value.length;
 
-            const page_code = Build.get_page_code(result.data, result.doc, result.layout, result.page);
-            const [compile_error, compiled] = await Build.compile(page_code);
+    for (let index = 0; index < len; index++) {
+        const filename = value[index];
+        const start = process.hrtime();
+        const data = File.read_json(filename);
+        if (!data) {
+            Logger.error('broken/missing/empty file', filename);
+            continue;
+        }
+        const result = create_identifier(data);
 
-            if (compile_error) {
-                // svelte error messages
-                Logger.error('[svelte]', data.url, Error.get(compile_error, filename, 'build'));
-                return null;
-            }
-            const [render_error, rendered, identifier_item] = await Build.render(compiled, data);
-            if (render_error) {
-                // svelte error messages
-                Logger.error('[svelte]', data.url, Error.get(render_error, filename, 'render'));
-                return null;
-            }
-            // change extension when set
-            const extension = data._wyvr?.extension;
-            const path = File.to_extension(
-                filename.replace(join(Cwd.get(), 'gen', 'data'), ReleasePath.get()),
-                extension
-            );
+        const page_code = Build.get_page_code(result.data, result.doc, result.layout, result.page);
+        const [compile_error, compiled] = await Build.compile(page_code);
 
-            if (identifier_item) {
-                identifier_item.path = path;
-                identifier_item.filename = filename;
-                identifier_list.push(identifier_item);
-            }
+        if (compile_error) {
+            // svelte error messages
+            Logger.error('[svelte]', data.url, Error.get(compile_error, filename, 'build'));
+            continue;
+        }
+        const [render_error, rendered, identifier_item] = await Build.render(compiled, data);
+        if (render_error) {
+            // svelte error messages
+            Logger.error('[svelte]', data.url, Error.get(render_error, filename, 'render'));
+            continue;
+        }
+        // change extension when set
+        const extension = data._wyvr?.extension;
+        const path = File.to_extension(filename.replace(join(Cwd.get(), 'gen', 'data'), ReleasePath.get()), extension);
 
-            // remove svelte integrated comment from compiler to avoid broken output
-            rendered.result.html = Build.cleanup_page_code(
-                Build.add_debug_code(rendered.result.html, path, extension, data),
-                extension
-            );
+        if (identifier_item) {
+            identifier_item.path = path;
+            identifier_item.filename = filename;
+            identifier_list.push(identifier_item);
+        }
 
-            if (write_result) {
-                File.write(path, rendered.result.html);
-            }
+        // remove svelte integrated comment from compiler to avoid broken output
+        rendered.result.html = Build.cleanup_page_code(
+            Build.add_debug_code(rendered.result.html, path, extension, data),
+            extension
+        );
 
-            Logger.report(hrtime_to_ms(process.hrtime(start)), 'build', path);
-            
-            return {
-                path,
-                filename,
-                doc: result.doc,
-                layout: result.layout,
-                page: result.page,
-                identifier: result.identifier,
-                _wyvr: data._wyvr,
-            };
-        })
-    );
+        if (write_result) {
+            File.write(path, rendered.result.html);
+        }
+
+        Logger.report(hrtime_to_ms(process.hrtime(start)), 'build', path);
+
+        build_result.push({
+            path,
+            filename,
+            doc: result.doc,
+            layout: result.layout,
+            page: result.page,
+            identifier: result.identifier,
+            _wyvr: data._wyvr,
+        });
+    }
+
     return [identifier_list, build_result];
 };

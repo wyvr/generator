@@ -14,11 +14,17 @@ export const script = async (value: IIdentifier[]) => {
     // get all svelte components which should be hydrated
     const files = Client.get_hydrateable_svelte_files(svelte_files);
 
-    await Promise.all(
-        value.map(async (identifier) => {
-            return await build_identifier_script(identifier, files);
-        })
-    );
+    const identifier_list = [];
+    const len = value.length;
+
+    for (let index = 0; index < len; index++) {
+        const identifier = value[index];
+        const result = await build_identifier_script(identifier, files);
+        if(result) {
+            identifier_list.push(result);
+        }
+    }
+    return identifier_list;
 };
 export const build_identifier_script = async (identifier: IIdentifier, files: WyvrFile[]) => {
     const start = process.hrtime();

@@ -47,35 +47,36 @@ export const inject = async (worker_controller: WorkerController, list: string[]
     worker_controller.events.off('emit', WorkerEmit.inject_shortcode_identifier, on_identifier_index);
     worker_controller.events.off('emit', WorkerEmit.inject_media, on_media_index);
 
-    await Promise.all(
-        list_before.map(async (file) => {
-            const head = [],
-                body = [];
-            const content = File.read(file);
-            if (!content) {
-                return null;
-            }
-            /* eslint-disable @typescript-eslint/no-unused-vars */
-            const [err_after, config_after, file_after, content_after, head_after, body_after] = await Plugin.after(
-                'inject',
-                file,
-                content,
-                head,
-                body
-            );
-            /* eslint-enable */
-            if (err_after) {
-                Logger.error(err_after);
-                return;
-            }
-            const injected_content = content
-                .replace(/<\/head>/, `${head_after.join('')}</head>`)
-                .replace(/<\/body>/, `${body_after.join('')}</body>`);
+    const len = list_before.length;
 
-            File.write(file, injected_content);
-            return null;
-        })
-    );
+    for (let index = 0; index < len; index++) {
+        const file = list_before[index];
+
+        const head = [],
+            body = [];
+        const content = File.read(file);
+        if (!content) {
+            continue;
+        }
+        /* eslint-disable @typescript-eslint/no-unused-vars */
+        const [err_after, config_after, file_after, content_after, head_after, body_after] = await Plugin.after(
+            'inject',
+            file,
+            content,
+            head,
+            body
+        );
+        /* eslint-enable */
+        if (err_after) {
+            Logger.error(err_after);
+            continue;
+        }
+        const injected_content = content
+            .replace(/<\/head>/, `${head_after.join('')}</head>`)
+            .replace(/<\/body>/, `${body_after.join('')}</body>`);
+
+        File.write(file, injected_content);
+    }
 
     return [shortcode_identifiers, has_media ? media : null];
 };

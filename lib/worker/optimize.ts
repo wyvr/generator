@@ -34,9 +34,9 @@ export const optimize = async (value: IWorkerOptimizeValue) => {
     }
 
     value.files.forEach((file) => {
-        const css_tag = `<style>${css}</style>`;
+        const css_tag = `<style id="critical-css">${css}</style>`;
         let content = File.read(file).replace(/<style data-critical-css><\/style>/, css_tag);
-        // replacve hashed files in the content
+        // replace hashed files in the content
         content = Optimize.replace_hashed_files(content, value.hash_list);
         // minify the html output
         if (['.html', '.htm'].indexOf(extname(file)) > -1) {

@@ -2,6 +2,7 @@ module.exports = {
     url: '',
     worker: {
         ratio: 0,
+        force_initial_build: false
     },
     releases: {
         keep: 0,

@@ -84,8 +84,8 @@ export class BuildMode {
         // remove old cached files
         File.remove(join(Cwd.get(), 'cache', 'loading_page.html'));
         await Global.set('global', config);
-
-        if (Env.is_dev()) {
+        
+        if (Env.is_dev() && !config.worker.force_initial_build) {
             this.avoid_initial_build = true;
         }
 

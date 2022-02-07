@@ -2,7 +2,7 @@ import { fail } from '@lib/helper/endings';
 import { Plugin } from '@lib/plugin';
 import { Publish } from '@lib/publish';
 import { IPerformance_Measure } from '@lib/performance_measure';
-import { UniqId } from '../vars/uniq_id';
+import { UniqId } from '@lib/vars/uniq_id';
 
 export const release = async (perf: IPerformance_Measure) => {
     perf.start('release');

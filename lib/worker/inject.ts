@@ -9,9 +9,9 @@ import { existsSync, writeFileSync } from 'fs';
 import { join, sep } from 'path';
 import { Cwd } from '@lib/vars/cwd';
 import replaceAsync from 'string-replace-async';
-import { Media } from '../media';
-import { Build } from '../build';
-import { ReleasePath } from '../vars/release_path';
+import { Media } from '@lib/media';
+import { Build } from '@lib/build';
+import { ReleasePath } from '@lib/vars/release_path';
 
 export const inject = async (list: string[], socket_port: number) => {
     const shortcode_identifiers = {};

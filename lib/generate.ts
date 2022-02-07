@@ -2,7 +2,7 @@ import { File } from '@lib/file';
 import arrayToTree from 'array-to-tree';
 import { Storage } from '@lib/storage';
 import { IObject } from '@lib/interface/object';
-import { Logger } from './logger';
+import { Logger } from '@lib/logger';
 
 export class Generate {
     static enhance_data(data: IObject): IObject {

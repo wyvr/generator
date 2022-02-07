@@ -4,7 +4,7 @@ import { Dir } from '@lib/dir';
 import { dirname } from 'path';
 import merge from 'deepmerge';
 import { Storage } from '@lib/storage';
-import { Logger } from './logger';
+import { Logger } from '@lib/logger';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export class Global {

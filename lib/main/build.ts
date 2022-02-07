@@ -4,7 +4,7 @@ import { WorkerEmit } from '@lib/struc/worker/emit';
 import { Plugin } from '@lib/plugin';
 import { WorkerController } from '@lib/worker/controller';
 import { IBuildFileResult } from '@lib/interface/build';
-import { IIdentifier } from '../interface/identifier';
+import { IIdentifier } from '@lib/interface/identifier';
 
 export const build_files = async (worker_controller: WorkerController, list: string[], watched_json_files: string[] = []): Promise<[IBuildFileResult[], IIdentifier[]]> => {
     // match exactly against the json files

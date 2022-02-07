@@ -1,9 +1,9 @@
 import { Plugin } from '@lib/plugin';
 import { File } from '@lib/file';
 import { join } from 'path';
-import { fail } from '../helper/endings';
-import { Exec } from '../exec';
-import { IPerformance_Measure } from '../performance_measure';
+import { fail } from '@lib/helper/endings';
+import { Exec } from '@lib/exec';
+import { IPerformance_Measure } from '@lib/performance_measure';
 
 export const exec = async (perf: IPerformance_Measure) => {
     perf.start('exec');

@@ -13,10 +13,10 @@ import { RootTemplatePaths } from '@lib/vars/root_template_paths';
 import { Config } from '@lib/config';
 import { Generate } from '@lib/generate';
 import { ReleasePath } from '@lib/vars/release_path';
-import { build_identifier_script } from './worker/script';
-import { Client } from './client';
-import { Dependency } from './dependency';
-import { IIdentifierDependency } from './interface/identifier';
+import { build_identifier_script } from '@lib/worker/script';
+import { Client } from '@lib/client';
+import { Dependency } from '@lib/dependency';
+import { IIdentifierDependency } from '@lib/interface/identifier';
 
 export class Exec {
     static cache = null;

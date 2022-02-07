@@ -12,7 +12,7 @@ import { IObject } from '@lib/interface/object';
 import { EnvType } from '@lib/struc/env';
 import { File } from '@lib/file';
 import { ReleasePath } from '@lib/vars/release_path';
-import { Optimize } from './optimize';
+import { Optimize } from '@lib/optimize';
 
 register();
 /* eslint-disable @typescript-eslint/no-explicit-any */

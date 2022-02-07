@@ -27,9 +27,9 @@ export class Config {
      * get the config value
      * @example get('path.to.the.config.value')
      * @param config_segment config to get as string, when nothing is given return the whole config
-     * @returns the value or null
+     * @returns the value or undefined
      */
-    static get(config_segment: string | null = null): any | null {
+    static get(config_segment: string | null = null): any | undefined {
         if (!this.cache) {
             const local_config = this.load_from_path();
             /* eslint-disable @typescript-eslint/no-var-requires */
@@ -50,7 +50,7 @@ export class Config {
         let shrinked_config = this.cache;
         for (const index in splitted_config_segment) {
             if (!splitted_config_segment[index] || !shrinked_config[splitted_config_segment[index]]) {
-                return null;
+                return undefined;
             }
             shrinked_config = shrinked_config[splitted_config_segment[index]];
         }

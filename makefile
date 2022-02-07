@@ -40,6 +40,7 @@ watch: ## Start watcher and make dev builds
 	@env WYVR_ENV=dev npx nodemon \
 		--ignore test \
 		--ignore data \
+		--ignore cache \
 		--ignore pub \
 		--ignore wyvr \
 		--ignore gen \

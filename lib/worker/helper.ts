@@ -1,21 +1,10 @@
 import { WorkerStatus } from '@lib/struc/worker/status';
 import { WorkerAction } from '@lib/struc/worker/action';
 import { IWorkerSend } from '@lib/interface/worker';
-import { Events } from '@lib/events';
 
 export class WorkerHelper {
-    static event_bus: Events = undefined;
 
     static send(data) {
-        if (WorkerHelper.event_bus) {
-            setTimeout(() => {
-                WorkerHelper.event_bus.emit('process', 'send', {
-                    pid: process.pid,
-                    data,
-                });
-            }, 250);
-            return;
-        }
         process.send({
             pid: process.pid,
             data,

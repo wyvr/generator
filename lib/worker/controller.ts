@@ -14,8 +14,6 @@ import { ReleasePath } from '@lib/vars/release_path';
 import { cpus } from 'os';
 import { ILoggerObject } from '@lib/interface/logger';
 import { WorkerEmit } from '@lib/struc/worker/emit';
-import { LocalWorker } from '../local_worker';
-
 export class WorkerController {
     private workers: WorkerModel[] = [];
     private worker_ratio: number | undefined = Config.get('worker.ratio');
@@ -34,12 +32,11 @@ export class WorkerController {
     }
 
     get_worker_amount(): number {
-        // when worker ratio is lower then 0 then no worker will be spawn the execution takes place in the main process
-        if (this.worker_ratio < 0) {
-            return 0;
-        }
         if (this.worker_amount) {
             return this.worker_amount;
+        }
+        if (this.worker_ratio <= 0) {
+            return 1;
         }
         if (this.max_cores) {
             return this.max_cores;
@@ -55,19 +52,6 @@ export class WorkerController {
         return max_cores;
     }
     create() {
-        if (this.worker_amount == 0) {
-            this.events.on('process', 'send', (msg) => {
-                Logger.debug('process', process.pid, 'message', msg);
-                this.get_message(msg);
-            });
-
-            return <any>{
-                status: WorkerStatus.undefined,
-                pid: process.pid,
-                process,
-            };
-        }
-
         const worker = new WorkerModel();
         // creating workers and pushing reference in an array
         // these references can be used to receive messages from workers
@@ -99,15 +83,8 @@ export class WorkerController {
     }
     create_workers(amount) {
         this.workers = [];
-        // handle local worker
-        if (this.worker_amount == 0) {
-            amount = 1;
-        }
         for (let i = amount; i > 0; i--) {
             this.workers.push(this.create());
-        }
-        if (this.worker_amount == 0) {
-            new LocalWorker(this.events);
         }
         return this.workers;
     }
@@ -198,10 +175,6 @@ export class WorkerController {
         }
         if (!data) {
             Logger.warning('can not send empty message to worker', pid);
-            return;
-        }
-        if (this.worker_amount == 0) {
-            this.events.emit('process', 'receive', data);
             return;
         }
         worker.process.send(data);

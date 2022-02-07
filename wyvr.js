@@ -22,7 +22,7 @@ module.exports = {
     https: false,
     worker: {
         force_initial_build: true,
-        ratio: -1,
+        ratio: 0,
     },
     packages: [
         {
@@ -35,7 +35,7 @@ module.exports = {
         // },
         {
             name: 'Local',
-            path: '../example/local-package',
+            path: '../example/test',
         },
         {
             name: 'Form',

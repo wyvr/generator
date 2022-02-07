@@ -1,5 +1,5 @@
 import * as fs from 'fs-extra';
-import { join, dirname, extname, basename } from 'path';
+import { join, dirname, extname, sep } from 'path';
 import { compile } from 'svelte/compiler';
 import register from 'svelte/register';
 import { Client } from '@lib/client';
@@ -172,7 +172,7 @@ export class Build {
     static inject_media_files(html: string, css_file_path: string, media_files: WyvrCssMediaCollection) {
         const media_includes = Object.keys(media_files)
             .map((key, index) => {
-                const path = '/css/' + basename(this.append_to_file_path(css_file_path, index + ''));
+                const path = this.append_to_file_path(css_file_path, index + '').replace(new RegExp(`.*(${sep}css${sep})`, 'i'), '$1');
                 // @NOTE to get correct critical css this is not allowed to be preloaded
                 // return `<link rel="preload" href="${path}" as="style" onload="this.onload=null;this.media='${key}';this.rel='stylesheet'">
                 // <noscript><link rel="stylesheet" href="${path}" media="${key}"></noscript>`;

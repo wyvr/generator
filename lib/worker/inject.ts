@@ -176,9 +176,11 @@ export const inject = async (list: string[], socket_port: number) => {
             writeFileSync(file, media_content);
             continue;
         }
-        const [render_error, rendered, identifier_item] = await Build.render(compiled, {
+        const props = {
             _wyvr: { identifier: file.replace(ReleasePath.get() + sep, '') },
-        });
+        };
+        const [render_error, rendered, identifier_item] = await Build.render(compiled, props);
+
         if (render_error) {
             // svelte error messages
             Logger.error('[svelte]', file, Error.get(render_error, file, 'render shortcodes'));

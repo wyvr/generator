@@ -92,7 +92,14 @@ export class WorkerController {
         return this.workers.find((worker) => worker.pid == pid);
     }
     get_message(msg) {
-        if (typeof msg == 'string' || msg.pid == null || msg.data == null || msg.data.action == null || msg.data.action.key == null || msg.data.action.value == null) {
+        if (
+            typeof msg == 'string' ||
+            msg.pid == null ||
+            msg.data == null ||
+            msg.data.action == null ||
+            msg.data.action.key == null ||
+            msg.data.action.value == null
+        ) {
             return;
         }
         const worker = this.get_worker(msg.pid);
@@ -122,14 +129,29 @@ export class WorkerController {
                                 return message;
                             }
                             // ssr errors
-                            if (typeof message == 'object' && message.code == 'parse-error' && message.frame && message.start && message.name) {
-                                return `\n${message.name} ${Logger.color.dim('Line:')}${message.start.line}${Logger.color.dim(' Col:')}${message.start.column}\n${message.frame}`;
+                            if (
+                                typeof message == 'object' &&
+                                message.code == 'parse-error' &&
+                                message.frame &&
+                                message.start &&
+                                message.name
+                            ) {
+                                return `\n${message.name} ${Logger.color.dim('Line:')}${
+                                    message.start.line
+                                }${Logger.color.dim(' Col:')}${message.start.column}\n${message.frame}`;
                             }
                             // rollup errors
-                            if (typeof message == 'object' && message.code == 'PARSE_ERROR' && message.frame && message.loc) {
-                                return `\n${message.code} ${Logger.color.dim('in')} ${message.loc.file}\n${Logger.color.dim('Line:')}${message.loc.line}${Logger.color.dim(
-                                    ' Col:'
-                                )}${message.loc.column}\n${message.frame}`;
+                            if (
+                                typeof message == 'object' &&
+                                message.code == 'PARSE_ERROR' &&
+                                message.frame &&
+                                message.loc
+                            ) {
+                                return `\n${message.code} ${Logger.color.dim('in')} ${
+                                    message.loc.file
+                                }\n${Logger.color.dim('Line:')}${message.loc.line}${Logger.color.dim(' Col:')}${
+                                    message.loc.column
+                                }\n${message.frame}`;
                             }
                             // nodejs error
                             if (typeof message == 'object' && message.error) {
@@ -153,7 +175,13 @@ export class WorkerController {
         return this.workers.filter((worker) => worker.status == WorkerStatus.idle);
     }
     send_status(pid, status) {
-        Logger.warning('really?! the status comes from the worker itself, worker:', pid, 'status', status, WorkerStatus[status]);
+        Logger.warning(
+            'really?! the status comes from the worker itself, worker:',
+            pid,
+            'status',
+            status,
+            WorkerStatus[status]
+        );
         this.send_action(pid, WorkerAction.status, status);
     }
     send_action(pid, action, data) {
@@ -235,7 +263,16 @@ export class WorkerController {
             return;
         }
         const amount = list.length;
-        Logger.info('process', amount, `${amount == 1 ? 'item' : 'items'}, batch size`, Logger.color.cyan(batch_size.toString()));
+        if (amount == 0) {
+            Logger.improve('no items to process, batch size', Logger.color.cyan(batch_size.toString()));
+            return true;
+        }
+        Logger.info(
+            'process',
+            amount,
+            `${amount == 1 ? 'item' : 'items'}, batch size`,
+            Logger.color.cyan(batch_size.toString())
+        );
         // create new queue
         this.queue = new Queue();
 
@@ -270,7 +307,12 @@ export class WorkerController {
                 this.livecycle(idle[0]);
             }
             const done_listener_id = this.events.on('worker_status', WorkerStatus.done, () => {
-                Logger.text(name, Logger.color.dim('...'), `${Math.round((100 / size) * done)}%`, Logger.color.dim(`${done}/${size}`));
+                Logger.text(
+                    name,
+                    Logger.color.dim('...'),
+                    `${Math.round((100 / size) * done)}%`,
+                    Logger.color.dim(`${done}/${size}`)
+                );
                 done++;
                 if (done == size) {
                     this.events.off('worker_status', WorkerStatus.done, done_listener_id);

@@ -21,31 +21,30 @@ module.exports = {
     url: 'example.wyvr',
     https: false,
     worker: {
-        ratio: 0,
+        force_initial_build: true,
+        ratio: -1,
     },
     packages: [
         {
-            name: '../theme-wyvr',
+            name: 'Web',
+            path: '../example/package-web',
         },
-        {
-            name: '../package-remixicon',
-        },
+        // {
+        //     name: 'Remixicon',
+        //     path: '../example/node_modules/@wyvr/package-remixicon',
+        // },
         {
             name: 'Local',
             path: '../example/local-package',
         },
         {
-            name: 'Magento',
-            path: '../example/magento-adapter',
+            name: 'Form',
+            path: '../example/form-package',
         },
-        // {
-        //     name: 'Magento2ECX',
-        //     path: 'ecx_magento_graphql',
-        // },
         {
-            name: 'Overrides',
-            path: '../example/overrides',
-        }
+            name: 'ContentElements',
+            path: '../example/package-content-elements',
+        },
     ],
     default_values: {
         title: 'wyvr',

@@ -116,6 +116,9 @@ export class Main {
         this.worker_amount = this.worker_controller.get_worker_amount();
         Logger.present('workers', this.worker_amount, Logger.color.dim(`of ${cpus().length} cores`));
         this.worker_controller.create_workers(this.worker_amount);
+        if(this.worker_amount == 0) {
+            Logger.warning('execution takes place in the main process');
+        }
         const gen_src_folder = join(Cwd.get(), 'gen', 'raw');
         // watcher when worker sends identifier content
         this.worker_controller.events.on('emit', WorkerEmit.identifier, (data: IIdentifierEmit) => {

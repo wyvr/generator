@@ -60,7 +60,6 @@ export class WorkerActionExecutor {
                 break;
             }
             case WorkerAction.inject: {
-                Logger.warning('inject value', value);
                 const { media, shortcode_identifiers } = await inject(value, this.socket_port);
                 if (Object.keys(shortcode_identifiers).length > 0) {
                     WorkerHelper.send_action(WorkerAction.emit, {

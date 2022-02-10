@@ -8,12 +8,23 @@ import { File } from '@lib/file';
 import { join } from 'path';
 
 export class Logger {
+    static pre = '';
     static color = color;
     static spinner = null;
     static last_text = null;
     static env = process.env.WYVR_ENV || 'development';
     static show_report = process.env.WYVR_REPORT != null;
     static report_content = [];
+    static create(name = '') {
+        /* eslint-disable */
+        const clone: any = {};
+        Object.keys(Logger).forEach((key) => {
+            clone[key] = Logger[key];
+        });
+        clone.pre = this.color.dim(`[${name}]`);
+        /* eslint-enable */
+        return clone;
+    }
     static set_env(env: string) {
         if (['development', 'debug', 'production'].indexOf(env) == -1) {
             return;
@@ -28,6 +39,9 @@ export class Logger {
         const messages = values.map(this.stringify).filter((x) => x);
 
         if (cluster.isWorker) {
+            if(this.pre) {
+                messages.unshift(this.pre);
+            }
             process.send({
                 pid: process.pid,
                 data: {
@@ -48,7 +62,7 @@ export class Logger {
 
         if (this.spinner) {
             this.spinner
-                .stopAndPersist({ text: `${symbol} ${text}`, symbol: color.dim('│') })
+                .stopAndPersist({ text: `${symbol} ${this.pre}${text}`, symbol: color.dim('│') })
                 .start(this.last_text).spinner = 'dots';
             return;
         }

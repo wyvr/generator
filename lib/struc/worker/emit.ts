@@ -6,4 +6,5 @@ export enum WorkerEmit {
     build = 'build',
     inject_shortcode_identifier = 'inject_shortcode_identifier',
     inject_media = 'inject_media',
+    errors = 'errors',
 }

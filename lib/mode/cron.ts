@@ -71,7 +71,7 @@ export class CronMode {
         // build the cron routes
         this.perf.start('build');
         // build static files
-        const [build_pages, identifier_data_list] = await build_files(worker_controller, cron_routes);
+        const [build_errors, build_pages, identifier_data_list] = await build_files(worker_controller, cron_routes);
         this.perf.end('build');
 
         await optimize(this.perf, identifier_data_list, worker_controller);

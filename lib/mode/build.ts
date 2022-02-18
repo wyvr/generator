@@ -42,6 +42,7 @@ import { Link } from '@lib/link';
 import { Storage } from '@lib/storage';
 import { UniqId } from '@lib/vars/uniq_id';
 import { SocketPort } from '@lib/vars/socket_port';
+import { IBuildFileResult } from '@lib/interface/build';
 
 export class BuildMode {
     hr_start = null;
@@ -168,7 +169,7 @@ export class BuildMode {
         worker_controller: WorkerController,
         changed_files: IWatchFile[] = [],
         watched_files: string[] = null
-    ) {
+    ): Promise<[string[][], IBuildFileResult[]]> {
         this.is_executing = true;
         const first_run = this.runs == 0;
         const is_regenerating = changed_files.length > 0 && !first_run;
@@ -203,7 +204,7 @@ export class BuildMode {
 
         if (only_static) {
             this.is_executing = false;
-            return [];
+            return [undefined, []];
         }
 
         // collect the files for the generation
@@ -253,6 +254,7 @@ export class BuildMode {
         }
         let build_pages = [];
         let identifier_data_list = [];
+        let build_errors = [];
 
         if (this.avoid_initial_build) {
             Logger.improve(
@@ -272,13 +274,13 @@ export class BuildMode {
             // build static files
             // console.log('identifier_data_list before', this.identifier_data_list)
             if (watched_json_files) {
-                [build_pages, identifier_data_list] = await build_files(
+                [build_errors, build_pages, identifier_data_list] = await build_files(
                     worker_controller,
                     files,
                     watched_json_files
                 );
             } else {
-                [build_pages, identifier_data_list] = await build_list(
+                [build_errors, build_pages, identifier_data_list] = await build_list(
                     worker_controller,
                     files
                 );
@@ -354,6 +356,6 @@ export class BuildMode {
 
         worker_controller.cleanup();
         this.is_executing = false;
-        return build_pages;
+        return [build_errors, build_pages];
     }
 }

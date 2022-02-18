@@ -251,3 +251,24 @@
     transition: opacity 2s linear;
     pointer-events: none;
 }
+.wyvr_error_list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-family: monospace;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+.wyvr_error_list li {
+    margin: 0 0 1em;
+    padding: 1em;
+    list-style: none;
+    background-color: #600;
+    border: 1px solid #c00;
+    color: #fff;
+    white-space: pre;
+    overflow-x: auto;
+    max-width: 90vw;
+    border-radius: 0.25em;
+    line-height: 1.2em;
+}

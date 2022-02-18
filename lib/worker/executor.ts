@@ -42,10 +42,16 @@ export class WorkerActionExecutor {
                 break;
             }
             case WorkerAction.build: {
-                const [identifier_list, build_result] = await build(value, (data: any) => this.emit_identifier(data));
+                const [build_errors, identifier_list, build_result] = await build(value, (data: any) => this.emit_identifier(data));
 
                 // clear cache
                 this.identifiers_cache = {};
+                if(build_errors) {
+                    WorkerHelper.send_action(WorkerAction.emit, {
+                        type: WorkerEmit.errors,
+                        data: build_errors,
+                    });
+                }
                 // bulk sending the css root elements
                 WorkerHelper.send_action(WorkerAction.emit, {
                     type: WorkerEmit.identifier_list,

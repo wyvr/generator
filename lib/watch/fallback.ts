@@ -19,7 +19,7 @@ function generate_loading_page() {
         return cache_file;
     }
 
-    let socket_script = '';
+    let script = '';
     const page_path = join(__dirname, '..', 'resource', 'page.html');
     const page = File.read(page_path);
     if (!page) {
@@ -32,11 +32,19 @@ function generate_loading_page() {
         Logger.warning('missing client socket path', client_socket_path);
         return undefined;
     }
-    socket_script = `<script id="wyvr_client_socket">
+    const debug_path = join(__dirname, '..', 'resource', 'debug.js');
+    const debug = File.read(debug_path);
+    if (!debug) {
+        Logger.warning('missing debug path', debug_path);
+        return undefined;
+    }
+    script = `<script id="wyvr_client_socket">
+        ${debug}
         window.wyvr_generate_page = true;
+        window.wyvr_generate_timeout = undefined;
         (function wyvr_generate_page() {
             localStorage.removeItem('wyvr_socket_history');
-            window.setTimeout(() => {
+            window.wyvr_generate_timeout = window.setTimeout(() => {
                 location.href = location.href;
             }, 30000);
         })();
@@ -44,7 +52,7 @@ function generate_loading_page() {
 
     const content = page
         .replace(/\{content\}/g, 'Page will be generated, please wait &hellip;')
-        .replace(/\{script\}/g, socket_script);
+        .replace(/\{script\}/g, script);
 
     File.write(cache_file_path, content);
     Logger.debug('generated loading page');

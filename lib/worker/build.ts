@@ -14,20 +14,23 @@ export const build = async (
     value: any[],
     create_identifier: (any) => any,
     write_result = true
-): Promise<[IObject[], IBuildFileResult[]]> => {
+): Promise<[any, IObject[], IBuildFileResult[]]> => {
     if (!create_identifier || typeof create_identifier != 'function') {
-        return [null, null];
+        return [['missing callback create_identifier in build worker'], undefined, undefined];
     }
     const identifier_list = [];
     const build_result = [];
     const len = value.length;
+    const errors = [];
 
     for (let index = 0; index < len; index++) {
         const filename = value[index];
         const start = process.hrtime();
         const data = File.read_json(filename);
         if (!data) {
-            Logger.error('broken/missing/empty file', filename);
+            const error = ['broken/missing/empty file', filename];
+            Logger.error(...error);
+            errors.push(error);
             continue;
         }
         const result = create_identifier(data);
@@ -37,13 +40,17 @@ export const build = async (
 
         if (compile_error) {
             // svelte error messages
-            Logger.error('[svelte]', data.url, Error.get(compile_error, filename, 'build'));
+            const error = ['[svelte]', data.url, Error.get(compile_error, filename, 'build')];
+            Logger.error(...error);
+            errors.push(error);
             continue;
         }
         const [render_error, rendered, identifier_item] = await Build.render(compiled, data);
         if (render_error) {
             // svelte error messages
-            Logger.error('[svelte]', data.url, Error.get(render_error, filename, 'render'));
+            const error = ['[svelte]', data.url, Error.get(render_error, filename, 'render')];
+            Logger.error(...error);
+            errors.push(error);
             continue;
         }
         // change extension when set
@@ -78,6 +85,6 @@ export const build = async (
             _wyvr: data._wyvr,
         });
     }
-
-    return [identifier_list, build_result];
+    const result_error = errors.length == 0 ? undefined : errors;
+    return [result_error, identifier_list, build_result];
 };

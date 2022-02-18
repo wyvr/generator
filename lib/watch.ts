@@ -35,7 +35,10 @@ export class Watch {
 
     constructor(
         private ports: [number, number],
-        private callback: (changed_files: IWatchFile[], watched_files: string[]) => Promise<IBuildFileResult[]> = null
+        private callback: (
+            changed_files: IWatchFile[],
+            watched_files: string[]
+        ) => Promise<[string[][], IBuildFileResult[]]> = null
     ) {
         if (!callback || typeof callback != 'function') {
             Logger.warning('can not start watching because no callback is defined');
@@ -149,7 +152,11 @@ export class Watch {
         }
         if (force_complete_rebuild) {
             // build whole site
-            await this.build([], null);
+            const [build_errors] = await this.build([], null);
+            if (build_errors) {
+                this.send_errors(build_errors);
+                return;
+            }
             // reload all watcher
             Object.keys(this.watchers).forEach((id) => {
                 this.send(id, { action: 'reload' });
@@ -257,11 +264,14 @@ export class Watch {
             .filter((f) => f);
 
         // build the files
-        await this.build([].concat(added_files, files), this.get_watched_files());
+        const [build_errors] = await this.build([].concat(added_files, files), this.get_watched_files());
 
         // reload only whole page when no static asset is given
         const rel_file_paths = files.map((f) => f.rel_path);
-
+        if (build_errors) {
+            this.send_errors(build_errors)
+            return;
+        }
         // reload all watchers
         Object.keys(this.watchers).forEach((id) => {
             this.send(id, { action: 'reload' });
@@ -297,5 +307,19 @@ export class Watch {
         Logger.output(LogType.log, Logger.color.dim, '░', uid, Logger.color.reset(duration + ''), 'ms');
         res.end(value);
         return;
+    }
+    send_errors(errors: string[][]) {
+        const plain_errors = errors.map((error) => {
+            if (typeof error == 'string') {
+                return Logger.color.unstyle(error);
+            }
+            if (Array.isArray(error)) {
+                return error.map((e) => Logger.color.unstyle(e));
+            }
+            return error;
+        });
+        Object.keys(this.watchers).forEach((id) => {
+            this.send(id, { action: 'error', data: plain_errors });
+        });
     }
 }

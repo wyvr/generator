@@ -125,17 +125,23 @@ export class Media {
         if (media.height != null && media.height > -1) {
             options.height = Math.ceil(media.height);
         }
+        // add white background when empty space can be added and format is not transparent able
+        if (['jpg', 'jpeg'].indexOf(media.format) > -1 && media.mode != MediaModelMode.Cover) {
+            options.background = { r: 255, g: 255, b: 255 };
+        }
+        Logger.debug(media.src, JSON.stringify(options));
+        let modified_image = undefined;
         try {
-            // add white background when empty space can be added and format is not transparent able
-            if (['jpg', 'jpeg'].indexOf(media.format) > -1 && media.mode != MediaModelMode.Cover) {
-                options.background = { r: 255, g: 255, b: 255 };
-            }
-            Logger.debug(media.src, JSON.stringify(options));
-            const modified_image = await sharp(buffer).resize(options);
-            if (media.output != MediaModelOutput.Path) {
-                Logger.warning('media', `${media.src} output "${media.output}" is not implemented at the moment`);
-            }
-            let output_buffer = null;
+            modified_image = await sharp(buffer).resize(options);
+        } catch (e) {
+            Logger.error(Error.get(e, media.src, 'sharp'));
+            return null;
+        }
+        if (media.output != MediaModelOutput.Path) {
+            Logger.warning('media', `${media.src} output "${media.output}" is not implemented at the moment`);
+        }
+        let output_buffer = null;
+        try {
             switch (media.format) {
                 case 'jpg':
                 case 'jpeg':
@@ -157,14 +163,17 @@ export class Media {
                     output_buffer = await modified_image.png().toBuffer();
                     break;
             }
-            File.write(output, output_buffer);
             if (!output_buffer) {
                 Logger.error(Error.get({ message: 'no buffer available' }, media.src, 'sharp'));
                 return null;
             }
+            // output_buffer is arraybuffer and has to be converter
+            File.write(output, Buffer.from(output_buffer));
         } catch (e) {
             Logger.error(Error.get(e, media.src, 'sharp'));
+            return null;
         }
+
         return null;
     }
     static async serve(
@@ -206,10 +215,7 @@ export class Media {
             (Array.isArray(this.allowed_domains) &&
                 this.allowed_domains.find((domain) => media_config.domain == domain));
         if (!allowed) {
-            return await fail(
-                res,
-                `domain "${media_config.domain}" not allowed`
-            );
+            return await fail(res, `domain "${media_config.domain}" not allowed`);
         }
         // create the cache file
         try {

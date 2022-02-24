@@ -174,7 +174,17 @@ export class Media {
         on_fail: (message: string) => Promise<void> = null
     ) {
         if (!Media.allowed_domains) {
-            Media.allowed_domains = Config.get('media.allowed_domains');
+            const allowed_domains = Config.get('media.allowed_domains');
+            if (Array.isArray(allowed_domains)) {
+                // cleanup the domains in case when protoll has been added
+                Media.allowed_domains = allowed_domains
+                    .map((domain) => {
+                        return domain.replace(/^https?:\/\//, '').split('/')[0];
+                    })
+                    .filter((x) => x);
+            } else {
+                Media.allowed_domains = [];
+            }
         }
         const end = async (res, value) => {
             if (on_end && typeof on_end == 'function') {
@@ -196,7 +206,10 @@ export class Media {
             (Array.isArray(this.allowed_domains) &&
                 this.allowed_domains.find((domain) => media_config.domain == domain));
         if (!allowed) {
-            return await fail(res, `domain "${media_config.domain}" not allowed`);
+            return await fail(
+                res,
+                `domain "${media_config.domain}" not allowed`
+            );
         }
         // create the cache file
         try {

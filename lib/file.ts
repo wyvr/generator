@@ -151,7 +151,7 @@ export class File {
      * @param filename
      * @returns void
      */
-    static write(filename: string, content = ''): boolean {
+    static write(filename: string, content: string | NodeJS.ArrayBufferView = ''): boolean {
         if (!filename) {
             return false;
         }

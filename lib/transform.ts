@@ -46,8 +46,8 @@ export class Transform {
         return content
             .replace(/([^\w])isServer([^\w])/g, `$1${as_client ? 'false' : 'true'}$2`)
             .replace(/([^\w])isClient([^\w])/g, `$1${as_client ? 'true' : 'false'}$2`)
-            .replace(/import \{[^}]*?\} from '@wyvr\/generator';?/g, '')
-            .replace(/(?:const|let)[^=]*?= require\('@wyvr\/generator'\);?/g, '');
+            .replace(/import \{[^}]*?\} from ["']@wyvr\/generator["'];?/g, '')
+            .replace(/(?:const|let)[^=]*?= require\(["']@wyvr\/generator["']\);?/g, '');
     }
     static async typescript_compile(path: string, content: string): Promise<boolean> {
         const output_path = File.to_extension(path, '.js');

@@ -7,6 +7,7 @@ import { Client } from '@lib/client';
 import { hrtime_to_ms } from '@lib/converter/time';
 import { extname, dirname } from 'path';
 import { mkdirSync } from 'fs-extra';
+import { Env } from '../env';
 
 export const transform = async (list: string[]) => {
     // destroy getGlobal to avoid overlapping calls
@@ -80,6 +81,12 @@ export const transform = async (list: string[]) => {
                 File.write(client_path, client_content);
                 break;
         }
+
+        // make security check
+        // @TODO this can eventually be removed when releasing
+        if(Env.is_dev() && client_content.indexOf('@wyvr/generator') > -1) {
+            Logger.warning(`${file} contains possible reference to @wyvr/generator, this can cause errors please inform us about this case, thank you`);
+        } 
     }
 
     return list;

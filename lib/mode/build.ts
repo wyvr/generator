@@ -85,7 +85,7 @@ export class BuildMode {
         // remove old cached files
         File.remove(join(Cwd.get(), 'cache', 'loading_page.html'));
         await Global.set('global', config);
-        
+
         if (Env.is_dev() && !config.worker.force_initial_build) {
             this.avoid_initial_build = true;
         }
@@ -134,33 +134,16 @@ export class BuildMode {
         }
         if (Env.is_dev()) {
             Link.to(
-                join(
-                    'node_modules',
-                    '@wyvr',
-                    'generator',
-                    'wyvr',
-                    'resource',
-                    'debug.css'
-                ),
+                join('node_modules', '@wyvr', 'generator', 'wyvr', 'resource', 'debug.css'),
                 join(ReleasePath.get(), 'debug.css')
             );
         }
         // watch for file changes
         try {
-            new Watch(
-                this.watcher_ports,
-                async (
-                    changed_files: IWatchFile[],
-                    watched_files: string[]
-                ) => {
-                    Plugin.clear();
-                    return await this.execute(
-                        worker_controller,
-                        changed_files,
-                        watched_files
-                    );
-                }
-            );
+            new Watch(this.watcher_ports, async (changed_files: IWatchFile[], watched_files: string[]) => {
+                Plugin.clear();
+                return await this.execute(worker_controller, changed_files, watched_files);
+            });
         } catch (e) {
             fail(e);
         }
@@ -174,17 +157,12 @@ export class BuildMode {
         const first_run = this.runs == 0;
         const is_regenerating = changed_files.length > 0 && !first_run;
 
-        const only_static =
-            is_regenerating &&
-            changed_files.every((file) => file.rel_path.match(/^assets\//));
+        const only_static = is_regenerating && changed_files.every((file) => file.rel_path.match(/^assets\//));
 
         let watched_json_files = null;
         if (watched_files) {
             watched_json_files = watched_files.map((path) => {
-                return File.to_index(
-                    join(Cwd.get(), 'gen', 'data', path),
-                    'json'
-                );
+                return File.to_index(join(Cwd.get(), 'gen', 'data', path), 'json');
             });
         }
 
@@ -210,27 +188,16 @@ export class BuildMode {
         // collect the files for the generation
         this.perf.start('collect');
         this.package_tree = await collect(this.package_tree);
-        File.write_json(
-            PackageTreePath.get(),
-            JSON.parse(JSON.stringify(this.package_tree))
-        );
+        File.write_json(PackageTreePath.get(), JSON.parse(JSON.stringify(this.package_tree)));
         this.perf.end('collect');
 
-        const contains_routes =
-            changed_files.find((file) => file.rel_path.match(/^routes\//)) !=
-            null;
+        const contains_routes = changed_files.find((file) => file.rel_path.match(/^routes\//)) != null;
         let route_urls = [];
         this.perf.start('routes');
 
         if (contains_routes || first_run) {
             // get the route files
-            [route_urls] = await routes(
-                worker_controller,
-                this.package_tree,
-                changed_files,
-                !is_regenerating,
-                null
-            );
+            [route_urls] = await routes(worker_controller, this.package_tree, changed_files, !is_regenerating, null);
         } else {
             Logger.improve('routes, will not be regenerated');
         }
@@ -256,20 +223,15 @@ export class BuildMode {
         let identifier_data_list = [];
         let build_errors = [];
 
-        if (this.avoid_initial_build) {
-            Logger.improve(
-                'avoid initial build, will be generated when opened in browser'
-            );
+        const avoid_initial_build = this.avoid_initial_build;
+
+        if (avoid_initial_build) {
+            Logger.improve('avoid initial build, will be generated when opened in browser');
             this.avoid_initial_build = false;
         } else {
             // read all imported files
             const files =
-                route_urls.length > 0
-                    ? route_urls
-                    : File.collect_files(
-                          join(Cwd.get(), 'gen', 'data'),
-                          'json'
-                      );
+                route_urls.length > 0 ? route_urls : File.collect_files(join(Cwd.get(), 'gen', 'data'), 'json');
 
             // build static files
             // console.log('identifier_data_list before', this.identifier_data_list)
@@ -280,10 +242,7 @@ export class BuildMode {
                     watched_json_files
                 );
             } else {
-                [build_errors, build_pages, identifier_data_list] = await build_list(
-                    worker_controller,
-                    files
-                );
+                [build_errors, build_pages, identifier_data_list] = await build_list(worker_controller, files);
             }
             // console.log('identifier_data_list', identifier_data_list)
             if (this.identifier_data_list.length == 0) {
@@ -305,30 +264,18 @@ export class BuildMode {
 
         // check if the execution should stop after the build
         const build_scripts =
-            !is_regenerating ||
-            changed_files.some((file) => file.rel_path.match(/^src\//)) ||
-            // has missing scripts
-            Object.keys(this.identifiers).find(
-                (identifier) =>
-                    !File.is_file(join('gen', 'js', `${identifier}.js`))
-            );
+            !avoid_initial_build &&
+            (!is_regenerating ||
+                changed_files.some((file) => file.rel_path.match(/^src\//)) ||
+                // has missing scripts
+                Object.keys(this.identifiers).find(
+                    (identifier) => !File.is_file(join('gen', 'js', `${identifier}.js`))
+                ));
 
         if (build_scripts) {
-            dependencies(
-                this.perf,
-                build_pages,
-                shortcode_identifier,
-                this.identifiers,
-                this.package_tree
-            );
+            dependencies(this.perf, build_pages, shortcode_identifier, this.identifiers, this.package_tree);
 
-            await scripts(
-                this.perf,
-                worker_controller,
-                this.identifiers,
-                watched_files,
-                watched_files
-            );
+            await scripts(this.perf, worker_controller, this.identifiers, watched_files, watched_files);
         } else {
             Logger.improve('scripts, will not be regenerated');
         }

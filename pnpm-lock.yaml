@@ -11,7 +11,6 @@ specifiers:
   '@types/node': ^17.0.21
   '@typescript-eslint/eslint-plugin': ^5.15.0
   '@typescript-eslint/parser': ^5.15.0
-  ansi-colors: 4.1.1
   array-to-tree: 3.3.2
   axios: 0.26.1
   chokidar: 3.5.3
@@ -19,6 +18,7 @@ specifiers:
   critical: 4.0.1
   deepmerge: 4.2.2
   esbuild: ^0.14.27
+  esbuild-plugin-globals: ^0.1.1
   eslint: 8.11.0
   front-matter: 4.0.2
   fs-extra: 10.0.1
@@ -26,6 +26,7 @@ specifiers:
   http-server: 14.1.0
   intl: 1.2.5
   jshint: ^2.13.4
+  kleur: ^4.1.4
   locate-character: 2.0.5
   magic-string: 0.26.1
   marked: 4.0.12
@@ -62,7 +63,6 @@ dependencies:
   '@rollup/plugin-node-resolve': 13.1.3_rollup@2.70.1
   '@rollup/plugin-typescript': 8.3.1_859e05ab655ea3c900a5f26a0311c0b5
   '@types/node': 17.0.21
-  ansi-colors: 4.1.1
   array-to-tree: 3.3.2
   axios: 0.26.1
   chokidar: 3.5.3
@@ -70,11 +70,13 @@ dependencies:
   critical: 4.0.1
   deepmerge: 4.2.2
   esbuild: 0.14.27
+  esbuild-plugin-globals: 0.1.1
   front-matter: 4.0.2
   fs-extra: 10.0.1
   html-minifier: 4.0.0
   http-server: 14.1.0
   intl: 1.2.5
+  kleur: 4.1.4
   marked: 4.0.12
   mocha: 9.2.2
   node-static: 0.7.11
@@ -2327,6 +2329,11 @@ packages:
     dev: false
     optional: true
 
+  /esbuild-plugin-globals/0.1.1:
+    resolution: {integrity: sha512-BK0OJ02paAPJp4tGyFBum/YHerGYeRvonCRuRpkIbJemQrFHw3uWy6MEXcKgOwecAyXo3fOY5opl8ude2kHVrw==}
+    engines: {node: '>=7'}
+    dev: false
+
   /esbuild-sunos-64/0.14.27:
     resolution: {integrity: sha512-/nBVpWIDjYiyMhuqIqbXXsxBc58cBVH9uztAOIfWShStxq9BNBik92oPQPJ57nzWXRNKQUEFWr4Q98utDWz7jg==}
     engines: {node: '>=12'}
@@ -3868,6 +3875,11 @@ packages:
     resolution: {integrity: sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==}
     engines: {node: '>=6'}
     dev: true
+
+  /kleur/4.1.4:
+    resolution: {integrity: sha512-8QADVssbrFjivHWQU7KkMgptGTl6WAcSdlbBPY4uNF+mWr6DGcKrvY2w4FQJoXch7+fKMjj0dRrL75vk3k23OA==}
+    engines: {node: '>=6'}
+    dev: false
 
   /latest-version/5.1.0:
     resolution: {integrity: sha512-weT+r0kTkRQdCdYCNtkMwWXQTMEswKrFBkm4ckQOMVhhqhIMI1UT2hMj+1iigIhgSZm5gTmrRXBNoGUgaTY1xA==}

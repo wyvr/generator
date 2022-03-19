@@ -3,7 +3,10 @@ import { semver } from '@lib/presentation/formatter';
 
 export const get_logo = (version: string) => {
     // kleur.enabled = false;
-    const display_version = semver(version ?? 'missing version');
+    let display_version = semver(version);
+    if (!display_version) {
+        display_version = kleur.red('⚠ unknown version');
+    }
     const logo = [
         `__  __  __  __  __  ____`,
         `\\ \\/ /\\/ /\\/ /\\/ /\\/ /_/`,

@@ -10,7 +10,7 @@ SHELL := /bin/bash
 WYVR_LINT=npx eslint src --ext .ts
 WYVR_COMPILE=node ./esbuild.js && mkdir -p lib/resource/ && cp src/resource/* lib/resource/
 WYVR_TEST=npx mocha -R dot './test/**/*.js'
-WYVR_COVERAGE=npx nyc $(WYVR_TEST)
+WYVR_COVERAGE=npx c8 $(WYVR_TEST)
 
 compile-watch: ## Start watcher and make dev builds
 	@env npx nodemon \
@@ -35,7 +35,7 @@ init: ## Install and prepare setup
 	@npm install
 
 coverage: ## Get test coverage result
-	@$(WYVR_COVERAGE)
+	@$(WYVR_COMPILE); $(WYVR_COVERAGE)
 
 coverage-watch: ## Watches changes in the tests
 	@npx nodemon --watch src --watch test -e js,ts --exec "$(WYVR_COMPILE); $(WYVR_COVERAGE)"

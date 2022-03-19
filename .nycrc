@@ -1,12 +1,17 @@
 {
-    "extends": "@istanbuljs/nyc-config-typescript",
     "check-coverage": true,
     "all": true,
+    "extension": [
+        ".js",
+        ".ts"
+    ],
     "include": [
         "lib/**/*.js"
     ],
     "exclude": [
-        "lib/resource/**/*.*"
+        "lib/resource/**/*.*",
+        "test/**",
+        "node_modules/**"
     ],
     "reporter": [
         "html",

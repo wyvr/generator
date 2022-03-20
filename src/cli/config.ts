@@ -1,5 +1,6 @@
 import { ICliConfig } from '@lib/interface/config';
-import { dirname } from 'path';
+import { readFileSync } from 'fs';
+import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
 export const extract_cli_config = (argv: string[]) => {
@@ -57,4 +58,15 @@ export const extract_cli_config = (argv: string[]) => {
         default_config.flags = flags;
     }
     return default_config;
+};
+
+export const get_wyvr_version = () => {
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+
+    const pkg = JSON.parse(readFileSync(join(__dirname, '..', '..', 'package.json'), { encoding: 'utf-8' }));
+
+    if (pkg && pkg.version) {
+        return pkg.version;
+    }
+    return undefined;
 };

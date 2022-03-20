@@ -24,14 +24,16 @@ export const extract_cli_config = (argv: string[]) => {
             if (!flags) {
                 flags = {};
             }
+            /* eslint-disable @typescript-eslint/no-explicit-any */
             const argument: any[] = arg.replace(/^-+/, '').split('=');
+            /* eslint-enable @typescript-eslint/no-explicit-any */
+            
             // fallback value
             if (argument.length == 1) {
                 argument[1] = true;
             }
             // convert numbers
             let value = argument[1];
-            
             if (typeof value == 'string') {
                 value = parseFloat(argument[1]);
                 if (isNaN(value)) {

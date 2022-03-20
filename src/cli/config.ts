@@ -1,8 +1,8 @@
 import { IObject } from '@lib/interface/object';
-import { CliConfig } from '@lib/interface/config';
+import { ICliConfig } from '@lib/interface/config';
 
 export const extract_cli_config = (argv: string[]) => {
-    const default_config: CliConfig = {
+    const default_config: ICliConfig = {
         cwd: process.cwd(),
         interpreter: undefined,
         script: undefined,

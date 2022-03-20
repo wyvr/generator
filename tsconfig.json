@@ -17,6 +17,6 @@
         "allowSyntheticDefaultImports": true,
         "downlevelIteration": true
     },
-    "include": ["./lib/**/*"],
+    "include": ["./src/**/*"],
     "exclude": ["node_modules/*"]
 }

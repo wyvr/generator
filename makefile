@@ -29,7 +29,7 @@ test: ## Executes the tests
 	@$(WYVR_COMPILE) && $(WYVR_TEST)
 
 test-watch: ## Watches changes in the tests
-	@npx nodemon --watch src --watch test -e js,ts --exec "$(WYVR_COMPILE); $(WYVR_TEST)"
+	@npx nodemon --watch src --watch test -e js,ts --exec "$(WYVR_LINT); $(WYVR_COMPILE); $(WYVR_TEST)"
 
 init: ## Install and prepare setup
 	@npm install

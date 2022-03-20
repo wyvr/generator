@@ -27,7 +27,7 @@ export const extract_cli_config = (argv: string[]) => {
             /* eslint-disable @typescript-eslint/no-explicit-any */
             const argument: any[] = arg.replace(/^-+/, '').split('=');
             /* eslint-enable @typescript-eslint/no-explicit-any */
-            
+
             // fallback value
             if (argument.length == 1) {
                 argument[1] = true;
@@ -51,3 +51,12 @@ export const extract_cli_config = (argv: string[]) => {
     }
     return default_config;
 };
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export const inject_config_into_process = (process: NodeJS.Process, config: any): void => {
+    if (typeof process != 'object' || !process.pid || !config) {
+        return;
+    }
+    (<any>process).wyvr = config;
+};
+/* eslint-enable @typescript-eslint/no-explicit-any */

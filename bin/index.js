@@ -14,7 +14,12 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 let pkg = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), { encoding: 'utf-8' }));
 console.log(get_logo(pkg.version));
 
-const cli_config = extract_cli_config(process.argv);
+const cli = extract_cli_config(process.argv);
+
+const config = {
+    cli,
+    pkg
+};
 // add wyvr to the process
 inject_config_into_process(process, { cli_config });
 

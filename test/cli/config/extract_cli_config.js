@@ -47,6 +47,16 @@ describe('cli/config/extract_cli_config', () => {
             })
         );
     });
+    it('Uppercase command', () => {
+        deepStrictEqual(
+            extract_cli_config(['node', 'script', 'CMD', 'CREATE', 'CAKE']),
+            Object.assign({}, default_config, {
+                interpreter: 'node',
+                script: 'script',
+                command: ['cmd', 'create', 'cake'],
+            })
+        );
+    });
     it('flag', () => {
         deepStrictEqual(
             extract_cli_config(['node', 'script', '--version']),

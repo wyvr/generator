@@ -6,7 +6,7 @@ import { readFileSync } from 'fs';
 import process from 'process';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import { extract_cli_config, inject_config_into_process } from '../lib/cli/config.js';
+import { extract_cli_config } from '../lib/cli/config.js';
 import { get_logo } from '../lib/presentation/logo.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -20,9 +20,7 @@ const config = {
     cli,
     pkg
 };
-// add wyvr to the process
-inject_config_into_process(process, { cli_config });
 
-console.log(process.wyvr.cli_config);
+console.log(config);
 
 /* eslint-enable */

@@ -2,9 +2,10 @@
     "compilerOptions": {
         "outDir": "./wyvr",
         "allowJs": true,
-        "target": "es5",
+        "target": "ESNext",
         "lib": ["es2020", "DOM"],
         "moduleResolution": "node",
+        "module": "ESNext",
         "sourceMap": true,
         "baseUrl": ".",
         "paths": {

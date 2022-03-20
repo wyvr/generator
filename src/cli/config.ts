@@ -1,5 +1,6 @@
-import { IObject } from '@lib/interface/object';
 import { ICliConfig } from '@lib/interface/config';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 export const extract_cli_config = (argv: string[]) => {
     const default_config: ICliConfig = {
@@ -29,7 +30,9 @@ export const extract_cli_config = (argv: string[]) => {
                 if (!flags) {
                     flags = {};
                 }
-                const argument: IObject[] = arg.replace(/^-+/, '').split('=');
+                /* eslint-disable @typescript-eslint/no-explicit-any */
+                const argument: any[] = arg.replace(/^-+/, '').split('=');
+                /* eslint-enable @typescript-eslint/no-explicit-any */
 
                 // fallback value
                 if (argument.length == 1) {

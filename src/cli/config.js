@@ -1,10 +1,10 @@
-import { ICliConfig } from '@lib/interface/config';
 import { readFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import process from 'process';
 
-export const extract_cli_config = (argv: string[]) => {
-    const default_config: ICliConfig = {
+export function extract_cli_config(argv) {
+    const default_config = {
         cwd: process.cwd(),
         interpreter: undefined,
         script: undefined,
@@ -31,9 +31,7 @@ export const extract_cli_config = (argv: string[]) => {
                 if (!flags) {
                     flags = {};
                 }
-                /* eslint-disable @typescript-eslint/no-explicit-any */
-                const argument: any[] = arg.replace(/^-+/, '').split('=');
-                /* eslint-enable @typescript-eslint/no-explicit-any */
+                const argument = arg.replace(/^-+/, '').split('=');
 
                 // fallback value
                 if (argument.length == 1) {
@@ -58,9 +56,9 @@ export const extract_cli_config = (argv: string[]) => {
         default_config.flags = flags;
     }
     return default_config;
-};
+}
 
-export const get_wyvr_version = () => {
+export function get_wyvr_version() {
     const __dirname = dirname(fileURLToPath(import.meta.url));
 
     const pkg = JSON.parse(readFileSync(join(__dirname, '..', '..', 'package.json'), { encoding: 'utf-8' }));
@@ -69,4 +67,4 @@ export const get_wyvr_version = () => {
         return pkg.version;
     }
     return undefined;
-};
+}

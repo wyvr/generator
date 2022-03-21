@@ -1,6 +1,6 @@
 import kleur from 'kleur';
 
-export const semver = (version: string | number) => {
+export function semver(version) {
     if (version == undefined) {
         return '';
     }
@@ -23,4 +23,4 @@ export const semver = (version: string | number) => {
         return result.join('');
     }
     return kleur.bold(version);
-};
+}

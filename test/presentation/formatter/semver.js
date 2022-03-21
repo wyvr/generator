@@ -1,6 +1,6 @@
 import { strictEqual } from 'assert';
 import { describe, it } from 'mocha';
-import { semver } from '../../../lib/presentation/formatter.js';
+import { semver } from '../../../src/presentation/formatter.js';
 import kleur from 'kleur';
 
 describe('presenation/formatter/semver', () => {

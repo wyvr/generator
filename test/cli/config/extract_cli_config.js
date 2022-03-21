@@ -1,6 +1,6 @@
 import { deepStrictEqual } from 'assert';
 import { describe, it } from 'mocha';
-import { extract_cli_config } from '../../../lib/cli/config.js';
+import { extract_cli_config } from '../../../src/cli/config.js';
 
 describe('cli/config/extract_cli_config', () => {
     const default_config = {

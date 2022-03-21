@@ -1,7 +1,7 @@
 import kleur from 'kleur';
-import { semver } from '@lib/presentation/formatter';
+import { semver } from './formatter.js';
 
-export const get_logo = (version: string) => {
+export function get_logo(version) {
     // kleur.enabled = false;
     let display_version = semver(version);
     if (!display_version) {
@@ -14,4 +14,4 @@ export const get_logo = (version: string) => {
         `         ╱_╱ ${kleur.bold('generator')} ${display_version}`,
     ].join('\n');
     return kleur.blue(logo);
-};
+}

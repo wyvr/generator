@@ -7,8 +7,7 @@ SHELL := /bin/bash
 .PHONY: test coverage
 # @see https://spin.atomicobject.com/2021/03/22/makefiles-vs-package-json-scripts/
 # base commands
-WYVR_LINT=npx eslint src --ext .ts
-WYVR_COMPILE=node ./esbuild.js && mkdir -p lib/resource/ && cp src/resource/* lib/resource/
+WYVR_LINT=npx eslint src --ext .js
 WYVR_TEST=npx mocha -R dot './test/**/*.js'
 WYVR_COVERAGE=npx c8 $(WYVR_TEST)
 
@@ -23,19 +22,19 @@ compile-watch: ## Start watcher and make dev builds
 		--ignore cache \
 		-e js,ts,svelte,css \
 		--verbose \
-		--exec '${WYVR_LINT};$(WYVR_COMPILE)'
+		--exec '${WYVR_LINT}'
 
 test: ## Executes the tests
-	@$(WYVR_COMPILE) && $(WYVR_TEST)
+	@$(WYVR_TEST)
 
 test-watch: ## Watches changes in the tests
-	@npx nodemon --watch src --watch test -e js,ts --exec "$(WYVR_LINT); $(WYVR_COMPILE); $(WYVR_TEST)"
+	@npx nodemon --watch src --watch test -e js --exec "$(WYVR_LINT); $(WYVR_TEST)"
 
 init: ## Install and prepare setup
 	@npm install
 
 coverage: ## Get test coverage result
-	@$(WYVR_COMPILE); $(WYVR_COVERAGE)
+	@$(WYVR_COVERAGE)
 
 coverage-watch: ## Watches changes in the tests
-	@npx nodemon --watch src --watch test -e js,ts --exec "$(WYVR_COMPILE); $(WYVR_COVERAGE)"
+	@npx nodemon --watch src --watch test -e js --exec "$(WYVR_COVERAGE)"

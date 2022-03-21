@@ -1,6 +1,6 @@
 import { deepStrictEqual, match } from 'assert';
 import { describe, it } from 'mocha';
-import { get_logo } from '../../../lib/presentation/logo.js';
+import { get_logo } from '../../../src/presentation/logo.js';
 import kleur from 'kleur';
 
 describe('presenation/logo/get_logo', () => {

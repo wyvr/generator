@@ -2,14 +2,13 @@
     "check-coverage": true,
     "all": true,
     "extension": [
-        ".js",
-        ".ts"
+        ".js"
     ],
     "include": [
-        "lib/**/*.js"
+        "src/**/*.js"
     ],
     "exclude": [
-        "lib/resource/**/*.*",
+        "src/resource/**/*.*",
         "test/**",
         "node_modules/**"
     ],

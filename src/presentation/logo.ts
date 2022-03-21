@@ -9,9 +9,9 @@ export const get_logo = (version: string) => {
     }
     const logo = [
         `__  __  __  __  __  ____`,
-        `\\ \\/ /\\/ /\\/ /\\/ /\\/ /_/`,
-        ` \\/_/\\/_/\\/ /\\/_/\\/_/`,
-        `         /_/ ${kleur.bold('generator')} ${display_version}`,
+        `╲ ╲╱ ╱╲╱ ╱╲╱ ╱╲╱ ╱╲╱ ╱_╱`,
+        ` ╲╱_╱╲╱_╱╲╱ ╱╲╱_╱╲╱_╱`,
+        `         ╱_╱ ${kleur.bold('generator')} ${display_version}`,
     ].join('\n');
-    return kleur.cyan(logo);
+    return kleur.blue(logo);
 };

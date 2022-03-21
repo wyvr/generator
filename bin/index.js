@@ -3,9 +3,9 @@
 /* eslint-disable no-console */
 /* eslint-disable no-undef */
 import process from 'process';
-import { extract_cli_config, get_wyvr_version } from '../lib/cli/config.js';
-import { get_logo } from '../lib/presentation/logo.js';
-import { command } from '../lib/command.js';
+import { extract_cli_config, get_wyvr_version } from '../src/cli/config.js';
+import { get_logo } from '../src/presentation/logo.js';
+import { command } from '../src/command.js';
 
 const version = get_wyvr_version();
 

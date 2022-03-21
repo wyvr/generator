@@ -1,15 +1,14 @@
-import { app_command } from '@lib/command/app';
-import { build_command } from '@root/src/command/build';
-import { clear_command } from '@lib/command/clear';
-import { create_command } from '@lib/command/create';
-import { cron_command } from '@lib/command/cron';
-import { health_command } from '@root/src/command/health';
-import { regenerate_command } from '@lib/command/regenerate';
-import { report_command } from '@root/src/command/report';
-import { unknown_command } from '@lib/command/unknown';
-import { IConfig } from '@lib/interface/config';
+// import { app_command } from './command/app';
+// import { build_command } from './command/build';
+// import { clear_command } from './command/clear';
+// import { create_command } from './command/create';
+// import { cron_command } from './command/cron';
+// import { health_command } from './command/health';
+// import { regenerate_command } from './command/regenerate';
+// import { report_command } from './command/report';
+import { unknown_command } from './command/unknown.js';
 
-export async function command(config: IConfig) {
+export async function command(config) {
     const main_command = config.cli.command[0];
     switch (main_command) {
         // case 'app':
@@ -18,8 +17,8 @@ export async function command(config: IConfig) {
         //     return await build_command(config);
         // case 'clear':
         //     return await clear_command(config);
-        case 'create':
-            return await create_command(config);
+        // case 'create':
+        //     return await create_command(config);
         // case 'cron':
         //     return await cron_command(config);
         // case 'health':

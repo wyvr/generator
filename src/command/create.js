@@ -1,7 +1,6 @@
-import { IConfig } from '@lib/interface/config';
-import { Logger } from '@lib/utils/logger';
+import { Logger } from '../utils/logger';
 
-export async function create_command(config: IConfig) {
+export async function create_command(config) {
     const type = config.version//undefined;
     // if (config.cli.command.length < 2) {
     //     // prompt for type

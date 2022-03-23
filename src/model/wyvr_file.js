@@ -5,7 +5,8 @@ import { WyvrFileConfig } from '../struc/wyvr_file.js';
 import { filled_string } from '../utils/validate.js';
 
 export function WyvrFile(path) {
-    let name = '', rel_path='';
+    let name = '',
+        rel_path = '';
     if (filled_string(path)) {
         const splitted = path.split(sep);
         const gen_index = splitted.indexOf(FOLDER_GEN);
@@ -15,9 +16,7 @@ export function WyvrFile(path) {
         rel_path = join('@src', ...rel_splitts);
         name = rel_splitts.join('_').replace(new RegExp(`${extname(path).replace('.', '\\.')}$`), '');
         // avoid reserved keywords
-        if (
-            RESERVED_KEYWORDS.indexOf(name.toLowerCase()) > -1
-        ) {
+        if (RESERVED_KEYWORDS.indexOf(name.toLowerCase()) > -1) {
             name = `_${name}`;
         }
     } else {
@@ -32,7 +31,6 @@ export function WyvrFile(path) {
         styles: undefined,
         props: undefined,
         rel_path,
-        from_lazy: undefined
+        from_lazy: undefined,
     };
-
 }

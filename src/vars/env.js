@@ -13,7 +13,7 @@ export class Env {
         if(array_contains(Object.values(EnvType), value)) {
             this.value = value;
         }
-        return this.value;
+        return this.get();
     }
     static is_debug() {
         return this.get() == EnvType.debug || this.is_dev();

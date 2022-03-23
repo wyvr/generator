@@ -1,6 +1,6 @@
 /**
  * Check if the given value is a string
- * @param {any} value 
+ * @param {any} value
  * @returns boolean
  */
 export function is_string(value) {
@@ -9,7 +9,7 @@ export function is_string(value) {
 
 /**
  * Check if the given value is a string and not empty
- * @param {any} value 
+ * @param {any} value
  * @returns boolean
  */
 export function filled_string(value) {
@@ -18,7 +18,7 @@ export function filled_string(value) {
 
 /**
  * Check if the given value is a number
- * @param {any} value 
+ * @param {any} value
  * @returns boolean
  */
 export function is_number(value) {
@@ -27,7 +27,7 @@ export function is_number(value) {
 
 /**
  * Check if the given value is an integer
- * @param {any} value 
+ * @param {any} value
  * @returns boolean
  */
 export function is_int(value) {
@@ -36,7 +36,7 @@ export function is_int(value) {
 
 /**
  * Check if the given value is a float number
- * @param {any} value 
+ * @param {any} value
  * @returns boolean
  */
 export function is_float(value) {
@@ -45,7 +45,7 @@ export function is_float(value) {
 
 /**
  * Check if the given value is a big int
- * @param {any} value 
+ * @param {any} value
  * @returns boolean
  */
 export function is_big_int(value) {
@@ -54,7 +54,7 @@ export function is_big_int(value) {
 
 /**
  * Check if the given value is an array
- * @param {any} value 
+ * @param {any} value
  * @returns boolean
  */
 export function is_array(value) {
@@ -62,16 +62,23 @@ export function is_array(value) {
 }
 /**
  * Check if the given value is an array and not empty
- * @param {any} value 
+ * @param {any} value
  * @returns boolean
  */
 export function filled_array(value) {
     return is_array(value) && value.length > 0;
 }
 
+export function array_contains(array, value) {
+    if (!filled_array(array) || (!is_string(value) && !is_number(value))) {
+        return false;
+    }
+    return array.indexOf(value) > -1;
+}
+
 /**
  * Check if the given value is an object
- * @param {any} value 
+ * @param {any} value
  * @returns boolean
  */
 export function is_object(value) {
@@ -86,7 +93,7 @@ export function is_object(value) {
 
 /**
  * Check if the given value is an object and not empty
- * @param {any} value 
+ * @param {any} value
  * @returns boolean
  */
 export function filled_object(value) {
@@ -95,8 +102,8 @@ export function filled_object(value) {
 
 /**
  * Check if the given value matches the given structure
- * @param {any} value 
- * @param {any} structure 
+ * @param {any} value
+ * @param {any} structure
  * @returns boolean
  */
 export function match_interface(value, structure) {

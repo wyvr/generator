@@ -6,6 +6,9 @@ import { dirname, join } from 'path';
 import { existsSync, rmSync } from 'fs';
 
 describe('utils/file/create_dir', () => {
+    it('empty', () => {
+        create_dir();
+    });
     it('single', () => {
         const name = join(v4().split('-')[0], 'test.txt');
         strictEqual(existsSync(dirname(name)), false);

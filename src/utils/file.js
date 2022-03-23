@@ -180,7 +180,8 @@ export function write_json(filename, data = null, check_circular = true) {
         const len = data.length;
         writeFileSync(filename, '[', { flag: 'a' });
         for (let i = 0; i < len; i++) {
-            writeFileSync(filename, JSON.stringify(data[i], replacer, spaces) + (i + 1 < len ? ',' : ''), {
+            const content = JSON.stringify(data[i], replacer, spaces) + (i + 1 < len ? ',' : '');
+            writeFileSync(filename, content, {
                 flag: 'a',
             });
         }
@@ -270,7 +271,7 @@ export function is_file(path) {
 
 export function get_folder(folder) {
     if (!folder || typeof folder != 'string' || !existsSync(folder)) {
-        return null;
+        return undefined;
     }
     return readdirSync(folder)
         .map((entry) => {
@@ -285,7 +286,7 @@ export function get_folder(folder) {
 }
 
 export function remove(file) {
-    if (existsSync(file)) {
+    if (filled_string(file) && existsSync(file)) {
         unlinkSync(file);
         return true;
     }

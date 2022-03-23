@@ -26,6 +26,25 @@ describe('utils/file/write_json', () => {
         deepStrictEqual(read(filename), read('test/utils/file/_tests/check_content_result.json'));
         rmSync(filename);
     });
+    it('check circular content', () => {
+        const filename = 'test/utils/file/_tests/check_content.json';
+        deepStrictEqual(
+            write_json(
+                filename,
+                {
+                    test: [
+                        {
+                            a: true,
+                        },
+                    ],
+                },
+                false
+            ),
+            true
+        );
+        deepStrictEqual(read(filename), read('test/utils/file/_tests/check_content_result.json'));
+        rmSync(filename);
+    });
     it('check array content', () => {
         const filename = 'test/utils/file/_tests/check_array_content.json';
         deepStrictEqual(
@@ -33,10 +52,26 @@ describe('utils/file/write_json', () => {
                 {
                     a: true,
                 },
+                {
+                    b: true,
+                },
             ]),
             true
         );
         deepStrictEqual(read(filename), read('test/utils/file/_tests/check_array_content_result.json'));
+        rmSync(filename);
+    });
+    it('write circular content', () => {
+        const filename = 'test/utils/file/_tests/check_circular_content.json';
+        const a = {
+            a: true,
+        };
+        const b = {
+            a,
+        };
+        b.a.a = b;
+        deepStrictEqual(write_json(filename, b), true);
+        deepStrictEqual(read(filename), '{"a":{"a":"[Circular]"}}');
         rmSync(filename);
     });
 });

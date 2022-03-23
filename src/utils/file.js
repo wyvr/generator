@@ -1,7 +1,10 @@
 import { mkdirSync, existsSync, readFileSync, readdirSync, statSync, writeFileSync, unlinkSync } from 'fs';
 import { extname, dirname, join } from 'path';
 import circular from 'circular';
-import { is_string, filled_string } from './validate.js';
+import { is_string, filled_string, filled_array } from './validate.js';
+import { Cwd } from '../vars/cwd.js';
+import { WyvrFile } from '../model/wyvr_file.js';
+import { Env } from '../vars/env.js';
 
 /**
  * converts the given filename to the filename with the given extension
@@ -148,8 +151,8 @@ export function read_json(filename) {
  * @param filename
  * @returns void
  */
-export function write(filename, content = '') {
-    if (!filename) {
+export function write(filename, content) {
+    if (!is_string(filename) || !is_string(content)) {
         return false;
     }
     // create containing folder
@@ -163,30 +166,29 @@ export function write(filename, content = '') {
  * @returns void
  */
 export function write_json(filename, data = null, check_circular = true) {
-    if (!filename) {
+    if (!is_string(filename)) {
         return false;
     }
-    const spaces = undefined; //Env.json_spaces(process.env);
+    const spaces = Env.json_spaces();
+    const replacer = check_circular ? circular() : undefined;
 
     // @see https://dev.to/madhunimmo/json-stringify-rangeerror-invalid-string-length-3977
-    if (Array.isArray(data)) {
+    if (filled_array(data)) {
         // create containing folder
         mkdirSync(dirname(filename), { recursive: true });
         // arrays can be inserted per entry, to avoid overflow
         const len = data.length;
         writeFileSync(filename, '[', { flag: 'a' });
         for (let i = 0; i < len; i++) {
-            writeFileSync(
-                filename,
-                JSON.stringify(data[i], check_circular ? circular() : null, spaces) + (i + 1 < len ? ',' : ''),
-                { flag: 'a' }
-            );
+            writeFileSync(filename, JSON.stringify(data[i], replacer, spaces) + (i + 1 < len ? ',' : ''), {
+                flag: 'a',
+            });
         }
         writeFileSync(filename, ']', { flag: 'a' });
-        return;
+        return true;
     }
 
-    return this.write(filename, JSON.stringify(data, check_circular ? circular() : null, spaces));
+    return write(filename, JSON.stringify(data, replacer, spaces));
 }
 /**
  * search for one file out of multiple possible files, to depict hierachy of file overrides
@@ -196,7 +198,7 @@ export function write_json(filename, data = null, check_circular = true) {
  */
 export function find_file(in_dir, possible_files) {
     if (!possible_files || !Array.isArray(possible_files) || possible_files.length == 0) {
-        return null;
+        return undefined;
     }
     const found = possible_files.find((file) => {
         if (!file) {
@@ -205,23 +207,11 @@ export function find_file(in_dir, possible_files) {
         return existsSync(join(in_dir, file));
     });
     if (!found) {
-        return null;
+        return undefined;
     }
     return join(in_dir, found);
 }
-/**
- * performs a recursive search in the given dir to find all svelte files
- * @param dir root directory to search in
- * @returns list of the paths
- */
-export function collect_svelte_files(dir) {
-    if (!dir) {
-        dir = ''; //join(Cwd.get(), 'src');
-    }
-    //const result = this.collect_files(dir, 'svelte').map((path) => new WyvrFile(path));
-    //return result;
-    return [];
-}
+
 /**
  * performs a recursive search in the given dir to find all files with the given extension or all files
  * @param dir root directory to search in
@@ -229,21 +219,21 @@ export function collect_svelte_files(dir) {
  * @returns list of the paths
  */
 export function collect_files(dir, extension = null) {
-    if (!dir || !existsSync(dir)) {
+    if (!is_string(dir) || !existsSync(dir)) {
         return [];
     }
     const entries = readdirSync(dir);
     const result = [];
-    let regex = /./;
-    if (extension && typeof extension == 'string') {
+    let regex = /.*/;
+    if (filled_string(extension)) {
         // escaping is here not useless
-        regex = new RegExp(`\.${extension}$`);
+        regex = new RegExp(`\\.${extension.trim().replace(/^\./, '')}$`);
     }
     entries.forEach((entry) => {
         const path = join(dir, entry);
         const stat = statSync(path);
         if (stat.isDirectory()) {
-            result.push(...this.collect_files(path, extension));
+            result.push(...collect_files(path, extension));
             return;
         }
         if (stat.isFile() && entry.match(regex)) {
@@ -251,6 +241,18 @@ export function collect_files(dir, extension = null) {
         }
     });
 
+    return result;
+}
+/**
+ * performs a recursive search in the given dir to find all svelte files
+ * @param dir root directory to search in
+ * @returns list of the paths
+ */
+export function collect_svelte_files(dir) {
+    if (!filled_string(dir)) {
+        dir = join(Cwd.get(), 'src');
+    }
+    const result = collect_files(dir, 'svelte').map((path) => WyvrFile(path));
     return result;
 }
 /**
@@ -278,7 +280,7 @@ export function get_folder(folder) {
             };
         })
         .filter((entry) => {
-            return !this.is_file(entry.path);
+            return !is_file(entry.path);
         });
 }
 

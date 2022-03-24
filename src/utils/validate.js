@@ -86,8 +86,8 @@ export function is_object(value) {
         typeof value == 'object' &&
         value != null &&
         !Array.isArray(value) &&
-        !(value instanceof RegExp) &&
-        !(value instanceof Date)
+        !is_regex(value) &&
+        !is_date(value)
     );
 }
 
@@ -98,6 +98,33 @@ export function is_object(value) {
  */
 export function filled_object(value) {
     return is_object(value) && Object.keys(value).length > 0;
+}
+
+/**
+ * Check if the given value is a symbol
+ * @param {any} value
+ * @returns boolean
+ */
+export function is_symbol(value) {
+    return typeof value == 'symbol';
+}
+
+/**
+ * Check if the given value is a date object
+ * @param {any} value
+ * @returns boolean
+ */
+export function is_date(value) {
+    return value instanceof Date;
+}
+
+/**
+ * Check if the given value is a regexp object
+ * @param {any} value
+ * @returns boolean
+ */
+export function is_regex(value) {
+    return value instanceof RegExp;
 }
 
 /**

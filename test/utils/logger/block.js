@@ -3,12 +3,12 @@ import kleur from 'kleur';
 import { describe, it } from 'mocha';
 import { Logger } from '../../../src/utils/logger.js';
 
-describe('utils/logger/warning', () => {
+describe('utils/logger/block', () => {
     let log, err;
     let result = [];
 
-    const icon = kleur.yellow('⚠');
-    const color = kleur.yellow;
+    const icon = kleur.blue('■');
+    const color = kleur.blue;
     before(() => {
         // runs once before the first test in this block
         log = console.log;
@@ -29,33 +29,33 @@ describe('utils/logger/warning', () => {
         console.error = err;
     });
     it('undefined', () => {
-        Logger.warning();
+        Logger.block();
         deepStrictEqual(result, [[icon, color('')]]);
     });
     
 
     it('null', () => {
-        Logger.warning(null);
+        Logger.block(null);
         deepStrictEqual(result, [[icon, color('null')]]);
     });
     it('key', () => {
-        Logger.warning('#');
+        Logger.block('#');
         deepStrictEqual(result, [[icon, color('#')]]);
     });
     it('key + text', () => {
-        Logger.warning('#', 'a');
+        Logger.block('#', 'a');
         deepStrictEqual(result, [[icon, color('# a')]]);
     });
     it('key + multiple text', () => {
-        Logger.warning('#', 'a', 'b');
+        Logger.block('#', 'a', 'b');
         deepStrictEqual(result, [[icon, color('# a b')]]);
     });
     it('text', () => {
-        Logger.warning(undefined, 'a');
+        Logger.block(undefined, 'a');
         deepStrictEqual(result, [[icon, color('a')]]);
     });
     it('multiple text', () => {
-        Logger.warning(undefined, 'a', 'b');
+        Logger.block(undefined, 'a', 'b');
         deepStrictEqual(result, [[icon, color('a b')]]);
     });
    

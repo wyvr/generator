@@ -4,6 +4,7 @@ import ora from 'ora';
 import { LogType } from '../struc/log.js';
 import { filled_string, is_array, is_date, is_number, is_object, is_regex, is_string, is_symbol } from './validate.js';
 import circular from 'circular';
+import { Env } from '../vars/env.js';
 
 export class Logger {
     /**
@@ -50,7 +51,10 @@ export class Logger {
             return;
         }
         const has_color_fn = color_fn && typeof color_fn == 'function';
-        const text = messages.map((v) => (has_color_fn ? color_fn(v) : v)).join(' ');
+        let text = messages.join(' ');
+        if (has_color_fn) {
+            text = color_fn(text);
+        }
         const symbol = has_color_fn ? color_fn(char) : char;
 
         if (this.spinner) {
@@ -123,40 +127,40 @@ export class Logger {
         this.output(LogType.block, kleur.blue, '■', ...messages);
     }
     static debug(...values) {
-        if (this.env != 'debug') {
+        if (!Env.is_debug()) {
             return;
         }
         const messages = this.prepare_message(values);
         this.output(LogType.debug, kleur.dim, '~', ...messages);
     }
-    static start(name) {
-        if (this.env != 'production') {
-            this.last_text = name || '';
-            this.output(LogType.start, kleur.dim, '┌', name);
-            this.spinner = this.create_spinner(name);
-        }
-    }
-    static text(...values) {
-        if (this.spinner) {
-            const text = this.prepare_message(values).join(' ');
-            this.last_text = text;
-            this.spinner.text = text;
-        }
-    }
-    static stop(name, duration_in_ms = null) {
-        const duration_text = Math.round(duration_in_ms).toString();
-        const spaces = new Array(35 - duration_text.length - name.length).fill('.').join('');
-        const message = `${kleur.green(name)} ${kleur.dim(spaces)} ${duration_text} ${kleur.dim('ms')}`;
-        if (this.env == 'production') {
-            this.log(null, `${kleur.green('✓')} ${message}`);
-        } else {
-            if (!this.spinner) {
-                this.spinner = this.create_spinner(name);
-            }
-            this.spinner.succeed(message);
-            this.spinner = null;
-        }
-    }
+    // static start(name) {
+    //     if (this.env != 'production') {
+    //         this.last_text = name || '';
+    //         this.output(LogType.start, kleur.dim, '┌', name);
+    //         this.spinner = this.create_spinner(name);
+    //     }
+    // }
+    // static text(...values) {
+    //     if (this.spinner) {
+    //         const text = this.prepare_message(values).join(' ');
+    //         this.last_text = text;
+    //         this.spinner.text = text;
+    //     }
+    // }
+    // static stop(name, duration_in_ms = null) {
+    //     const duration_text = Math.round(duration_in_ms).toString();
+    //     const spaces = new Array(35 - duration_text.length - name.length).fill('.').join('');
+    //     const message = `${kleur.green(name)} ${kleur.dim(spaces)} ${duration_text} ${kleur.dim('ms')}`;
+    //     if (this.env == 'production') {
+    //         this.log(null, `${kleur.green('✓')} ${message}`);
+    //     } else {
+    //         if (!this.spinner) {
+    //             this.spinner = this.create_spinner(name);
+    //         }
+    //         this.spinner.succeed(message);
+    //         this.spinner = null;
+    //     }
+    // }
 
     /**
      * Remove CLI ANSI Colors from the given string
@@ -190,12 +194,12 @@ export class Logger {
     }
     /* eslint-enable */
 
-    static create_spinner(name) {
-        if (!is_string(name)) {
-            return undefined;
-        }
-        return ora(name).start();
-    }
+    // static create_spinner(name) {
+    //     if (!is_string(name)) {
+    //         return undefined;
+    //     }
+    //     return ora(name).start();
+    // }
 }
 // static properties
 Logger.pre = '';

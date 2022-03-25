@@ -1,10 +1,11 @@
 import cluster from 'cluster';
 import kleur from 'kleur';
-import ora from 'ora';
-import { LogType } from '../struc/log.js';
-import { filled_string, is_array, is_date, is_number, is_object, is_regex, is_string, is_symbol } from './validate.js';
+import { LogColor, LogFirstValueColor, LogIcon, LogType } from '../struc/log.js';
+import { filled_array, filled_string, is_array, is_number, is_regex, is_string, is_symbol } from './validate.js';
 import circular from 'circular';
 import { Env } from '../vars/env.js';
+import { Report } from '../vars/report.js';
+import { Spinner } from './spinner.js';
 
 export class Logger {
     /**
@@ -13,8 +14,6 @@ export class Logger {
      * @returns Creates a new instance of the Logger with a preppended hint
      */
     static create(name) {
-        /* eslint-disable */
-        /* eslint-enable */
         const clone = new Logger();
         if (!filled_string(name)) {
             name = '~';
@@ -32,24 +31,24 @@ export class Logger {
 
     /* eslint-disable */
     static output(type, color_fn, char, ...messages) {
-        if (cluster.isWorker) {
-            if (this.pre) {
-                messages.unshift(this.pre);
-            }
-            process.send({
-                pid: process.pid,
-                data: {
-                    action: {
-                        key: WorkerAction.log,
-                        value: {
-                            type,
-                            messages,
-                        },
-                    },
-                },
-            });
-            return;
-        }
+        // if (cluster.isWorker) {
+        //     if (this.pre) {
+        //         messages.unshift(this.pre);
+        //     }
+        //     process.send({
+        //         pid: process.pid,
+        //         data: {
+        //             action: {
+        //                 key: WorkerAction.log,
+        //                 value: {
+        //                     type,
+        //                     messages,
+        //                 },
+        //             },
+        //         },
+        //     });
+        //     return;
+        // }
         const has_color_fn = color_fn && typeof color_fn == 'function';
         let text = messages.join(' ');
         if (has_color_fn) {
@@ -57,110 +56,77 @@ export class Logger {
         }
         const symbol = has_color_fn ? color_fn(char) : char;
 
-        if (this.spinner) {
-            this.spinner
-                .stopAndPersist({ text: `${symbol} ${this.pre}${text}`, symbol: kleur.dim('│') })
-                .start(this.last_text).spinner = 'dots';
-            return;
+        if (!Spinner.persist(kleur.dim('│'), `${symbol} ${this.pre}${text}`)) {
+            console.error(symbol, text);
         }
-        console.log(symbol, text);
     }
     /* eslint-enable */
 
+    static output_type(type, key, ...values) {
+        let messages = this.prepare_message(values);
+        if (LogFirstValueColor[type]) {
+            messages = messages.map((value, index) => {
+                if (index == 0) {
+                    return LogFirstValueColor[type](value);
+                }
+                return value;
+            });
+        }
+        if (key) {
+            messages.unshift(key);
+        }
+        if (LogIcon[type]) {
+            messages.unshift(LogIcon[type]);
+        }
+        if (filled_array(messages)) {
+            this.output(LogType[type], LogColor[type], ...messages);
+            return;
+        }
+        this.output(LogType[type], LogColor[type], '');
+    }
+
     static log(...values) {
-        const messages = this.prepare_message(values);
-        this.output(LogType.log, undefined, '', ...messages);
+        this.output_type('log', ...values);
     }
     static present(key, ...values) {
-        const messages = this.prepare_message(values).map((value, index) => {
-            if (index == 0) {
-                return kleur.green(value);
-            }
-            return value;
-        });
-        this.output(LogType.present, null, kleur.dim('-'), key, ...messages);
+        this.output_type('present', key, ...values);
     }
     static info(key, ...values) {
-        const messages = this.prepare_message(values).map((value, index) => {
-            if (index == 0) {
-                return kleur.blue(value);
-            }
-            return value;
-        });
-        this.output(LogType.info, null, kleur.blue('ℹ'), key, ...messages);
+        this.output_type('info', key, ...values);
     }
     static success(key, ...values) {
-        const messages = this.prepare_message(values).map((value, index) => {
-            if (index == 0) {
-                return kleur.green(value);
-            }
-            return value;
-        });
-        this.output(LogType.success, null, kleur.green('✔'), key, ...messages);
+        this.output_type('success', key, ...values);
     }
     static warning(...values) {
-        const messages = this.prepare_message(values);
-        this.output(LogType.warning, kleur.yellow, '⚠', ...messages);
+        this.output_type('warning', ...values);
     }
     static error(...values) {
-        const messages = this.prepare_message(values);
-        this.output(LogType.error, kleur.red, '✖', ...messages);
+        this.output_type('error', ...values);
     }
     static improve(...values) {
-        const messages = this.prepare_message(values);
-        this.output(LogType.improve, kleur.magentaBright, '»', ...messages);
-    }
-    static report(duration, ...values) {
-        const messages = this.prepare_message(values);
-        if (this.show_report) {
-            if (cluster.isWorker) {
-                this.output(LogType.report, kleur.yellow, '#', duration, ...messages, kleur.dim('ms'));
-                return;
-            }
-            this.output(LogType.report, kleur.yellow, '#', ...messages, duration, kleur.dim('ms'));
-
-            this.report_content.push([duration, ...messages]);
-        }
+        this.output_type('improve', ...values);
     }
     static block(...values) {
-        const messages = this.prepare_message(values);
-        this.output(LogType.block, kleur.blue, '■', ...messages);
+        this.output_type('block', ...values);
     }
     static debug(...values) {
         if (!Env.is_debug()) {
             return;
         }
-        const messages = this.prepare_message(values);
-        this.output(LogType.debug, kleur.dim, '~', ...messages);
+        this.output_type('debug', ...values);
     }
-    // static start(name) {
-    //     if (this.env != 'production') {
-    //         this.last_text = name || '';
-    //         this.output(LogType.start, kleur.dim, '┌', name);
-    //         this.spinner = this.create_spinner(name);
-    //     }
-    // }
-    // static text(...values) {
-    //     if (this.spinner) {
-    //         const text = this.prepare_message(values).join(' ');
-    //         this.last_text = text;
-    //         this.spinner.text = text;
-    //     }
-    // }
-    // static stop(name, duration_in_ms = null) {
-    //     const duration_text = Math.round(duration_in_ms).toString();
-    //     const spaces = new Array(35 - duration_text.length - name.length).fill('.').join('');
-    //     const message = `${kleur.green(name)} ${kleur.dim(spaces)} ${duration_text} ${kleur.dim('ms')}`;
-    //     if (this.env == 'production') {
-    //         this.log(null, `${kleur.green('✓')} ${message}`);
-    //     } else {
-    //         if (!this.spinner) {
-    //             this.spinner = this.create_spinner(name);
-    //         }
-    //         this.spinner.succeed(message);
-    //         this.spinner = null;
-    //     }
-    // }
+    static report(duration, ...values) {
+        const messages = this.prepare_message(values);
+        if (!Report.get() || !duration) {
+            return;
+        }
+        this.output_type('report', ...messages, duration, kleur.dim('ms'));
+        if (cluster.isWorker) {
+            return;
+        }
+
+        this.report_content.push([duration, ...messages]);
+    }
 
     /**
      * Remove CLI ANSI Colors from the given string
@@ -185,26 +151,23 @@ export class Logger {
      * @param {any} data
      * @returns
      */
-    /* eslint-disable */
     static stringify(data) {
         if (is_string(data) || is_number(data) || is_symbol(data) || is_regex(data)) {
             return data.toString();
         }
         return JSON.stringify(data, circular());
     }
-    /* eslint-enable */
 
-    // static create_spinner(name) {
-    //     if (!is_string(name)) {
-    //         return undefined;
-    //     }
-    //     return ora(name).start();
-    // }
+    static start(name) {
+        if (Env.is_dev()) {
+            this.output(LogType.start, LogColor.start, LogIcon.start, name);
+            Spinner.start(name);
+        }
+    }
 }
 // static properties
 Logger.pre = '';
 Logger.spinner = undefined;
 Logger.color = kleur;
 Logger.last_text = null;
-// Logger.show_report = process.env.WYVR_REPORT != null;
 Logger.report_content = [];

@@ -3,13 +3,14 @@ import kleur from 'kleur';
 import { describe, it } from 'mocha';
 import { LogColor, LogIcon } from '../../../src/struc/log.js';
 import { Logger } from '../../../src/utils/logger.js';
+import { Report } from '../../../src/vars/report.js';
 
-describe('utils/logger/error', () => {
+describe('utils/logger/report', () => {
     let log, err;
     let result = [];
 
-    const icon = LogColor.error(LogIcon.error);
-    const color = LogColor.error;
+    const icon = LogColor.report(LogIcon.report);
+    const color = LogColor.report;
     before(() => {
         // runs once before the first test in this block
         log = console.log;
@@ -21,22 +22,30 @@ describe('utils/logger/error', () => {
             result.push(args);
         };
     });
+    beforeEach(() => {
+        Report.set(true);
+    });
     afterEach(() => {
         result = [];
+        Report.set(false);
     });
     after(() => {
         // runs once after the last test in this block
         console.log = log;
         console.error = err;
     });
+    it('hide', () => {
+        Report.set(false);
+        Logger.report('#');
+        deepStrictEqual(result, []);
+    });
     it('undefined', () => {
-        Logger.error();
-        deepStrictEqual(result, [[icon, color('')]]);
+        Logger.report();
+        deepStrictEqual(result, []);
     });
 
     it('key + multiple text', () => {
-        Logger.error('#', 'a', 'b');
-        deepStrictEqual(result, [[icon, color('# a b')]]);
-    });  
-   
+        Logger.report(500, 'a', 'b');
+        deepStrictEqual(result, [[icon, color(`a b 500 ${kleur.dim('ms')}`)]]);
+    });
 });

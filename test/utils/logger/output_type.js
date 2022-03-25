@@ -1,15 +1,11 @@
-import { strictEqual, deepStrictEqual } from 'assert';
-import kleur from 'kleur';
+import { deepStrictEqual } from 'assert';
 import { describe, it } from 'mocha';
-import { LogColor, LogIcon } from '../../../src/struc/log.js';
 import { Logger } from '../../../src/utils/logger.js';
 
-describe('utils/logger/error', () => {
+describe('utils/logger/output_type', () => {
     let log, err;
     let result = [];
 
-    const icon = LogColor.error(LogIcon.error);
-    const color = LogColor.error;
     before(() => {
         // runs once before the first test in this block
         log = console.log;
@@ -30,13 +26,22 @@ describe('utils/logger/error', () => {
         console.error = err;
     });
     it('undefined', () => {
-        Logger.error();
-        deepStrictEqual(result, [[icon, color('')]]);
+        Logger.output_type();
+        deepStrictEqual(result, [['', '']]);
     });
 
-    it('key + multiple text', () => {
-        Logger.error('#', 'a', 'b');
-        deepStrictEqual(result, [[icon, color('# a b')]]);
-    });  
-   
+    it('no value', () => {
+        Logger.output_type('log', 'key');
+        deepStrictEqual(result, [['key', '']]);
+    });
+
+    it('log one value', () => {
+        Logger.output_type('log', 'key', 'val1');
+        deepStrictEqual(result, [['key', 'val1']]);
+    });
+
+    it('log two values', () => {
+        Logger.output_type('log', 'key', 'val1', 'val2');
+        deepStrictEqual(result, [['key', 'val1 val2']]);
+    });
 });

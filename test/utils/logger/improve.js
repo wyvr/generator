@@ -4,12 +4,12 @@ import { describe, it } from 'mocha';
 import { LogColor, LogIcon } from '../../../src/struc/log.js';
 import { Logger } from '../../../src/utils/logger.js';
 
-describe('utils/logger/error', () => {
+describe('utils/logger/improve', () => {
     let log, err;
     let result = [];
 
-    const icon = LogColor.error(LogIcon.error);
-    const color = LogColor.error;
+    const icon = LogColor.improve(LogIcon.improve);
+    const color = LogColor.improve;
     before(() => {
         // runs once before the first test in this block
         log = console.log;
@@ -30,13 +30,12 @@ describe('utils/logger/error', () => {
         console.error = err;
     });
     it('undefined', () => {
-        Logger.error();
+        Logger.improve();
         deepStrictEqual(result, [[icon, color('')]]);
     });
 
     it('key + multiple text', () => {
-        Logger.error('#', 'a', 'b');
+        Logger.improve('#', 'a', 'b');
         deepStrictEqual(result, [[icon, color('# a b')]]);
-    });  
-   
+    });   
 });

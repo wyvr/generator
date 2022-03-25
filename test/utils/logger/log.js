@@ -7,8 +7,6 @@ describe('utils/logger/log', () => {
     let log, err;
     let result = [];
 
-    const icon = '';
-    const color = (value) => value;
     before(() => {
         // runs once before the first test in this block
         log = console.log;
@@ -30,33 +28,13 @@ describe('utils/logger/log', () => {
     });
     it('undefined', () => {
         Logger.log();
-        deepStrictEqual(result, [[icon, '']]);
+        deepStrictEqual(result, [['', '']]);
     });
-    
 
-    it('null', () => {
-        Logger.log(null);
-        deepStrictEqual(result, [[icon, 'null']]);
-    });
-    it('key', () => {
-        Logger.log('#');
-        deepStrictEqual(result, [[icon, '#']]);
-    });
-    it('key + text', () => {
-        Logger.log('#', 'a');
-        deepStrictEqual(result, [[icon, `# ${color('a')}`]]);
-    });
     it('key + multiple text', () => {
         Logger.log('#', 'a', 'b');
-        deepStrictEqual(result, [[icon, `# ${color('a')} b`]]);
-    });
-    it('text', () => {
-        Logger.log(undefined, 'a');
-        deepStrictEqual(result, [[icon, `${color('a')}`]]);
-    });
-    it('multiple text', () => {
-        Logger.log(undefined, 'a', 'b');
-        deepStrictEqual(result, [[icon, `${color('a')} b`]]);
-    });
+        deepStrictEqual(result, [['#', 'a b']]);
+    });  
+   
    
 });

@@ -1,6 +1,6 @@
 import kleur from 'kleur';
 import ora from 'ora';
-import { is_string } from './validate.js';
+import { filled_string, is_number, is_string } from './validate.js';
 import { Env } from '../vars/env.js';
 
 export class Spinner {
@@ -24,17 +24,34 @@ export class Spinner {
         }
     }
     static stop(name, duration_in_ms) {
-        const duration_text = Math.round(duration_in_ms).toString();
+        const message = [];
+        if(!filled_string(name)) {
+            name = '';
+        }
+        message.push(kleur.green(name))
+        
+        let duration_text = '';
+        if(is_number(duration_in_ms)) {
+            duration_text = Math.round(duration_in_ms).toString();
+        }
         const spaces = new Array(35 - duration_text.length - name.length).fill('.').join('');
-        const message = `${kleur.green(name)} ${kleur.dim(spaces)} ${duration_text} ${kleur.dim('ms')}`;
+        
+        message.push(kleur.dim(spaces))
+        if(duration_text) {
+            message.push(duration_text)
+            message.push(kleur.dim('ms'))
+        }
         if (Env.is_prod()) {
-            return `${kleur.green('✓')} ${message}`;
+            return `${kleur.green('✓')} ${message.join(' ')}`;
         }
         // create spinner when not already started
         if (!this.spinner) {
             this.spinner = this.create(name);
+            if(!this.spinner) {
+                return;
+            }
         }
-        this.spinner.succeed(message);
+        this.spinner.succeed(message.join(' '));
         this.spinner = undefined;
         return;
     }

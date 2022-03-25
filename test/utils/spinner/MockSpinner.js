@@ -7,6 +7,9 @@ export function MockSpinner(callback) {
         start: () => {
             return spinner;
         },
+        succeed: (data) => {
+            callback(data);
+        },
         spinner: '',
         text: '',
     };

@@ -13,12 +13,15 @@ export class Logger {
      * @param {string} name
      * @returns Creates a new instance of the Logger with a preppended hint
      */
-    static create(name) {
-        const clone = new Logger();
+    static create(name, spinner) {
+        const clone = Object.create(Object.getPrototypeOf(Logger), Object.getOwnPropertyDescriptors(Logger));
         if (!filled_string(name)) {
             name = '~';
         }
         clone.pre = kleur.dim(`[${name}]`);
+        if (spinner) {
+            clone.spinner = spinner;
+        }
         return clone;
     }
 
@@ -56,7 +59,7 @@ export class Logger {
         }
         const symbol = has_color_fn ? color_fn(char) : char;
 
-        if (!Spinner.persist(kleur.dim('│'), `${symbol} ${this.pre}${text}`)) {
+        if (!this.spinner.persist(kleur.dim('│'), `${symbol} ${this.pre}${text}`)) {
             console.error(symbol, text);
         }
     }
@@ -160,14 +163,17 @@ export class Logger {
 
     static start(name) {
         if (Env.is_dev()) {
-            this.output(LogType.start, LogColor.start, LogIcon.start, name);
-            Spinner.start(name);
+            this.output_type('start', name);
+            this.spinner.start(name);
         }
+    }
+    static stop(name, duration) {
+        this.spinner.stop(name, duration);
     }
 }
 // static properties
 Logger.pre = '';
-Logger.spinner = undefined;
+Logger.spinner = Spinner;
 Logger.color = kleur;
 Logger.last_text = null;
 Logger.report_content = [];

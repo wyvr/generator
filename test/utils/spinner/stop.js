@@ -36,4 +36,11 @@ describe('utils/spinner/stop', () => {
         const message = Spinner.stop('text', 500);
         strictEqual(message, `${kleur.green('✓')} ${kleur.green('text')} ${kleur.dim('............................')} 500 ${kleur.dim('ms')}`);
     });
+    it('too long text', () => {
+        Env.set(EnvType.prod);
+        Spinner.spinner = undefined;
+        const text = 'this is some too long text for the spinner to display in the given format';
+        const message = Spinner.stop(text, 500);
+        strictEqual(message, `${kleur.green('✓')} ${kleur.green(text)} ${kleur.dim('')} 500 ${kleur.dim('ms')}`);
+    });
 });

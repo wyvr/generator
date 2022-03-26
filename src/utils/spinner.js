@@ -34,7 +34,8 @@ export class Spinner {
         if(is_number(duration_in_ms)) {
             duration_text = Math.round(duration_in_ms).toString();
         }
-        const spaces = new Array(35 - duration_text.length - name.length).fill('.').join('');
+        const length = Math.max(0, 35 - duration_text.length - name.length);
+        const spaces = new Array(length).fill('.').join('');
         
         message.push(kleur.dim(spaces))
         if(duration_text) {

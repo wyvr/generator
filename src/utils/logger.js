@@ -164,11 +164,15 @@ export class Logger {
     static start(name) {
         if (Env.is_dev()) {
             this.output_type('start', name);
-            this.spinner.start(name);
+            if (this.spinner) {
+                this.spinner.start(name);
+            }
         }
     }
     static stop(name, duration) {
-        this.spinner.stop(name, duration);
+        if (this.spinner) {
+            this.spinner.stop(name, duration);
+        }
     }
 }
 // static properties

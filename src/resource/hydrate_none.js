@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 /* eslint-disable no-undef */
+/* eslint-disable no-unused-vars */
 const wyvr_hydrate_none = (path, elements, name, cls, trigger) => {
     wyvr_none_classes[name] = { cls, path, loaded: false };
     if (!window.wyvr) {

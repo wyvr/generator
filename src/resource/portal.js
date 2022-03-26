@@ -1,4 +1,6 @@
+/* eslint-disable no-unused-vars */
 const wyvr_portal = (el, props) => {
+    /* eslint-enable no-unused-vars */
     const portal_prop = el.getAttribute('data-portal');
     if (portal_prop) {
         const portal_target_selector = props[portal_prop];

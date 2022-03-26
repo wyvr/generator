@@ -45,7 +45,9 @@
                         break;
                     }
                     case 'reload':
+                        /* eslint-disable no-self-assign*/
                         location.href = location.href;
+                        /* eslint-enable no-self-assign*/
                         break;
                     case 'error': {
                         if (window.wyvr_generate_timeout) {
@@ -68,7 +70,11 @@
                                             })
                                             .join(' ');
                                     }
-                                    return `<li>${line.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>').replace(/\\n/g, '<br>')}</li>`;
+                                    return `<li>${line
+                                        .replace(/</g, '&lt;')
+                                        .replace(/>/g, '&gt;')
+                                        .replace(/\n/g, '<br>')
+                                        .replace(/\\n/g, '<br>')}</li>`;
                                 }),
                                 '</ul>',
                             ];

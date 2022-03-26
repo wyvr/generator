@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 /* eslint-disable no-undef */
+/* eslint-disable no-unused-vars */
 const wyvr_hydrate_lazy = (path, elements, name, cls) => {
     wyvr_lazy_classes[name] = { cls, path, loaded: false };
 

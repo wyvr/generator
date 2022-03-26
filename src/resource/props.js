@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
-/* eslint-disable no-undef */
+/* eslint-disable no-unused-vars */
 const wyvr_props = (el) => {
+    /* eslint-ensable no-unused-vars */
     return new Promise((resolve) => {
         let props = {};
         const json = '{' + el.getAttribute('data-props').replace(/\|/g, '"').replace(/§"§/g, '|') + '}';

@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 /* eslint-disable no-undef */
+/* eslint-disable no-unused-vars */
 const wyvr_hydrate_idle = (path, elements, name, cls) => {
     wyvr_idle_classes[name] = { cls, path, loaded: false };
     if (window.requestIdleCallback) {

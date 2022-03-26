@@ -35,6 +35,9 @@ init: ## Install and prepare setup
 
 coverage: ## Get test coverage result
 	@$(WYVR_COVERAGE)
+	
+lint: ## Use ESLint on the codebase
+	@${WYVR_LINT}
 
 coverage-watch: ## Watches changes in the tests
-	@npx nodemon --watch src --watch test -e js --exec "$(WYVR_COVERAGE)"
+	@npx nodemon --watch src --watch test -e js --exec "$(WYVR_LINT); $(WYVR_COVERAGE)"

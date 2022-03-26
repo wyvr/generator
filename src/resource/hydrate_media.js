@@ -2,7 +2,7 @@
 /* eslint-disable no-console */
 const wyvr_media_classes = {};
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable no-unused-vars */
 const wyvr_hydrate_media = (path, elements, name, cls) => {
     wyvr_media_classes[name] = { cls, path, loaded: false, elements };
     Array.from(elements).forEach((el) => {

@@ -5,7 +5,6 @@ import { is_array } from '../utils/validate.js';
 export function env_report(report) {
     if (!report) {
         Logger.error(ERRORS.missing('report'));
-        process.exit(1);
         return;
     }
     if (is_array(report.info)) {
@@ -26,7 +25,5 @@ export function env_report(report) {
 
     if (!report.success) {
         Logger.error(ERRORS.critical);
-        process.exit(1);
-        return;
     }
 }

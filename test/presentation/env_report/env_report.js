@@ -5,7 +5,6 @@ import { fileURLToPath } from 'url';
 import { Cwd } from '../../../src/vars/cwd.js';
 import { env_report } from '../../../src/presentation/env_report.js';
 import { ERRORS } from '../../../src/constants/errors.js';
-import Sinon from 'sinon';
 
 describe('presentation/env_report/env_report', () => {
     let log, err;
@@ -27,7 +26,6 @@ describe('presentation/env_report/env_report', () => {
         console.error = (...args) => {
             result.push(args);
         };
-        Sinon.stub(process, 'exit');
     });
     afterEach(() => {
         result = [];
@@ -36,7 +34,6 @@ describe('presentation/env_report/env_report', () => {
         // runs once after the last test in this block
         console.log = log;
         console.error = err;
-        process.exit.restore();
     });
     it('missing report', () => {
         env_report();
@@ -70,7 +67,7 @@ describe('presentation/env_report/env_report', () => {
     it('critical', () => {
         env_report(Object.assign({}, base_report, { success: false }));
         deepStrictEqual(result, [
-            ['\u001b[31m✖\u001b[39m', '\u001b[31mterminated wyvr because of critical errors\u001b[39m'],
+            ['\u001b[31m✖\u001b[39m', `\u001b[31m${ERRORS.critical}\u001b[39m`],
         ]);
     });
 });

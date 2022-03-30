@@ -1,5 +1,5 @@
 // import { app_command } from './command/app';
-// import { build_command } from './command/build';
+import { build_command } from './command/build.js';
 // import { clear_command } from './command/clear';
 // import { create_command } from './command/create';
 // import { cron_command } from './command/cron';
@@ -13,8 +13,8 @@ export async function command(config) {
     switch (main_command) {
         // case 'app':
         //     return await app_command(config);
-        // case 'build':
-        //     return await build_command(config);
+        case 'build':
+            return await build_command(config);
         // case 'clear':
         //     return await clear_command(config);
         // case 'create':

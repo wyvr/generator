@@ -11,25 +11,27 @@ describe('action/check_env/check_env', () => {
     const __dirname = dirname(resolve(join(fileURLToPath(import.meta.url))));
     const __root = resolve(join(__dirname, '..', '..', '..'));
 
-    afterEach(()=> {
+    afterEach(() => {
         Cwd.set(cwd);
-    })
+    });
     it('error run in same folder', async () => {
         Cwd.set(__root);
         const report = await check_env();
-        strictEqual(report.success, false);
         strictEqual(report.error.indexOf(ERRORS.run_in_same_folder) > -1, true);
     });
-    it('empty folder', async () => {
+    it('missing package.json', async () => {
         Cwd.set(join(__dirname, '_tests', 'empty'));
         const report = await check_env();
-        strictEqual(report.success, true);
         strictEqual(report.warning.indexOf(ERRORS.package_is_not_present) > -1, true);
     });
-    it('invalid folder', async () => {
+    it('invalid package.json', async () => {
         Cwd.set(join(__dirname, '_tests', 'invalid'));
         const report = await check_env();
-        strictEqual(report.success, true);
         strictEqual(report.warning.indexOf(ERRORS.package_is_not_valid) > -1, true);
+    });
+    it('missing wyvr.js', async () => {
+        Cwd.set(join(__dirname, '_tests', 'empty'));
+        const report = await check_env();
+        strictEqual(report.error.indexOf(ERRORS.wyvr_js_is_not_present) > -1, true);
     });
 });

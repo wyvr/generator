@@ -30,6 +30,13 @@ export async function check_env() {
             report.warning.push(ERRORS.package_is_not_valid);
         }
     }
+    
+    // check if a wyvr.js is present
+    const wyvr_js_path = join(Cwd.get(), 'wyvr.js');
+    if(!is_file(wyvr_js_path)) {
+        report.success = false;
+        report.error.push(ERRORS.wyvr_js_is_not_present);
+    }
 
     return report;
 }

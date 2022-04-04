@@ -8,7 +8,7 @@ export function search_segment(search_in, segment, fallback_value) {
     const segments = segment.split('.');
 
     const value = segments.reduce((acc, cur) => {
-        if (is_object(acc) && acc[cur]) {
+        if (is_object(acc) && acc[cur] != undefined) {
             return acc[cur];
         }
         return fallback_value;

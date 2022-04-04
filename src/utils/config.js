@@ -1,12 +1,12 @@
 //const wyvr_config = (await import('../wyvr.js')).default;
 import merge from 'deepmerge';
+import { join } from 'path';
 import { WyvrConfig } from '../model/wyvr_config.js';
+import { is_file } from './file.js';
+import { Logger } from './logger.js';
 import { search_segment } from './segment.js';
 import { is_string } from './validate.js';
 
-async function load_wyvr_config(path) {
-    return undefined;
-}
 // function get() {}
 // function set() {}
 // function replace() {}
@@ -32,6 +32,25 @@ function config() {
         set: () => {},
         replace: () => {},
         merge: merge_config,
+        load: async (path) => {
+            if (!is_string(path)) {
+                return {};
+            }
+            const filepah = join(path, 'wyvr.js');
+            if (!is_file(filepah)) {
+                return {};
+            }
+            try {
+                const result = await import(filepah);
+                if (result && result.default) {
+                    return result.default;
+                }
+                return {};
+            } catch (e) {
+                Logger.warning(e);
+                return {};
+            }
+        },
     };
 }
 

@@ -7,7 +7,9 @@ import { extract_cli_config, get_wyvr_version } from '../src/cli/config.js';
 import { get_logo } from '../src/presentation/logo.js';
 import { command } from '../src/command.js';
 import { Logger } from '../src/utils/logger.js';
+import { Cwd } from '../src/vars/cwd.js';
 
+Cwd.set(process.cwd())
 const version = get_wyvr_version();
 
 console.error(get_logo(version));
@@ -19,18 +21,8 @@ const config = {
     version,
 };
 
-console.error(config);
 
-Logger.log('test', 'key');
-Logger.info('test', 'key');
-Logger.present('test', 'key');
-Logger.success('test', 'key');
-Logger.warning('test', 'key');
-Logger.error('test', 'key');
-Logger.improve('test', 'key');
-Logger.report('test', 'key');
-Logger.block('test', 'key');
-Logger.debug('test', 'key');
+console.error(config);
 
 const result = await command(config);
 

@@ -17,8 +17,8 @@
 //         date: new Date(),
 //     },
 // };
-module.exports = {
-    url: 'example.wyvr',
+export default {
+    url: 'generator.wyvr',
     https: false,
     worker: {
         force_initial_build: true,

@@ -257,12 +257,23 @@ export function collect_svelte_files(dir) {
     return result;
 }
 /**
+ * check if a given path exists
+ * @param path path to a file
+ * @returns
+ */
+export function exists(path) {
+    if (!path || typeof path != 'string' || !existsSync(path)) {
+        return false;
+    }
+    return true;
+}
+/**
  * check if a given path is a file
  * @param path path to a file
  * @returns
  */
 export function is_file(path) {
-    if (!path || typeof path != 'string' || !existsSync(path)) {
+    if (!exists(path)) {
         return false;
     }
     const stat = statSync(path);

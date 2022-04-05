@@ -37,7 +37,7 @@ describe('presentation/env_report/env_report', () => {
     });
     it('missing report', () => {
         env_report();
-        deepStrictEqual(result, [['\x1B[31m✖\x1B[39m', '\x1B[31m\x1B[39m']]);
+        deepStrictEqual(result, [['\x1B[31m✖\x1B[39m', '\x1B[31m\"report\" is missing\x1B[39m']]);
     });
     it('succeed', () => {
         env_report(base_report);

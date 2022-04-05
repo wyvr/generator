@@ -11,6 +11,16 @@ import { is_string } from './validate.js';
 // function set() {}
 // function replace() {}
 function merge_config(config1, config2) {
+    if (config1 === undefined && config2 === undefined) {
+        return undefined;
+    }
+    if (config1 === undefined) {
+        config1 = {};
+    }
+    if (config2 === undefined) {
+        config2 = {};
+    }
+
     return merge(config1, config2);
 }
 
@@ -67,11 +77,10 @@ function config() {
                 if (result && result.default) {
                     return result.default;
                 }
-                return {};
             } catch (e) {
                 Logger.warning(e);
-                return {};
             }
+            return {};
         },
     };
 }

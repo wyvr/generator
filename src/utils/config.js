@@ -21,7 +21,7 @@ function config() {
         get: (segment, fallback_value) => {
             // fill cache when empty
             if (!cache) {
-                cache = merge_config(WyvrConfig, {});
+                cache = WyvrConfig;
             }
             // when nothing is specified as segment return whole config
             if (!is_string(segment)) {
@@ -29,8 +29,30 @@ function config() {
             }
             return search_segment(cache, segment, fallback_value);
         },
-        set: () => {},
-        replace: () => {},
+        set: (segment, value) => {
+            if (!cache) {
+                cache = WyvrConfig;
+            }
+            let path = cache;
+            const segments = segment.split('.');
+            const seg_length = segments.length;
+            segments.forEach((segment, index) => {
+                // create structure
+                if (path[segment] === undefined) {
+                    path[segment] = {};
+                }
+                // set the value for the last segment
+                if (index == seg_length - 1) {
+                    path[segment] = value;
+                }
+                // use new path as path
+                path = path[segment];
+            });
+        },
+        replace: (new_config) => {
+            // when value is undefined the next get sets the value again
+            cache = new_config;
+        },
         merge: merge_config,
         load: async (path) => {
             if (!is_string(path)) {

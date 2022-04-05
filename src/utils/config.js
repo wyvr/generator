@@ -78,7 +78,7 @@ function config() {
                     return result.default;
                 }
             } catch (e) {
-                Logger.warning(e);
+                Logger.warning(path, e);
             }
             return {};
         },

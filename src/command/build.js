@@ -2,6 +2,7 @@ import { check_env } from '../action/check_env.js';
 import { collect_packages } from '../action/package.js';
 import { terminate } from '../cli/terminate.js';
 import { env_report } from '../presentation/env_report.js';
+import { package_report } from '../presentation/package_report.js';
 import { read_json } from '../utils/file.js';
 
 export const build_command = async () => {
@@ -12,8 +13,9 @@ export const build_command = async () => {
 
     //  Build Global(storage) Data
     //  Collect packages
-    //const package_json = read_json('package.json');
-    //const packages = await collect_packages(package_json);
+    const package_json = read_json('package.json');
+    const { available_packages, disabled_packages } = await collect_packages(package_json);
+    package_report(available_packages, disabled_packages);
     //  Copy static files
     //  Initialize Plugins
     //  Create Translations
@@ -29,5 +31,5 @@ export const build_command = async () => {
     //  Create Symlinks
     //  Generate Media/Images
     //  Optimize Pages
-    return 'build ' + JSON.stringify(packages);
+    return 'build';
 };

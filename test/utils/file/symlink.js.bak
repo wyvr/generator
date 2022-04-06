@@ -1,0 +1,61 @@
+import { strictEqual, deepStrictEqual } from 'assert';
+import { describe, it } from 'mocha';
+import { symlink } from '../../../src/utils/file.js';
+import { v4 } from 'uuid';
+import { dirname, join } from 'path';
+import { existsSync, rmSync, unlinkSync, writeFileSync } from 'fs';
+
+describe('utils/file/symlink', () => {
+    let log, err;
+    let result = [];
+    const base_report = {
+        success: true,
+        info: [],
+        warning: [],
+        error: [],
+    };
+
+    before(() => {
+        // runs once before the first test in this block
+        log = console.log;
+        console.log = (...args) => {
+            result.push(args);
+        };
+        err = console.error;
+        console.error = (...args) => {
+            result.push(args);
+        };
+    });
+    afterEach(() => {
+        result = [];
+    });
+    after(() => {
+        // runs once after the last test in this block
+        console.log = log;
+        console.error = err;
+    });
+    it('undefined', () => {
+        strictEqual(symlink(), false);
+    });
+    it('non existing', () => {
+        strictEqual(symlink('test/utils/file/_tests/nonexists.txt', 'sym_1.txt'), false);
+    });
+    it('symlink', () => {
+        const sym_result = symlink('test/utils/file/_tests/text.txt', 'sym_2.txt');
+        if(existsSync('test/utils/file/_tests/sym_2.txt')) {
+            unlinkSync('test/utils/file/_tests/sym_2.txt');
+        }
+        deepStrictEqual(result, []);
+        strictEqual(sym_result, true);
+
+    });
+    it('target not writeable', () => {
+        strictEqual(symlink('test/utils/file/_tests/empty.txt', 'not_writeable.txt'), false);
+        deepStrictEqual(result, [
+            [
+                '\x1B[31m✖\x1B[39m',
+                '\x1B[31msymlink test/utils/file/_tests/empty.txt test/utils/file/_tests/not_writeable.txt {"errno":-17,"syscall":"symlink","code":"EEXIST","path":"test/utils/file/_tests/not_writeable.txt","dest":"test/utils/file/_tests/empty.txt"}\x1B[39m',
+            ],
+        ]);
+    });
+});

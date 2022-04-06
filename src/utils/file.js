@@ -1,10 +1,20 @@
-import { mkdirSync, existsSync, readFileSync, readdirSync, statSync, writeFileSync, unlinkSync } from 'fs';
+import {
+    mkdirSync,
+    existsSync,
+    readFileSync,
+    readdirSync,
+    statSync,
+    writeFileSync,
+    unlinkSync,
+    copyFileSync,
+} from 'fs';
 import { extname, dirname, join } from 'path';
 import circular from 'circular';
 import { is_string, filled_string, filled_array } from './validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { WyvrFile } from '../model/wyvr_file.js';
 import { Env } from '../vars/env.js';
+import { Logger } from './logger.js';
 
 /**
  * converts the given filename to the filename with the given extension
@@ -299,6 +309,34 @@ export function get_folder(folder) {
 export function remove(file) {
     if (filled_string(file) && existsSync(file)) {
         unlinkSync(file);
+        return true;
+    }
+    return false;
+}
+
+// export function symlink(from, to) {
+//     if (filled_string(from) && filled_string(to) && existsSync(from)) {
+//         try {
+//             create_dir(to);
+//             symlinkSync(to, from);
+//         } catch (e) {
+//             Logger.error('symlink', from, to, e);
+//             return false;
+//         }
+//         return true;
+//     }
+//     return false;
+// }
+
+export function copy(from, to) {
+    if (filled_string(from) && filled_string(to) && existsSync(from)) {
+        try {
+            create_dir(to);
+            copyFileSync(from, to);
+        } catch (e) {
+            Logger.error('copy', from, to, e);
+            return false;
+        }
         return true;
     }
     return false;

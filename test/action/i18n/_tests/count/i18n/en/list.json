@@ -1,0 +1,10 @@
+{
+    "value": "Count Value",
+    "count": {
+        "_": "{count} items",
+        "0": "{count} items",
+        "1": "{count} item",
+        ">10": "many items",
+        ">100": "too many items"
+    }
+}

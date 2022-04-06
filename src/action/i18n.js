@@ -1,7 +1,8 @@
 import { join } from 'path';
-import { FOLDER_I18N } from '../constants/folder.js';
-import { collect_files, read_json } from '../utils/file.js';
-import { filled_array } from '../utils/validate.js';
+import { FOLDER_GEN, FOLDER_I18N } from '../constants/folder.js';
+import { collect_files, read_json, write_json } from '../utils/file.js';
+import { filled_array, filled_string } from '../utils/validate.js';
+import { Cwd } from '../vars/cwd.js';
 
 export function collect_i18n(packages) {
     if (!filled_array(packages)) {
@@ -32,4 +33,12 @@ export function collect_i18n(packages) {
         });
     });
     return translations;
+}
+
+export function write_language(language, data) {
+    if (!filled_string(language)) {
+        return false;
+    }
+    const path = join(Cwd.get(), FOLDER_GEN, FOLDER_I18N, `${language.toLowerCase()}.json`);
+    return write_json(path, data);
 }

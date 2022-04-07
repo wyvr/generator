@@ -40,4 +40,12 @@ describe('vars/env', () => {
         Env.set(EnvType.dev);
         strictEqual(Env.json_spaces(), 4);
     });
+    it('get name', () => {
+        Env.set(EnvType.dev);
+        strictEqual(Env.name(), 'dev');
+    });
+    it('get unknown', () => {
+        Env.value = undefined;
+        strictEqual(Env.name(), 'prod');
+    });
 });

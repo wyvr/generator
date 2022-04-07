@@ -10,7 +10,7 @@ export class Env {
     }
     static set(value) {
         // allow only allowed types
-        if(array_contains(Object.values(EnvType), value)) {
+        if (array_contains(Object.values(EnvType), value)) {
             this.value = value;
         }
         return this.get();
@@ -25,9 +25,12 @@ export class Env {
         return this.get() == EnvType.prod;
     }
     static json_spaces() {
-        if(this.is_prod()) {
+        if (this.is_prod()) {
             return undefined;
         }
         return 4;
+    }
+    static name() {
+        return Object.keys(EnvType).find((key) => EnvType[key] === this.value) || 'prod';
     }
 }

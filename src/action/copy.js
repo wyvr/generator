@@ -10,9 +10,9 @@ export function copy_files(files, to, before) {
             if (file.src && file.target && exists(file.src)) {
                 // join paths
                 const target = join(to, file.target);
-                beforeFn(file);
                 Logger.debug('copy', file.src, 'to', target);
                 copy(file.src, target);
+                beforeFn(file, target);
             }
         });
         return true;

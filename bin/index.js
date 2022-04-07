@@ -9,10 +9,11 @@ import { command } from '../src/command.js';
 import { Logger } from '../src/utils/logger.js';
 import { Cwd } from '../src/vars/cwd.js';
 
-Cwd.set(process.cwd())
+Cwd.set(process.cwd());
 const version = get_wyvr_version();
 
 console.error(get_logo(version));
+console.error('');
 
 const cli = extract_cli_config(process.argv);
 
@@ -21,8 +22,7 @@ const config = {
     version,
 };
 
-
-console.error(config);
+// console.error(config);
 
 const result = await command(config);
 

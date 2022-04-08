@@ -78,7 +78,7 @@ function config() {
                     return result.default;
                 }
             } catch (e) {
-                Logger.warning(path, e);
+                Logger.warning('can not load config from', filepah, e);
             }
             return {};
         },

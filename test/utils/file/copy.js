@@ -42,9 +42,6 @@ describe('utils/file/copy', () => {
         strictEqual(copy('test/utils/file/_tests/text.txt', 'test/utils/file/_tests/copy.txt'), true);
     });
     it('target not writeable', () => {
-        writeFileSync('test/utils/file/_tests/not_writeable.txt', 'only reading\n')
-        chmod('test/utils/file/_tests/not_writeable.txt', 0o000, (err)=>{
-        });
         strictEqual(copy('test/utils/file/_tests/empty.txt', 'test/utils/file/_tests/not_writeable.txt'), false);
         deepStrictEqual(result, [
             [
@@ -52,7 +49,5 @@ describe('utils/file/copy', () => {
                 '\x1B[31mcopy test/utils/file/_tests/empty.txt test/utils/file/_tests/not_writeable.txt {"errno":-13,"syscall":"copyfile","code":"EACCES","path":"test/utils/file/_tests/empty.txt","dest":"test/utils/file/_tests/not_writeable.txt"}\x1B[39m',
             ],
         ]);
-        chmod('test/utils/file/_tests/not_writeable.txt', 0o755, (err)=>{
-        });
     });
 });

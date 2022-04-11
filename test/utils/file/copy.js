@@ -1,5 +1,5 @@
 import { strictEqual, deepStrictEqual } from 'assert';
-import { chmod } from 'fs';
+import { chmod, writeFileSync } from 'fs';
 import { describe, it } from 'mocha';
 import { copy } from '../../../src/utils/file.js';
 
@@ -42,6 +42,7 @@ describe('utils/file/copy', () => {
         strictEqual(copy('test/utils/file/_tests/text.txt', 'test/utils/file/_tests/copy.txt'), true);
     });
     it('target not writeable', () => {
+        writeFileSync('test/utils/file/_tests/not_writeable.txt', 'only reading\n')
         chmod('test/utils/file/_tests/not_writeable.txt', 0o000, (err)=>{
         });
         strictEqual(copy('test/utils/file/_tests/empty.txt', 'test/utils/file/_tests/not_writeable.txt'), false);

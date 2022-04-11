@@ -9,3 +9,4 @@
 /releases
 /cache
 /lib
+/test/utils/file/_tests/not_writeable.txt

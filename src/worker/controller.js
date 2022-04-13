@@ -18,10 +18,10 @@ import { UniqId } from '../vars/uniq_id.js';
 import { Report } from '../vars/report.js';
 
 export class WorkerController {
-    static create_workers(amount) {
+    static create_workers(amount, fork_fn) {
         this.workers = [];
         for (let i = amount; i > 0; i--) {
-            this.workers.push(this.create());
+            this.workers.push(this.create(fork_fn));
         }
         return this.workers;
     }
@@ -36,11 +36,11 @@ export class WorkerController {
         if (this.worker_amount) {
             return this.worker_amount;
         }
-        if (this.worker_ratio <= 0) {
-            return 1;
-        }
         if (this.max_cores) {
             return this.max_cores;
+        }
+        if (this.worker_ratio <= 0) {
+            return 1;
         }
         // get amount of cores
         // at least one and left 1 core for the main worker
@@ -52,8 +52,11 @@ export class WorkerController {
         this.max_cores = max_cores;
         return max_cores;
     }
-    static create() {
-        const worker = Worker();
+    static create(fork_fn) {
+        const worker = Worker(fork_fn);
+        if(!this.is_worker(worker)) {
+            return undefined;
+        }
         // creating workers and pushing reference in an array
         // these references can be used to receive messages from workers
 

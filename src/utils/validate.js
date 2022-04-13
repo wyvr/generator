@@ -82,13 +82,7 @@ export function array_contains(array, value) {
  * @returns boolean
  */
 export function is_object(value) {
-    return (
-        typeof value == 'object' &&
-        value != null &&
-        !Array.isArray(value) &&
-        !is_regex(value) &&
-        !is_date(value)
-    );
+    return typeof value == 'object' && value != null && !Array.isArray(value) && !is_regex(value) && !is_date(value);
 }
 
 /**
@@ -125,6 +119,24 @@ export function is_date(value) {
  */
 export function is_regex(value) {
     return value instanceof RegExp;
+}
+
+/**
+ * Check if the given value is null or undefined
+ * @param {any} value
+ * @returns boolean
+ */
+export function is_null(value) {
+    return value === undefined || value === null;
+}
+
+/**
+ * Check if the given value is boolean
+ * @param {any} value
+ * @returns boolean
+ */
+export function is_bool(value) {
+    return typeof value == 'boolean';
 }
 
 /**

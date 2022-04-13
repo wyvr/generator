@@ -2,7 +2,7 @@ import { join } from 'path';
 import { FOLDER_GEN } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { Logger } from './logger.js';
-import { filled_string } from './validate.js';
+import { filled_array, filled_string, is_null, is_object } from './validate.js';
 
 export function extract_error(e, source) {
     const root_dir = Cwd.get();
@@ -94,4 +94,81 @@ export function get_error_message(e, filename, scope) {
     }
 
     return result.join('\n');
+}
+
+export function inject_worker_message_errors(messages) {
+    if (!filled_array(messages)) {
+        return [];
+    }
+
+    if (messages[0] != '[svelte]') {
+        return messages;
+    }
+
+    messages[0] = Logger.color.dim(messages[0]);
+
+    return messages.map((message) => {
+        if (is_null(message) || !is_object(message)) {
+            return message;
+        }
+        // ssr errors
+        if (message.code == 'parse-error' && message.frame && message.start && message.name) {
+            return `\n${message.name} ${Logger.color.dim('Line:')}${message.start.line}${Logger.color.dim(' Col:')}${
+                message.start.column
+            }\n${message.frame}`;
+        }
+        // rollup errors
+        if (message.code == 'PARSE_ERROR' && message.frame && message.loc) {
+            return `\n${message.code} ${Logger.color.dim('in')} ${message.loc.file}\n${Logger.color.dim('Line:')}${
+                message.loc.line
+            }${Logger.color.dim(' Col:')}${message.loc.column}\n${message.frame}`;
+        }
+        // nodejs error
+        if (message.error) {
+            return Error.get(message.error, message.filename);
+        }
+        return message;
+    });
+
+    //display svelte errors with better output
+    // if (messages.length > 0 && data.messages[0] === '[svelte]') {
+    //     data.messages = data.messages.map((message, index) => {
+    //         if (index == 0 && typeof message == 'string') {
+    //             return Logger.color.dim(message);
+    //         }
+    //         if (message == null) {
+    //             return message;
+    //         }
+    //         // ssr errors
+    //         if (
+    //             typeof message == 'object' &&
+    //             message.code == 'parse-error' &&
+    //             message.frame &&
+    //             message.start &&
+    //             message.name
+    //         ) {
+    //             return `\n${message.name} ${Logger.color.dim('Line:')}${
+    //                 message.start.line
+    //             }${Logger.color.dim(' Col:')}${message.start.column}\n${message.frame}`;
+    //         }
+    //         // rollup errors
+    //         if (
+    //             typeof message == 'object' &&
+    //             message.code == 'PARSE_ERROR' &&
+    //             message.frame &&
+    //             message.loc
+    //         ) {
+    //             return `\n${message.code} ${Logger.color.dim('in')} ${
+    //                 message.loc.file
+    //             }\n${Logger.color.dim('Line:')}${message.loc.line}${Logger.color.dim(' Col:')}${
+    //                 message.loc.column
+    //             }\n${message.frame}`;
+    //         }
+    //         // nodejs error
+    //         if (typeof message == 'object' && message.error) {
+    //             return Error.get(message.error, message.filename);
+    //         }
+    //         return message;
+    //     });
+    // }
 }

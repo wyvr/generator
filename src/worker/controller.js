@@ -21,7 +21,10 @@ export class WorkerController {
     static create_workers(amount, fork_fn) {
         this.workers = [];
         for (let i = amount; i > 0; i--) {
-            this.workers.push(this.create(fork_fn));
+            const worker = this.create(fork_fn);
+            if(this.is_worker(worker)) {
+                this.workers.push(worker);
+            }
         }
         return this.workers;
     }

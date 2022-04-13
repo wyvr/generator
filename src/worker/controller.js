@@ -5,7 +5,7 @@ import { filled_array, filled_string, is_null, is_number, is_bool, is_object } f
 import { search_segment } from '../utils/segment.js';
 import { Event } from '../utils/event.js';
 import { WorkerAction } from '../struc/worker_action.js';
-import { get_name, WorkerStatus } from '../struc/worker_status.js';
+import { get_name as get_status_name, WorkerStatus } from '../struc/worker_status.js';
 import { get_name as get_emit_name } from '../struc/worker_emit.js';
 import { get_type_name } from '../struc/log.js';
 import { inject_worker_message_errors } from '../utils/error.js';
@@ -22,7 +22,7 @@ export class WorkerController {
         this.workers = [];
         for (let i = amount; i > 0; i--) {
             const worker = this.create(fork_fn);
-            if(this.is_worker(worker)) {
+            if (this.is_worker(worker)) {
                 this.workers.push(worker);
             }
         }
@@ -57,7 +57,7 @@ export class WorkerController {
     }
     static create(fork_fn) {
         const worker = Worker(fork_fn);
-        if(!this.is_worker(worker)) {
+        if (!this.is_worker(worker)) {
             return undefined;
         }
         // creating workers and pushing reference in an array
@@ -112,7 +112,7 @@ export class WorkerController {
         const pid_text = Logger.color.dim(`PID ${msg.pid}`);
         switch (action) {
             case WorkerAction.status: {
-                const name = get_name(data);
+                const name = get_status_name(data);
                 if (!name) {
                     Logger.error('unknown state', data, pid_text);
                     return false;
@@ -145,7 +145,7 @@ export class WorkerController {
         return worker;
     }
     static livecycle(worker) {
-        if (!this.is_worker(worker)) {
+        if (!this.is_worker(worker) || !get_status_name(worker.status)) {
             return false;
         }
         switch (worker.status) {
@@ -160,11 +160,11 @@ export class WorkerController {
                     report: Report.get(),
                     // socket_port: this.socket_port,
                 });
-                return true;
+                break;
             }
         }
-        return false;
-        // this.events.emit('worker_status', worker.status, worker);
+        Event.emit('worker_status', worker.status, worker);
+        return true;
     }
 
     static is_worker(worker) {

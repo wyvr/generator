@@ -1,5 +1,5 @@
 import { to_string } from './to.js';
-import { is_null, filled_string, is_array } from './validate.js';
+import { is_null, filled_string, is_array, is_func } from './validate.js';
 
 export class Event {
     static on(scope, name, fn) {
@@ -30,7 +30,7 @@ export class Event {
         const _name = to_string(name);
         if (this.exists(_scope, _name)) {
             this.listeners[_scope][_name].forEach((listener) => {
-                if (!listener || typeof listener.fn != 'function') {
+                if (!listener || !is_func(listener.fn)) {
                     return;
                 }
                 listener.fn(data);
@@ -38,7 +38,7 @@ export class Event {
         }
     }
     static once(scope, name, fn) {
-        if (!fn || typeof fn != 'function') {
+        if (!is_func(fn)) {
             return;
         }
         const _scope = this.get_scope(scope);

@@ -1,11 +1,11 @@
 import { join } from 'path';
 import { collect_files, copy, exists } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
-import { filled_array, filled_string } from '../utils/validate.js';
+import { filled_array, filled_string, is_func } from '../utils/validate.js';
 
 export function copy_files(files, to, before) {
     if (filled_array(files) && filled_string(to)) {
-        const beforeFn = typeof before == 'function' ? before : () => {};
+        const beforeFn = is_func(before) ? before : () => {};
         files.forEach((file) => {
             if (file.src && file.target && exists(file.src)) {
                 // join paths

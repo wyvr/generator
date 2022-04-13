@@ -1,7 +1,7 @@
 import cluster from 'cluster';
 import kleur from 'kleur';
 import { LogColor, LogFirstValueColor, LogIcon, LogType } from '../struc/log.js';
-import { filled_array, filled_string, is_array, is_number, is_regex, is_string, is_symbol } from './validate.js';
+import { filled_array, filled_string, is_array, is_func, is_number, is_regex, is_string, is_symbol } from './validate.js';
 import circular from 'circular';
 import { Env } from '../vars/env.js';
 import { Report } from '../vars/report.js';
@@ -52,7 +52,7 @@ export class Logger {
         //     });
         //     return;
         // }
-        const has_color_fn = color_fn && typeof color_fn == 'function';
+        const has_color_fn = is_func(color_fn);
         let text = messages.join(' ');
         if (has_color_fn) {
             text = color_fn(text);

@@ -84,7 +84,7 @@ export class WorkerController {
             Logger.warning('worker died PID', worker.pid);
             Logger.info('create new worker');
             this.remove_worker(worker.pid);
-            this.workers.push(this.create());
+            this.workers.push(this.create(fork_fn));
         });
         return worker;
     }

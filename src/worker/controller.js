@@ -1,10 +1,21 @@
 import { cpus } from 'os';
 import { Worker } from '../model/worker.js';
 import { Logger } from '../utils/logger.js';
-import { filled_string, is_number } from '../utils/validate.js';
+import { filled_array, filled_string, is_null, is_number, is_bool, is_object } from '../utils/validate.js';
 import { search_segment } from '../utils/segment.js';
+import { Event } from '../utils/event.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerStatus } from '../struc/worker_status.js';
+import { get_name as get_emit_name } from '../struc/worker_emit.js';
+import { get_type_name } from '../struc/log.js';
+import { inject_worker_message_errors } from '../utils/error.js';
+import { ReleasePath } from '../vars/release_path.js';
+import { WyvrPath } from '../vars/wyvr_path.js';
+import { Cwd } from '../vars/cwd.js';
+import { Env } from '../vars/env.js';
+import { Config } from '../utils/config.js';
+import { UniqId } from '../vars/uniq_id.js';
+import { Report } from '../vars/report.js';
 
 export class WorkerController {
     static create_workers(amount) {
@@ -49,7 +60,10 @@ export class WorkerController {
         // to receive messages from worker process
         worker.process.on('message', (msg) => {
             Logger.debug('process', worker.pid, 'message', msg);
-            this.get_message(msg);
+            const current_worker = this.get_message(msg);
+            if (!is_bool(current_worker)) {
+                this.livecycle(worker);
+            }
         });
         worker.process.on('error', (msg) => {
             Logger.error('process', worker.pid, 'error', msg);
@@ -77,94 +91,101 @@ export class WorkerController {
     static get_message(msg) {
         if (
             filled_string(msg) ||
-            !search_segment(msg, 'data.action.key') ||
-            !search_segment(msg, 'data.action.value')
+            is_null(search_segment(msg, 'data.action.key')) ||
+            is_null(search_segment(msg, 'data.action.value'))
         ) {
-            return;
+            return false;
         }
         const worker = this.get_worker(msg.pid);
         if (!worker) {
             Logger.error('unknown worker', msg.pid);
+            return false;
         }
         const action = msg.data.action.key;
         const data = msg.data.action.value;
+        const pid_text = Logger.color.dim(`PID ${msg.pid}`);
         switch (action) {
             case WorkerAction.status: {
                 const name = get_name(data);
                 if (!name) {
-                    Logger.error('unknown state', data, 'for worker', msg.pid);
-                    return;
+                    Logger.error('unknown state', data, pid_text);
+                    return false;
                 }
                 worker.status = data;
-                Logger.info(`status`, name, Logger.color.dim(`PID ${msg.pid}`));
+                Logger.info(`status`, name, pid_text);
                 break;
             }
-            case WorkerAction.log:
-                if (data && data.type) {
-                    //&& LogType[data.type] && Logger[LogType[data.type]]
-                    // display svelte errors with better output
-                    // if (data.messages.length > 0 && data.messages[0] === '[svelte]') {
-                    //     data.messages = data.messages.map((message, index) => {
-                    //         if (index == 0 && typeof message == 'string') {
-                    //             return Logger.color.dim(message);
-                    //         }
-                    //         if (message == null) {
-                    //             return message;
-                    //         }
-                    //         // ssr errors
-                    //         if (
-                    //             typeof message == 'object' &&
-                    //             message.code == 'parse-error' &&
-                    //             message.frame &&
-                    //             message.start &&
-                    //             message.name
-                    //         ) {
-                    //             return `\n${message.name} ${Logger.color.dim('Line:')}${
-                    //                 message.start.line
-                    //             }${Logger.color.dim(' Col:')}${message.start.column}\n${message.frame}`;
-                    //         }
-                    //         // rollup errors
-                    //         if (
-                    //             typeof message == 'object' &&
-                    //             message.code == 'PARSE_ERROR' &&
-                    //             message.frame &&
-                    //             message.loc
-                    //         ) {
-                    //             return `\n${message.code} ${Logger.color.dim('in')} ${
-                    //                 message.loc.file
-                    //             }\n${Logger.color.dim('Line:')}${message.loc.line}${Logger.color.dim(' Col:')}${
-                    //                 message.loc.column
-                    //             }\n${message.frame}`;
-                    //         }
-                    //         // nodejs error
-                    //         if (typeof message == 'object' && message.error) {
-                    //             return Error.get(message.error, message.filename);
-                    //         }
-                    //         return message;
-                    //     });
-                    // }
-                    Logger.info(data.type, ...data.messages, Logger.color.dim(`PID ${msg.pid}`));
-                    // Logger[LogType[data.type]](...data.messages, Logger.color.dim(`PID ${msg.pid}`));
+            case WorkerAction.log: {
+                const log_type = get_type_name(data.type);
+                if (!log_type || !filled_array(data.messages)) {
+                    return false;
                 }
+
+                const messages = inject_worker_message_errors(data.messages);
+                Logger.output_type(log_type, ...messages, pid_text);
                 break;
-            case WorkerAction.emit:
-                // if (data.type && WorkerEmit[data.type]) {
-                //     this.events.emit('emit', data.type, data);
-                // }
-                Logger.info('emit', data.type, data, Logger.color.dim(`PID ${msg.pid}`));
+            }
+            case WorkerAction.emit: {
+                const name = get_emit_name(data.type);
+                if (!name) {
+                    Logger.error('unknown emit', data, pid_text);
+                    return false;
+                }
+                Event.emit('emit', name, data);
+                Logger.debug('emit', name, data, pid_text);
                 break;
+            }
         }
-        this.livecycle(worker);
+        return worker;
     }
     static livecycle(worker) {
-        if (!worker || !worker.pid) {
-            return;
+        if (!this.is_worker(worker)) {
+            return false;
         }
-        if (worker.status == WorkerStatus.exists) {
-            // configure the worker
-            // this.configure(worker);
+        switch (worker.status) {
+            case WorkerStatus.exists: {
+                this.send_action(worker, WorkerAction.configure, {
+                    config: Config.get(),
+                    env: Env.get(),
+                    cwd: Cwd.get(),
+                    release_path: ReleasePath.get(),
+                    wyvr_path: WyvrPath.get(),
+                    uniq_id: UniqId.get(),
+                    report: Report.get(),
+                    // socket_port: this.socket_port,
+                });
+                return true;
+            }
         }
+        return false;
         // this.events.emit('worker_status', worker.status, worker);
+    }
+
+    static is_worker(worker) {
+        return is_object(worker) && is_number(worker.pid) && !is_null(worker.process);
+    }
+
+    static send_message(worker, data) {
+        if (!this.is_worker(worker)) {
+            return false;
+        }
+
+        if (is_null(data)) {
+            Logger.warning('can not send empty message to worker', worker.pid);
+            return false;
+        }
+        worker.process.send(data);
+        return true;
+    }
+
+    static send_action(worker, action, data) {
+        this.send_message(worker, {
+            action: {
+                key: action,
+                value: data,
+            },
+        });
+        return false;
     }
 }
 WorkerController.workers = [];

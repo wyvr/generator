@@ -1,9 +1,10 @@
-import { is_null, filled_string } from "./validate.js";
+import { to_string } from './to.js';
+import { is_null, filled_string, is_array } from './validate.js';
 
 export class Event {
     static on(scope, name, fn) {
         const _scope = this.get_scope(scope);
-        const _name = this.to_string(name);
+        const _name = to_string(name);
         if (is_null(this.listeners[_scope])) {
             this.listeners[_scope] = {};
         }
@@ -17,8 +18,8 @@ export class Event {
     }
     static off(scope, name, index) {
         const _scope = this.get_scope(scope);
-        const _name = this.to_string(name);
-        if (this.listeners[_scope] && this.listeners[_scope][_name] && Array.isArray(this.listeners[_scope][_name])) {
+        const _name = to_string(name);
+        if (this.exists(_scope, _name)) {
             this.listeners[_scope][_name] = this.listeners[_scope][_name].filter((listener) => {
                 return listener.id != index;
             });
@@ -26,8 +27,8 @@ export class Event {
     }
     static emit(scope, name, data = null) {
         const _scope = this.get_scope(scope);
-        const _name = this.to_string(name);
-        if (this.listeners[_scope] && this.listeners[_scope][_name] && Array.isArray(this.listeners[_scope][_name])) {
+        const _name = to_string(name);
+        if (this.exists(_scope, _name)) {
             this.listeners[_scope][_name].forEach((listener) => {
                 if (!listener || typeof listener.fn != 'function') {
                     return;
@@ -41,21 +42,23 @@ export class Event {
             return;
         }
         const _scope = this.get_scope(scope);
-        const _name = this.to_string(name);
+        const _name = to_string(name);
         const index = this.on(_scope, _name, (...props) => {
             fn(...props);
             this.off(_scope, _name, index);
         });
     }
 
-    static to_string(name) {
-        return name + '';
-    }
     static get_scope(scope) {
         if (!filled_string(scope)) {
             return '_';
         }
         return scope;
+    }
+
+    static exists(scope, name) {
+        const exists = this.listeners[scope] && this.listeners[scope][name] && is_array(this.listeners[scope][name]);
+        return !!exists;
     }
 }
 Event.listeners = {};

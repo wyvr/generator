@@ -19,6 +19,10 @@ describe('worker/controller/livecycle', () => {
         const result = WorkerController.livecycle({ pid: 1000 });
         strictEqual(result, false);
     });
+    it('unknown status', () => {
+        const result = WorkerController.livecycle({ pid: 1000, status: 1000 });
+        strictEqual(result, false);
+    });
     it('dead worker', () => {
         const result = WorkerController.livecycle({ pid: 1000, status: WorkerStatus.dead });
         strictEqual(result, false);

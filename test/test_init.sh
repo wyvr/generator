@@ -7,6 +7,10 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-ROOT="$(dirname "$0")"
+REAL_PATH=$(realpath $0)
+ROOT=$(dirname $REAL_PATH)
+
+echo "Working in '$ROOT'"
 
 echo "only reading" > $ROOT/utils/file/_tests/not_writeable.txt
+chown root:root $ROOT/utils/file/_tests/not_writeable.txt

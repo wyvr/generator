@@ -51,4 +51,10 @@ describe('utils/validate/filled_array', () => {
     it('regex', () => {
         strictEqual(filled_array(/.*/), false);
     });
+    it('function', () => {
+        strictEqual(
+            filled_array(() => {}),
+            false
+        );
+    });
 });

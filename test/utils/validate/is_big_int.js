@@ -51,4 +51,10 @@ describe('utils/validate/is_big_int', () => {
     it('regex', () => {
         strictEqual(is_big_int(/.*/), false);
     });
+    it('function', () => {
+        strictEqual(
+            is_big_int(() => {}),
+            false
+        );
+    });
 });

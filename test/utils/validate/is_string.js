@@ -51,4 +51,10 @@ describe('utils/validate/is_string', () => {
     it('regex', () => {
         strictEqual(is_string(/.*/), false);
     });
+    it('function', () => {
+        strictEqual(
+            is_string(() => {}),
+            false
+        );
+    });
 });

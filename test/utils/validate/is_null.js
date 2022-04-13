@@ -51,4 +51,10 @@ describe('utils/validate/is_null', () => {
     it('regex', () => {
         strictEqual(is_null(/.*/), false);
     });
+    it('function', () => {
+        strictEqual(
+            is_null(() => {}),
+            false
+        );
+    });
 });

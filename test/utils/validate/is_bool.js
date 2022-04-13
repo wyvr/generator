@@ -51,4 +51,10 @@ describe('utils/validate/is_bool', () => {
     it('regex', () => {
         strictEqual(is_bool(/.*/), false);
     });
+    it('function', () => {
+        strictEqual(
+            is_bool(() => {}),
+            false
+        );
+    });
 });

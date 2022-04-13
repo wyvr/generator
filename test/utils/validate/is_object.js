@@ -51,4 +51,10 @@ describe('utils/validate/is_object', () => {
     it('regex', () => {
         strictEqual(is_object(/.*/), false);
     });
+    it('function', () => {
+        strictEqual(
+            is_object(() => {}),
+            false
+        );
+    });
 });

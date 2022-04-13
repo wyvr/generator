@@ -51,4 +51,10 @@ describe('utils/validate/filled_object', () => {
     it('regex', () => {
         strictEqual(filled_object(/.*/), false);
     });
+    it('function', () => {
+        strictEqual(
+            filled_object(() => {}),
+            false
+        );
+    });
 });

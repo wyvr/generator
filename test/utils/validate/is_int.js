@@ -51,4 +51,10 @@ describe('utils/validate/is_int', () => {
     it('regex', () => {
         strictEqual(is_int(/.*/), false);
     });
+    it('function', () => {
+        strictEqual(
+            is_int(() => {}),
+            false
+        );
+    });
 });

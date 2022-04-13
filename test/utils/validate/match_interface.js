@@ -51,6 +51,12 @@ describe('utils/validate/match_interface', () => {
     it('regex', () => {
         strictEqual(match_interface(/.*/), false);
     });
+    it('function', () => {
+        strictEqual(
+            match_interface(() => {}),
+            false
+        );
+    });
 
     it('match interface', () => {
         strictEqual(match_interface({ a: 'required', b: 'required', c: 'optional' }, { a: true, b: true }), true);

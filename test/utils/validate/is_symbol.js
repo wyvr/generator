@@ -51,4 +51,10 @@ describe('utils/validate/is_symbol', () => {
     it('regex', () => {
         strictEqual(is_symbol(/.*/), false);
     });
+    it('function', () => {
+        strictEqual(
+            is_symbol(() => {}),
+            false
+        );
+    });
 });

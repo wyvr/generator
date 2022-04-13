@@ -51,4 +51,10 @@ describe('utils/validate/is_array', () => {
     it('regex', () => {
         strictEqual(is_array(/.*/), false);
     });
+    it('function', () => {
+        strictEqual(
+            is_array(() => {}),
+            false
+        );
+    });
 });

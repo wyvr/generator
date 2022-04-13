@@ -51,4 +51,10 @@ describe('utils/validate/is_float', () => {
     it('regex', () => {
         strictEqual(is_float(/.*/), false);
     });
+    it('function', () => {
+        strictEqual(
+            is_float(() => {}),
+            false
+        );
+    });
 });

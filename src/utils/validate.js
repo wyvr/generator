@@ -147,9 +147,6 @@ export function is_bool(value) {
 export function is_func(value) {
     return typeof value == 'function';
 }
-export function is_function(value) {
-    return is_func(value);
-}
 
 /**
  * Check if the given value matches the given structure

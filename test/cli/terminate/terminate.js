@@ -4,7 +4,7 @@ import { terminate } from '../../../src/cli/terminate.js';
 import Sinon from 'sinon';
 
 describe('cli/terminate/terminate', () => {
-    let exit_value = undefined;
+    let exit_value;
     before(() => {
         Sinon.stub(process, 'exit');
         process.exit.callsFake((code) => {

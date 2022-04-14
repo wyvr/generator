@@ -1,22 +1,36 @@
-import { deepStrictEqual, strictEqual } from 'assert';
+import { deepStrictEqual } from 'assert';
 import { describe, it } from 'mocha';
-import Sinon from 'sinon';
 import { send } from '../../../src/worker/communication.js';
 
 describe('worker/communication/send', () => {
+    let mock_send;
     let send_data;
     before(() => {
-        Sinon.stub(process, 'send');
-        process.send.callsFake((data) => {
+        mock_send = process.send;
+
+        process.send = (data) => {
             send_data = data;
-        });
+        };
     });
-    beforeEach(() => {
+    afterEach(() => {
         send_data = undefined;
+    });
+    after(() => {
+        process.send = mock_send;
     });
     it('undefined', () => {
         send_data = false;
         send();
-        strictEqual(send_data, undefined);
+        deepStrictEqual(send_data, {
+            pid: process.pid,
+            data: undefined,
+        });
+    });
+    it('with data', () => {
+        send(true);
+        deepStrictEqual(send_data, {
+            pid: process.pid,
+            data: true,
+        });
     });
 });

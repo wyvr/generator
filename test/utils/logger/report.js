@@ -1,6 +1,8 @@
-import { strictEqual, deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'assert';
+import cluster from 'cluster';
 import kleur from 'kleur';
 import { describe, it } from 'mocha';
+import Sinon from 'sinon';
 import { LogColor, LogIcon } from '../../../src/struc/log.js';
 import { Logger } from '../../../src/utils/logger.js';
 import { Report } from '../../../src/vars/report.js';
@@ -28,6 +30,7 @@ describe('utils/logger/report', () => {
     afterEach(() => {
         result = [];
         Report.set(false);
+        Logger.report_content = [];
     });
     after(() => {
         // runs once after the last test in this block
@@ -47,5 +50,14 @@ describe('utils/logger/report', () => {
     it('key + multiple text', () => {
         Logger.report(500, 'a', 'b');
         deepStrictEqual(result, [[icon, color(`a b 500 ${kleur.dim('ms')}`)]]);
+        deepStrictEqual(Logger.report_content, [[500, 'a', 'b']]);
+    });
+    it('report from worker', () => {
+        const sandbox = Sinon.createSandbox();
+        sandbox.stub(cluster, 'isWorker').value(true);
+        Logger.report(500, 'a', 'b');
+        deepStrictEqual(result, [[icon, color(`a b 500 ${kleur.dim('ms')}`)]]);
+        deepStrictEqual(Logger.report_content, []);
+        sandbox.restore();
     });
 });

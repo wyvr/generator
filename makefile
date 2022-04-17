@@ -8,7 +8,7 @@ SHELL := /bin/bash
 # @see https://spin.atomicobject.com/2021/03/22/makefiles-vs-package-json-scripts/
 # base commands
 WYVR_LINT=npx eslint src --ext .js
-WYVR_TEST=npx mocha -R dot './test/**/*.js'
+WYVR_TEST=npx mocha -R dot './test/**/*.test.js'
 WYVR_COVERAGE=npx c8 $(WYVR_TEST)
 
 compile-watch: ## Start watcher and make dev builds

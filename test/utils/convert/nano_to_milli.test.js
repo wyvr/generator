@@ -7,7 +7,7 @@ describe('utils/convert/nano_to_milli', () => {
         strictEqual(nano_to_milli(), undefined);
     });
     it('number', () => {
-        strictEqual(nano_to_milli(1000000), 1);
+        strictEqual(nano_to_milli(10000000), 10);
     });
     it('Number.MAX_SAFE_INTEGER', () => {
         strictEqual(nano_to_milli(BigInt(Number.MAX_SAFE_INTEGER)), 9007199254);

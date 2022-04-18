@@ -1,12 +1,14 @@
 // /* eslint @typescript-eslint/no-explicit-any: 0 */
 // /* eslint @typescript-eslint/ban-types: 0 */
 
+import { hrtime } from 'process';
 import { join } from 'path';
 import { Cwd } from '../vars/cwd.js';
 import { get_error_message } from './error.js';
 import { collect_files } from './file.js';
 import { Logger } from './logger.js';
 import { filled_array, filled_string } from './validate.js';
+import { nano_to_milli } from './convert.js';
 
 // import { Logger } from '@lib/logger';
 // import { join } from 'path';
@@ -16,7 +18,7 @@ import { filled_array, filled_string } from './validate.js';
 
 export class Plugin {
     static async load(folder) {
-        if(!filled_string(folder)) {
+        if (!filled_string(folder)) {
             return undefined;
         }
         const files = collect_files(folder);
@@ -92,7 +94,7 @@ export class Plugin {
             // after plugins gets executed in reversed order
             if (type == 'after') {
                 for (let i = listeners.length - 1; i >= 0; i--) {
-                    // const start = process.hrtime();
+                    const start = hrtime.bigint();
                     try {
                         const partial_result = await listeners[i].fn(...result);
                         if (partial_result && Array.isArray(partial_result) && partial_result.length >= result.length) {
@@ -106,7 +108,8 @@ export class Plugin {
                             Error.get(e, listeners[i].source, 'plugin')
                         );
                     }
-                    // Logger.report(hrtime_to_ms(process.hrtime(start)), 'plugin', name, PluginType[type], listeners[i].source);
+                    const duration = nano_to_milli(hrtime.bigint() - start);
+                    Logger.report(duration, 'plugin', name, type, listeners[i].source);
                 }
                 return result;
             }

@@ -47,7 +47,7 @@ describe('utils/config/load', () => {
         deepStrictEqual(logger_messages, [
             [
                 '\x1B[33m⚠\x1B[39m',
-                '\x1B[33mcan not load config from /home/patrick/wyvr/generator/test/utils/config/_tests/invalid/wyvr.js {}\x1B[39m',
+                `\x1B[33mcan not load config from ${join(__dirname,'_tests/invalid/wyvr.js')} {}\x1B[39m`,
             ],
         ]);
     });

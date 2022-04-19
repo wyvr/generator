@@ -7,8 +7,9 @@ import { Cwd } from '../vars/cwd.js';
 import { get_error_message } from './error.js';
 import { collect_files } from './file.js';
 import { Logger } from './logger.js';
-import { filled_array, filled_string } from './validate.js';
+import { filled_array, filled_string, is_null } from './validate.js';
 import { nano_to_milli } from './convert.js';
+import { search_segment } from './segment.js';
 
 // import { Logger } from '@lib/logger';
 // import { join } from 'path';
@@ -74,62 +75,83 @@ export class Plugin {
     }
 
     static async before(name, ...args) {
-        return (await this.build_listeners(name, 'before'))(...args);
+        return (await this.execute(name, 'before'))(...args);
     }
     // static async around(name: string, ...args) {
     //     return (await this.build_listeners(name, 'around'))(...args);
     // }
     static async after(name, ...args) {
-        return (await this.build_listeners(name, 'after'))(...args);
+        return (await this.execute(name, 'after'))(...args);
     }
-    static async build_listeners(name, type) {
-        if (!name || !this.cache || !this.cache[name] || !filled_array(this.cache[name][type])) {
+    static async execute(name, type) {
+        if (!filled_string(name) || !filled_string(type)) {
+            return {
+                error: 'missing plugin name or type',
+                args: undefined,
+            };
+        }
+        const plugins = search_segment(this.cache, `${name}.${type}`);
+        if (is_null(plugins)) {
+            return {
+                error: `plugin "${name}" ${type} not found`,
+                args: undefined,
+            };
+        }
+
+        return {
+            error: 'somthing went wrong',
+            args: undefined,
+        };
+
+        // return async (...args) => {
+        //     let result = [null, this.config, ...args];
+        //     const listeners = this.cache[name][type];
+        //     // after plugins gets executed in reversed order
+        //     if (type == 'after') {
+        //         for (let i = listeners.length - 1; i >= 0; i--) {
+        //             const start = hrtime.bigint();
+        //             try {
+        //                 const partial_result = await listeners[i].fn(...result);
+        //                 if (partial_result && Array.isArray(partial_result) && partial_result.length >= result.length) {
+        //                     result = partial_result;
+        //                 }
+        //             } catch (e) {
+        //                 Logger.error(
+        //                     'error in plugin for',
+        //                     Logger.color.bold(name),
+        //                     Logger.color.bold(type),
+        //                     Error.get(e, listeners[i].source, 'plugin')
+        //                 );
+        //             }
+        //             const duration = nano_to_milli(hrtime.bigint() - start);
+        //             Logger.report(duration, 'plugin', name, type, listeners[i].source);
+        //         }
+        //         return result;
+        //     }
+        //     for (let i = 0, len = listeners.length; i < len; i++) {
+        //         try {
+        //             const partial_result = await listeners[i].fn(...result);
+        //             if (partial_result && Array.isArray(partial_result) && partial_result.length >= result.length) {
+        //                 result = partial_result;
+        //             }
+        //         } catch (e) {
+        //             Logger.error(
+        //                 'error in plugin for',
+        //                 Logger.color.bold(name),
+        //                 Logger.color.bold(type),
+        //                 Error.get(e, listeners[i].source, 'plugin')
+        //             );
+        //         }
+        //     }
+        //     return result;
+        // };
+
+        /*if (!name || !this.cache || !this.cache[name] || !filled_array(this.cache[name][type])) {
             return async (...args) => {
                 return [null, this.config, ...args];
             };
         }
-        return async (...args) => {
-            let result = [null, this.config, ...args];
-            const listeners = this.cache[name][type];
-            // after plugins gets executed in reversed order
-            if (type == 'after') {
-                for (let i = listeners.length - 1; i >= 0; i--) {
-                    const start = hrtime.bigint();
-                    try {
-                        const partial_result = await listeners[i].fn(...result);
-                        if (partial_result && Array.isArray(partial_result) && partial_result.length >= result.length) {
-                            result = partial_result;
-                        }
-                    } catch (e) {
-                        Logger.error(
-                            'error in plugin for',
-                            Logger.color.bold(name),
-                            Logger.color.bold(type),
-                            Error.get(e, listeners[i].source, 'plugin')
-                        );
-                    }
-                    const duration = nano_to_milli(hrtime.bigint() - start);
-                    Logger.report(duration, 'plugin', name, type, listeners[i].source);
-                }
-                return result;
-            }
-            for (let i = 0, len = listeners.length; i < len; i++) {
-                try {
-                    const partial_result = await listeners[i].fn(...result);
-                    if (partial_result && Array.isArray(partial_result) && partial_result.length >= result.length) {
-                        result = partial_result;
-                    }
-                } catch (e) {
-                    Logger.error(
-                        'error in plugin for',
-                        Logger.color.bold(name),
-                        Logger.color.bold(type),
-                        Error.get(e, listeners[i].source, 'plugin')
-                    );
-                }
-            }
-            return result;
-        };
+        */
     }
 }
 Plugin.cache = {};

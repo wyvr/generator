@@ -1,4 +1,4 @@
-import { is_object, is_array, is_null, filled_string } from './validate.js';
+import { is_object, is_array, is_null, filled_string, is_regex, is_symbol, is_big_int } from './validate.js';
 
 export function to_string(value) {
     if (is_null(value)) {
@@ -11,7 +11,7 @@ export function to_string(value) {
 }
 
 export function to_snake_case(value) {
-    if(!filled_string(value)) {
+    if (!filled_string(value)) {
         return undefined;
     }
     return value
@@ -20,4 +20,16 @@ export function to_snake_case(value) {
         .replace(/^_/, '')
         .replace(/[^a-z_]/g, '_')
         .replace(/_+/g, '_');
+}
+export function to_escaped(value) {
+    if (is_symbol(value) || is_regex(value)) {
+        value = to_string(value);
+    }
+    if (is_big_int(value)) {
+        return to_string(value);
+    }
+    if (value === undefined) {
+        return 'undefined';
+    }
+    return JSON.stringify(value).replace(/'/g, "''");
 }

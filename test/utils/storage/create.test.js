@@ -20,12 +20,20 @@ describe('utils/storage/create', () => {
         Cwd.set(undefined);
     });
     it('undefined', async () => {
-        strictEqual(await Storage.create(), undefined);
+        strictEqual(await Storage.create(), false);
     });
     it('create', async () => {
         const created = await Storage.create('test_create');
         strictEqual(created, true);
         const path = join(__root, 'test', 'utils', 'storage', '_tests', 'test_create.db');
+        strictEqual(existsSync(path), true, "file doesn't exist");
+        unlinkSync(path);
+    });
+    it('create existing', async () => {
+        await Storage.create('test_create_existing');
+        const created = await Storage.create('test_create_existing');
+        strictEqual(created, true);
+        const path = join(__root, 'test', 'utils', 'storage', '_tests', 'test_create_existing.db');
         strictEqual(existsSync(path), true, "file doesn't exist");
         unlinkSync(path);
     });

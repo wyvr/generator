@@ -2,6 +2,7 @@ import { cpus } from 'os';
 import { join } from 'path';
 import { check_env } from '../action/check_env.js';
 import { copy_files, copy_folder } from '../action/copy.js';
+import { get_config_data } from '../action/get_config_data.js';
 import { collect_i18n, write_language } from '../action/i18n.js';
 import { collect_packages } from '../action/package.js';
 import { present } from '../action/present.js';
@@ -20,6 +21,7 @@ import { Config } from '../utils/config.js';
 import { read, read_json, write } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
+import { Storage } from '../utils/storage.js';
 import { replace_import_path } from '../utils/transform.js';
 import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
@@ -34,11 +36,14 @@ export const build_command = async (config) => {
 
     present(config, 'build');
 
+    const build_id = UniqId.get();
     // set release folder
-    ReleasePath.set(join(Cwd.get(), FOLDER_RELEASES, UniqId.get()));
+    ReleasePath.set(join(Cwd.get(), FOLDER_RELEASES, build_id));
 
+    const config_data = get_config_data(config, build_id);
     //  Build Global(storage) Data
-    // @TODO
+    Storage.set('config', config_data);
+
     //  Collect packages
     const package_json = read_json('package.json');
     const { available_packages, disabled_packages } = await collect_packages(package_json);
@@ -47,7 +52,6 @@ export const build_command = async (config) => {
     // set worker ratio
     WorkerController.set_worker_ratio(Config.get('worker.ratio', 0));
     Logger.present('worker', WorkerController.get_worker_amount(), Logger.color.dim(`of ${cpus().length} threads`));
-
 
     //  Initialize Plugins
     const plugin_files = await Plugin.load(FOLDER_GEN_PLUGINS);
@@ -79,8 +83,6 @@ export const build_command = async (config) => {
     });
 
     WorkerController.create_workers(WorkerController.get_worker_amount());
-
-
 
     //  Transform Svelte files to client and server components
     // @TODO

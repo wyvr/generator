@@ -31,17 +31,17 @@ function config() {
         get: (segment, fallback_value) => {
             // fill cache when empty
             if (!cache) {
-                cache = WyvrConfig;
+                cache = Object.assign({}, WyvrConfig);
             }
             // when nothing is specified as segment return whole config
             if (!is_string(segment)) {
-                return cache;
+                return Object.assign({}, cache);
             }
             return search_segment(cache, segment, fallback_value);
         },
         set: (segment, value) => {
             if (!cache) {
-                cache = WyvrConfig;
+                cache = Object.assign({}, WyvrConfig);
             }
             let path = cache;
             const segments = segment.split('.');

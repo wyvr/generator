@@ -12,6 +12,7 @@ describe('model/wyvr_config', () => {
             'assets',
             'default_values',
             'cron',
+            'https'
         ]);
     });
 });

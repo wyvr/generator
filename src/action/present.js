@@ -18,7 +18,7 @@ export function present(config_data) {
     // prepare process
     process.title = `wyvr ${command} ${process.pid}`;
     // present some variables
-    Logger.present('pid', process.pid, Logger.color.dim(`${process.title}`));
+    Logger.present('pid', process.pid);
     Logger.present('cwd', Cwd.get());
 
     Logger.present('id', formatted_id);

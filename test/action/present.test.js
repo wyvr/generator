@@ -50,7 +50,7 @@ describe('action/present', () => {
     it('undefined', async () => {
         present();
         deepStrictEqual(logger_messages, [
-            ['pid', '\x1B[32m12345\x1B[39m', '\x1B[2mwyvr - 12345\x1B[22m'],
+            ['pid', '\x1B[32m12345\x1B[39m'],
             ['cwd', '\x1B[32m' + __root + '\x1B[39m'],
             ['id', '\x1B[32m01234\x1B[2m567890\x1B[22m\x1B[39m'],
             ['environment', '\x1B[32mprod\x1B[39m'],
@@ -61,7 +61,7 @@ describe('action/present', () => {
         UniqId.value = '0';
         present();
         deepStrictEqual(logger_messages, [
-            ['pid', '\x1B[32m12345\x1B[39m', '\x1B[2mwyvr - 12345\x1B[22m'],
+            ['pid', '\x1B[32m12345\x1B[39m'],
             ['cwd', '\x1B[32m' + __root + '\x1B[39m'],
             ['id', '\x1B[32m0\x1B[39m'],
             ['environment', '\x1B[32mprod\x1B[39m'],
@@ -71,7 +71,7 @@ describe('action/present', () => {
     it('commands and flags', async () => {
         present({ cli: { command: ['build', 'the', 'site'], flags: { test: true, flag: true } } });
         deepStrictEqual(logger_messages, [
-            ['pid', '\x1B[32m12345\x1B[39m', '\x1B[2mwyvr build the site 12345\x1B[22m'],
+            ['pid', '\x1B[32m12345\x1B[39m'],
             ['cwd', '\x1B[32m' + __root + '\x1B[39m'],
             ['id', '\x1B[32m01234\x1B[2m567890\x1B[22m\x1B[39m'],
             ['environment', '\x1B[32mprod\x1B[39m'],

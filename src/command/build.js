@@ -33,14 +33,16 @@ export const build_command = async (config) => {
     // execution can end here when environment is not correct
     env_report(check_env_report);
     terminate(!check_env_report || !check_env_report.success);
-
-    present(config, 'build');
-
+    
     const build_id = UniqId.get();
+    UniqId.set(build_id);
+    const config_data = get_config_data(config, build_id);
+
     // set release folder
     ReleasePath.set(join(Cwd.get(), FOLDER_RELEASES, build_id));
 
-    const config_data = get_config_data(config, build_id);
+    present(config_data);
+
     //  Build Global(storage) Data
     Storage.set('config', config_data);
 

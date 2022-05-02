@@ -1,3 +1,4 @@
+import { EnvType } from '../struc/env.js';
 import { Config } from '../utils/config.js';
 import { is_object } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
@@ -9,6 +10,14 @@ export function get_config_data(cli_config, build_id) {
         Object.keys(cli_config).forEach((key) => {
             config[key] = cli_config[key];
         });
+    }
+    if (is_object(cli_config?.cli?.flags)) {
+        if (cli_config.cli.flags.dev) {
+            Env.set(EnvType.dev);
+        }
+        if (cli_config.cli.flags.debug) {
+            Env.set(EnvType.debug);
+        }
     }
     config.cwd = Cwd.get();
     config.env = Env.name();

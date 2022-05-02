@@ -23,11 +23,19 @@ describe('vars/env', () => {
         Env.set(EnvType.debug);
         strictEqual(Env.is_debug(), true);
     });
+    it('is_debug false as dev', () => {
+        Env.set(EnvType.dev);
+        strictEqual(Env.is_debug(), false);
+    });
     it('is_debug false', () => {
         strictEqual(Env.is_debug(), false);
     });
     it('is_dev true', () => {
         Env.set(EnvType.dev);
+        strictEqual(Env.is_dev(), true);
+    });
+    it('is_dev true as debug', () => {
+        Env.set(EnvType.debug);
         strictEqual(Env.is_dev(), true);
     });
     it('is_dev false', () => {

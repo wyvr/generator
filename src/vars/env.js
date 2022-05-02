@@ -16,10 +16,10 @@ export class Env {
         return this.get();
     }
     static is_debug() {
-        return this.get() == EnvType.debug || this.is_dev();
+        return this.get() == EnvType.debug;
     }
     static is_dev() {
-        return this.get() == EnvType.dev;
+        return this.get() == EnvType.dev || this.is_debug();
     }
     static is_prod() {
         return this.get() == EnvType.prod;

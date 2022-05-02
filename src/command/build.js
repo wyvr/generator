@@ -19,7 +19,7 @@ import {
 import { env_report } from '../presentation/env_report.js';
 import { package_report } from '../presentation/package_report.js';
 import { Config } from '../utils/config.js';
-import { read, read_json, write } from '../utils/file.js';
+import { read, read_json, write, write_json } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
 import { Storage } from '../utils/storage.js';
@@ -69,12 +69,16 @@ export const build_command = async (config) => {
     const package_tree = {};
     available_packages.forEach((pkg) => {
         copy_folder(pkg.path, FOLDER_LIST_PACKAGE_COPY, join(Cwd.get(), FOLDER_GEN), (file, target) => {
-            package_tree[file.target] = pkg;
+            // e.g. target "./src/file.svelte"
+            // transform to "./src/file.svelte" "src/file.svelte"
+            const target_key = file.target.replace(/^\.\//, '');
+            package_tree[target_key] = pkg;
             if (target.indexOf(`/${FOLDER_PLUGINS}/`) > -1) {
                 write(target, replace_import_path(read(target)));
             }
         });
     });
+    write_json(join(Cwd.get(), FOLDER_GEN, 'package_tree.json'), package_tree, false);
 
     //  Copy configured asset files
     const assets = Config.get('assets');

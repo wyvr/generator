@@ -7,10 +7,18 @@ import { build_command } from './command/build.js';
 // import { regenerate_command } from './command/regenerate';
 // import { report_command } from './command/report';
 import { unknown_command } from './command/unknown.js';
+import { filled_array } from './utils/validate.js';
+
+export function get_command(config) {
+    const commands = config?.cli?.command;
+    if(!filled_array(commands)) {
+        return undefined;
+    }
+    return commands[0];
+}
 
 export async function command(config) {
-    const main_command = config.cli.command[0];
-    switch (main_command) {
+    switch (get_command(config)) {
         // case 'app':
         //     return await app_command(config);
         case 'build':

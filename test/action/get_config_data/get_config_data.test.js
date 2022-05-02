@@ -31,8 +31,70 @@ describe('action/get_config_data/get_config_data', () => {
             assets: [],
             build_id: undefined,
             cron: [],
+            cwd: __root,
             default_values: {},
             env: 'prod',
+            https: true,
+            packages: undefined,
+            releases: {
+                keep: 0,
+            },
+            url: 'localhost',
+            worker: {
+                force_initial_build: false,
+                ratio: 0,
+            },
+        });
+    });
+    it('cli_config', () => {
+        deepStrictEqual(
+            get_config_data({
+                cli: {
+                    cwd: __root,
+                    interpreter: '/bin/node',
+                    script: join(__root, 'bin/index.js'),
+                    command: ['build'],
+                    flags: undefined,
+                },
+                version: '0.0.0',
+            }),
+            {
+                assets: [],
+                build_id: undefined,
+                cron: [],
+                cli: {
+                    cwd: __root,
+                    interpreter: '/bin/node',
+                    script: join(__root, 'bin/index.js'),
+                    command: ['build'],
+                    flags: undefined,
+                },
+                cwd: __root,
+                default_values: {},
+                env: 'prod',
+                https: true,
+                packages: undefined,
+                releases: {
+                    keep: 0,
+                },
+                url: 'localhost',
+                version: '0.0.0',
+                worker: {
+                    force_initial_build: false,
+                    ratio: 0,
+                },
+            }
+        );
+    });
+    it('build id', () => {
+        deepStrictEqual(get_config_data(undefined, '012345'), {
+            assets: [],
+            build_id: '012345',
+            cron: [],
+            cwd: __root,
+            default_values: {},
+            env: 'prod',
+            https: true,
             packages: undefined,
             releases: {
                 keep: 0,

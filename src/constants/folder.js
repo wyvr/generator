@@ -12,4 +12,5 @@ export const FOLDER_GEN_PLUGINS = join(FOLDER_GEN, FOLDER_PLUGINS);
 export const FOLDER_EXEC = 'exec';
 export const FOLDER_ROUTES = 'routes';
 export const FOLDER_RELEASES = 'releases';
+export const FOLDER_STORAGE = 'storage';
 export const FOLDER_LIST_PACKAGE_COPY = [FOLDER_ASSETS, FOLDER_ROUTES, FOLDER_PLUGINS, FOLDER_EXEC];

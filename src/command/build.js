@@ -14,6 +14,7 @@ import {
     FOLDER_LIST_PACKAGE_COPY,
     FOLDER_PLUGINS,
     FOLDER_RELEASES,
+    FOLDER_STORAGE,
 } from '../constants/folder.js';
 import { env_report } from '../presentation/env_report.js';
 import { package_report } from '../presentation/package_report.js';
@@ -42,7 +43,8 @@ export const build_command = async (config) => {
 
     const config_data = get_config_data(config, build_id);
     //  Build Global(storage) Data
-    Storage.set('config', config_data);
+    Storage.set_location(FOLDER_STORAGE);
+    await Storage.set('config', config_data);
 
     //  Collect packages
     const package_json = read_json('package.json');

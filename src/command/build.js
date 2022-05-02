@@ -63,7 +63,7 @@ export const build_command = async (config) => {
     if (plugins) {
         Plugin.cache = plugins;
     }
-    // @TODO
+
     //  Copy static files from packages
     //  Copy files from packages and override in the package order
     const package_tree = {};
@@ -86,6 +86,7 @@ export const build_command = async (config) => {
         write_language(language, i18n[language]);
     });
 
+    // Create the workers for the processing
     WorkerController.create_workers(WorkerController.get_worker_amount());
 
     //  Transform Svelte files to client and server components

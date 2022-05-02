@@ -160,6 +160,9 @@ export class Storage {
             data[key_or_data] = value;
         }
         const db = await this.open(name);
+        if(is_null(db)) {
+            return false;
+        }
         const results = await Promise.all(
             Object.keys(data).map(async (key) => {
                 try {

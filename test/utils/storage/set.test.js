@@ -61,6 +61,11 @@ describe('utils/storage/set', () => {
         await Storage.open('test_set');
         deepStrictEqual(await Storage.set('test_set', { key: 'value', another_key: 'another value' }), true);
     });
+    // it('set data invalid database', async () => {
+    //     writeFileSync(join(test_folder, 'test_set.db'), '', { encoding: 'utf8' });
+    //     deepStrictEqual(await Storage.set('test_set', { key: 'value', another_key: 'another value' }), false);
+    //     unlinkSync(join(test_folder, 'test_set.db'));
+    // });
     it('set empty data', async () => {
         await Storage.open('test_set');
         deepStrictEqual(await Storage.set('test_set', {}), false);

@@ -45,13 +45,4 @@ describe('utils/storage/open', () => {
         strictEqual((await Storage.open('test_open')) != undefined, true);
         unlinkSync(join(path, 'test_open.db'));
     });
-    // it('fail to connect to db', async () => {
-    //     writeFileSync(join(path, 'test_open_invalid.db'), '', { encoding: 'utf8' });
-    //     Storage.cache = {
-    //         test_open_invalid: {},
-    //     };
-    //     const result = await Storage.open('test_open_invalid');
-    //     unlinkSync(join(path, 'test_open_invalid.db'));
-    //     strictEqual(result == undefined, true);
-    // });
 });

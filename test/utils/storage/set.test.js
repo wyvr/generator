@@ -3,6 +3,8 @@ import { existsSync, mkdirSync, rmdirSync, unlinkSync, writeFileSync } from 'fs'
 import { describe, it } from 'mocha';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
+import sqlite3 from 'sqlite3';
+import { open } from 'sqlite';
 import { StorageCacheStructure } from '../../../src/struc/storage.js';
 import { Storage } from '../../../src/utils/storage.js';
 import { Cwd } from '../../../src/vars/cwd.js';
@@ -61,11 +63,19 @@ describe('utils/storage/set', () => {
         await Storage.open('test_set');
         deepStrictEqual(await Storage.set('test_set', { key: 'value', another_key: 'another value' }), true);
     });
-    // it('set data invalid database', async () => {
-    //     writeFileSync(join(test_folder, 'test_set.db'), '', { encoding: 'utf8' });
-    //     deepStrictEqual(await Storage.set('test_set', { key: 'value', another_key: 'another value' }), false);
-    //     unlinkSync(join(test_folder, 'test_set.db'));
-    // });
+    it('set data invalid database', async () => {
+        const db_path = join(test_folder, 'test_set_invalid.db');
+        const db = await open({
+            filename: db_path,
+            driver: sqlite3.Database,
+        });
+        await db.exec(`CREATE TABLE IF NOT EXISTS "data" (
+            idx INTEGER,
+            text TEXT
+            );`);
+        deepStrictEqual(await Storage.set('test_set_invalid', { key: 'value', another_key: 'another value' }), false);
+        unlinkSync(db_path);
+    });
     it('set empty data', async () => {
         await Storage.open('test_set');
         deepStrictEqual(await Storage.set('test_set', {}), false);

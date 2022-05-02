@@ -52,6 +52,18 @@ export class Storage {
             key VARCHAR(255) NOT NULL PRIMARY KEY,
             value TEXT
             );`);
+            const check = await this.cache[db.name].all(`PRAGMA table_info(data);`);
+            if (
+                !filled_array(check) ||
+                check[0].name !== 'key' ||
+                check[0].type !== 'VARCHAR(255)' ||
+                check[0].pk !== 1 ||
+                check[1].name !== 'value' ||
+                check[1].type !== 'TEXT'
+            ) {
+                Logger.error('the structure of the storage is not correct', check, db);
+                return false;
+            }
         } catch (error) {
             Logger.error(error, db);
             return false;
@@ -160,7 +172,7 @@ export class Storage {
             data[key_or_data] = value;
         }
         const db = await this.open(name);
-        if(is_null(db)) {
+        if (is_null(db)) {
             return false;
         }
         const results = await Promise.all(

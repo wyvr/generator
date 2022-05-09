@@ -6,8 +6,10 @@ export async function wait_until_idle(emergency_timeout_seconds = 1800) {
     const worker_amount = WorkerController.get_worker_amount();
     // check in an interval if all workers are idle
     return new Promise((resolve, reject) => {
-        // emergency break
-        // reject();
+        if (worker_amount == WorkerController.get_workers_by_status(WorkerStatus.idle).length) {
+            resolve();
+            return;
+        }
         const interval = setInterval(() => {
             if (worker_amount == WorkerController.get_workers_by_status(WorkerStatus.idle).length) {
                 clearInterval(interval);
@@ -15,6 +17,7 @@ export async function wait_until_idle(emergency_timeout_seconds = 1800) {
                 resolve();
             }
         }, 10);
+        // emergency break
         const emergency = setTimeout(() => {
             clearInterval(interval);
             reject();

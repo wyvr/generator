@@ -6,6 +6,7 @@ import { get_config_data } from '../action/get_config_data.js';
 import { collect_i18n, write_language } from '../action/i18n.js';
 import { collect_packages } from '../action/package.js';
 import { present } from '../action/present.js';
+import { transform } from '../action/transform.js';
 import { terminate } from '../cli/terminate.js';
 import {
     FOLDER_GEN,
@@ -57,6 +58,9 @@ export const build_command = async (config) => {
     WorkerController.set_worker_ratio(Config.get('worker.ratio', 0));
     Logger.present('worker', WorkerController.get_worker_amount(), Logger.color.dim(`of ${cpus().length} threads`));
 
+    // Create the workers for the processing
+    WorkerController.create_workers(WorkerController.get_worker_amount());
+
     //  Initialize Plugins
     const plugin_files = await Plugin.load(FOLDER_GEN_PLUGINS);
     const plugins = await Plugin.generate(plugin_files);
@@ -90,10 +94,9 @@ export const build_command = async (config) => {
         write_language(language, i18n[language]);
     });
 
-    // Create the workers for the processing
-    WorkerController.create_workers(WorkerController.get_worker_amount());
-
     //  Transform Svelte files to client and server components
+    await transform();
+
     // @TODO
     //  Build Tree of files and packages
     // @TODO

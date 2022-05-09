@@ -1,7 +1,7 @@
 import { cpus } from 'os';
 import { Worker } from '../model/worker.js';
 import { Logger } from '../utils/logger.js';
-import { filled_array, filled_string, is_null, is_number, is_bool, is_object } from '../utils/validate.js';
+import { filled_array, filled_string, is_null, is_number, is_object, is_int } from '../utils/validate.js';
 import { search_segment } from '../utils/segment.js';
 import { Event } from '../utils/event.js';
 import { WorkerAction } from '../struc/worker_action.js';
@@ -16,6 +16,8 @@ import { Env } from '../vars/env.js';
 import { Config } from '../utils/config.js';
 import { UniqId } from '../vars/uniq_id.js';
 import { Report } from '../vars/report.js';
+import { to_string } from '../utils/to.js';
+import { Queue } from '../model/queue.js';
 
 export class WorkerController {
     static create_workers(amount, fork_fn) {
@@ -67,7 +69,7 @@ export class WorkerController {
         worker.process.on('message', (msg) => {
             Logger.debug('process', worker.pid, 'message', msg);
             const current_worker = this.get_message(msg);
-            if (!is_bool(current_worker)) {
+            if (current_worker !== false) {
                 this.livecycle(worker);
             }
         });
@@ -117,8 +119,22 @@ export class WorkerController {
                     Logger.error('unknown state', data, pid_text);
                     return false;
                 }
-                worker.status = data;
+                // update the status of the worker
+                this.workers.find((ref_worker) => {
+                    if (ref_worker.pid == worker.pid) {
+                        ref_worker.status = data;
+                        return true;
+                    }
+                });
+                // worker.status = data;
                 Logger.info(`status`, name, pid_text);
+                const workers = this.get_workers_by_status(WorkerStatus.idle);
+                Logger.info(
+                    workers.length,
+                    this.workers.map((worker) => {
+                        return worker.status;
+                    })
+                );
                 break;
             }
             case WorkerAction.log: {
@@ -192,6 +208,106 @@ export class WorkerController {
             },
         });
         return false;
+    }
+
+    static get_workers_by_status(status) {
+        const name = get_status_name(status);
+        if (is_null(name)) {
+            return [];
+        }
+        return this.workers.filter((worker) => worker.status === status);
+    }
+
+    static tick(queue) {
+        const workers = this.get_workers_by_status(WorkerStatus.idle);
+        // stop when queue is empty or all workers are idle
+        if (queue.length == 0 && workers.length == this.worker_amount) {
+            return true;
+        }
+        if (queue.length > 0) {
+            // get all idle workers
+            if (workers.length > 0) {
+                workers.forEach((worker) => {
+                    const queue_entry = queue.take();
+                    if (queue_entry != null) {
+                        // set worker busy otherwise the same worker gets multiple actions send
+                        worker.status = WorkerStatus.busy;
+                        // send the data to the worker
+                        this.send_action(worker.pid, queue_entry.action, queue_entry.data);
+                    }
+                });
+            }
+        }
+        return false;
+    }
+
+    static async process_in_workers(name, action, list, batch_size) {
+        if (this.workers.length == 0) {
+            Logger.error('no worker available');
+            process.exit(1);
+            return;
+        }
+        const amount = list.length;
+        if (amount == 0) {
+            Logger.improve('no items to process, batch size', Logger.color.cyan(batch_size.toString()));
+            return true;
+        }
+        if (!is_int(batch_size)) {
+            batch_size = 10;
+        }
+        Logger.info(
+            'process',
+            amount,
+            `${amount == 1 ? 'item' : 'items'}, batch size`,
+            Logger.color.cyan(to_string(batch_size))
+        );
+
+        // create new queue
+        this.queue = new Queue();
+
+        // correct batch size when there are more workers available
+        const worker_based_batch_size = Math.ceil(list.length / this.get_worker_amount());
+        if (worker_based_batch_size > list.length / batch_size && worker_based_batch_size < batch_size) {
+            batch_size = worker_based_batch_size;
+        }
+
+        const iterations = Math.ceil(amount / batch_size);
+        Logger.debug('process iterations', iterations);
+
+        for (let i = 0; i < iterations; i++) {
+            const queue_data = {
+                action,
+                data: list.slice(i * batch_size, (i + 1) * batch_size),
+            };
+            this.queue.push(queue_data);
+        }
+        const size = this.queue.length;
+        let done = 0;
+        return new Promise((resolve) => {
+            const idle = this.get_workers_by_status(WorkerStatus.idle);
+            const listener_id = Event.on('worker_status', WorkerStatus.idle, () => {
+                if (this.tick(this.queue)) {
+                    Event.off('worker_status', WorkerStatus.idle, listener_id);
+                    resolve(true);
+                }
+            });
+            // when all workers are idle, emit on first
+            if (idle.length > 0 && idle.length == this.get_worker_amount()) {
+                this.livecycle(idle[0]);
+            }
+            const done_listener_id = Event.on('worker_status', WorkerStatus.done, () => {
+                Logger.text(
+                    name,
+                    Logger.color.dim('...'),
+                    `${Math.round((100 / size) * done)}%`,
+                    Logger.color.dim(`${done}/${size}`)
+                );
+                done++;
+                if (done == size) {
+                    Event.off('worker_status', WorkerStatus.done, done_listener_id);
+                }
+            });
+        });
     }
 }
 WorkerController.workers = [];

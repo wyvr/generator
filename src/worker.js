@@ -4,6 +4,7 @@ import { WorkerStatus } from './struc/worker_status.js';
 import { Logger } from './utils/logger.js';
 import { send_status } from './worker/communication.js';
 import { configure } from './worker_action/configure.js';
+import { transform } from './worker_action/transform.js';
 
 process.title = `wyvr worker ${process.pid}`;
 
@@ -20,12 +21,22 @@ export async function process_message(msg) {
         Logger.warning('ignored message from main, no value given', msg);
         return;
     }
+
+    if (action === WorkerAction.configure) {
+        const configured = await configure(value);
+        if (configured) {
+            send_status(WorkerStatus.idle);
+        }
+        return configured;
+    }
+
+    send_status(WorkerStatus.busy);
     switch (action) {
-        case WorkerAction.configure: {
-            return await configure(value);
+        case WorkerAction.transform: {
+            await transform(value);
+            break;
         }
         case WorkerAction.route:
-        case WorkerAction.transform:
         case WorkerAction.build:
         case WorkerAction.inject:
         case WorkerAction.scripts:
@@ -46,4 +57,7 @@ export async function process_message(msg) {
             Logger.warning('unknown message action from outside', msg);
             break;
     }
+    send_status(WorkerStatus.done);
+    // @TODO check memory limit, if near kill process
+    send_status(WorkerStatus.idle);
 }

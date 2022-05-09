@@ -6,6 +6,7 @@ import { WorkerAction } from '../../../src/struc/worker_action.js';
 import { WorkerEmit } from '../../../src/struc/worker_emit.js';
 import { WorkerController } from '../../../src/worker/controller.js';
 import { Event } from '../../../src/utils/event.js';
+import { WorkerStatus } from '../../../src/struc/worker_status.js';
 
 describe('worker/controller/get_message', () => {
     let logger_messages = [];
@@ -49,6 +50,18 @@ describe('worker/controller/get_message', () => {
         strictEqual(result, false);
         deepStrictEqual(logger_messages, [
             ['\x1B[31m✖\x1B[39m', '\x1B[31munknown state -1 \x1B[2mPID 1000\x1B[22m\x1B[39m'],
+        ]);
+    });
+    it('update status', () => {
+        WorkerController.workers = [{ pid: 1000, status: WorkerStatus.exists }];
+        const result = WorkerController.get_message({
+            pid: 1000,
+            data: { action: { key: WorkerAction.status, value: WorkerStatus.dead } },
+        });
+        deepStrictEqual(result, { pid: 1000, status: WorkerStatus.dead });
+        deepStrictEqual(logger_messages, [
+            ['\x1B[34mℹ\x1B[39m', 'status \x1B[34mdead\x1B[39m \x1B[2mPID 1000\x1B[22m'],
+            ['\x1B[34mℹ\x1B[39m', '\x1B[34m[5]\x1B[39m'],
         ]);
     });
     it('broken log', () => {

@@ -1,11 +1,21 @@
-import cluster from 'cluster';
 import kleur from 'kleur';
 import { LogColor, LogFirstValueColor, LogIcon, LogType } from '../struc/log.js';
-import { filled_array, filled_string, is_array, is_func, is_number, is_regex, is_string, is_symbol } from './validate.js';
+import {
+    filled_array,
+    filled_string,
+    is_array,
+    is_func,
+    is_number,
+    is_regex,
+    is_string,
+    is_symbol,
+} from './validate.js';
 import circular from 'circular';
 import { Env } from '../vars/env.js';
 import { Report } from '../vars/report.js';
 import { Spinner } from './spinner.js';
+import { IsWorker } from '../vars/is_worker.js';
+import { WorkerAction } from '../struc/worker_action.js';
 
 export class Logger {
     /**
@@ -34,24 +44,24 @@ export class Logger {
 
     /* eslint-disable */
     static output(type, color_fn, char, ...messages) {
-        // if (cluster.isWorker) {
-        //     if (this.pre) {
-        //         messages.unshift(this.pre);
-        //     }
-        //     process.send({
-        //         pid: process.pid,
-        //         data: {
-        //             action: {
-        //                 key: WorkerAction.log,
-        //                 value: {
-        //                     type,
-        //                     messages,
-        //                 },
-        //             },
-        //         },
-        //     });
-        //     return;
-        // }
+        if (IsWorker.get()) {
+            if (this.pre) {
+                messages.unshift(this.pre);
+            }
+            process.send({
+                pid: process.pid,
+                data: {
+                    action: {
+                        key: WorkerAction.log,
+                        value: {
+                            type,
+                            messages,
+                        },
+                    },
+                },
+            });
+            return;
+        }
         const has_color_fn = is_func(color_fn);
         let text = messages.join(' ');
         if (has_color_fn) {
@@ -124,7 +134,7 @@ export class Logger {
             return;
         }
         this.output_type('report', ...messages, duration, kleur.dim('ms'));
-        if (cluster.isWorker) {
+        if (IsWorker.get()) {
             return;
         }
 

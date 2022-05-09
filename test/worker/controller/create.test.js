@@ -49,11 +49,14 @@ describe('worker/controller/create', () => {
         });
         deepStrictEqual(worker.pid, 1000);
         WorkerController.workers = [worker];
-        events.message({
+        const message = {
             pid: 1000,
             data: { action: { key: WorkerAction.emit, value: { type: WorkerEmit.errors, error: true } } },
-        });
-        deepStrictEqual(logger_messages, []);
+        };
+        events.message(message);
+        deepStrictEqual(logger_messages, [
+            ['\x1B[34mℹ\x1B[39m', 'process \x1B[34m1000\x1B[39m message ' + JSON.stringify(message)],
+        ]);
     });
     it('worker event error', () => {
         const events = {};
@@ -141,10 +144,14 @@ describe('worker/controller/create', () => {
         });
         deepStrictEqual(worker.pid, 1000);
         WorkerController.workers = [worker];
-        events.message({
+        const message = {
             pid: 9,
             data: { action: { key: WorkerAction.emit, value: { type: WorkerEmit.errors, error: true } } },
-        });
-        deepStrictEqual(logger_messages, [['\x1B[31m✖\x1B[39m', '\x1B[31munknown worker 9\x1B[39m']]);
+        };
+        events.message(message);
+        deepStrictEqual(logger_messages, [
+            ['\u001b[34mℹ\u001b[39m', 'process \u001b[34m1000\u001b[39m message ' + JSON.stringify(message)],
+            ['\x1B[31m✖\x1B[39m', '\x1B[31munknown worker 9\x1B[39m'],
+        ]);
     });
 });

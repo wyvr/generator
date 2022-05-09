@@ -37,6 +37,7 @@ describe('worker/controller/create', () => {
         deepStrictEqual(result.pid, 1000);
     });
     it('worker event message', () => {
+        Env.set(EnvType.debug);
         const events = {};
         const worker = WorkerController.create(() => {
             return {
@@ -54,8 +55,10 @@ describe('worker/controller/create', () => {
             data: { action: { key: WorkerAction.emit, value: { type: WorkerEmit.errors, error: true } } },
         };
         events.message(message);
+        Env.set(EnvType.prod);
         deepStrictEqual(logger_messages, [
-            ['\x1B[34mℹ\x1B[39m', 'process \x1B[34m1000\x1B[39m message ' + JSON.stringify(message)],
+            ['\x1B[2m~\x1B[22m', '\x1B[2mprocess 1000 message ' + JSON.stringify(message) + '\x1B[22m'],
+            ['\x1B[2m~\x1B[22m', '\x1B[2memit errors {"type":8,"error":true} \x1B[2mPID 1000\x1B[22m\x1B[2m\x1B[22m'],
         ]);
     });
     it('worker event error', () => {
@@ -132,6 +135,8 @@ describe('worker/controller/create', () => {
         strictEqual(WorkerController.workers[0].pid, 1001);
     });
     it('worker invalid message', () => {
+        Env.set(EnvType.debug);
+
         const events = {};
         const worker = WorkerController.create(() => {
             return {
@@ -149,8 +154,9 @@ describe('worker/controller/create', () => {
             data: { action: { key: WorkerAction.emit, value: { type: WorkerEmit.errors, error: true } } },
         };
         events.message(message);
+        Env.set(EnvType.prod);
         deepStrictEqual(logger_messages, [
-            ['\u001b[34mℹ\u001b[39m', 'process \u001b[34m1000\u001b[39m message ' + JSON.stringify(message)],
+            ['\x1B[2m~\x1B[22m', '\x1B[2mprocess 1000 message ' + JSON.stringify(message) + '\x1B[22m'],
             ['\x1B[31m✖\x1B[39m', '\x1B[31munknown worker 9\x1B[39m'],
         ]);
     });

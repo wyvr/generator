@@ -218,10 +218,18 @@ export class WorkerController {
         return this.workers.filter((worker) => worker.status === status);
     }
 
+    /**
+     * Process the given queue by sending the data to the worker
+     * @param {QueueEntry[]} queue 
+     * @returns whether the execution is complete, no next tick needed
+     */
     static tick(queue) {
+        if(is_null(queue)) {
+            return true;
+        }
         const workers = this.get_workers_by_status(WorkerStatus.idle);
-        // stop when queue is empty or all workers are idle
-        if (queue.length == 0 && workers.length == this.worker_amount) {
+        // stop when queue is empty and all workers are idle
+        if (queue.length == 0 && workers.length == this.get_worker_amount()) {
             return true;
         }
         if (queue.length > 0) {
@@ -233,7 +241,7 @@ export class WorkerController {
                         // set worker busy otherwise the same worker gets multiple actions send
                         worker.status = WorkerStatus.busy;
                         // send the data to the worker
-                        this.send_action(worker.pid, queue_entry.action, queue_entry.data);
+                        this.send_action(worker, queue_entry.action, queue_entry.data);
                     }
                 });
             }

@@ -184,10 +184,17 @@ export class Logger {
             this.spinner.stop(name, duration);
         }
     }
+    static text(...values) {
+        if (this.spinner) {
+            const text = values.map(this.stringify).join(' ');
+            this.spinner_text = text;
+            this.spinner.text = text;
+        }
+    }
 }
 // static properties
 Logger.pre = '';
 Logger.spinner = Spinner;
 Logger.color = kleur;
-Logger.last_text = null;
+Logger.spinner_text = null;
 Logger.report_content = [];

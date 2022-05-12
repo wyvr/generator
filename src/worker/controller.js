@@ -4,7 +4,7 @@ import { Logger } from '../utils/logger.js';
 import { filled_array, filled_string, is_null, is_number, is_object, is_int } from '../utils/validate.js';
 import { search_segment } from '../utils/segment.js';
 import { Event } from '../utils/event.js';
-import { WorkerAction } from '../struc/worker_action.js';
+import { get_name, WorkerAction } from '../struc/worker_action.js';
 import { get_name as get_status_name, WorkerStatus } from '../struc/worker_status.js';
 import { get_name as get_emit_name } from '../struc/worker_emit.js';
 import { get_type_name } from '../struc/log.js';
@@ -249,11 +249,15 @@ export class WorkerController {
         return false;
     }
 
-    static async process_in_workers(name, action, list, batch_size) {
+    static async process_in_workers(action, list, batch_size) {
         if (this.workers.length == 0) {
             Logger.error('no worker available');
             process.exit(1);
-            return;
+        }
+        const name = get_name(action);
+        if(!name) {
+            Logger.error('unknown action', action);
+            return false;
         }
         const amount = list.length;
         if (amount == 0) {

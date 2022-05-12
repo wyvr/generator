@@ -21,7 +21,7 @@ export async function transform() {
 
     await Plugin.before('transform', files);
 
-    await WorkerController.process_in_workers('-', WorkerAction.transform, files, 10);
+    await WorkerController.process_in_workers(WorkerAction.transform, files, 10);
 
     await Plugin.after('transform', files);
 

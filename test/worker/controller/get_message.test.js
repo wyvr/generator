@@ -7,6 +7,8 @@ import { WorkerEmit } from '../../../src/struc/worker_emit.js';
 import { WorkerController } from '../../../src/worker/controller.js';
 import { Event } from '../../../src/utils/event.js';
 import { WorkerStatus } from '../../../src/struc/worker_status.js';
+import { Env } from '../../../src/vars/env.js';
+import { EnvType } from '../../../src/struc/env.js';
 
 describe('worker/controller/get_message', () => {
     let logger_messages = [];
@@ -53,15 +55,18 @@ describe('worker/controller/get_message', () => {
         ]);
     });
     it('update status', () => {
+        Env.set(EnvType.debug);
         WorkerController.workers = [{ pid: 1000, status: WorkerStatus.exists }];
         const result = WorkerController.get_message({
             pid: 1000,
             data: { action: { key: WorkerAction.status, value: WorkerStatus.dead } },
         });
+        Env.set(EnvType.prod);
+
         deepStrictEqual(result, { pid: 1000, status: WorkerStatus.dead });
         deepStrictEqual(logger_messages, [
-            ['\x1B[34mℹ\x1B[39m', 'status \x1B[34mdead\x1B[39m \x1B[2mPID 1000\x1B[22m'],
-            ['\x1B[34mℹ\x1B[39m', '\x1B[34m[5]\x1B[39m'],
+            ['\u001b[2m~\u001b[22m', '\u001b[2mstatus dead \u001b[2mPID 1000\u001b[22m\u001b[2m\u001b[22m'],
+            ['\u001b[2m~\u001b[22m', '\u001b[2m[5]\u001b[22m'],
         ]);
     });
     it('broken log', () => {

@@ -127,9 +127,9 @@ export class WorkerController {
                     }
                 });
                 // worker.status = data;
-                Logger.info(`status`, name, pid_text);
+                Logger.debug(`status`, name, pid_text);
                 const workers = this.get_workers_by_status(WorkerStatus.idle);
-                Logger.info(
+                Logger.debug(
                     workers.length,
                     this.workers.map((worker) => {
                         return worker.status;

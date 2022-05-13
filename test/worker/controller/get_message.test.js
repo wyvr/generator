@@ -65,8 +65,7 @@ describe('worker/controller/get_message', () => {
 
         deepStrictEqual(result, { pid: 1000, status: WorkerStatus.dead });
         deepStrictEqual(logger_messages, [
-            ['\u001b[2m~\u001b[22m', '\u001b[2mstatus dead \u001b[2mPID 1000\u001b[22m\u001b[2m\u001b[22m'],
-            ['\u001b[2m~\u001b[22m', '\u001b[2m[5]\u001b[22m'],
+            ['\u001b[2m~\u001b[22m', '\u001b[2mstatus dead \u001b[2mPID 1000\u001b[22m\u001b[2m idle workers 0 [\"dead\"]\u001b[22m'],
         ]);
     });
     it('broken log', () => {

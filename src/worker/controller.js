@@ -127,14 +127,13 @@ export class WorkerController {
                     }
                 });
                 // worker.status = data;
-                Logger.debug(`status`, name, pid_text);
                 const workers = this.get_workers_by_status(WorkerStatus.idle);
-                Logger.debug(
-                    workers.length,
+                if(Env.is_debug()) {
+                    Logger.debug(`status`, name, pid_text, 'idle workers', workers.length,
                     this.workers.map((worker) => {
-                        return worker.status;
-                    })
-                );
+                        return get_status_name(worker.status);
+                    }));
+                }
                 break;
             }
             case WorkerAction.log: {

@@ -10,6 +10,6 @@ import { Logger } from '../utils/logger.js';
 
 export async function transform(files) {
     Logger.info('transform', files);
-    await setTimeout(async () => true, 500);
+    await new Promise(r => setTimeout(r, 2000));
     return false;
 }

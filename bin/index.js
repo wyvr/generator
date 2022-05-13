@@ -23,8 +23,8 @@ const config = {
 };
 
 // console.error(config);
-
 const result = await command(config);
+console.log(result);
 
-console.error(result);
+process.exit(0);
 /* eslint-enable */

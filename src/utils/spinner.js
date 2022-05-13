@@ -16,6 +16,7 @@ export class Spinner {
         }
         this.spinner = this.spinner.stopAndPersist({ text, symbol }).start(this.last_text);
         this.spinner.spinner = 'dots';
+        this.spinner.color = 'blue';
         return true;
     }
     static update(text) {

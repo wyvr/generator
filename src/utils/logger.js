@@ -187,8 +187,7 @@ export class Logger {
     static text(...values) {
         if (this.spinner) {
             const text = values.map(this.stringify).join(' ');
-            this.spinner_text = text;
-            this.spinner.text = text;
+            this.spinner.update(text);
         }
     }
 }
@@ -196,5 +195,4 @@ export class Logger {
 Logger.pre = '';
 Logger.spinner = Spinner;
 Logger.color = kleur;
-Logger.spinner_text = null;
 Logger.report_content = [];

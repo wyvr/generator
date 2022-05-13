@@ -3,7 +3,6 @@ import { describe, it } from 'mocha';
 import { Logger } from '../../../src/utils/logger.js';
 
 describe('utils/logger/text', () => {
-    let spinner;
     let result;
     const logger = Logger.create('mock', {
         start: () => {},
@@ -14,6 +13,9 @@ describe('utils/logger/text', () => {
             result = data;
         },
         text: undefined,
+        update: (text) => {
+            logger.spinner.text = text;
+        },
     });
 
     it('undefined', () => {

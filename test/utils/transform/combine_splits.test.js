@@ -55,4 +55,28 @@ function b(v) {
             js: join(__dirname, 'multiple.js'),
         });
     });
+    it('scss combine', () => {
+        const path = join(__dirname, 'scss.svelte');
+        const content = readFileSync(path, { encoding: 'utf-8' });
+        deepStrictEqual(combine_splits(path, content), {
+            path,
+            content: `<div class="a">test</div><style>.a {
+  color: red;
+}</style>`,
+            css: join(__dirname, 'scss.scss'),
+            js: undefined,
+        });
+    });
+    it('css and scss available', () => {
+        const path = join(__dirname, 'css_scss.svelte');
+        const content = readFileSync(path, { encoding: 'utf-8' });
+        deepStrictEqual(combine_splits(path, content), {
+            path,
+            content: `<div class="a">test</div><style>.a {
+    color: red;
+}</style>`,
+            css: join(__dirname, 'css_scss.css'),
+            js: undefined,
+        });
+    });
 });

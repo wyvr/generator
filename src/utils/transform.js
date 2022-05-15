@@ -2,6 +2,9 @@ import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { exists, read, to_extension } from './file.js';
 import { filled_string, is_null, is_number } from './validate.js';
+import sass from 'sass';
+import { Logger } from './logger.js';
+import { get_error_message } from './error.js';
 
 const __dirname = dirname(resolve(join(fileURLToPath(import.meta.url), '..')));
 
@@ -35,6 +38,26 @@ export function combine_splits(path, content) {
             .map((tag) => tag.replace(/^<style[^>]*>/, '').replace(/<\/style>$/, ''))
             .join('\n')}</style>`;
         result.css = css;
+    } else {
+        // load scss
+        const scss = to_extension(path, 'scss');
+        if (exists(scss)) {
+            let scss_content = '';
+            try {
+                scss_content = read(scss);
+                const compiled_sass = sass.compileString(scss_content);
+                if(compiled_sass && compiled_sass.css) {
+                    scss_content = compiled_sass.css;
+                }
+            } catch (e) {
+                Logger.error(get_error_message(e, scss, 'sass'));
+            }
+            const scss_result = extract_tags_from_content(content, 'style');
+            content = `${scss_result.content}<style>${scss_content}${scss_result.tags
+                .map((tag) => tag.replace(/^<style[^>]*>/, '').replace(/<\/style>$/, ''))
+                .join('\n')}</style>`;
+            result.css = scss;
+        }
     }
 
     // load js

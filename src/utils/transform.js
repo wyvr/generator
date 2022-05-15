@@ -30,7 +30,10 @@ export function combine_splits(path, content) {
     const css = to_extension(path, 'css');
     if (exists(css)) {
         const css_content = read(css);
-        content = `${content}<style>${css_content}</style>`;
+        const css_result = extract_tags_from_content(content, 'style');
+        content = `${css_result.content}<style>${css_content}${css_result.tags
+            .map((tag) => tag.replace(/^<style[^>]*>/, '').replace(/<\/style>$/, ''))
+            .join('\n')}</style>`;
         result.css = css;
     }
 
@@ -38,7 +41,10 @@ export function combine_splits(path, content) {
     const js = to_extension(path, 'js');
     if (exists(js)) {
         const js_content = read(js);
-        content = `<script>${js_content}</script>${content}`;
+        const js_result = extract_tags_from_content(content, 'script');
+        content = `<script>${js_result.tags
+            .map((tag) => tag.replace(/^<script[^>]*>/, '').replace(/<\/script>$/, ''))
+            .join('\n')}${js_content}</script>${js_result.content}`;
         result.js = js;
     }
 

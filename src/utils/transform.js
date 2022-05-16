@@ -1,7 +1,7 @@
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { exists, read, to_extension } from './file.js';
-import { filled_string, is_null, is_number } from './validate.js';
+import { filled_array, filled_string, is_null, is_number } from './validate.js';
 import sass from 'sass';
 import { Logger } from './logger.js';
 import { get_error_message } from './error.js';
@@ -15,7 +15,7 @@ export function replace_import_path(content) {
     return content.replace(/(import .*? from ')@lib/g, '$1' + __dirname);
 }
 
-export function combine_splits(path, content) {
+export async function combine_splits(path, content) {
     const result = {
         path: is_null(path) ? '' : path,
         content: '',
@@ -29,48 +29,25 @@ export function combine_splits(path, content) {
         result.content = content;
         return result;
     }
-    // load css
-    const css = to_extension(path, 'css');
-    if (exists(css)) {
-        const css_content = read(css);
-        const css_result = extract_tags_from_content(content, 'style');
-        content = `${css_result.content}<style>${css_content}${css_result.tags
-            .map((tag) => tag.replace(/^<style[^>]*>/, '').replace(/<\/style>$/, ''))
-            .join('\n')}</style>`;
-        result.css = css;
-    } else {
-        // load scss
-        const scss = to_extension(path, 'scss');
-        if (exists(scss)) {
-            let scss_content = '';
-            try {
-                scss_content = read(scss);
-                const compiled_sass = sass.compileString(scss_content);
-                if(compiled_sass && compiled_sass.css) {
-                    scss_content = compiled_sass.css;
-                }
-            } catch (e) {
-                Logger.error(get_error_message(e, scss, 'sass'));
-            }
-            const scss_result = extract_tags_from_content(content, 'style');
-            content = `${scss_result.content}<style>${scss_content}${scss_result.tags
-                .map((tag) => tag.replace(/^<style[^>]*>/, '').replace(/<\/style>$/, ''))
-                .join('\n')}</style>`;
-            result.css = scss;
-        }
+    // load styles
+    const style_extract = await extract_and_load_split(path, content, 'style', ['css', 'scss']);
+    if (filled_string(style_extract.loaded_content)) {
+        content = `${style_extract.content}<style>${style_extract.loaded_content}${style_extract.tags.join(
+            '\n'
+        )}</style>`;
+        result.css = style_extract.loaded_file;
     }
 
-    // load js
-    const js = to_extension(path, 'js');
-    if (exists(js)) {
-        const js_content = read(js);
-        const js_result = extract_tags_from_content(content, 'script');
-        content = `<script>${js_result.tags
-            .map((tag) => tag.replace(/^<script[^>]*>/, '').replace(/<\/script>$/, ''))
-            .join('\n')}${js_content}</script>${js_result.content}`;
-        result.js = js;
+    // load scripts
+    const script_extract = await extract_and_load_split(path, content, 'script', ['js', 'mjs', 'cjs']);
+    if (filled_string(script_extract.loaded_content)) {
+        content = `<script>${script_extract.tags.join('\n')}${script_extract.loaded_content}</script>${
+            script_extract.content
+        }`;
+        result.js = script_extract.loaded_file;
     }
 
+    // set content
     result.content = content;
     return result;
 }
@@ -109,4 +86,85 @@ export function extract_tags_from_content(content, tag, max) {
     result.content = content;
 
     return result;
+}
+
+export async function extract_and_load_split(path, content, tag, extensions) {
+    const result = {
+        content: '',
+        path,
+        tag,
+        tags: [],
+        loaded_file: undefined,
+        loaded_content: undefined,
+    };
+    if (filled_string(content)) {
+        result.content = content;
+    }
+    if (!filled_string(tag)) {
+        return result;
+    }
+    const extracted = extract_tags_from_content(content, tag);
+    result.content = extracted.content;
+    result.tags = extracted.tags.map((code) =>
+        code.replace(new RegExp(`^<${tag}[^>]*>`), '').replace(new RegExp(`<\\/${tag}>$`), '')
+    );
+
+    if (!filled_array(extensions)) {
+        return result;
+    }
+
+    for (const ext of extensions) {
+        const loaded_file = to_extension(path, ext);
+        if (exists(loaded_file)) {
+            result.loaded_file = loaded_file;
+            let loaded_content = read(loaded_file);
+            switch (ext) {
+                case 'scss': {
+                    try {
+                        const compiled_sass = sass.compileString(loaded_content);
+                        if (compiled_sass && compiled_sass.css) {
+                            loaded_content = compiled_sass.css;
+                        }
+                    } catch (e) {
+                        Logger.error(get_error_message(e, loaded_file, 'sass'));
+                    }
+                    break;
+                }
+            }
+            result.loaded_content = loaded_content;
+            return result;
+        }
+    }
+
+    return result;
+    /*
+    const css = to_extension(path, 'css');
+    if (exists(css)) {
+        const css_content = read(css);
+        const css_result = extract_tags_from_content(content, 'style');
+        content = `${css_result.content}<style>${css_content}${css_result.tags
+            .map((tag) => tag.replace(/^<style[^>]*>/, '').replace(/<\/style>$/, ''))
+            .join('\n')}</style>`;
+        result.css = css;
+    } else {
+        // load scss
+        const scss = to_extension(path, 'scss');
+        if (exists(scss)) {
+            let scss_content = '';
+            try {
+                scss_content = read(scss);
+                const compiled_sass = sass.compileString(scss_content);
+                if(compiled_sass && compiled_sass.css) {
+                    scss_content = compiled_sass.css;
+                }
+            } catch (e) {
+                Logger.error(get_error_message(e, scss, 'sass'));
+            }
+            const scss_result = extract_tags_from_content(content, 'style');
+            content = `${scss_result.content}<style>${scss_content}${scss_result.tags
+                .map((tag) => tag.replace(/^<style[^>]*>/, '').replace(/<\/style>$/, ''))
+                .join('\n')}</style>`;
+            result.css = scss;
+        }
+    }*/
 }

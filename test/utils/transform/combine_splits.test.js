@@ -8,17 +8,17 @@ import { combine_splits } from '../../../src/utils/transform.js';
 describe('utils/transform/combine_splits', () => {
     const __dirname = join(dirname(resolve(join(fileURLToPath(import.meta.url)))), '_tests', 'combine_splits');
 
-    it('undefined', () => {
-        deepStrictEqual(combine_splits(), {
+    it('undefined', async () => {
+        deepStrictEqual(await combine_splits(), {
             path: '',
             content: '',
             css: undefined,
             js: undefined,
         });
     });
-    it('files but undefined content', () => {
+    it('files but undefined content', async () => {
         const path = join(__dirname, 'empty.svelte');
-        deepStrictEqual(combine_splits(path), {
+        deepStrictEqual(await combine_splits(path), {
             path,
             content: `<script>function empty() {
     return null;
@@ -30,10 +30,10 @@ describe('utils/transform/combine_splits', () => {
             js: join(__dirname, 'empty.js'),
         });
     });
-    it('combine multiple tags', () => {
+    it('combine multiple tags', async () => {
         const path = join(__dirname, 'multiple.svelte');
         const content = readFileSync(path, { encoding: 'utf-8' });
-        deepStrictEqual(combine_splits(path, content), {
+        deepStrictEqual(await combine_splits(path, content), {
             path,
             content: `<script>
     const a = b(1);
@@ -55,10 +55,10 @@ function b(v) {
             js: join(__dirname, 'multiple.js'),
         });
     });
-    it('scss combine', () => {
+    it('scss combine', async () => {
         const path = join(__dirname, 'scss.svelte');
         const content = readFileSync(path, { encoding: 'utf-8' });
-        deepStrictEqual(combine_splits(path, content), {
+        deepStrictEqual(await combine_splits(path, content), {
             path,
             content: `<div class="a">test</div><style>.a {
   color: red;
@@ -67,10 +67,10 @@ function b(v) {
             js: undefined,
         });
     });
-    it('css and scss available', () => {
+    it('css and scss available', async () => {
         const path = join(__dirname, 'css_scss.svelte');
         const content = readFileSync(path, { encoding: 'utf-8' });
-        deepStrictEqual(combine_splits(path, content), {
+        deepStrictEqual(await combine_splits(path, content), {
             path,
             content: `<div class="a">test</div><style>.a {
     color: red;

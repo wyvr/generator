@@ -4,10 +4,16 @@ import { describe, it } from 'mocha';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { extract_and_load_split } from '../../../src/utils/transform.js';
+import { Cwd } from '../../../src/vars/cwd.js';
 
 describe('utils/transform/extract_and_load_split', () => {
     const __dirname = join(dirname(resolve(join(fileURLToPath(import.meta.url)))), '_tests', 'combine_splits');
-
+    before(()=>{
+        Cwd.set(join(__dirname, '..', '..', '..'))
+    })
+    after(()=>{
+        Cwd.set(undefined)
+    })
     it('undefined', async () => {
         deepStrictEqual(await extract_and_load_split(), {
             path: undefined,
@@ -77,6 +83,18 @@ describe('utils/transform/extract_and_load_split', () => {
             loaded_content: `.a {
   color: red;
 }`,
+        });
+    });
+    it('error compile SASS', async () => {
+        const path = join(__dirname, 'error_scss.svelte');
+
+        deepStrictEqual(await extract_and_load_split(path, 'test', 'style', ['css', 'scss']), {
+            path,
+            content: 'test',
+            tag: 'style',
+            tags: [],
+            loaded_file: join(__dirname, 'error_scss.scss'),
+            loaded_content: undefined,
         });
     });
 });

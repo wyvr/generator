@@ -127,6 +127,7 @@ export async function extract_and_load_split(path, content, tag, extensions) {
                         }
                     } catch (e) {
                         Logger.error(get_error_message(e, loaded_file, 'sass'));
+                        loaded_content = undefined;
                     }
                     break;
                 }

@@ -12,6 +12,7 @@ export function MockSpinner(callback) {
         },
         spinner: '',
         text: '',
+        remove_color: false
     };
     return spinner;
 }

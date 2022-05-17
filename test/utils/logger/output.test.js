@@ -29,6 +29,7 @@ describe('utils/logger/output', () => {
     });
     afterEach(() => {
         result = [];
+        Logger.remove_color = false;
     });
     after(() => {
         // runs once after the last test in this block
@@ -67,9 +68,20 @@ describe('utils/logger/output', () => {
         Logger.output(undefined, undefined, 'a', 'b');
         deepStrictEqual(result, [['a', 'b']]);
     });
+    it('remove color', () => {
+        Logger.remove_color = true;
+        Logger.output(undefined, Logger.color.yellow, Logger.color.red('#'), Logger.color.blue('a'));
+        deepStrictEqual(result, [['#', 'a']]);
+    });
+    it('remove color pre', () => {
+        Logger.remove_color = true;
+        Logger.pre = Logger.color.green('pre');
+        Logger.output(undefined, Logger.color.yellow, Logger.color.red('#'), Logger.color.blue('a'));
+        Logger.pre = '';
+        deepStrictEqual(result, [['#', 'a']]);
+    });
     it('send to primary from worker', () => {
         IsWorker.set(true);
-
         Logger.output(LogType.log, undefined, undefined, 'b');
 
         deepStrictEqual(send_data, {

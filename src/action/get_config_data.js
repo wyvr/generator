@@ -1,5 +1,6 @@
 import { EnvType } from '../struc/env.js';
 import { Config } from '../utils/config.js';
+import { Logger } from '../utils/logger.js';
 import { is_object } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
@@ -17,6 +18,10 @@ export function get_config_data(cli_config, build_id) {
         }
         if (cli_config.cli.flags.debug) {
             Env.set(EnvType.debug);
+        }
+        if (cli_config.cli.flags.plain) {
+            Logger.remove_color = true;
+            Logger.spinner.remove_color = true;
         }
     }
     config.cwd = Cwd.get();

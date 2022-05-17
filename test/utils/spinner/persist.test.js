@@ -34,4 +34,13 @@ describe('utils/spinner/persist', () => {
             text: 'text',
         });
     });
+    it('has spinner with no color', () => {
+        Spinner.remove_color = true;
+        const has_spinner = Spinner.persist('#', 'text');
+        strictEqual(has_spinner, true);
+        deepStrictEqual(result, {
+            symbol: '#',
+            text: 'text',
+        });
+    });
 });

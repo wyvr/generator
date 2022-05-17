@@ -1,4 +1,4 @@
-import { is_object, is_array, is_null, filled_string, is_regex, is_symbol, is_big_int } from './validate.js';
+import { is_object, is_array, is_null, filled_string, is_regex, is_symbol, is_big_int, is_string } from './validate.js';
 
 export function to_string(value) {
     if (is_null(value)) {
@@ -32,4 +32,16 @@ export function to_escaped(value) {
         return 'undefined';
     }
     return JSON.stringify(value).replace(/'/g, "''");
+}
+export function to_plain(text) {
+    if (!is_string(text)) {
+        return '';
+    }
+    /* eslint-disable no-control-regex */
+    // @see https://github.com/doowb/ansi-colors/blob/master/index.js ANSI_REGEX
+    return text.replace(
+        /[\u001b\u009b][[\]#;?()]*(?:(?:(?:[^\W_]*;?[^\W_]*)\u0007)|(?:(?:[0-9]{1,4}(;[0-9]{0,4})*)?[~0-9=<>cf-nqrtyA-PRZ]))/g,
+        ''
+    );
+    /* eslint-enable no-control-regex */
 }

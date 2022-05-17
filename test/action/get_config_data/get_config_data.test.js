@@ -5,6 +5,7 @@ import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { get_config_data } from '../../../src/action/get_config_data.js';
 import { EnvType } from '../../../src/struc/env.js';
+import { Logger } from '../../../src/utils/logger.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 import { Env } from '../../../src/vars/env.js';
 
@@ -150,5 +151,10 @@ describe('action/get_config_data/get_config_data', () => {
                 ratio: 0,
             },
         });
+    });
+    it('override plain output', () => {
+        get_config_data({ cli: { flags: { plain: true } } }, '012345');
+        deepStrictEqual(Logger.remove_color, true);
+        Logger.remove_color = false;
     });
 });

@@ -16,6 +16,7 @@ import { Report } from '../vars/report.js';
 import { Spinner } from './spinner.js';
 import { IsWorker } from '../vars/is_worker.js';
 import { WorkerAction } from '../struc/worker_action.js';
+import { to_plain } from './to.js';
 
 export class Logger {
     /**
@@ -67,9 +68,11 @@ export class Logger {
         if (has_color_fn) {
             text = color_fn(text);
         }
-        const symbol = has_color_fn ? color_fn(char) : char;
+        let symbol = this.out(has_color_fn ? color_fn(char) : char);
 
-        if (!this.spinner.persist(kleur.dim('│'), `${symbol} ${this.pre}${text}`)) {
+        text = this.out(text);
+
+        if (!this.spinner.persist(this.out(kleur.dim('│')), `${symbol} ${this.out(this.pre)}${text}`)) {
             console.error(symbol, text);
         }
     }
@@ -142,21 +145,15 @@ export class Logger {
     }
 
     /**
-     * Remove CLI ANSI Colors from the given string
+     * Remove colors from the given string when Logger remove_color is true
      * @param {string} text
-     * @returns the unstyled text
+     * @returns the unstyled text or the original text
      */
-    static unstyle(text) {
-        if (!is_string(text)) {
-            return '';
+    static out(text) {
+        if (this.remove_color) {
+            return to_plain(text);
         }
-        /* eslint-disable no-control-regex */
-        // @see https://github.com/doowb/ansi-colors/blob/master/index.js ANSI_REGEX
-        return text.replace(
-            /[\u001b\u009b][[\]#;?()]*(?:(?:(?:[^\W_]*;?[^\W_]*)\u0007)|(?:(?:[0-9]{1,4}(;[0-9]{0,4})*)?[~0-9=<>cf-nqrtyA-PRZ]))/g,
-            ''
-        );
-        /* eslint-enable no-control-regex */
+        return text;
     }
 
     /**
@@ -181,7 +178,10 @@ export class Logger {
     }
     static stop(name, duration) {
         if (this.spinner) {
-            this.spinner.stop(name, duration);
+            const result = this.spinner.stop(name, duration);
+            if (result) {
+                this.success(result);
+            }
         }
     }
     static text(...values) {
@@ -195,4 +195,5 @@ export class Logger {
 Logger.pre = '';
 Logger.spinner = Spinner;
 Logger.color = kleur;
+Logger.remove_color = false;
 Logger.report_content = [];

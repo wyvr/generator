@@ -28,19 +28,25 @@ describe('utils/spinner/stop', () => {
         Env.set(EnvType.prod);
         Spinner.spinner = undefined;
         const message = Spinner.stop();
-        strictEqual(message, `${kleur.green('✓')} ${kleur.green('')} ${kleur.dim('...................................')}`);
+        strictEqual(message, ` ...................................`);
     });
     it('env prod + no spinner', () => {
         Env.set(EnvType.prod);
         Spinner.spinner = undefined;
         const message = Spinner.stop('text', 500);
-        strictEqual(message, `${kleur.green('✓')} ${kleur.green('text')} ${kleur.dim('............................')} 500 ${kleur.dim('ms')}`);
+        strictEqual(message, `text ............................ 500 ms`);
     });
     it('too long text', () => {
         Env.set(EnvType.prod);
         Spinner.spinner = undefined;
         const text = 'this is some too long text for the spinner to display in the given format';
         const message = Spinner.stop(text, 500);
-        strictEqual(message, `${kleur.green('✓')} ${kleur.green(text)} ${kleur.dim('')} 500 ${kleur.dim('ms')}`);
+        strictEqual(message, `${text}  500 ms`);
+    });
+    it('too long text with no color', () => {
+        Env.set(EnvType.prod);
+        const text = 'this is some too long text for the spinner to display in the given format';
+        const message = Spinner.stop(text, 500);
+        strictEqual(message, `${text}  500 ms`);
     });
 });

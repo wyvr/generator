@@ -16,7 +16,6 @@ import { Env } from '../vars/env.js';
 import { Config } from '../utils/config.js';
 import { UniqId } from '../vars/uniq_id.js';
 import { Report } from '../vars/report.js';
-import { to_string } from '../utils/to.js';
 import { Queue } from '../model/queue.js';
 
 export class WorkerController {

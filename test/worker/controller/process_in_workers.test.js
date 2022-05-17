@@ -80,7 +80,7 @@ describe('worker/controller/process_in_workers', () => {
             },
         ]);
         deepStrictEqual(logger_messages, [
-            ['\x1B[34mℹ\x1B[39m', 'process \x1B[34m10\x1B[39m items, batch size \x1B[36m1000\x1B[39m'],
+            ['\x1B[34mℹ\x1B[39m', 'process \u001b[34m10\u001b[39m items \u001b[2mbatch size 1000\u001b[22m'],
         ]);
     });
     it('single item list', async () => {
@@ -99,7 +99,7 @@ describe('worker/controller/process_in_workers', () => {
             },
         ]);
         deepStrictEqual(logger_messages, [
-            ['\x1B[34mℹ\x1B[39m', 'process \x1B[34m1\x1B[39m item, batch size \x1B[36m1000\x1B[39m'],
+            ['\x1B[34mℹ\x1B[39m', 'process \u001b[34m1\u001b[39m item \u001b[2mbatch size 1000\u001b[22m'],
         ]);
     });
     it('empty list', async () => {
@@ -134,7 +134,7 @@ describe('worker/controller/process_in_workers', () => {
             },
         ]);
         deepStrictEqual(logger_messages, [
-            ['\x1B[34mℹ\x1B[39m', 'process \x1B[34m10\x1B[39m items, batch size \x1B[36m10\x1B[39m'],
+            ['\x1B[34mℹ\x1B[39m', 'process \u001b[34m10\u001b[39m items \u001b[2mbatch size 10\u001b[22m'],
         ]);
     });
 });

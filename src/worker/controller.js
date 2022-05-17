@@ -128,11 +128,17 @@ export class WorkerController {
                 });
                 // worker.status = data;
                 const workers = this.get_workers_by_status(WorkerStatus.idle);
-                if(Env.is_debug()) {
-                    Logger.debug(`status`, name, pid_text, 'idle workers', workers.length,
-                    this.workers.map((worker) => {
-                        return get_status_name(worker.status);
-                    }));
+                if (Env.is_debug()) {
+                    Logger.debug(
+                        `status`,
+                        name,
+                        pid_text,
+                        'idle workers',
+                        workers.length,
+                        this.workers.map((worker) => {
+                            return get_status_name(worker.status);
+                        })
+                    );
                 }
                 break;
             }
@@ -219,11 +225,11 @@ export class WorkerController {
 
     /**
      * Process the given queue by sending the data to the worker
-     * @param {QueueEntry[]} queue 
+     * @param {QueueEntry[]} queue
      * @returns whether the execution is complete, no next tick needed
      */
     static tick(queue) {
-        if(is_null(queue)) {
+        if (is_null(queue)) {
             return true;
         }
         const workers = this.get_workers_by_status(WorkerStatus.idle);
@@ -254,7 +260,7 @@ export class WorkerController {
             process.exit(1);
         }
         const name = get_name(action);
-        if(!name) {
+        if (!name) {
             Logger.error('unknown action', action);
             return false;
         }
@@ -266,12 +272,7 @@ export class WorkerController {
         if (!is_int(batch_size)) {
             batch_size = 10;
         }
-        Logger.info(
-            'process',
-            amount,
-            `${amount == 1 ? 'item' : 'items'}, batch size`,
-            Logger.color.cyan(to_string(batch_size))
-        );
+        Logger.info('process', amount, amount == 1 ? 'item' : 'items', Logger.color.dim('batch size ' + batch_size));
 
         // create new queue
         this.queue = new Queue();

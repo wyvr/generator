@@ -40,6 +40,10 @@ export function extract_error(e, source) {
                 if (entry.indexOf(gen_dir) > -1 && entry.indexOf(' at ') > -1) {
                     return entry.replace(/.*?at (?:file:\/\/)?/, '').replace(gen_dir + '/', '');
                 }
+                // sass errors can contain "│" (no pipe) at the beginning add them too
+                if(entry.indexOf('│') > -1 || entry.indexOf('╷') > -1 || entry.indexOf('╵') > -1) {
+                    return entry;
+                }
 
                 return null;
             })
@@ -125,7 +129,7 @@ export function inject_worker_message_errors(messages) {
         }
         // nodejs error
         if (message.error) {
-            return Error.get(message.error, message.filename);
+            return get_error_message(message.error, message.filename);
         }
         return message;
     });

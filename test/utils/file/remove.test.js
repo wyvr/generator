@@ -3,7 +3,7 @@ import { describe, it } from 'mocha';
 import { remove } from '../../../src/utils/file.js';
 import { v4 } from 'uuid';
 import { dirname, join } from 'path';
-import { existsSync, rmSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs';
 
 describe('utils/file/remove', () => {
     it('undefined', () => {
@@ -16,5 +16,11 @@ describe('utils/file/remove', () => {
         const filename = 'test/utils/file/_tests/existing.txt';
         writeFileSync(filename, '');
         strictEqual(remove(filename), true);
+    });
+    it('remove dir', () => {
+        const filename = 'test/utils/file/_tests/delete/foldertest.txt';
+        mkdirSync(dirname(filename));
+        writeFileSync(filename, '');
+        strictEqual(remove(dirname(filename)), true);
     });
 });

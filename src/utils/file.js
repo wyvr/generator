@@ -7,6 +7,7 @@ import {
     writeFileSync,
     unlinkSync,
     copyFileSync,
+    rmSync,
 } from 'fs';
 import { extname, dirname, join } from 'path';
 import circular from 'circular';
@@ -307,11 +308,15 @@ export function get_folder(folder) {
 }
 
 export function remove(file) {
-    if (filled_string(file) && existsSync(file)) {
+    if (!filled_string(file) || !existsSync(file)) {
+        return false;
+    }
+    if (is_file(file)) {
         unlinkSync(file);
         return true;
     }
-    return false;
+    rmSync(file, { recursive: true, force: true });
+    return true;
 }
 
 // export function symlink(from, to) {

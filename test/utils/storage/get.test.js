@@ -1,5 +1,5 @@
-import { strictEqual, deepStrictEqual } from 'assert';
-import { existsSync, mkdirSync, rmdirSync, unlinkSync, writeFileSync } from 'fs';
+import { deepStrictEqual } from 'assert';
+import { existsSync, rmSync } from 'fs';
 import { describe, it } from 'mocha';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
@@ -22,7 +22,7 @@ describe('utils/storage/get', () => {
         Storage.location = undefined;
         Cwd.set(undefined);
         if (existsSync(test_folder)) {
-            rmdirSync(test_folder, { recursive: true, force: true });
+            rmSync(test_folder, { recursive: true, force: true });
         }
         Storage.cache = {};
     });

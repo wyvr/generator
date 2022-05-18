@@ -311,10 +311,6 @@ export function remove(file) {
     if (!filled_string(file) || !existsSync(file)) {
         return false;
     }
-    if (is_file(file)) {
-        unlinkSync(file);
-        return true;
-    }
     rmSync(file, { recursive: true, force: true });
     return true;
 }

@@ -1,5 +1,5 @@
 import { strictEqual, deepStrictEqual } from 'assert';
-import { existsSync, mkdirSync, rmdir, rmdirSync, unlinkSync } from 'fs';
+import { existsSync, mkdirSync, rmSync, unlinkSync } from 'fs';
 import { describe, it } from 'mocha';
 import { dirname, join, resolve } from 'path';
 import sqlite3 from 'sqlite3';
@@ -23,7 +23,7 @@ describe('utils/storage/get_tables', () => {
     });
     afterEach(() => {
         if (existsSync(test_folder)) {
-            rmdirSync(test_folder, { recursive: true, force: true });
+            rmSync(test_folder, { recursive: true, force: true });
         }
         Storage.cache = {};
     });

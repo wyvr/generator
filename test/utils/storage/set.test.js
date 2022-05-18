@@ -1,5 +1,5 @@
 import { strictEqual, deepStrictEqual } from 'assert';
-import { existsSync, mkdirSync, rmdirSync, unlinkSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, rmSync, unlinkSync } from 'fs';
 import { describe, it } from 'mocha';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
@@ -24,7 +24,7 @@ describe('utils/storage/set', () => {
     });
     afterEach(() => {
         if (existsSync(test_folder)) {
-            rmdirSync(test_folder, { recursive: true, force: true });
+            rmSync(test_folder, { recursive: true, force: true });
         }
         Storage.cache = {};
     });
@@ -74,7 +74,7 @@ describe('utils/storage/set', () => {
             text TEXT
             );`);
         deepStrictEqual(await Storage.set('test_set_invalid', { key: 'value', another_key: 'another value' }), false);
-        unlinkSync(db_path);
+        rmSync(db_path);
     });
     it('set empty data', async () => {
         await Storage.open('test_set');

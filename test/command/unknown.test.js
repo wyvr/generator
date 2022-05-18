@@ -1,5 +1,5 @@
 import { strictEqual, deepStrictEqual } from 'assert';
-import { existsSync, mkdirSync, rmdirSync } from 'fs';
+import { existsSync, mkdirSync, rmSync } from 'fs';
 import { describe, it } from 'mocha';
 import { dirname, join, resolve } from 'path';
 import Sinon from 'sinon';
@@ -36,7 +36,7 @@ describe('command/unknown', () => {
         exit_code = undefined;
         logger_messages = [];
         if (existsSync(test_folder)) {
-            rmdirSync(test_folder, { recursive: true, force: true });
+            rmSync(test_folder, { recursive: true, force: true });
         }
     });
     after(() => {

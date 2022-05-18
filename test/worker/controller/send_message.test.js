@@ -1,20 +1,22 @@
 import { deepStrictEqual, strictEqual } from 'assert';
 import { describe, it } from 'mocha';
 import { WorkerStatus } from '../../../src/struc/worker_status.js';
+import { to_plain } from '../../../src/utils/to.js';
 import { WorkerController } from '../../../src/worker/controller.js';
 
 describe('worker/controller/send_message', () => {
     let messages;
-    const error = console.error;
-    console.error = (...args) => {
-        console_messages = args;
-    };
+    let error;
     let console_messages;
+    beforeEach(()=> {
+        error = console.error;
+        console.error = (...args) => {
+            console_messages = args.map(to_plain);
+        };
+    })
     afterEach(() => {
         messages = undefined;
-        console_messages = undefined;
-    });
-    after(() => {
+        console_messages = [];
         console.error = error;
     });
     it('undefined', () => {
@@ -46,8 +48,8 @@ describe('worker/controller/send_message', () => {
         });
         strictEqual(result, false);
         deepStrictEqual(console_messages, [
-            '\x1B[33m⚠\x1B[39m',
-            '\x1B[33mcan not send empty message to worker 1000\x1B[39m',
+            '⚠',
+            'can not send empty message to worker 1000',
         ]);
     });
     it('worker successfully sent', () => {
@@ -67,6 +69,6 @@ describe('worker/controller/send_message', () => {
         deepStrictEqual(messages, {
             value: true,
         });
-        deepStrictEqual(console_messages, undefined);
+        deepStrictEqual(console_messages, []);
     });
 });

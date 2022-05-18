@@ -26,18 +26,20 @@ describe('utils/spinner/persist', () => {
         strictEqual(has_spinner, false);
         deepStrictEqual(result, undefined);
     });
-    it('has spinner', () => {
+    it('has spinner with color', () => {
+        Spinner.remove_color = false;
         const has_spinner = Spinner.persist('#', 'text');
         strictEqual(has_spinner, true);
+        strictEqual(Spinner.spinner.color, 'blue');
         deepStrictEqual(result, {
             symbol: '#',
             text: 'text',
         });
     });
-    it('has spinner with no color', () => {
-        Spinner.remove_color = true;
+    it('has spinner', () => {
         const has_spinner = Spinner.persist('#', 'text');
         strictEqual(has_spinner, true);
+        strictEqual(Spinner.spinner.color, 'white');
         deepStrictEqual(result, {
             symbol: '#',
             text: 'text',

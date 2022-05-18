@@ -64,6 +64,7 @@ export class Spinner {
         if (!is_string(name)) {
             return undefined;
         }
+        /* c8 ignore next */
         return ora(name).start();
     }
     /**

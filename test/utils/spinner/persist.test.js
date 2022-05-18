@@ -36,8 +36,10 @@ describe('utils/spinner/persist', () => {
             text: 'text',
         });
     });
-    it('has spinner', () => {
+    it('has spinner without color', () => {
+        Spinner.remove_color = true;
         const has_spinner = Spinner.persist('#', 'text');
+        Spinner.remove_color = false;
         strictEqual(has_spinner, true);
         strictEqual(Spinner.spinner.color, 'white');
         deepStrictEqual(result, {

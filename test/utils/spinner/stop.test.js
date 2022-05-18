@@ -1,5 +1,4 @@
 import { deepStrictEqual, strictEqual } from 'assert';
-import kleur from 'kleur';
 import { describe, it } from 'mocha';
 import { EnvType } from '../../../src/struc/env.js';
 import { Spinner } from '../../../src/utils/spinner.js';
@@ -16,10 +15,12 @@ describe('utils/spinner/stop', () => {
         Spinner.spinner = MockSpinner((data) => {
             result = data;
         });
+        Spinner.remove_color = true;
     });
     afterEach(() => {
         Env.set(EnvType.prod);
         Spinner.spinner = spinner;
+        Spinner.remove_color = false;
         Spinner.last_text = undefined;
         result = undefined;
     });

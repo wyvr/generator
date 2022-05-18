@@ -28,7 +28,7 @@ test: ## Executes the tests
 	@$(WYVR_TEST)
 
 test-watch: ## Watches changes in the tests
-	@npx nodemon --watch src --watch test -e js --exec "$(WYVR_LINT); $(WYVR_TEST)"
+	@npx nodemon --watch src --watch test --ignore test/**/_tests/**/*.js -e js --exec "$(WYVR_LINT); $(WYVR_TEST)"
 
 init: ## Install and prepare setup
 	@npm install
@@ -40,4 +40,4 @@ lint: ## Use ESLint on the codebase
 	@${WYVR_LINT}
 
 coverage-watch: ## Watches changes in the tests
-	@npx nodemon --watch src --watch test -e js --exec "$(WYVR_LINT); $(WYVR_COVERAGE)"
+	@npx nodemon --watch src --watch test --ignore test/**/_tests/**/*.js -e js --exec "$(WYVR_LINT); $(WYVR_COVERAGE)"

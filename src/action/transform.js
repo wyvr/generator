@@ -25,6 +25,5 @@ export async function transform() {
 
     await Plugin.after('transform', files);
 
-    Logger.info(files);
     Logger.stop(name, nano_to_milli(process.hrtime.bigint() - start));
 }

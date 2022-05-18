@@ -7,7 +7,13 @@ import { Cwd } from '../../../src/vars/cwd.js';
 
 describe('utils/error/inject_worker_message_errors', () => {
     const __dirname = dirname(resolve(join(fileURLToPath(import.meta.url))));
-    const cwd = Cwd.get();
+
+    beforeEach(() => {
+        Cwd.set(process.cwd());
+    });
+    afterEach(() => {
+        Cwd.set(undefined);
+    });
 
     it('undefined', () => {
         deepStrictEqual(inject_worker_message_errors(), []);
@@ -38,7 +44,18 @@ describe('utils/error/inject_worker_message_errors', () => {
                 'test',
                 { code: 'PARSE_ERROR', name: 'name', loc: { file: 'file.txt', line: 1, column: 1 }, frame: 'frame' },
             ]),
-            ['\u001b[2m[svelte]\u001b[22m', 'test', '\nPARSE_ERROR \x1B[2min\x1B[22m file.txt\n\x1B[2mLine:\x1B[22m1\x1B[2m Col:\x1B[22m1\nframe']
+            [
+                '\u001b[2m[svelte]\u001b[22m',
+                'test',
+                '\nPARSE_ERROR \x1B[2min\x1B[22m file.txt\n\x1B[2mLine:\x1B[22m1\x1B[2m Col:\x1B[22m1\nframe',
+            ]
         );
+    });
+    it('node error', () => {
+        deepStrictEqual(inject_worker_message_errors(['[svelte]', 'test', { error: 'error' }]), [
+            '\u001b[2m[svelte]\u001b[22m',
+            'test',
+            '[] -\n\u001b[2mstack\u001b[22m',
+        ]);
     });
 });

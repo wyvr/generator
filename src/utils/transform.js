@@ -1,4 +1,4 @@
-import { dirname, join, resolve } from 'path';
+import { dirname, extname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { exists, read, to_extension } from './file.js';
 import { filled_array, filled_string, is_null, is_number, is_string } from './validate.js';
@@ -127,29 +127,30 @@ export async function extract_and_load_split(path, content, tag, extensions) {
         loaded_content: undefined,
     };
     if (filled_string(content)) {
-        result.content = content;
+        content = result.content = replace_src_path(content, 'gen/src', path ? extname(path) : undefined);
     }
     if (!filled_string(tag)) {
         return result;
     }
     const extracted = extract_tags_from_content(content, tag);
     result.content = extracted.content;
-    result.tags = await Promise.all(
-        extracted.tags.map(async (code) => {
-            const contains_sass =
-                (code.indexOf('type="text/scss"') > -1 || code.indexOf('lang="sass"') > -1) && tag == 'style';
-            const contains_typescript =
-                (code.indexOf('lang="ts"') > -1) && tag == 'script';
-            code = code.replace(new RegExp(`^<${tag}[^>]*>`), '').replace(new RegExp(`<\\/${tag}>$`), '');
-            if (contains_sass) {
-                code = await compile_sass(code, path);
-            }
-            if (contains_typescript) {
-                code = await compile_typescript(code, path);
-            }
-            return code;
-        })
-    );
+    result.tags = (
+        await Promise.all(
+            extracted.tags.map(async (code) => {
+                const contains_sass =
+                    (code.indexOf('type="text/scss"') > -1 || code.indexOf('lang="sass"') > -1) && tag == 'style';
+                const contains_typescript = code.indexOf('lang="ts"') > -1 && tag == 'script';
+                code = code.replace(new RegExp(`^<${tag}[^>]*>`), '').replace(new RegExp(`<\\/${tag}>$`), '');
+                if (contains_sass) {
+                    code = await compile_sass(code, path);
+                }
+                if (contains_typescript) {
+                    code = await compile_typescript(code, path);
+                }
+                return code;
+            })
+        )
+    ).filter((x) => x);
 
     if (!filled_array(extensions)) {
         return result;
@@ -176,37 +177,4 @@ export async function extract_and_load_split(path, content, tag, extensions) {
     }
 
     return result;
-}
-
-export async function preprocess_content(content) {
-    /*
-    if (!content || typeof content != 'string') {
-        return [null, ''];
-    }
-    const style_result = Transform.extract_tags_from_content(content, 'style');
-    if (
-        style_result &&
-        style_result.result &&
-        style_result.result.some((entry) => entry.indexOf('type="text/scss"') > -1 || entry.indexOf('lang="sass"') > -1)
-    ) {
-        let sass_result = null;
-        try {
-            sass_result = sass.renderSync({
-                data: style_result.result
-                    .map((entry) => {
-                        const raw = entry.replace(/<style[^>]*>/g, '').replace(/<\/style>/g, '');
-                        return this.src_import_path(raw, 'gen/raw', '.css');
-                    })
-                    .join('\n'),
-            });
-        } catch (e) {
-            return [Error.get(e, e.file, 'sass'), content];
-        }
-        if (sass_result) {
-            return [null, `${style_result.content}<style>${sass_result.css.toString()}</style>`];
-        }
-    }
-
-    return [null, content];
-    */
 }

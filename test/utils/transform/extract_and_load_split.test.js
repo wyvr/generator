@@ -10,7 +10,7 @@ import { Cwd } from '../../../src/vars/cwd.js';
 describe('utils/transform/extract_and_load_split', () => {
     const __dirname = join(dirname(resolve(join(fileURLToPath(import.meta.url)))), '_tests', 'combine_splits');
     before(() => {
-        Cwd.set(join(__dirname, '..', '..', '..'));
+        Cwd.set(__dirname);
     });
     after(() => {
         Cwd.set(undefined);
@@ -136,6 +136,38 @@ describe('utils/transform/extract_and_load_split', () => {
 }`,
         });
     });
+    it('replace @src in inline SASS', async () => {
+        const path = join(__dirname, 'scss_inline_import.svelte');
+
+        deepStrictEqual(await extract_and_load_split(path, read(path), 'style', ['css', 'scss']), {
+            content:
+                '<script>\n' +
+                '</script>\n' +
+                '\n' +
+                '<code>\n' +
+                '    <button>Button with SASS Syntax</button>\n' +
+                '</code>\n' +
+                '\n' +
+                '\n',
+            loaded_content: undefined,
+            loaded_file: undefined,
+            path: '/home/p/wyvr/generator/test/utils/transform/_tests/combine_splits/scss_inline_import.svelte',
+            tag: 'style',
+            tags: [
+                'a {\n  color: red;\n}\n\ncode {\n' +
+                    '  display: block;\n' +
+                    '}\n' +
+                    '\n' +
+                    'button {\n' +
+                    '  border: 2px solid #7c5ed0;\n' +
+                    '  background: transparent;\n' +
+                    '  padding: 10px;\n' +
+                    '  font-size: 16px;\n' +
+                    '  color: #7c5ed0;\n' +
+                    '}',
+            ],
+        });
+    });
     it('error compile SASS', async () => {
         const path = join(__dirname, 'error_scss.svelte');
 
@@ -158,6 +190,43 @@ describe('utils/transform/extract_and_load_split', () => {
             tags: [],
             loaded_file: join(__dirname, 'ts.ts'),
             loaded_content: `function add(left, right) {\n  return left + right;\n}\n`,
+        });
+    });
+
+    it('compile TypeScript in script with lang="ts"', async () => {
+        const path = join(__dirname, 'ts_lang.svelte');
+
+        deepStrictEqual(await extract_and_load_split(path, read(path), 'script', ['js', 'ts']), {
+            path,
+            content: '\n\n<div class="a">test</div>\n',
+            tag: 'script',
+            tags: [`function add(left, right) {\n  return left + right;\n}\n`],
+            loaded_file: undefined,
+            loaded_content: undefined,
+        });
+    });
+    it('compile TypeScript inline tag and loaded', async () => {
+        const path = join(__dirname, 'ts_complete.svelte');
+
+        deepStrictEqual(await extract_and_load_split(path, read(path), 'script', ['js', 'ts']), {
+            path,
+            content: '\n\n<div class="a">test</div>\n',
+            tag: 'script',
+            tags: [`function add(left, right) {\n  return left + right;\n}\n`],
+            loaded_file: join(__dirname, 'ts_complete.ts'),
+            loaded_content: `function remove(left, right) {\n  return left - right;\n}\n`,
+        });
+    });
+    it('error compile TypeScript', async () => {
+        const path = join(__dirname, 'error_ts.svelte');
+
+        deepStrictEqual(await extract_and_load_split(path, 'test', 'script', ['js', 'ts']), {
+            path,
+            content: 'test',
+            tag: 'script',
+            tags: [],
+            loaded_file: join(__dirname, 'error_ts.ts'),
+            loaded_content: undefined,
         });
     });
 });

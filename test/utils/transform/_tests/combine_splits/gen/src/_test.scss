@@ -1,0 +1,11 @@
+@import '@src/link';
+
+$primary-color: #7c5ed0;
+
+@mixin button($color: $primary-color) {
+    border: 2px solid $color;
+    background: transparent;
+    padding: 10px;
+    font-size: 16px;
+    color: $color;
+}

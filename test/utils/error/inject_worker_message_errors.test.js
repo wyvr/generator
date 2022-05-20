@@ -58,4 +58,11 @@ describe('utils/error/inject_worker_message_errors', () => {
             '[] -\n\u001b[2mstack\u001b[22m',
         ]);
     });
+    it('unknown error', () => {
+        deepStrictEqual(inject_worker_message_errors(['[svelte]', 'test', { hello: 'world' }]), [
+            '\u001b[2m[svelte]\u001b[22m',
+            'test',
+            { hello: 'world' },
+        ]);
+    });
 });

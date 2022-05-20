@@ -1,16 +1,16 @@
-import { strictEqual, deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'assert';
 import { existsSync, mkdirSync, rmSync } from 'fs';
 import { describe, it } from 'mocha';
-import { dirname, join, resolve } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
 import { get_config_data } from '../../../src/action/get_config_data.js';
 import { EnvType } from '../../../src/struc/env.js';
 import { Logger } from '../../../src/utils/logger.js';
+import { to_dirname } from '../../../src/utils/to.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 import { Env } from '../../../src/vars/env.js';
 
 describe('action/get_config_data/get_config_data', () => {
-    const __dirname = dirname(resolve(join(fileURLToPath(import.meta.url))));
+    const __dirname = to_dirname(import.meta.url);
     const __root = join(__dirname, '..', '..', '..');
     const __path = join('test', 'action', 'get_config_data', '_tests', 'get_config_data');
     const test_folder = join(__root, __path);

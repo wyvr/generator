@@ -1,11 +1,11 @@
-import { strictEqual, deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'assert';
 import { describe, it } from 'mocha';
 import { collect_i18n } from '../../../src/action/i18n.js';
-import { fileURLToPath } from 'url';
-import { dirname, join, resolve } from 'path';
+import { join } from 'path';
+import { to_dirname } from '../../../src/utils/to.js';
 
 describe('action/i18n/collect_i18n', () => {
-    const __dirname = dirname(resolve(join(fileURLToPath(import.meta.url))));
+    const __dirname = to_dirname(import.meta.url);
 
     it('undefined', () => {
         const result = collect_i18n();

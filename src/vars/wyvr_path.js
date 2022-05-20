@@ -1,10 +1,10 @@
-import { dirname, join, resolve } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
+import { to_dirname } from '../utils/to.js';
 
 export class WyvrPath {
     static get() {
         if (!this.value) {
-            this.value = dirname(resolve(join(fileURLToPath(import.meta.url), '..')));
+            this.value = join(to_dirname(import.meta.url), '..');
         }
         return this.value;
     }

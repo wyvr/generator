@@ -1,3 +1,5 @@
+import { dirname, join, resolve } from 'path';
+import { fileURLToPath } from 'url';
 import { is_object, is_array, is_null, filled_string, is_regex, is_symbol, is_big_int, is_string } from './validate.js';
 
 export function to_string(value) {
@@ -44,4 +46,8 @@ export function to_plain(text) {
         ''
     );
     /* eslint-enable no-control-regex */
+}
+
+export function to_dirname(import_meta_url) {
+    return join(dirname(resolve(join(fileURLToPath(import_meta_url)))));
 }

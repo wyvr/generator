@@ -1,12 +1,11 @@
-import { strictEqual, deepStrictEqual } from 'assert';
+import { strictEqual } from 'assert';
 import { describe, it } from 'mocha';
-import { Cwd } from '../../../src/vars/cwd.js';
 import { copy_folder } from '../../../src/action/copy.js';
-import { fileURLToPath } from 'url';
-import { dirname, join, resolve } from 'path';
+import { join } from 'path';
+import { to_dirname } from '../../../src/utils/to.js';
 
 describe('action/copy/copy_folder', () => {
-    const __dirname = dirname(resolve(join(fileURLToPath(import.meta.url))));
+    const __dirname = to_dirname(import.meta.url);
 
     it('undefined', () => {
         const result = copy_folder();

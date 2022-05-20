@@ -1,15 +1,13 @@
-import { strictEqual, deepStrictEqual } from 'assert';
-import { existsSync, unlinkSync } from 'fs';
+import { strictEqual } from 'assert';
+import { existsSync } from 'fs';
 import { describe, it } from 'mocha';
-import { dirname, join, resolve } from 'path';
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
 import { Storage } from '../../../src/utils/storage.js';
 import { Cwd } from '../../../src/vars/cwd.js';
+import { to_dirname } from '../../../src/utils/to.js';
 
 describe('utils/storage/destroy', () => {
-    const __dirname = dirname(resolve(join(fileURLToPath(import.meta.url))));
+    const __dirname = to_dirname(import.meta.url);
     const __root = join(__dirname, '..', '..', '..');
     const __path = join('test', 'utils', 'storage', '_tests');
 

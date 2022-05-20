@@ -1,14 +1,14 @@
 import { strictEqual, deepStrictEqual } from 'assert';
 import { describe, it } from 'mocha';
-import { dirname, join, resolve } from 'path';
+import { join } from 'path';
 import Sinon from 'sinon';
-import { fileURLToPath } from 'url';
 import { wait_until_idle } from '../../src/action/wait_until_idle.js';
 import { WorkerStatus } from '../../src/struc/worker_status.js';
+import { to_dirname } from '../../src/utils/to.js';
 import { WorkerController } from '../../src/worker/controller.js';
 
 describe('action/wait_until_idle', () => {
-    const __dirname = dirname(resolve(join(fileURLToPath(import.meta.url))));
+    const __dirname = to_dirname(import.meta.url);
     const __root = join(__dirname, '..', '..');
     const __path = join('test', 'action', '_tests', 'present');
     const test_folder = join(__root, __path);

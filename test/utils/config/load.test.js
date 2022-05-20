@@ -1,12 +1,12 @@
 import { deepStrictEqual, strictEqual } from 'assert';
 import { describe, it } from 'mocha';
-import { dirname, join, resolve } from 'path';
+import { join } from 'path';
 import Sinon from 'sinon';
-import { fileURLToPath } from 'url';
 import { Config } from '../../../src/utils/config.js';
+import { to_dirname } from '../../../src/utils/to.js';
 
 describe('utils/config/load', () => {
-    const __dirname = dirname(resolve(join(fileURLToPath(import.meta.url))));
+    const __dirname = to_dirname(import.meta.url);
     let logger_messages = [];
     before(() => {
         Sinon.stub(console, 'error');

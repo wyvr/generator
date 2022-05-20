@@ -1,7 +1,7 @@
-import { dirname, join, resolve } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
 import { ERRORS } from '../constants/errors.js';
 import { is_file, read_json } from '../utils/file.js';
+import { to_dirname } from '../utils/to.js';
 import { Cwd } from '../vars/cwd.js';
 
 export async function check_env() {
@@ -13,7 +13,7 @@ export async function check_env() {
     };
 
     // wyvr root path
-    const __dirname = dirname(resolve(join(fileURLToPath(import.meta.url), '..', '..')));
+    const __dirname = join(to_dirname(import.meta.url), '..', '..');
 
     // check if project is the wyvr root path
     if (Cwd.get() == __dirname) {

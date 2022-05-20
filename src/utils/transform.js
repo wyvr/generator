@@ -1,11 +1,11 @@
-import { dirname, extname, join, resolve } from 'path';
-import { fileURLToPath } from 'url';
+import { extname, join } from 'path';
 import { exists, read, to_extension } from './file.js';
 import { filled_array, filled_string, is_null, is_number, is_string } from './validate.js';
 import { compile_sass, compile_typescript } from './compile.js';
 import { Cwd } from '../vars/cwd.js';
+import { to_dirname } from './to.js';
 
-const __dirname = dirname(resolve(join(fileURLToPath(import.meta.url), '..')));
+const __dirname = join(to_dirname(import.meta.url), '..');
 
 export function replace_import_path(content) {
     if (!filled_string(content)) {

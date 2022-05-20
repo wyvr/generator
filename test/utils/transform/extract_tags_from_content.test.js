@@ -1,12 +1,12 @@
-import { deepStrictEqual, strictEqual } from 'assert';
+import { deepStrictEqual } from 'assert';
 import { describe, it } from 'mocha';
-import { dirname, join, resolve } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
+import { to_dirname } from '../../../src/utils/to.js';
 import { extract_tags_from_content } from '../../../src/utils/transform.js';
 
 describe('utils/transform/extract_tags_from_content', () => {
     const __dirname = join(
-        dirname(resolve(join(fileURLToPath(import.meta.url)))),
+        to_dirname(import.meta.url),
         '_tests',
         'extract_tags_from_content'
     );

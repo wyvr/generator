@@ -1,11 +1,11 @@
-import { deepStrictEqual, strictEqual } from 'assert';
+import { deepStrictEqual } from 'assert';
 import { describe, it } from 'mocha';
-import { dirname, join, resolve } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
 import { Plugin } from '../../../src/utils/plugin.js';
+import { to_dirname } from '../../../src/utils/to.js';
 
 describe('utils/plugin/load', () => {
-    const __dirname = dirname(resolve(join(fileURLToPath(import.meta.url))));
+    const __dirname = to_dirname(import.meta.url);
 
     it('undefined', async () => {
         deepStrictEqual(await Plugin.load(), undefined);

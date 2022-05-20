@@ -1,15 +1,15 @@
-import { strictEqual, deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'assert';
 import { describe, it } from 'mocha';
 import { Cwd } from '../../../src/vars/cwd.js';
 import { collect_packages } from '../../../src/action/package.js';
-import { fileURLToPath } from 'url';
-import { dirname, join, resolve } from 'path';
+import { join } from 'path';
 import { Config } from '../../../src/utils/config.js';
+import { to_dirname } from '../../../src/utils/to.js';
 
 describe('action/package/collect_packages', () => {
     const cwd = Cwd.get();
     const config = Config.get();
-    const __dirname = dirname(resolve(join(fileURLToPath(import.meta.url))));
+    const __dirname = to_dirname(import.meta.url);
 
     afterEach(() => {
         Cwd.set(cwd);

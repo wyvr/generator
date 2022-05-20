@@ -1,12 +1,12 @@
 import { deepStrictEqual, strictEqual, ok } from 'assert';
 import { describe, it } from 'mocha';
-import { dirname, join, resolve } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
 import { extract_error } from '../../../src/utils/error.js';
+import { to_dirname } from '../../../src/utils/to.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 
 describe('utils/error/extract_error', () => {
-    const __dirname = dirname(resolve(join(fileURLToPath(import.meta.url))));
+    const __dirname = to_dirname(import.meta.url);
     const cwd = Cwd.get();
 
     beforeEach(() => {

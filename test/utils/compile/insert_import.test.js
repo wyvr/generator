@@ -1,15 +1,14 @@
 import { deepStrictEqual, strictEqual } from 'assert';
 import { describe, it } from 'mocha';
-import { dirname, join, resolve } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
 import { insert_import } from '../../../src/utils/compile.js';
-import { to_plain } from '../../../src/utils/to.js';
+import { to_dirname, to_plain } from '../../../src/utils/to.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 
 describe('utils/to/insert_import', () => {
     let log = [];
     let console_error;
-    const __dirname = join(dirname(resolve(join(fileURLToPath(import.meta.url)))), '..', 'transform','_tests', 'combine_splits');
+    const __dirname = join(to_dirname(import.meta.url), '..', 'transform','_tests', 'combine_splits');
     beforeEach(() => {
         Cwd.set(__dirname);
         console_error = console.error;

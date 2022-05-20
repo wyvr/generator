@@ -1,11 +1,11 @@
 import { strictEqual } from 'assert';
 import { describe, it } from 'mocha';
-import { dirname, join, resolve } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
+import { to_dirname } from '../../../src/utils/to.js';
 import { replace_import_path } from '../../../src/utils/transform.js';
 
 describe('utils/transform/replace_import_path', () => {
-    const __dirname = dirname(resolve(join(fileURLToPath(import.meta.url), '..', '..', '..')));
+    const __dirname = join(to_dirname(import.meta.url), '..', '..', '..');
 
     it('undefined', () => {
         strictEqual(replace_import_path(), '');

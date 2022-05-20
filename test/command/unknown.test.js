@@ -1,15 +1,15 @@
 import { strictEqual, deepStrictEqual } from 'assert';
 import { existsSync, mkdirSync, rmSync } from 'fs';
 import { describe, it } from 'mocha';
-import { dirname, join, resolve } from 'path';
+import { join } from 'path';
 import Sinon from 'sinon';
-import { fileURLToPath } from 'url';
 import { unknown_command } from '../../src/command/unknown.js';
 import { Logger } from '../../src/utils/logger.js';
+import { to_dirname } from '../../src/utils/to.js';
 import { Cwd } from '../../src/vars/cwd.js';
 
 describe('command/unknown', () => {
-    const __dirname = dirname(resolve(join(fileURLToPath(import.meta.url))));
+    const __dirname = to_dirname(import.meta.url);
     const __root = join(__dirname, '..', '..', '..');
     const __path = join('test', 'command', '_tests', 'unknown_command');
     const test_folder = join(__root, __path);

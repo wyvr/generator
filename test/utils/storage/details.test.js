@@ -1,15 +1,15 @@
-import { strictEqual, deepStrictEqual } from 'assert';
-import { existsSync, unlinkSync } from 'fs';
+import { deepStrictEqual } from 'assert';
+import { unlinkSync } from 'fs';
 import { describe, it } from 'mocha';
-import { dirname, join, resolve } from 'path';
+import { join } from 'path';
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
-import { fileURLToPath } from 'url';
 import { Storage } from '../../../src/utils/storage.js';
 import { Cwd } from '../../../src/vars/cwd.js';
+import { to_dirname } from '../../../src/utils/to.js';
 
 describe('utils/storage/details', () => {
-    const __dirname = dirname(resolve(join(fileURLToPath(import.meta.url))));
+    const __dirname = to_dirname(import.meta.url);
     const __root = join(__dirname, '..', '..', '..');
     const __path = join('test', 'utils', 'storage', '_tests');
     const existing_path = join(__root, __path, 'test_details_existing.db');

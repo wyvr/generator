@@ -1,12 +1,12 @@
 import { deepStrictEqual, strictEqual } from 'assert';
 import { readFileSync } from 'fs';
 import { describe, it } from 'mocha';
-import { dirname, join, resolve } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
+import { to_dirname } from '../../../src/utils/to.js';
 import { combine_splits } from '../../../src/utils/transform.js';
 
 describe('utils/transform/combine_splits', () => {
-    const __dirname = join(dirname(resolve(join(fileURLToPath(import.meta.url)))), '_tests', 'combine_splits');
+    const __dirname = join(to_dirname(import.meta.url), '_tests', 'combine_splits');
 
     it('undefined', async () => {
         deepStrictEqual(await combine_splits(), {

@@ -1,14 +1,13 @@
-import { deepStrictEqual, strictEqual } from 'assert';
-import { readFileSync } from 'fs';
+import { deepStrictEqual } from 'assert';
 import { describe, it } from 'mocha';
-import { dirname, join, resolve } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
 import { read } from '../../../src/utils/file.js';
+import { to_dirname } from '../../../src/utils/to.js';
 import { extract_and_load_split } from '../../../src/utils/transform.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 
 describe('utils/transform/extract_and_load_split', () => {
-    const __dirname = join(dirname(resolve(join(fileURLToPath(import.meta.url)))), '_tests', 'combine_splits');
+    const __dirname = join(to_dirname(import.meta.url), '_tests', 'combine_splits');
     before(() => {
         Cwd.set(__dirname);
     });

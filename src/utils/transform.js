@@ -181,3 +181,21 @@ export async function extract_and_load_split(path, content, tag, extensions) {
 
     return result;
 }
+
+export function replace_wyvr_magic(content, as_client) {
+    if (!filled_string(content)) {
+        return '';
+    }
+    // modify __ => translation
+    if (as_client) {
+        content = content.replace(/(\W)__\(/g, '$1window.__(');
+    }
+    const is_server = as_client ? 'false' : 'true';
+    const is_client = as_client ? 'true' : 'false';
+    // replace isServer and isClient and the imports
+    return content
+        .replace(/([^\w])isServer([^\w])/g, `$1${is_server}$2`)
+        .replace(/([^\w])isClient([^\w])/g, `$1${is_client}$2`)
+        .replace(/import \{[^}]*?\} from ["']@wyvr\/generator["'];?/g, '')
+        .replace(/(?:const|let)[^=]*?= require\(["']@wyvr\/generator["']\);?/g, '');
+}

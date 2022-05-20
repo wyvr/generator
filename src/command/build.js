@@ -35,7 +35,7 @@ export const build_command = async (config) => {
     // execution can end here when environment is not correct
     env_report(check_env_report);
     terminate(!check_env_report || !check_env_report.success);
-    
+
     const build_id = UniqId.get();
     UniqId.set(build_id);
     const config_data = get_config_data(config, build_id);
@@ -55,11 +55,12 @@ export const build_command = async (config) => {
     package_report(available_packages, disabled_packages);
 
     // set worker ratio
-    WorkerController.set_worker_ratio(Config.get('worker.ratio', 0));
-    Logger.present('worker', WorkerController.get_worker_amount(), Logger.color.dim(`of ${cpus().length} threads`));
+    WorkerController.set_worker_ratio(Config.get('worker.ratio', 1));
 
     // Create the workers for the processing
-    WorkerController.create_workers(WorkerController.get_worker_amount());
+    const worker_amount = WorkerController.get_worker_amount_from_ratio();
+    Logger.present('worker', worker_amount, Logger.color.dim(`of ${cpus().length} threads`));
+    WorkerController.create_workers(worker_amount);
 
     //  Initialize Plugins
     const plugin_files = await Plugin.load(FOLDER_GEN_PLUGINS);

@@ -138,7 +138,10 @@ export async function extract_and_load_split(path, content, tag, extensions) {
         await Promise.all(
             extracted.tags.map(async (code) => {
                 const contains_sass =
-                    (code.indexOf('type="text/scss"') > -1 || code.indexOf('lang="sass"') > -1) && tag == 'style';
+                    (code.indexOf('type="text/scss"') > -1 ||
+                        code.indexOf('lang="scss"') > -1 ||
+                        code.indexOf('lang="sass"') > -1) &&
+                    tag == 'style';
                 const contains_typescript = code.indexOf('lang="ts"') > -1 && tag == 'script';
                 code = code.replace(new RegExp(`^<${tag}[^>]*>`), '').replace(new RegExp(`<\\/${tag}>$`), '');
                 if (contains_sass) {

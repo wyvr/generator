@@ -35,7 +35,7 @@ describe('utils/to/insert_import', () => {
     it('import absolute path', async () => {
         strictEqual(
             await insert_import(
-                `@import '${process.cwd()}/test/utils/transform/_tests/combine_splits/gen/src/_test.scss';\n\n    code {\n        display: block;\n    }\n    button {\n        @include button();\n    }\n`
+                `@import '@src/_test.scss';\n\n    code {\n        display: block;\n    }\n    button {\n        @include button();\n    }\n`
             ),
             `a {
     color: red;
@@ -57,7 +57,7 @@ $primary-color: #7c5ed0;
     it('non existing file', async () => {
         strictEqual(
             await insert_import(
-                `@import '${process.cwd()}/nonexisting';\n\n    code {\n        display: block;\n    }`
+                `@import '@src/nonexisting';\n\n    code {\n        display: block;\n    }`
             ),
             '\n\n    code {\n        display: block;\n    }'
         );
@@ -65,7 +65,7 @@ $primary-color: #7c5ed0;
             [
                 '⚠',
                 '@import\n' +
-                    "[] can not import /home/p/wyvr/generator/_nonexisting.scss into undefined, maybe the file doesn't exist\n" +
+                    `[] can not import ${__dirname}/gen/src/_nonexisting.scss into undefined, maybe the file doesn't exist\n` +
                     'stack',
             ],
         ]);

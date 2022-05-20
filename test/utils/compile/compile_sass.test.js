@@ -79,6 +79,17 @@ describe('utils/to/compile_sass', () => {
         );
         deepStrictEqual(log, []);
     });
+    it('import empty file', async () => {
+        strictEqual(
+            await compile_sass(
+                "@import '/home/p/wyvr/generator/test/utils/transform/_tests/combine_splits/gen/src/_empty.scss';.a { color: red; }"
+            ),
+            '.a {\n' +
+                '  color: red;\n' +
+                '}'
+        );
+        deepStrictEqual(log, []);
+    });
     it('error without filename', async () => {
         strictEqual(await compile_sass('.a {color:$color;}'), undefined);
         deepStrictEqual(log, [

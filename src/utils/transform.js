@@ -1,10 +1,9 @@
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { exists, read, to_extension } from './file.js';
-import { filled_array, filled_string, is_null, is_number } from './validate.js';
-import sass from 'sass';
-import { Logger } from './logger.js';
-import { get_error_message } from './error.js';
+import { filled_array, filled_string, is_null, is_number, is_string } from './validate.js';
+import { compile_sass, compile_typescript } from './compile.js';
+import { Cwd } from '../vars/cwd.js';
 
 const __dirname = dirname(resolve(join(fileURLToPath(import.meta.url), '..')));
 
@@ -13,6 +12,36 @@ export function replace_import_path(content) {
         return '';
     }
     return content.replace(/(import .*? from ')@lib/g, '$1' + __dirname);
+}
+/**
+ * Replace the @src imports with the given to path
+ * @param content source code with @src imports
+ * @param to path to the src folder, relative to the cwd
+ * @param extension the extension of the content, svelte files has to be handelt different
+ * @returns the source code ith the replaced @src imports
+ */
+export function replace_src_path(content, to, extension) {
+    if (!filled_string(content)) {
+        return undefined;
+    }
+    if (!filled_string(to)) {
+        return content;
+    }
+    const search = /(['"])@src\//g;
+    const replace = `$1${Cwd.get()}/${to.replace('^/', '').replace(/\/$/, '')}/`;
+    // everything except svelte files
+    if (!is_string(extension) || is_null(extension.match(/svelte$/))) {
+        return content.replace(search, replace);
+    }
+    const extracted_script = extract_tags_from_content(content, 'script', 1);
+    extracted_script.tags = extracted_script.tags.map((script) => script.replace(search, replace));
+    content = extracted_script.tags.join('') + extracted_script.content;
+
+    const extracted_style = extract_tags_from_content(content, 'style', 1);
+    extracted_style.tags = extracted_style.tags.map((script) => script.replace(search, replace));
+    content = extracted_style.content + extracted_style.tags.join('');
+
+    return content;
 }
 
 export async function combine_splits(path, content) {
@@ -105,8 +134,21 @@ export async function extract_and_load_split(path, content, tag, extensions) {
     }
     const extracted = extract_tags_from_content(content, tag);
     result.content = extracted.content;
-    result.tags = extracted.tags.map((code) =>
-        code.replace(new RegExp(`^<${tag}[^>]*>`), '').replace(new RegExp(`<\\/${tag}>$`), '')
+    result.tags = await Promise.all(
+        extracted.tags.map(async (code) => {
+            const contains_sass =
+                (code.indexOf('type="text/scss"') > -1 || code.indexOf('lang="sass"') > -1) && tag == 'style';
+            const contains_typescript =
+                (code.indexOf('lang="ts"') > -1) && tag == 'script';
+            code = code.replace(new RegExp(`^<${tag}[^>]*>`), '').replace(new RegExp(`<\\/${tag}>$`), '');
+            if (contains_sass) {
+                code = await compile_sass(code, path);
+            }
+            if (contains_typescript) {
+                code = await compile_typescript(code, path);
+            }
+            return code;
+        })
     );
 
     if (!filled_array(extensions)) {
@@ -120,15 +162,11 @@ export async function extract_and_load_split(path, content, tag, extensions) {
             let loaded_content = read(loaded_file);
             switch (ext) {
                 case 'scss': {
-                    try {
-                        const compiled_sass = sass.compileString(loaded_content);
-                        if (compiled_sass && compiled_sass.css) {
-                            loaded_content = compiled_sass.css;
-                        }
-                    } catch (e) {
-                        Logger.error(get_error_message(e, loaded_file, 'sass'));
-                        loaded_content = undefined;
-                    }
+                    loaded_content = await compile_sass(loaded_content, loaded_file);
+                    break;
+                }
+                case 'ts': {
+                    loaded_content = await compile_typescript(loaded_content, loaded_file);
                     break;
                 }
             }
@@ -138,34 +176,37 @@ export async function extract_and_load_split(path, content, tag, extensions) {
     }
 
     return result;
+}
+
+export async function preprocess_content(content) {
     /*
-    const css = to_extension(path, 'css');
-    if (exists(css)) {
-        const css_content = read(css);
-        const css_result = extract_tags_from_content(content, 'style');
-        content = `${css_result.content}<style>${css_content}${css_result.tags
-            .map((tag) => tag.replace(/^<style[^>]*>/, '').replace(/<\/style>$/, ''))
-            .join('\n')}</style>`;
-        result.css = css;
-    } else {
-        // load scss
-        const scss = to_extension(path, 'scss');
-        if (exists(scss)) {
-            let scss_content = '';
-            try {
-                scss_content = read(scss);
-                const compiled_sass = sass.compileString(scss_content);
-                if(compiled_sass && compiled_sass.css) {
-                    scss_content = compiled_sass.css;
-                }
-            } catch (e) {
-                Logger.error(get_error_message(e, scss, 'sass'));
-            }
-            const scss_result = extract_tags_from_content(content, 'style');
-            content = `${scss_result.content}<style>${scss_content}${scss_result.tags
-                .map((tag) => tag.replace(/^<style[^>]*>/, '').replace(/<\/style>$/, ''))
-                .join('\n')}</style>`;
-            result.css = scss;
+    if (!content || typeof content != 'string') {
+        return [null, ''];
+    }
+    const style_result = Transform.extract_tags_from_content(content, 'style');
+    if (
+        style_result &&
+        style_result.result &&
+        style_result.result.some((entry) => entry.indexOf('type="text/scss"') > -1 || entry.indexOf('lang="sass"') > -1)
+    ) {
+        let sass_result = null;
+        try {
+            sass_result = sass.renderSync({
+                data: style_result.result
+                    .map((entry) => {
+                        const raw = entry.replace(/<style[^>]*>/g, '').replace(/<\/style>/g, '');
+                        return this.src_import_path(raw, 'gen/raw', '.css');
+                    })
+                    .join('\n'),
+            });
+        } catch (e) {
+            return [Error.get(e, e.file, 'sass'), content];
         }
-    }*/
+        if (sass_result) {
+            return [null, `${style_result.content}<style>${sass_result.css.toString()}</style>`];
+        }
+    }
+
+    return [null, content];
+    */
 }

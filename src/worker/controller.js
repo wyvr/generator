@@ -36,7 +36,7 @@ export class WorkerController {
         }
         this.worker_ratio = ratio;
     }
-    static get_worker_amount() {
+    static get_worker_amount_from_ratio() {
         if (this.worker_amount) {
             return this.worker_amount;
         }
@@ -55,6 +55,10 @@ export class WorkerController {
         // store the value
         this.max_cores = max_cores;
         return max_cores;
+    }
+    static get_worker_amount() {
+        const amount = this.get_worker_amount_from_ratio();
+        return amount;
     }
     static create(fork_fn) {
         const worker = Worker(fork_fn);

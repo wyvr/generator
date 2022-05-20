@@ -1,5 +1,7 @@
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
+import { FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC } from '../constants/folder.js';
+import { Cwd } from '../vars/cwd.js';
 import { is_object, is_array, is_null, filled_string, is_regex, is_symbol, is_big_int, is_string } from './validate.js';
 
 export function to_string(value) {
@@ -50,4 +52,25 @@ export function to_plain(text) {
 
 export function to_dirname(import_meta_url) {
     return join(dirname(resolve(join(fileURLToPath(import_meta_url)))));
+}
+function replace_path(path, replace_with) {
+    if(!filled_string(path) || !filled_string(replace_with)) {
+        return '';
+    }
+    // replace src with server folder
+    if(path.indexOf(FOLDER_GEN_SRC) > -1) {
+        return path.replace(FOLDER_GEN_SRC, replace_with);
+    }
+    // check if the cwd is inside the path
+    const cwd = Cwd.get();
+    if(path.indexOf(cwd) > -1) {
+        return path.replace(cwd, join(cwd, replace_with));
+    }
+    return path;
+}
+export function to_server_path(path) {
+    return replace_path(path, FOLDER_GEN_SERVER);
+}
+export function to_client_path(path) {
+    return replace_path(path, FOLDER_GEN_CLIENT);
 }

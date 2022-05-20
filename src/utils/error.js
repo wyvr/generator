@@ -44,6 +44,10 @@ export function extract_error(e, source) {
                 if(entry.indexOf('│') > -1 || entry.indexOf('╷') > -1 || entry.indexOf('╵') > -1) {
                     return entry;
                 }
+                // ts errors can contain "<stdin>" at the beginning add them too
+                if(entry.indexOf('<stdin>:') > -1) {
+                    return entry.replace(/^<stdin>:/, '');
+                }
 
                 return null;
             })

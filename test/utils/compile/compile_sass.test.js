@@ -9,6 +9,7 @@ import { Cwd } from '../../../src/vars/cwd.js';
 describe('utils/to/compile_sass', () => {
     let log = [];
     let console_error;
+    const cwd = process.cwd();
     const __dirname = join(
         dirname(resolve(join(fileURLToPath(import.meta.url)))),
         '..',
@@ -59,7 +60,9 @@ describe('utils/to/compile_sass', () => {
     it('import absolute path', async () => {
         strictEqual(
             await compile_sass(
-                "\n    @import '/home/p/wyvr/generator/test/utils/transform/_tests/combine_splits/gen/src/_test.scss';\n\n    code {\n        display: block;\n    }\n    button {\n        @include button();\n    }\n"
+                "\n    @import '" +
+                    cwd +
+                    "/test/utils/transform/_tests/combine_splits/gen/src/_test.scss';\n\n    code {\n        display: block;\n    }\n    button {\n        @include button();\n    }\n"
             ),
             'a {\n' +
                 '  color: red;\n' +
@@ -82,11 +85,11 @@ describe('utils/to/compile_sass', () => {
     it('import empty file', async () => {
         strictEqual(
             await compile_sass(
-                "@import '/home/p/wyvr/generator/test/utils/transform/_tests/combine_splits/gen/src/_empty.scss';.a { color: red; }"
+                "@import '" +
+                    cwd +
+                    "/test/utils/transform/_tests/combine_splits/gen/src/_empty.scss';.a { color: red; }"
             ),
-            '.a {\n' +
-                '  color: red;\n' +
-                '}'
+            '.a {\n' + '  color: red;\n' + '}'
         );
         deepStrictEqual(log, []);
     });

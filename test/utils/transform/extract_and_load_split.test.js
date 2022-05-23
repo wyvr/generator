@@ -73,6 +73,47 @@ describe('utils/transform/extract_and_load_split', () => {
 `,
         });
     });
+    it('replace @src in content', async () => {
+        const path = join(__dirname, 'empty.svelte');
+        deepStrictEqual(
+            await extract_and_load_split(path, 'test<style>@import "@src/link";.b {color:blue;}</style>', 'style', [
+                'css',
+                'scss',
+            ]),
+            {
+                content: 'test',
+                loaded_content: '.empty {\n    color: red;\n}\n',
+                loaded_file: '/home/patrick/wyvr/generator/test/utils/transform/_tests/combine_splits/empty.css',
+                path,
+                tag: 'style',
+                tags: [
+                    '@import "/home/patrick/wyvr/generator/test/utils/transform/_tests/combine_splits/gen/src/link";.b {color:blue;}',
+                ],
+            }
+        );
+    });
+    it('replace @src in content without path', async () => {
+        const path = join(__dirname, 'empty.svelte');
+        deepStrictEqual(
+            await extract_and_load_split(
+                undefined,
+                'test<style>@import "@src/link";.b {color:blue;}</style>',
+                'style',
+                ['css', 'scss']
+            ),
+            {
+                loaded_content: undefined,
+                loaded_file: undefined,
+                path: undefined,
+
+                content: 'test',
+                tag: 'style',
+                tags: [
+                    '@import "/home/patrick/wyvr/generator/test/utils/transform/_tests/combine_splits/gen/src/link";.b {color:blue;}',
+                ],
+            }
+        );
+    });
     it('compile SASS', async () => {
         const path = join(__dirname, 'scss.svelte');
 

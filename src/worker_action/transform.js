@@ -1,5 +1,6 @@
 // import { Config } from '../utils/config.js';
 import { extname } from 'path';
+import { insert_import } from '../utils/compile.js';
 import { read, remove, write } from '../utils/file.js';
 // import { Logger } from '../utils/logger.js';
 import { combine_splits } from '../utils/transform.js';
@@ -28,6 +29,11 @@ export async function transform(files) {
             remove(combined.js);
             // override the content
             write(file, content);
+            continue;
+        }
+        // replace import in text files
+        if (['.js', '.ts', '.css', '.scss'].indexOf(extension) > -1) {
+            write(file, insert_import(content, file));
         }
     }
     // await new Promise(r => setTimeout(r, 2000));

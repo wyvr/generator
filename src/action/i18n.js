@@ -4,6 +4,13 @@ import { collect_files, read_json, write_json } from '../utils/file.js';
 import { filled_array, filled_string } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 
+export function i18n(available_packages) {
+    const i18n = collect_i18n(available_packages);
+    Object.keys(i18n).forEach((language) => {
+        write_language(language, i18n[language]);
+    });
+}
+
 export function collect_i18n(packages) {
     if (!filled_array(packages)) {
         return {};

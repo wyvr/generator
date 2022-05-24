@@ -3,7 +3,7 @@ import { join } from 'path';
 import { check_env } from '../action/check_env.js';
 import { copy_files, copy_folder } from '../action/copy.js';
 import { get_config_data } from '../action/get_config_data.js';
-import { collect_i18n, write_language } from '../action/i18n.js';
+import { i18n } from '../action/i18n.js';
 import { collect_packages } from '../action/package.js';
 import { present } from '../action/present.js';
 import { transform } from '../action/transform.js';
@@ -90,10 +90,7 @@ export const build_command = async (config) => {
     copy_files(assets, join(Cwd.get(), FOLDER_GEN_ASSETS));
 
     //  Create Translations/I18N
-    const i18n = collect_i18n(available_packages);
-    Object.keys(i18n).forEach((language) => {
-        write_language(language, i18n[language]);
-    });
+    i18n(available_packages);
 
     //  Transform Svelte files to client and server components
     await transform();

@@ -1,5 +1,6 @@
 import sass from 'sass';
 import esbuild from 'esbuild';
+import { marked } from 'marked';
 import { get_error_message } from './error.js';
 import { Logger } from './logger.js';
 import { filled_string, is_null } from './validate.js';
@@ -25,7 +26,7 @@ export function insert_import(content, file) {
             const try_file = splits.pop();
             path = `${splits.join(sep)}${sep}_${try_file}.scss`;
         }
-        if(!exists(path)) {
+        if (!exists(path)) {
             Logger.warning(
                 get_error_message(
                     { message: `can not import ${path} into ${file}, maybe the file doesn't exist` },
@@ -36,12 +37,12 @@ export function insert_import(content, file) {
             return '';
         }
         let import_content = read(path);
-        
+
         if (is_null(import_content)) {
             return '';
         }
         // handle deep importing
-        if(import_content.indexOf('@import') > -1) {
+        if (import_content.indexOf('@import') > -1) {
             return insert_import(import_content, path);
         }
         return import_content;
@@ -58,10 +59,6 @@ export async function compile_sass(code, file) {
         }
         return undefined;
     } catch (e) {
-        if (!filled_string(file)) {
-            Logger.error(get_error_message(e, undefined, 'sass'));
-            return undefined;
-        }
         Logger.error(get_error_message(e, file, 'sass'));
         return undefined;
     }
@@ -80,10 +77,24 @@ export async function compile_typescript(code, file) {
 
         return undefined;
     } catch (e) {
-        if (!filled_string(file)) {
-            Logger.error(get_error_message(e, undefined, 'typescript'));
-            return undefined;
-        }
+        Logger.error(get_error_message(e, file, 'typescript'));
+        return undefined;
+    }
+}
+export function compile_markdown(code, file) {
+    if (!filled_string(code)) {
+        return undefined;
+    }
+    try {
+        return marked(code, {
+            breaks: false,
+        }).replace(/<code[^>]*>[\s\S]*?<\/code>/g, (match) => {
+            // replace svelte placeholder inside code blocks
+            const replaced = match.replace(/\{/g, '&lbrace;').replace(/\}/g, '&rbrace;');
+            return replaced;
+        });
+    } catch
+     (e) {
         Logger.error(get_error_message(e, file, 'typescript'));
         return undefined;
     }

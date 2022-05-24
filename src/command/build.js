@@ -71,6 +71,7 @@ export const build_command = async (config) => {
 
     //  Copy static files from packages
     //  Copy files from packages and override in the package order
+    //  Build Tree of files and packages
     const package_tree = {};
     available_packages.forEach((pkg) => {
         copy_folder(pkg.path, FOLDER_LIST_PACKAGE_COPY, join(Cwd.get(), FOLDER_GEN), (file, target) => {
@@ -95,11 +96,7 @@ export const build_command = async (config) => {
     //  Transform Svelte files to client and server components
     await transform();
 
-    // @TODO
-    //  Build Tree of files and packages
-    // @TODO
-
-    //  Execute Routes
+     //  Execute Routes
     // @TODO
     //  Build Pages
     // @TODO

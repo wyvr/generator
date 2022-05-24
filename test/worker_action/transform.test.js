@@ -35,7 +35,9 @@ describe('worker_action/transform', () => {
             await transform([join(path, '_simple', 'svelte.svelte'), join(path, '_simple', 'nonexisting.svelte')]),
             true
         );
-        strictEqual(read(join(path, '_simple', 'svelte.svelte')), `<script>
+        strictEqual(
+            read(join(path, '_simple', 'svelte.svelte')),
+            `<script>
     let a = 'test';
 function test(a) {
     return '#' + a;
@@ -51,6 +53,8 @@ function test(a) {
     p {
         color: red;
     }
-</style>`);
+</style>`
+        );
+        remove(join(path, '_simple'));
     });
 });

@@ -82,11 +82,11 @@ describe('utils/transform/extract_and_load_split', () => {
             {
                 content: 'test',
                 loaded_content: '.empty {\n    color: red;\n}\n',
-                loaded_file: '/home/patrick/wyvr/generator/test/utils/transform/_tests/combine_splits/empty.css',
+                loaded_file: cwd + '/test/utils/transform/_tests/combine_splits/empty.css',
                 path,
                 tag: 'style',
                 tags: [
-                    '@import "/home/patrick/wyvr/generator/test/utils/transform/_tests/combine_splits/gen/src/link";.b {color:blue;}',
+                    '@import "' + cwd + '/test/utils/transform/_tests/combine_splits/gen/src/link";.b {color:blue;}',
                 ],
             }
         );
@@ -108,7 +108,7 @@ describe('utils/transform/extract_and_load_split', () => {
                 content: 'test',
                 tag: 'style',
                 tags: [
-                    '@import "/home/patrick/wyvr/generator/test/utils/transform/_tests/combine_splits/gen/src/link";.b {color:blue;}',
+                    '@import "' + cwd + '/test/utils/transform/_tests/combine_splits/gen/src/link";.b {color:blue;}',
                 ],
             }
         );

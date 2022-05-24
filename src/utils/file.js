@@ -7,6 +7,7 @@ import {
     writeFileSync,
     copyFileSync,
     rmSync,
+    symlinkSync,
 } from 'fs';
 import { extname, dirname, join } from 'path';
 import circular from 'circular';
@@ -314,19 +315,19 @@ export function remove(file) {
     return true;
 }
 
-// export function symlink(from, to) {
-//     if (filled_string(from) && filled_string(to) && existsSync(from)) {
-//         try {
-//             create_dir(to);
-//             symlinkSync(to, from);
-//         } catch (e) {
-//             Logger.error('symlink', from, to, e);
-//             return false;
-//         }
-//         return true;
-//     }
-//     return false;
-// }
+export function symlink(from, to) {
+    if (filled_string(from) && filled_string(to) && existsSync(from)) {
+        try {
+            create_dir(to);
+            symlinkSync(join(Cwd.get(), from), join(Cwd.get(), to));
+        } catch (e) {
+            Logger.error('symlink', from, to, e);
+            return false;
+        }
+        return true;
+    }
+    return false;
+}
 
 export function copy(from, to) {
     if (filled_string(from) && filled_string(to) && existsSync(from)) {

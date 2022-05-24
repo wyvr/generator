@@ -1,9 +1,11 @@
 import { strictEqual, deepStrictEqual } from 'assert';
 import { describe, it } from 'mocha';
-import { symlink } from '../../../src/utils/file.js';
+import { remove, symlink } from '../../../src/utils/file.js';
 import { v4 } from 'uuid';
 import { dirname, join } from 'path';
 import { existsSync, rmSync, unlinkSync, writeFileSync } from 'fs';
+import { to_plain } from '../../../src/utils/to.js';
+import { Cwd } from '../../../src/vars/cwd.js';
 
 describe('utils/file/symlink', () => {
     let log, err;
@@ -14,16 +16,18 @@ describe('utils/file/symlink', () => {
         warning: [],
         error: [],
     };
+    const cwd = process.cwd();
 
     before(() => {
+        Cwd.set(cwd);
         // runs once before the first test in this block
         log = console.log;
         console.log = (...args) => {
-            result.push(args);
+            result.push(args.map(to_plain));
         };
         err = console.error;
         console.error = (...args) => {
-            result.push(args);
+            result.push(args.map(to_plain));
         };
     });
     afterEach(() => {
@@ -33,6 +37,7 @@ describe('utils/file/symlink', () => {
         // runs once after the last test in this block
         console.log = log;
         console.error = err;
+        Cwd.set(undefined);
     });
     it('undefined', () => {
         strictEqual(symlink(), false);
@@ -41,20 +46,22 @@ describe('utils/file/symlink', () => {
         strictEqual(symlink('test/utils/file/_tests/nonexists.txt', 'sym_1.txt'), false);
     });
     it('symlink', () => {
-        const sym_result = symlink('test/utils/file/_tests/text.txt', 'sym_2.txt');
-        if(existsSync('test/utils/file/_tests/sym_2.txt')) {
-            unlinkSync('test/utils/file/_tests/sym_2.txt');
-        }
+        const file = 'test/utils/file/_tests/sym_2.txt';
+        remove(file);
+        strictEqual(symlink('test/utils/file/_tests/text.txt', file), true);
+        remove(file);
         deepStrictEqual(result, []);
-        strictEqual(sym_result, true);
-
     });
     it('target not writeable', () => {
         strictEqual(symlink('test/utils/file/_tests/empty.txt', 'not_writeable.txt'), false);
         deepStrictEqual(result, [
             [
-                '\x1B[31m✖\x1B[39m',
-                '\x1B[31msymlink test/utils/file/_tests/empty.txt test/utils/file/_tests/not_writeable.txt {"errno":-17,"syscall":"symlink","code":"EEXIST","path":"test/utils/file/_tests/not_writeable.txt","dest":"test/utils/file/_tests/empty.txt"}\x1B[39m',
+                '✖',
+                'symlink test/utils/file/_tests/empty.txt not_writeable.txt {"errno":-17,"syscall":"symlink","code":"EEXIST","path":"' +
+                    cwd +
+                    '/test/utils/file/_tests/empty.txt","dest":"' +
+                    cwd +
+                    '/not_writeable.txt"}',
             ],
         ]);
     });

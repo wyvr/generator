@@ -1,7 +1,7 @@
 // import { Config } from '../utils/config.js';
 import { extname } from 'path';
 import { insert_import } from '../utils/compile.js';
-import { read, remove, write } from '../utils/file.js';
+import { read, symlink, write } from '../utils/file.js';
 import { to_client_path, to_server_path } from '../utils/to.js';
 // import { Logger } from '../utils/logger.js';
 import { combine_splits, replace_wyvr_magic } from '../utils/transform.js';
@@ -20,31 +20,34 @@ export async function transform(files) {
     }
     for (const file of files) {
         const extension = extname(file);
-        let content = read(file);
+        const server_file = to_server_path(file);
+        const client_file = to_client_path(file);
         if (extension == '.svelte') {
+            let content = read(file);
             const combined = await combine_splits(file, content);
             if (filled_string(combined.content)) {
                 content = combined.content;
             }
-            remove(combined.css);
-            remove(combined.js);
-
+            
             // override the content
             write(file, content);
-
+            
             // generate server file
-            write(to_server_path(file), replace_wyvr_magic(content, false));
-
+            write(server_file, replace_wyvr_magic(content, false));
+            
             // generate client file
-            write(to_client_path(file), replace_wyvr_magic(content, true));
-
+            write(client_file, replace_wyvr_magic(content, true));
+            
             continue;
         }
         // replace import in text files
         if (['.js', '.ts', '.css', '.scss'].indexOf(extension) > -1) {
-            write(file, insert_import(content, file));
+            const expanded_content = insert_import(read(file), file);
+            write(file, expanded_content);
         }
-        // static files
+        // link static files
+        symlink(file, server_file);
+        symlink(file, client_file);
     }
     // await new Promise(r => setTimeout(r, 2000));
     return true;

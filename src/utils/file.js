@@ -288,8 +288,18 @@ export function is_file(path) {
     if (!exists(path)) {
         return false;
     }
-    const stat = statSync(path);
-    return !stat.isDirectory();
+    return !is_dir(path);
+}
+/**
+ * check if a given path is a directory
+ * @param path path to a directory
+ * @returns
+ */
+export function is_dir(path) {
+    if (!exists(path)) {
+        return false;
+    }
+    return statSync(path).isDirectory();
 }
 
 export function get_folder(folder) {

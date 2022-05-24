@@ -319,7 +319,7 @@ export function symlink(from, to) {
     if (filled_string(from) && filled_string(to) && existsSync(from)) {
         try {
             create_dir(to);
-            symlinkSync(join(Cwd.get(), from), join(Cwd.get(), to));
+            symlinkSync(from, to);
         } catch (e) {
             Logger.error('symlink', from, to, e);
             return false;

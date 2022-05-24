@@ -43,21 +43,25 @@ describe('utils/file/symlink', () => {
         strictEqual(symlink(), false);
     });
     it('non existing', () => {
-        strictEqual(symlink('test/utils/file/_tests/nonexists.txt', 'sym_1.txt'), false);
+        strictEqual(symlink(cwd + '/test/utils/file/_tests/nonexists.txt', cwd + '/sym_1.txt'), false);
     });
     it('symlink', () => {
-        const file = 'test/utils/file/_tests/sym_2.txt';
+        const file = cwd + '/test/utils/file/_tests/sym_2.txt';
         remove(file);
-        strictEqual(symlink('test/utils/file/_tests/text.txt', file), true);
+        strictEqual(symlink(cwd + '/test/utils/file/_tests/text.txt', file), true);
         remove(file);
         deepStrictEqual(result, []);
     });
     it('target not writeable', () => {
-        strictEqual(symlink('test/utils/file/_tests/empty.txt', 'not_writeable.txt'), false);
+        strictEqual(symlink(cwd + '/test/utils/file/_tests/empty.txt', cwd + '/not_writeable.txt'), false);
         deepStrictEqual(result, [
             [
                 '✖',
-                'symlink test/utils/file/_tests/empty.txt not_writeable.txt {"errno":-17,"syscall":"symlink","code":"EEXIST","path":"' +
+                'symlink ' +
+                    cwd +
+                    '/test/utils/file/_tests/empty.txt ' +
+                    cwd +
+                    '/not_writeable.txt {"errno":-17,"syscall":"symlink","code":"EEXIST","path":"' +
                     cwd +
                     '/test/utils/file/_tests/empty.txt","dest":"' +
                     cwd +

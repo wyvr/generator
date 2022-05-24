@@ -53,19 +53,14 @@ describe('utils/file/symlink', () => {
         deepStrictEqual(result, []);
     });
     it('target not writeable', () => {
-        strictEqual(symlink(cwd + '/test/utils/file/_tests/empty.txt', cwd + '/not_writeable.txt'), false);
+        strictEqual(symlink(cwd + '/test/utils/file/_tests/symlink_content.txt', cwd + '/test/utils/file/_tests/not_writeable.txt'), false);
         deepStrictEqual(result, [
             [
                 '✖',
                 'symlink ' +
                     cwd +
-                    '/test/utils/file/_tests/empty.txt ' +
-                    cwd +
-                    '/not_writeable.txt {"errno":-17,"syscall":"symlink","code":"EEXIST","path":"' +
-                    cwd +
-                    '/test/utils/file/_tests/empty.txt","dest":"' +
-                    cwd +
-                    '/not_writeable.txt"}',
+                    '/test/utils/file/_tests/symlink_content.txt ' +
+                    cwd + '/test/utils/file/_tests/not_writeable.txt to is a regular file no symlink',
             ],
         ]);
     });

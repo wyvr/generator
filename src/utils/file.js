@@ -317,14 +317,24 @@ export function remove(file) {
 
 export function symlink(from, to) {
     if (filled_string(from) && filled_string(to) && existsSync(from)) {
+        /* c8 ignore start */
         try {
             create_dir(to);
+            if (exists(to)) {
+                const is_symlink = statSync(to).isSymbolicLink();
+                if (!is_symlink) {
+                    Logger.error('symlink', from, to, 'to is a regular file no symlink');
+                    return false;
+                }
+                remove(to);
+            }
             symlinkSync(from, to);
         } catch (e) {
             Logger.error('symlink', from, to, e);
             return false;
         }
         return true;
+        /* c8 ignore stop */
     }
     return false;
 }

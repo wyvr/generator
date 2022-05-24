@@ -49,6 +49,5 @@ export async function transform(files) {
         symlink(file, server_file);
         symlink(file, client_file);
     }
-    // await new Promise(r => setTimeout(r, 2000));
     return true;
 }

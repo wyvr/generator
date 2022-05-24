@@ -3,11 +3,13 @@ import { describe, it } from 'mocha';
 import Sinon from 'sinon';
 import { Plugin } from '../../../src/utils/plugin.js';
 import { to_dirname } from '../../../src/utils/to.js';
+import { Cwd } from '../../../src/vars/cwd.js';
 
 describe('utils/plugin/execute', () => {
     const __dirname = to_dirname(import.meta.url);
     let logger_messages = [];
     before(() => {
+        Cwd.set(process.cwd());
         Sinon.stub(console, 'error');
         console.error.callsFake((...msg) => {
             logger_messages.push(msg);
@@ -19,6 +21,7 @@ describe('utils/plugin/execute', () => {
     });
     after(() => {
         console.error.restore();
+        Cwd.set(undefined);
     });
     it('undefined', async () => {
         const plugin = await Plugin.execute();

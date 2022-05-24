@@ -2,6 +2,7 @@ import { deepStrictEqual, ok } from 'assert';
 import { describe, it } from 'mocha';
 import { Plugin } from '../../../src/utils/plugin.js';
 import { to_dirname } from '../../../src/utils/to.js';
+import { Cwd } from '../../../src/vars/cwd.js';
 
 describe('utils/plugin/generate', () => {
     const __dirname = to_dirname(import.meta.url);
@@ -9,6 +10,7 @@ describe('utils/plugin/generate', () => {
     let result = [];
 
     before(() => {
+        Cwd.set(process.cwd());
         // runs once before the first test in this block
         log = console.log;
         console.log = (...args) => {
@@ -27,6 +29,7 @@ describe('utils/plugin/generate', () => {
         // runs once after the last test in this block
         console.log = log;
         console.error = err;
+        Cwd.set(undefined);
     });
     it('undefined', async () => {
         deepStrictEqual(await Plugin.generate(), undefined);

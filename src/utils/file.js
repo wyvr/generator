@@ -8,6 +8,7 @@ import {
     copyFileSync,
     rmSync,
     symlinkSync,
+    lstatSync,
 } from 'fs';
 import { extname, dirname, join } from 'path';
 import circular from 'circular';
@@ -321,7 +322,7 @@ export function symlink(from, to) {
         try {
             create_dir(to);
             if (exists(to)) {
-                const is_symlink = statSync(to).isSymbolicLink();
+                const is_symlink = lstatSync(to).isSymbolicLink();
                 if (!is_symlink) {
                     Logger.error('symlink', from, to, 'to is a regular file no symlink');
                     return false;

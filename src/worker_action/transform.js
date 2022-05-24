@@ -1,8 +1,9 @@
 // import { Config } from '../utils/config.js';
 import { extname } from 'path';
 import { read, remove, write } from '../utils/file.js';
+import { to_client_path, to_server_path } from '../utils/to.js';
 // import { Logger } from '../utils/logger.js';
-import { combine_splits } from '../utils/transform.js';
+import { combine_splits, replace_wyvr_magic } from '../utils/transform.js';
 import { filled_array, filled_string } from '../utils/validate.js';
 // import { match_interface } from '../utils/validate.js';
 // import { Cwd } from '../vars/cwd.js';
@@ -26,9 +27,19 @@ export async function transform(files) {
             }
             remove(combined.css);
             remove(combined.js);
+
             // override the content
             write(file, content);
+
+            
+            // generate server file
+            write(to_server_path(file), replace_wyvr_magic(content, false));
+            
+            // generate client file
+            write(to_client_path(file), replace_wyvr_magic(content, true));
+            return;
         }
+        // static files
     }
     // await new Promise(r => setTimeout(r, 2000));
     return true;

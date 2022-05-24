@@ -127,7 +127,9 @@ export async function extract_and_load_split(path, content, tag, extensions) {
         loaded_content: undefined,
     };
     if (filled_string(content)) {
-        content = result.content = replace_src_path(content, 'gen/src', path ? extname(path) : undefined);
+        const ext = path ? extname(path) : undefined;
+        content = replace_src_path(content, 'gen/src', ext);
+        result.content = content;
     }
     if (!filled_string(tag)) {
         return result;

@@ -1,5 +1,6 @@
 // import { Config } from '../utils/config.js';
 import { extname } from 'path';
+import { insert_import } from '../utils/compile.js';
 import { read, remove, write } from '../utils/file.js';
 import { to_client_path, to_server_path } from '../utils/to.js';
 // import { Logger } from '../utils/logger.js';
@@ -31,13 +32,17 @@ export async function transform(files) {
             // override the content
             write(file, content);
 
-            
             // generate server file
             write(to_server_path(file), replace_wyvr_magic(content, false));
-            
+
             // generate client file
             write(to_client_path(file), replace_wyvr_magic(content, true));
-            return;
+
+            continue;
+        }
+        // replace import in text files
+        if (['.js', '.ts', '.css', '.scss'].indexOf(extension) > -1) {
+            write(file, insert_import(content, file));
         }
         // static files
     }

@@ -10,7 +10,16 @@ describe('Lib/Error', () => {
     describe('extract', () => {
         it('structure', () => {
             const result = Error.extract(new SyntaxError('hi'));
-            assert.deepStrictEqual(Object.keys(result), ['code', 'filename', 'hint', 'message', 'name', 'source', 'stack', 'debug']);
+            assert.deepStrictEqual(Object.keys(result), [
+                'code',
+                'filename',
+                'hint',
+                'message',
+                'name',
+                'source',
+                'stack',
+                'debug',
+            ]);
         });
         it('JS error', () => {
             const e = {
@@ -32,10 +41,16 @@ describe('Lib/Error', () => {
             assert.strictEqual(error.code, null);
             assert.strictEqual(error.filename, null);
             assert.strictEqual(error.hint, null);
-            assert.strictEqual(error.message, 'The "path" argument must be of type string or an instance of Buffer or URL. Received null');
+            assert.strictEqual(
+                error.message,
+                'The "path" argument must be of type string or an instance of Buffer or URL. Received null'
+            );
             assert.strictEqual(error.name, 'TypeError');
             assert.strictEqual(error.source, null);
-            assert.deepStrictEqual(error.stack, ['plugins/wyvr/example/index.js:26:36', 'Object.after [as fn] (plugins/wyvr/example/index.js:25:19)']);
+            assert.deepStrictEqual(error.stack, [
+                'plugins/wyvr/example/index.js:26:36',
+                'Object.after [as fn] (plugins/wyvr/example/index.js:25:19)',
+            ]);
             assert(error.debug != null);
         });
         it('svelte error', () => {
@@ -85,12 +100,12 @@ describe('Lib/Error', () => {
                     '  stdin 8:9                     root stylesheet',
                 line: 3,
                 column: 23,
-                file: '/Users/patrick/wyvr/generator/gen/src/test/_test.scss',
+                file: cwd + '/gen/src/test/_test.scss',
                 status: 1,
             };
             const error = Error.extract(e, join(cwd, 'gen', 'src'));
             assert.strictEqual(error.code, null);
-            assert.strictEqual(error.filename, '/Users/patrick/wyvr/generator/gen/src/test/_test.scss');
+            assert.strictEqual(error.filename, cwd + '/gen/src/test/_test.scss');
             assert.strictEqual(error.hint, null);
             assert.strictEqual(error.message, 'Undefined variable.');
             assert.strictEqual(error.name, null);

@@ -109,12 +109,12 @@ describe('utils/error/extract_error', () => {
                 '  stdin 8:9                     root stylesheet',
             line: 3,
             column: 23,
-            file: '/Users/patrick/wyvr/generator/gen/src/test/_test.scss',
+            file: cwd + '/gen/src/test/_test.scss',
             status: 1,
         };
         const error = extract_error(e, join(__dirname, 'gen', 'src'));
         strictEqual(error.code, undefined);
-        strictEqual(error.filename, '/Users/patrick/wyvr/generator/gen/src/test/_test.scss');
+        strictEqual(error.filename, cwd + '/gen/src/test/_test.scss');
         strictEqual(error.hint, undefined);
         strictEqual(error.message, 'Undefined variable.');
         strictEqual(error.name, undefined);
@@ -135,7 +135,7 @@ describe('utils/error/extract_error', () => {
             errors: [],
             warnings: [],
             message: 'Transform failed with 1 error:\n<stdin>:3:8: ERROR: Unexpected end of file',
-            stack: 'Error: Transform failed with 1 error:\n<stdin>:3:8: ERROR: Unexpected end of file\n    at failureErrorWithLog (~/node_modules/.pnpm/esbuild@0.14.27/node_modules/esbuild/lib/main.js:1599:15)\n    at ~/node_modules/.pnpm/esbuild@0.14.27/node_modules/esbuild/lib/main.js:1388:29\n    at ~/node_modules/.pnpm/esbuild@0.14.27/node_modules/esbuild/lib/main.js:662:9\n    at handleIncomingPacket (~/node_modules/.pnpm/esbuild@0…js:759:9)\n    at Socket.readFromStdout (~/node_modules/.pnpm/esbuild@0.14.27/node_modules/esbuild/lib/main.js:629:7)\n    at Socket.emit (node:events:526:28)\n    at addChunk (node:internal/streams/readable:315:12)\n    at readableAddChunk (node:internal/streams/readable:289:9)\n    at Socket.Readable.push (node:internal/streams/readable:228:10)\n    at Pipe.onStreamRead (node:internal/stream_base_commons:190:23)\n    at Pipe.callbackTrampoline (node:internal/async_hooks:130:17)'
+            stack: 'Error: Transform failed with 1 error:\n<stdin>:3:8: ERROR: Unexpected end of file\n    at failureErrorWithLog (~/node_modules/.pnpm/esbuild@0.14.27/node_modules/esbuild/lib/main.js:1599:15)\n    at ~/node_modules/.pnpm/esbuild@0.14.27/node_modules/esbuild/lib/main.js:1388:29\n    at ~/node_modules/.pnpm/esbuild@0.14.27/node_modules/esbuild/lib/main.js:662:9\n    at handleIncomingPacket (~/node_modules/.pnpm/esbuild@0…js:759:9)\n    at Socket.readFromStdout (~/node_modules/.pnpm/esbuild@0.14.27/node_modules/esbuild/lib/main.js:629:7)\n    at Socket.emit (node:events:526:28)\n    at addChunk (node:internal/streams/readable:315:12)\n    at readableAddChunk (node:internal/streams/readable:289:9)\n    at Socket.Readable.push (node:internal/streams/readable:228:10)\n    at Pipe.onStreamRead (node:internal/stream_base_commons:190:23)\n    at Pipe.callbackTrampoline (node:internal/async_hooks:130:17)',
         };
         const error = extract_error(e, join(__dirname, 'gen', 'src'));
         strictEqual(error.code, undefined);
@@ -144,9 +144,7 @@ describe('utils/error/extract_error', () => {
         strictEqual(error.message, 'Transform failed with 1 error:');
         strictEqual(error.name, undefined);
         strictEqual(error.source, 'gen/src');
-        deepStrictEqual(error.stack, [
-            "3:8: ERROR: Unexpected end of file",
-          ]);
+        deepStrictEqual(error.stack, ['3:8: ERROR: Unexpected end of file']);
         ok(error.debug != undefined);
     });
     it('source', () => {
@@ -287,7 +285,7 @@ describe('utils/error/extract_error', () => {
     });
     it('svelte frame', () => {
         const error = extract_error({
-            frame: 'a\nb'
+            frame: 'a\nb',
         });
         deepStrictEqual(error.stack, ['a', 'b']);
     });

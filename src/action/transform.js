@@ -19,11 +19,11 @@ export async function transform() {
 
     const files = collect_files(join(Cwd.get(), FOLDER_GEN_SRC));
 
-    await Plugin.before('transform', files);
+    await Plugin.before(name, files);
 
     await WorkerController.process_in_workers(WorkerAction.transform, files, 10);
 
-    await Plugin.after('transform', files);
+    await Plugin.after(name, files);
 
     Logger.stop(name, nano_to_milli(process.hrtime.bigint() - start));
 }

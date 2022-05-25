@@ -108,7 +108,7 @@ export function remove_index(filename) {
  * @returns the content of the file
  */
 export function read_raw(filename, encoding = 'utf-8') {
-    if (!is_string(filename) || !existsSync(filename)) {
+    if (!exists(filename)) {
         return undefined;
     }
     if (encoding == 'buffer') {
@@ -217,7 +217,7 @@ export function find_file(in_dir, possible_files) {
         if (!file) {
             return false;
         }
-        return existsSync(join(in_dir, file));
+        return exists(join(in_dir, file));
     });
     if (!found) {
         return undefined;
@@ -232,7 +232,7 @@ export function find_file(in_dir, possible_files) {
  * @returns list of the paths
  */
 export function collect_files(dir, extension = null) {
-    if (!is_string(dir) || !existsSync(dir)) {
+    if (!exists(dir)) {
         return [];
     }
     const entries = readdirSync(dir);
@@ -303,7 +303,7 @@ export function is_dir(path) {
 }
 
 export function get_folder(folder) {
-    if (!folder || typeof folder != 'string' || !existsSync(folder)) {
+    if (!exists(folder)) {
         return undefined;
     }
     return readdirSync(folder)
@@ -319,7 +319,7 @@ export function get_folder(folder) {
 }
 
 export function remove(file) {
-    if (!filled_string(file) || !existsSync(file)) {
+    if (!exists(file)) {
         return false;
     }
     rmSync(file, { recursive: true, force: true });
@@ -327,7 +327,7 @@ export function remove(file) {
 }
 
 export function symlink(from, to) {
-    if (filled_string(from) && filled_string(to) && existsSync(from)) {
+    if (exists(from) && filled_string(to)) {
         /* c8 ignore start */
         try {
             create_dir(to);
@@ -351,7 +351,7 @@ export function symlink(from, to) {
 }
 
 export function copy(from, to) {
-    if (filled_string(from) && filled_string(to) && existsSync(from)) {
+    if (exists(from) && filled_string(to)) {
         try {
             create_dir(to);
             copyFileSync(from, to);

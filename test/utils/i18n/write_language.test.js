@@ -1,6 +1,6 @@
 import { strictEqual } from 'assert';
 import { describe, it } from 'mocha';
-import { write_language } from '../../../src/action/i18n.js';
+import { write_language } from '../../../src/utils/i18n.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 import { to_dirname } from '../../../src/utils/to.js';
 

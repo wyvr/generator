@@ -2,10 +2,12 @@ import process from 'process';
 import { WorkerAction } from './struc/worker_action.js';
 import { WorkerStatus } from './struc/worker_status.js';
 import { Logger } from './utils/logger.js';
+import { IsWorker } from './vars/is_worker.js';
 import { send_status } from './worker/communication.js';
 import { configure } from './worker_action/configure.js';
 import { transform } from './worker_action/transform.js';
 
+IsWorker.set(true);
 process.title = `wyvr worker ${process.pid}`;
 
 send_status(WorkerStatus.exists);
@@ -42,7 +44,7 @@ export async function process_message(msg) {
         case WorkerAction.scripts:
         case WorkerAction.optimize:
         case WorkerAction.media: {
-            Logger.info(action, value);
+            Logger.warning('unknown action', action, 'value', value);
             break;
         }
         case WorkerAction.cleanup: {

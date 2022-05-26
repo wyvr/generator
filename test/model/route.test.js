@@ -3,7 +3,7 @@ import { describe, it } from 'mocha';
 import { Route } from '../../src/model/route.js';
 import { EnvType } from '../../src/struc/env.js';
 
-describe('model/worker', () => {
+describe('model/route', () => {
     it('default values', () => {
         const route = new Route();
         deepStrictEqual(Object.keys(route), ['cron', 'env', 'initial', 'path', 'pkg', 'rel_path']);
@@ -25,8 +25,4 @@ describe('model/worker', () => {
         strictEqual(route.env, EnvType.dev);
         deepStrictEqual(Object.keys(route), ['cron', 'env', 'initial', 'path', 'pkg', 'rel_path']);
     });
-    // it('undefined', () => {
-    //     const worker = new Route(() => undefined);
-    //     deepStrictEqual(worker, undefined);
-    // });
 });

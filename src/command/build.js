@@ -6,6 +6,7 @@ import { get_config_data } from '../action/get_config_data.js';
 import { i18n } from '../action/i18n.js';
 import { collect_packages } from '../action/package.js';
 import { present } from '../action/present.js';
+import { routes } from '../action/route.js';
 import { transform } from '../action/transform.js';
 import { terminate } from '../cli/terminate.js';
 import {
@@ -96,7 +97,11 @@ export const build_command = async (config) => {
     //  Transform Svelte files to client and server components
     await transform();
 
-     //  Execute Routes
+    //  Execute Routes
+    await routes(package_tree);
+
+    // Logger.info('routes', ...routes_list);
+
     // @TODO
     //  Build Pages
     // @TODO

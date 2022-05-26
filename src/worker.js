@@ -5,6 +5,7 @@ import { Logger } from './utils/logger.js';
 import { IsWorker } from './vars/is_worker.js';
 import { send_status } from './worker/communication.js';
 import { configure } from './worker_action/configure.js';
+import { route } from './worker_action/route.js';
 import { transform } from './worker_action/transform.js';
 
 IsWorker.set(true);
@@ -38,7 +39,10 @@ export async function process_message(msg) {
             await transform(value);
             break;
         }
-        case WorkerAction.route:
+        case WorkerAction.route: {
+            await route(value);
+            break;
+        }
         case WorkerAction.build:
         case WorkerAction.inject:
         case WorkerAction.scripts:

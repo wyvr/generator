@@ -24,7 +24,7 @@ describe('utils/route/execute_route', () => {
         Cwd.set(undefined);
     });
         it('undefined', async () => {
-            deepStrictEqual(await execute_route(), undefined);
+            deepStrictEqual(await execute_route(), false);
             deepStrictEqual(log, []);
         });
 

@@ -41,7 +41,7 @@ export function collect_routes(dir, package_tree) {
 
 export async function execute_route(route) {
     if (!match_interface(route, RouteStructure)) {
-        return undefined;
+        return false;
     }
 
     const extension = extname(route.path);
@@ -51,10 +51,11 @@ export async function execute_route(route) {
         }
         default: {
             Logger.warning('unknown file extension', extension, 'for route', route.rel_path);
+            return false;
         }
     }
 
-    return undefined;
+    return true;
     // if (!route || !route.path) {
     //     return [`broken route ${JSON.stringify(route)}`, null];
     // }

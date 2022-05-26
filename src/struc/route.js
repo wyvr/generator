@@ -1,5 +1,5 @@
 export const RouteStructure = {
-    cron: true,
+    cron: false,
     env: true,
     initial: true,
     path: true,

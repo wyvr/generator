@@ -8,6 +8,7 @@ export async function route(files) {
     }
     for(const route of files) {
         Logger.info('execute route', route.path);
-        await execute_route(route);
+        const result = await execute_route(route);
+        Logger.info('route result', route.path,  result)
     }
 }

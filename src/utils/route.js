@@ -41,6 +41,7 @@ export function collect_routes(dir, package_tree) {
 
 export async function execute_route(route) {
     if (!match_interface(route, RouteStructure)) {
+        Logger.warning('invalid route was given', JSON.stringify(route));
         return false;
     }
 

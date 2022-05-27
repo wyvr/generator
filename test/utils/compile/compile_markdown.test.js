@@ -48,4 +48,13 @@ describe('utils/to/compile_markdown', () => {
         });
         deepStrictEqual(log, []);
     });
+    it('invalid frontmatter', async () => {
+        const output = await compile_markdown(`---
+        test---
+        some text`);
+
+        strictEqual(output.content, '<hr>\n<pre><code>    test---\n    some text\n</code></pre>\n');
+        deepStrictEqual(output.data, {});
+        deepStrictEqual(log, []);
+    });
 });

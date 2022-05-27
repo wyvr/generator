@@ -82,35 +82,25 @@ export async function compile_typescript(code, file) {
         return undefined;
     }
 }
-export function compile_markdown(code, file) {
+export function compile_markdown(code) {
     if (!filled_string(code)) {
         return undefined;
     }
-    try {
-        let data, front_matter;
-        try {
-            front_matter = fm(code);
-            if (is_object(front_matter.attributes)) {
-                data = front_matter.attributes;
-            }
-        } catch (e) {
-            Logger.warning(get_error_message(e, file, 'markdown'));
-            return undefined;
-        }
-
-        const content = marked(front_matter.body, {
-            breaks: false,
-        }).replace(/<code[^>]*>[\s\S]*?<\/code>/g, (match) => {
-            // replace svelte placeholder inside code blocks
-            const replaced = match.replace(/\{/g, '&lbrace;').replace(/\}/g, '&rbrace;');
-            return replaced;
-        });
-        return {
-            content,
-            data,
-        };
-    } catch (e) {
-        Logger.error(get_error_message(e, file, 'markdown'));
-        return undefined;
+    let data,
+        front_matter = fm(code);
+    if (is_object(front_matter.attributes)) {
+        data = front_matter.attributes;
     }
+
+    const content = marked(front_matter.body, {
+        breaks: false,
+    }).replace(/<code[^>]*>[\s\S]*?<\/code>/g, (match) => {
+        // replace svelte placeholder inside code blocks
+        const replaced = match.replace(/\{/g, '&lbrace;').replace(/\}/g, '&rbrace;');
+        return replaced;
+    });
+    return {
+        content,
+        data,
+    };
 }

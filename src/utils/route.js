@@ -3,9 +3,10 @@ import { FOLDER_GEN_ROUTES } from '../constants/folder.js';
 import { Route } from '../model/route.js';
 import { RouteStructure } from '../struc/route.js';
 import { Cwd } from '../vars/cwd.js';
-import { collect_files, exists } from './file.js';
+import { compile_markdown } from './compile.js';
+import { collect_files, exists, read } from './file.js';
 import { Logger } from './logger.js';
-import { match_interface } from './validate.js';
+import { is_null, match_interface } from './validate.js';
 
 export function collect_routes(dir, package_tree) {
     if (!dir) {
@@ -47,7 +48,11 @@ export async function execute_route(route) {
     const extension = extname(route.path);
     switch (extension) {
         case '.md': {
-            break;
+            const markdown = compile_markdown(read(route.path));
+            if(is_null(markdown)) {
+                return undefined;
+            }
+            return markdown;
         }
         default: {
             Logger.warning('unknown file extension', extension, 'for route', route.rel_path);

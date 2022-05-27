@@ -1,9 +1,10 @@
 import sass from 'sass';
 import esbuild from 'esbuild';
 import { marked } from 'marked';
+import fm from 'front-matter';
 import { get_error_message } from './error.js';
 import { Logger } from './logger.js';
-import { filled_string, is_null } from './validate.js';
+import { filled_string, is_null, is_object } from './validate.js';
 import { exists, read } from './file.js';
 import { extname, sep } from 'path';
 import { replace_src_path } from './transform.js';
@@ -86,16 +87,30 @@ export function compile_markdown(code, file) {
         return undefined;
     }
     try {
-        return marked(code, {
+        let data, front_matter;
+        try {
+            front_matter = fm(code);
+            if (is_object(front_matter.attributes)) {
+                data = front_matter.attributes;
+            }
+        } catch (e) {
+            Logger.warning(get_error_message(e, file, 'markdown'));
+            return undefined;
+        }
+
+        const content = marked(front_matter.body, {
             breaks: false,
         }).replace(/<code[^>]*>[\s\S]*?<\/code>/g, (match) => {
             // replace svelte placeholder inside code blocks
             const replaced = match.replace(/\{/g, '&lbrace;').replace(/\}/g, '&rbrace;');
             return replaced;
         });
-    } catch
-     (e) {
-        Logger.error(get_error_message(e, file, 'typescript'));
+        return {
+            content,
+            data,
+        };
+    } catch (e) {
+        Logger.error(get_error_message(e, file, 'markdown'));
         return undefined;
     }
 }

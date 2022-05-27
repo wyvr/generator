@@ -10,13 +10,7 @@ describe('utils/to/compile_markdown', () => {
     let log = [];
     let console_error;
     const cwd = process.cwd();
-    const __dirname = join(
-        to_dirname(import.meta.url),
-        '..',
-        'compile',
-        '_tests',
-        'markdown'
-    );
+    const __dirname = join(to_dirname(import.meta.url), '..', 'compile', '_tests', 'markdown');
     beforeEach(() => {
         Cwd.set(__dirname);
         console_error = console.error;
@@ -39,7 +33,28 @@ describe('utils/to/compile_markdown', () => {
         const result = read(join(__dirname, 'full_compiled.md'));
         const output = await compile_markdown(content);
 
-        strictEqual(output, result);
+        strictEqual(output.content, result);
+        deepStrictEqual(output.data, {});
+        deepStrictEqual(log, []);
+    });
+    it('valid code with front matter data', async () => {
+        const content = read(join(__dirname, 'fm.md'));
+        const output = await compile_markdown(content);
+
+        strictEqual(output.content, '<p>This is some text about some stuff that happened sometime ago</p>\n');
+        deepStrictEqual(output.data, {
+            title: "Just hack'n",
+            description: 'Nothing to see here',
+        });
+        deepStrictEqual(log, []);
+    });
+    it('invalid frontmatter', async () => {
+        const output = await compile_markdown(`---
+        test---
+        some text`);
+
+        strictEqual(output.content, '<hr>\n<pre><code>    test---\n    some text\n</code></pre>\n');
+        deepStrictEqual(output.data, {});
         deepStrictEqual(log, []);
     });
 });

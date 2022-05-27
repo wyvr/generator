@@ -3,9 +3,10 @@ import { FOLDER_GEN_ROUTES } from '../constants/folder.js';
 import { Route } from '../model/route.js';
 import { RouteStructure } from '../struc/route.js';
 import { Cwd } from '../vars/cwd.js';
-import { collect_files, exists } from './file.js';
+import { compile_markdown } from './compile.js';
+import { collect_files, exists, read, to_extension } from './file.js';
 import { Logger } from './logger.js';
-import { match_interface } from './validate.js';
+import { is_null, match_interface } from './validate.js';
 
 export function collect_routes(dir, package_tree) {
     if (!dir) {
@@ -42,21 +43,41 @@ export function collect_routes(dir, package_tree) {
 export async function execute_route(route) {
     if (!match_interface(route, RouteStructure)) {
         Logger.warning('invalid route was given', JSON.stringify(route));
-        return false;
+        return undefined;
     }
 
     const extension = extname(route.path);
     switch (extension) {
         case '.md': {
-            break;
+            const markdown = compile_markdown(read(route.path));
+            if (is_null(markdown)) {
+                return undefined;
+            }
+            // unfold data
+            Object.keys(markdown.data).forEach((key) => {
+                markdown[key] = markdown.data[key];
+            });
+            delete markdown.data;
+
+            // add required url
+            if (!markdown.url) {
+                const ext = markdown.extension ?? 'html';
+                let url = to_extension(route.rel_path.replace(/^routes\//, '/'), ext.replace(/^\./, ''));
+                // remove unneeded index.html
+                if (url.indexOf('index.htm') > -1) {
+                    url = url.replace(/index\.htm[l]$/, '');
+                }
+                markdown.url = url;
+            }
+
+            return markdown;
         }
         default: {
             Logger.warning('unknown file extension', extension, 'for route', route.rel_path);
-            return false;
+            return undefined;
         }
     }
 
-    return true;
     // if (!route || !route.path) {
     //     return [`broken route ${JSON.stringify(route)}`, null];
     // }

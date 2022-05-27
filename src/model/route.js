@@ -1,11 +1,11 @@
-import { EnvType } from '../struc/env.js';
 import { is_object } from '../utils/validate.js';
+import { Env } from '../vars/env.js';
 
 export class Route {
     constructor(data) {
         // default props
         this.cron = undefined;
-        this.env = EnvType.prod;
+        this.env = Env.get();
         this.initial = true;
         this.path = '';
         this.pkg = '';

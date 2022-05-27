@@ -4,7 +4,7 @@ import { Route } from '../model/route.js';
 import { RouteStructure } from '../struc/route.js';
 import { Cwd } from '../vars/cwd.js';
 import { compile_markdown } from './compile.js';
-import { collect_files, exists, read } from './file.js';
+import { collect_files, exists, read, to_extension } from './file.js';
 import { Logger } from './logger.js';
 import { is_null, match_interface } from './validate.js';
 
@@ -49,9 +49,26 @@ export async function execute_route(route) {
     switch (extension) {
         case '.md': {
             const markdown = compile_markdown(read(route.path));
-            if(is_null(markdown)) {
+            if (is_null(markdown)) {
                 return undefined;
             }
+            // unfold data
+            Object.keys(markdown.data).forEach((key) => {
+                markdown[key] = markdown.data[key];
+            });
+            delete markdown.data;
+
+            // add required url
+            if (!markdown.url) {
+                const ext = markdown.extension ?? 'html';
+                let url = to_extension(route.rel_path.replace(/^routes\//, '/'), ext.replace(/^\./, ''));
+                // remove unneeded index.html
+                if (url.indexOf('index.htm') > -1) {
+                    url = url.replace(/index\.htm[l]$/, '');
+                }
+                markdown.url = url;
+            }
+
             return markdown;
         }
         default: {

@@ -33,7 +33,9 @@ describe('utils/route/execute_route', () => {
             content:
                 '<h1 id="lorem-ipsum-dolor-sit-amet">Lorem ipsum dolor sit amet</h1>\n' +
                 '<p>Nam ut porta metus, rhoncus rutrum est.</p>\n',
-            data: {},
+            title: 'Title',
+            param: true,
+            url: '/route.html'
         });
         deepStrictEqual(log, []);
     });

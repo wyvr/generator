@@ -28,11 +28,11 @@ describe('utils/file/remove_index', () => {
         const folder = join(v4().split('-')[0]);
         const name = join(folder, 'index.html');
 
-        strictEqual(remove_index(name), folder + sep);
+        strictEqual(remove_index(name), folder);
     });
     it('deep', () => {
         const folder = join(...v4().split('-'));
         const name = join(folder, 'index.html');
-        strictEqual(remove_index(name), folder + sep);
+        strictEqual(remove_index(name), folder);
     });
 });

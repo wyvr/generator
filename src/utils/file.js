@@ -100,7 +100,7 @@ export function remove_index(filename) {
     if (!is_string(filename)) {
         return '';
     }
-    return filename.replace(/index\.[^.]+/, '');
+    return filename.replace(/index\.[^.]+/, '').replace(/\/$/, '');
 }
 /**
  * read the content of an file as plain text

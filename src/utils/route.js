@@ -4,9 +4,10 @@ import { Route } from '../model/route.js';
 import { RouteStructure } from '../struc/route.js';
 import { Cwd } from '../vars/cwd.js';
 import { compile_markdown } from './compile.js';
-import { collect_files, exists, read, to_extension } from './file.js';
+import { get_error_message } from './error.js';
+import { collect_files, exists, read, remove_index, to_extension, to_index } from './file.js';
 import { Logger } from './logger.js';
-import { is_null, match_interface } from './validate.js';
+import { filled_array, filled_string, is_array, is_func, is_null, match_interface } from './validate.js';
 
 export function collect_routes(dir, package_tree) {
     if (!dir) {
@@ -47,6 +48,7 @@ export async function execute_route(route) {
     }
 
     const extension = extname(route.path);
+
     switch (extension) {
         case '.md': {
             const markdown = compile_markdown(read(route.path));
@@ -60,17 +62,52 @@ export async function execute_route(route) {
             delete markdown.data;
 
             // add required url
-            if (!markdown.url) {
-                const ext = markdown.extension ?? 'html';
-                let url = to_extension(route.rel_path.replace(/^routes\//, '/'), ext.replace(/^\./, ''));
-                // remove unneeded index.html
-                if (url.indexOf('index.htm') > -1) {
-                    url = url.replace(/index\.htm[l]$/, '');
-                }
-                markdown.url = url;
+            const ext = markdown.extension ?? 'html';
+            let url = markdown.url;
+            if (!filled_string(url)) {
+                url = route.rel_path.replace(/^routes\//, '/').replace(/\.md$/, '');
             }
+            url = to_extension(to_index(url), ext.replace(/^\./, ''));
+            // remove unneeded index.html
+            markdown.url = remove_index(url);
 
-            return markdown;
+            return [markdown];
+        }
+        case '.js': {
+            const uniq_path = `${route.path}?${new Date().getTime()}`;
+            let route_module, result;
+            try {
+                route_module = await import(uniq_path);
+            } catch (e) {
+                Logger.error(get_error_message(e, route.rel_path, 'route execution'));
+                return undefined;
+            }
+            // unfold default export
+            if (route_module?.default) {
+                route_module = route_module.default;
+            }
+            // execute the route
+            if (is_func(route_module)) {
+                try {
+                    result = await route_module(route);
+                } catch (e) {
+                    Logger.error(get_error_message(e, route.rel_path, 'route execution'));
+                    return undefined;
+                }
+            } else {
+                result = route_module;
+            }
+            if (is_null(result)) {
+                return undefined;
+            }
+            // force array
+            if (!is_array(result)) {
+                result = [result];
+            }
+            if (!filled_array(result)) {
+                return undefined;
+            }
+            return result;
         }
         default: {
             Logger.warning('unknown file extension', extension, 'for route', route.rel_path);
@@ -78,54 +115,11 @@ export async function execute_route(route) {
         }
     }
 
-    // if (!route || !route.path) {
-    //     return [`broken route ${JSON.stringify(route)}`, null];
-    // }
     // if (!(<any>global).getGlobal || typeof (<any>global).getGlobal != 'function') {
     //     (<any>global).getGlobal = async (key, fallback, callback) => {
     //         const result = await Global.get(key, fallback || null, callback);
     //         return result;
     //     };
-    // }
-    // route.env = Env.get();
-    // if (route.path.match(/\.md$/)) {
-    //     const content = File.read(route.path);
-    //     if (!content) {
-    //         return [null, null];
-    //     }
-    //     try {
-    //         const data: any = fm(content);
-    //         if (typeof data.body == 'string') {
-    //             data.content = marked(data.body, {
-    //                 breaks: false,
-    //             }).replace(/<code[^>]*>[\s\S]*?<\/code>/g, (match) => {
-    //                 const replaced = match.replace(/\{/g, '&lbrace;').replace(/\}/g, '&rbrace;');
-    //                 return replaced;
-    //             });
-    //             // remove the original markdown code because it breaks the injection of data
-    //             delete data.body;
-    //         }
-    //         // unfold attributes
-    //         Object.keys(data.attributes).forEach((key) => {
-    //             data[key] = data.attributes[key];
-    //         });
-    //         if (data.frontmatter) {
-    //             delete data.frontmatter;
-    //         }
-    //         delete data.attributes;
-    //         // add required url
-    //         if (!data.url) {
-    //             let url = File.to_extension(route.rel_path.replace(/^routes\//, '/'), 'html');
-    //             // remove unneeded index.html
-    //             if (url.indexOf('index.htm') > -1) {
-    //                 url = url.replace(/index\.htm[l]$/, '');
-    //             }
-    //             data.url = url;
-    //         }
-    //         return [null, [data]];
-    //     } catch (e) {
-    //         return [e, null];
-    //     }
     // }
     // if (route.path.match(/\.js$/)) {
     //     let route_module = null;

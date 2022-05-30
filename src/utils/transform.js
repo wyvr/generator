@@ -1,9 +1,10 @@
 import { extname, join } from 'path';
 import { exists, read, to_extension } from './file.js';
-import { filled_array, filled_string, is_null, is_number, is_string } from './validate.js';
+import { filled_array, filled_string, is_null, is_number, is_object, is_string } from './validate.js';
 import { compile_sass, compile_typescript } from './compile.js';
 import { Cwd } from '../vars/cwd.js';
 import { to_dirname } from './to.js';
+import { clone } from './clone.js';
 
 const __dirname = join(to_dirname(import.meta.url), '..');
 
@@ -200,4 +201,22 @@ export function replace_wyvr_magic(content, as_client) {
         .replace(/([^\w])isClient([^\w])/g, `$1${is_client}$2`)
         .replace(/import \{[^}]*?\} from ["']@wyvr\/generator["'];?/g, '')
         .replace(/(?:const|let)[^=]*?= require\(["']@wyvr\/generator["']\);?/g, '');
+}
+export function set_default_values(data, default_values) {
+    if (!is_object(default_values) && !is_object(default_values)) {
+        return undefined;
+    }
+    if (!is_object(data)) {
+        return default_values;
+    }
+    const new_data = clone(data);
+    if (!is_object(default_values)) {
+        return new_data;
+    }
+    Object.keys(default_values).forEach((key) => {
+        if (is_null(new_data[key])) {
+            new_data[key] = default_values[key];
+        }
+    });
+    return data;
 }

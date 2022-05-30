@@ -83,7 +83,7 @@ export async function execute_route(route) {
                 return undefined;
             }
             // unfold default export
-            if (route_module?.default) {
+            if (!is_null(route_module)) {
                 route_module = route_module.default;
             }
             // execute the route
@@ -121,28 +121,4 @@ export async function execute_route(route) {
     //         return result;
     //     };
     // }
-    // if (route.path.match(/\.js$/)) {
-    //     let route_module = null;
-    //     try {
-    //         route_module = await require(route.path);
-    //     } catch (e) {
-    //         return [e, null];
-    //     }
-    //     if (Array.isArray(route_module)) {
-    //         return [null, route_module];
-    //     }
-    //     if (typeof route_module == 'function') {
-    //         try {
-    //             const route_result = await route_module(route);
-    //             if (Array.isArray(route_result)) {
-    //                 return [null, route_result];
-    //             }
-    //             return [null, [route_result]];
-    //         } catch (e) {
-    //             return [e, null];
-    //         }
-    //     }
-    //     return [null, [route_module]];
-    // }
-    // return [null, null];
 }

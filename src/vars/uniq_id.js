@@ -1,7 +1,7 @@
 import { join } from 'path';
 import { FOLDER_CACHE } from '../constants/folder.js';
 import { read, write } from '../utils/file.js';
-import { uniq } from '../utils/uniq.js';
+import { uniq_id } from '../utils/uniq.js';
 import { Cwd } from './cwd.js';
 
 export class UniqId {
@@ -10,7 +10,7 @@ export class UniqId {
     }
     static get() {
         if (!this.value) {
-            this.set(uniq());
+            this.set(uniq_id());
         }
         return this.value;
     }

@@ -1,7 +1,7 @@
 import { v4 } from 'uuid';
 import { is_null, is_array } from './validate.js';
 
-export function uniq() {
+export function uniq_id() {
     return v4().replace(/-/g, '');
 }
 export function uniq_values(list) {

@@ -1,6 +1,7 @@
 import { cpus } from 'os';
 import { join } from 'path';
 import { check_env } from '../action/check_env.js';
+import { clear_gen } from '../action/clear_gen.js';
 import { copy_files, copy_folder } from '../action/copy.js';
 import { get_config_data } from '../action/get_config_data.js';
 import { i18n } from '../action/i18n.js';
@@ -45,6 +46,9 @@ export const build_command = async (config) => {
     ReleasePath.set(join(Cwd.get(), FOLDER_RELEASES, build_id));
 
     present(config_data);
+
+    // clear gen folder
+    clear_gen();
 
     //  Build Global(storage) Data
     Storage.set_location(FOLDER_STORAGE);

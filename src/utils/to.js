@@ -2,7 +2,18 @@ import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
-import { is_object, is_array, is_null, filled_string, is_regex, is_symbol, is_big_int, is_string } from './validate.js';
+import { to_extension } from './file.js';
+import {
+    is_object,
+    is_array,
+    is_null,
+    filled_string,
+    is_regex,
+    is_symbol,
+    is_big_int,
+    is_string,
+    filled_array,
+} from './validate.js';
 
 export function to_string(value) {
     if (is_null(value)) {
@@ -54,16 +65,16 @@ export function to_dirname(import_meta_url) {
     return join(dirname(resolve(join(fileURLToPath(import_meta_url)))));
 }
 function replace_path(path, replace_with) {
-    if(!filled_string(path) || !filled_string(replace_with)) {
+    if (!filled_string(path) || !filled_string(replace_with)) {
         return '';
     }
     // replace src with server folder
-    if(path.indexOf(FOLDER_GEN_SRC) > -1) {
+    if (path.indexOf(FOLDER_GEN_SRC) > -1) {
         return path.replace(FOLDER_GEN_SRC, replace_with);
     }
     // check if the cwd is inside the path
     const cwd = Cwd.get();
-    if(path.indexOf(cwd) > -1) {
+    if (path.indexOf(cwd) > -1) {
         return path.replace(cwd, join(cwd, replace_with));
     }
     return path;
@@ -73,4 +84,13 @@ export function to_server_path(path) {
 }
 export function to_client_path(path) {
     return replace_path(path, FOLDER_GEN_CLIENT);
+}
+export function to_svelte_paths(data) {
+    if (filled_string(data)) {
+        return to_extension(data, 'svelte');
+    }
+    if (filled_array(data)) {
+        return data.map((file) => to_extension(file, 'svelte'));
+    }
+    return undefined;
 }

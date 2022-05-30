@@ -29,39 +29,85 @@ describe('utils/route/execute_route', () => {
         deepStrictEqual(log, [['⚠', 'invalid route was given']]);
     });
     it('markdown file', async () => {
-        deepStrictEqual(await execute_route(mockRoute('routes/markdown.md', undefined, root)), [{
-            content:
-                '<h1 id="lorem-ipsum-dolor-sit-amet">Lorem ipsum dolor sit amet</h1>\n' +
-                '<p>Nam ut porta metus, rhoncus rutrum est.</p>\n',
-            title: 'Title',
-            param: true,
-            url: '/markdown',
-        }]);
+        deepStrictEqual(await execute_route(mockRoute('routes/markdown.md', undefined, root)), [
+            {
+                content:
+                    '<h1 id="lorem-ipsum-dolor-sit-amet">Lorem ipsum dolor sit amet</h1>\n' +
+                    '<p>Nam ut porta metus, rhoncus rutrum est.</p>\n',
+                title: 'Title',
+                param: true,
+                url: '/markdown',
+            },
+        ]);
+        deepStrictEqual(log, []);
+    });
+    it('markdown file empty', async () => {
+        deepStrictEqual(await execute_route(mockRoute('routes/markdown_empty.md', undefined, root)), undefined);
         deepStrictEqual(log, []);
     });
     it('js file, object', async () => {
-        deepStrictEqual(await execute_route(mockRoute('routes/static.js', undefined, root)), [{
-            url: '/url',
-        }]);
+        deepStrictEqual(await execute_route(mockRoute('routes/static.js', undefined, root)), [
+            {
+                url: '/url',
+            },
+        ]);
         deepStrictEqual(log, []);
     });
     it('js file, array', async () => {
-        deepStrictEqual(await execute_route(mockRoute('routes/array.js', undefined, root)), [{
-            url: '/url',
-        }]);
+        deepStrictEqual(await execute_route(mockRoute('routes/array.js', undefined, root)), [
+            {
+                url: '/url',
+            },
+        ]);
         deepStrictEqual(log, []);
     });
     it('js function file, object', async () => {
-        deepStrictEqual(await execute_route(mockRoute('routes/func.js', undefined, root)), [{
-            url: '/url',
-        }]);
+        deepStrictEqual(await execute_route(mockRoute('routes/func.js', undefined, root)), [
+            {
+                url: '/url',
+            },
+        ]);
         deepStrictEqual(log, []);
     });
     it('js function file, array', async () => {
-        deepStrictEqual(await execute_route(mockRoute('routes/func_array.js', undefined, root)), [{
-            url: '/url',
-        }]);
+        deepStrictEqual(await execute_route(mockRoute('routes/func_array.js', undefined, root)), [
+            {
+                url: '/url',
+            },
+        ]);
         deepStrictEqual(log, []);
+    });
+    it('js file, empty', async () => {
+        deepStrictEqual(await execute_route(mockRoute('routes/empty.js', undefined, root)), undefined);
+        deepStrictEqual(log, []);
+    });
+    it('js file, undefined', async () => {
+        deepStrictEqual(await execute_route(mockRoute('routes/undefined.js', undefined, root)), undefined);
+        deepStrictEqual(log, []);
+    });
+    it('js file, error', async () => {
+        deepStrictEqual(await execute_route(mockRoute('routes/error.js', undefined, root)), undefined);
+        deepStrictEqual(log, [
+            [
+                '✖',
+                '@route execution\n' +
+                    '[ReferenceError] undefined_var is not defined\n' +
+                    'stack\n' +
+                    'source routes/error.js',
+            ],
+        ]);
+    });
+    it('js file, error common js', async () => {
+        deepStrictEqual(await execute_route(mockRoute('routes/commonjs.js', undefined, root)), undefined);
+        deepStrictEqual(log, [
+            [
+                '✖',
+                '@route execution\n' +
+                    '[ReferenceError] exports is not defined in ES module scope\n' +
+                    'stack\n' +
+                    'source routes/commonjs.js',
+            ],
+        ]);
     });
     it('unknonwn extension', async () => {
         deepStrictEqual(await execute_route(mockRoute('routes/unknown.py', undefined, root)), undefined);

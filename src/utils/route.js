@@ -1,11 +1,11 @@
-import { basename, extname, join } from 'path';
-import { FOLDER_GEN_ROUTES } from '../constants/folder.js';
+import { basename, dirname, extname, join } from 'path';
+import { FOLDER_GEN_DATA, FOLDER_GEN_ROUTES } from '../constants/folder.js';
 import { Route } from '../model/route.js';
 import { RouteStructure } from '../struc/route.js';
 import { Cwd } from '../vars/cwd.js';
 import { compile_markdown } from './compile.js';
 import { get_error_message } from './error.js';
-import { collect_files, exists, read, remove_index, to_extension, to_index } from './file.js';
+import { collect_files, create_dir, exists, read, remove_index, to_extension, to_index, write } from './file.js';
 import { Logger } from './logger.js';
 import { filled_array, filled_string, is_array, is_func, is_null, match_interface } from './validate.js';
 
@@ -48,6 +48,13 @@ export async function execute_route(route) {
     }
 
     const extension = extname(route.path);
+
+    // if (!(<any>global).getGlobal || typeof (<any>global).getGlobal != 'function') {
+    //     (<any>global).getGlobal = async (key, fallback, callback) => {
+    //         const result = await Global.get(key, fallback || null, callback);
+    //         return result;
+    //     };
+    // }
 
     switch (extension) {
         case '.md': {
@@ -114,11 +121,32 @@ export async function execute_route(route) {
             return undefined;
         }
     }
+}
 
-    // if (!(<any>global).getGlobal || typeof (<any>global).getGlobal != 'function') {
-    //     (<any>global).getGlobal = async (key, fallback, callback) => {
-    //         const result = await Global.get(key, fallback || null, callback);
-    //         return result;
-    //     };
-    // }
+export function write_routes(route_entries, hook_before_process) {
+    if (!filled_array(route_entries)) {
+        return [];
+    }
+    return route_entries
+        .map((route) => {
+            // filter out empty or invalid entries
+            if (is_null(route) || !filled_string(route.url)) {
+                return undefined;
+            }
+            const url = route.url;
+            if (is_func(hook_before_process)) {
+                // replace route with hook result
+                route = hook_before_process(route);
+            }
+            if (!route) {
+                return undefined;
+            }
+            // create data json for the given file
+            const raw_path = join(Cwd.get(), FOLDER_GEN_DATA, url);
+            const path = to_extension(to_index(raw_path, 'json'), 'json');
+            create_dir(dirname(path), { recursive: true });
+            write(path, JSON.stringify(route));
+            return path;
+        })
+        .filter((x) => x);
 }

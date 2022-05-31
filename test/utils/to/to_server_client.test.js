@@ -18,6 +18,9 @@ describe('utils/to/to_client_path', () => {
     it('empty', () => {
         strictEqual(to_client_path(''), '');
     });
+    it('without cwd', () => {
+        strictEqual(to_client_path(join('test.txt')), 'test.txt');
+    });
     it('add after cwd', () => {
         strictEqual(to_client_path(join(__dirname, 'test.txt')), join(__dirname, 'gen', 'client', 'test.txt'));
     });

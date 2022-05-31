@@ -1,6 +1,6 @@
 import { extname, join } from 'path';
 import { exists, read, to_extension } from './file.js';
-import { filled_array, filled_string, is_null, is_number, is_object, is_string } from './validate.js';
+import { filled_array, filled_object, filled_string, is_null, is_number, is_string } from './validate.js';
 import { compile_sass, compile_typescript } from './compile.js';
 import { Cwd } from '../vars/cwd.js';
 import { to_dirname } from './to.js';
@@ -203,14 +203,14 @@ export function replace_wyvr_magic(content, as_client) {
         .replace(/(?:const|let)[^=]*?= require\(["']@wyvr\/generator["']\);?/g, '');
 }
 export function set_default_values(data, default_values) {
-    if (!is_object(default_values) && !is_object(default_values)) {
+    if (!filled_object(data) && !filled_object(default_values)) {
         return undefined;
     }
-    if (!is_object(data)) {
+    if (!filled_object(data)) {
         return default_values;
     }
     const new_data = clone(data);
-    if (!is_object(default_values)) {
+    if (!filled_object(default_values)) {
         return new_data;
     }
     Object.keys(default_values).forEach((key) => {
@@ -218,5 +218,5 @@ export function set_default_values(data, default_values) {
             new_data[key] = default_values[key];
         }
     });
-    return data;
+    return new_data;
 }

@@ -87,7 +87,7 @@ export function to_client_path(path) {
 }
 export function to_svelte_paths(data) {
     if (filled_string(data)) {
-        return to_extension(data, 'svelte');
+        return [to_extension(data, 'svelte')];
     }
     if (filled_array(data)) {
         return data.map((file) => to_extension(file, 'svelte'));

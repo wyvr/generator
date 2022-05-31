@@ -7,9 +7,9 @@ export function WyvrData(data) {
     // this are the default values
     const wyvr_prop = {
         template: {
-            doc: to_svelte_paths(['Default']),
-            layout: to_svelte_paths(['Default']),
-            page: to_svelte_paths(['Default']),
+            doc: to_svelte_paths('Default'),
+            layout: to_svelte_paths('Default'),
+            page: to_svelte_paths('Default'),
         },
         nav: [],
         extension: 'html',

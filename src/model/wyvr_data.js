@@ -1,8 +1,7 @@
-import { to_extension } from '../utils/file.js';
 import { to_svelte_paths } from '../utils/to.js';
-import { is_null } from '../utils/validate.js';
+import { filled_object, filled_string, is_array, is_null, is_string } from '../utils/validate.js';
 
-export function WyvrData(data) {
+export function WyvrData(data, url) {
     // enrich _wyvr property
     // this are the default values
     const wyvr_prop = {
@@ -31,26 +30,25 @@ export function WyvrData(data) {
         }
     });
 
+    // extend template data
     if (data.template) {
         // use the given templates for all types
         // "template": "about"
         // "template": [ "about", "Page", "column/1" ]
-        if (typeof data._wyvr.template == 'string' || Array.isArray(data._wyvr.template)) {
-            wyvr_prop.template.doc = this.merge_property(data._wyvr.template, wyvr_prop.template.doc);
-            wyvr_prop.template.layout = this.merge_property(data._wyvr.template, wyvr_prop.template.layout);
-            wyvr_prop.template.page = this.merge_property(data._wyvr.template, wyvr_prop.template.page);
+        if (is_string(data.template) || is_array(data.template)) {
+            wyvr_prop.template.doc = merge_property(data.template, wyvr_prop.template.doc);
+            wyvr_prop.template.layout = merge_property(data.template, wyvr_prop.template.layout);
+            wyvr_prop.template.page = merge_property(data.template, wyvr_prop.template.page);
         } else {
-            if (data._wyvr.template.doc) {
-                wyvr_prop.template.doc = this.merge_property(data._wyvr.template.doc, wyvr_prop.template.doc);
+            // use explicite templates for the different types
+            if (data.template.doc) {
+                wyvr_prop.template.doc = merge_property(data.template.doc, wyvr_prop.template.doc);
             }
-            if (data._wyvr.template.layout) {
-                wyvr_prop.template.layout = this.merge_property(
-                    data._wyvr.template.layout,
-                    wyvr_prop.template.layout
-                );
+            if (data.template.layout) {
+                wyvr_prop.template.layout = merge_property(data.template.layout, wyvr_prop.template.layout);
             }
-            if (data._wyvr.template.page) {
-                wyvr_prop.template.page = this.merge_property(data._wyvr.template.page, wyvr_prop.template.page);
+            if (data.template.page) {
+                wyvr_prop.template.page = merge_property(data.template.page, wyvr_prop.template.page);
             }
         }
     }
@@ -60,93 +58,37 @@ export function WyvrData(data) {
         wyvr_prop.template[key] = to_svelte_paths(wyvr_prop.template[key]);
     });
 
+    // prepare nav property
+    if (!is_null(data.nav) && filled_string(url)) {
+        // allow to add multiple nav entries per page
+        const nav = Array.isArray(data.nav) ? data.nav : [data.nav];
+        wyvr_prop.nav = nav
+            .filter((x) => filled_object(x))
+            .map((nav) => {
+                let visible = nav.visible;
+                if (is_null(visible)) {
+                    visible = true;
+                }
+                nav.scope = nav.scope || 'default';
+                nav.url = url;
+                nav.visible = visible;
+                nav.order = nav.order || 0;
+                return nav;
+            });
+    }
+
     return wyvr_prop;
 }
 
-// function merge_property(prop_value: string | string[], default_value: string[]): string[] {
-//     if (typeof prop_value == 'string') {
-//         prop_value = [prop_value];
-//     }
-//     return [].concat(prop_value, default_value).filter((x, index, arr) => arr.indexOf(x) == index);
-// }
-
-function enhance_data(data) {
-    if (!data) {
-        return null;
+/**
+ * Convert and Merge property values together
+ * @param {string | string[]} prop_value
+ * @param {string[]} default_value
+ * @returns
+ */
+function merge_property(prop_value, default_value) {
+    if (typeof prop_value == 'string') {
+        prop_value = [prop_value];
     }
-    // enrich _wyvr property
-    // this are the default values
-    const wyvr_prop = {
-        template: {
-            doc: ['Default'],
-            layout: ['Default'],
-            page: ['Default'],
-        },
-        nav: [],
-        extension: 'html',
-        language: 'en',
-        private: false,
-        change_frequence: 'monthly',
-        priority: 0.5,
-        static: false,
-    };
-
-    if (data._wyvr) {
-        if (data._wyvr.template) {
-            // use the given templates for all types
-            // "template": "about"
-            // "template": [ "about", "Page", "column/1" ]
-            if (typeof data._wyvr.template == 'string' || Array.isArray(data._wyvr.template)) {
-                wyvr_prop.template.doc = this.merge_property(data._wyvr.template, wyvr_prop.template.doc);
-                wyvr_prop.template.layout = this.merge_property(data._wyvr.template, wyvr_prop.template.layout);
-                wyvr_prop.template.page = this.merge_property(data._wyvr.template, wyvr_prop.template.page);
-            } else {
-                if (data._wyvr.template.doc) {
-                    wyvr_prop.template.doc = this.merge_property(data._wyvr.template.doc, wyvr_prop.template.doc);
-                }
-                if (data._wyvr.template.layout) {
-                    wyvr_prop.template.layout = this.merge_property(
-                        data._wyvr.template.layout,
-                        wyvr_prop.template.layout
-                    );
-                }
-                if (data._wyvr.template.page) {
-                    wyvr_prop.template.page = this.merge_property(data._wyvr.template.page, wyvr_prop.template.page);
-                }
-            }
-        }
-        if (data._wyvr.nav) {
-            // allow to add multiple nav entries per page
-            const nav = Array.isArray(data._wyvr.nav) ? data._wyvr.nav : [data._wyvr.nav];
-            wyvr_prop.nav = nav
-                .filter((x) => x)
-                .map((nav) => {
-                    let visible = nav.visible;
-                    if (visible == null) {
-                        visible = true;
-                    }
-                    nav.url = data.url;
-                    nav.visible = visible;
-                    nav.scope = nav.scope || null;
-                    nav.order = nav.order || 0;
-                    return nav;
-                });
-        }
-    }
-    // add extension to the template paths
-    wyvr_prop.template.doc = wyvr_prop.template.doc.map((file) => to_extension(file, 'svelte'));
-    wyvr_prop.template.layout = wyvr_prop.template.layout.map((file) => to_extension(file, 'svelte'));
-    wyvr_prop.template.page = wyvr_prop.template.page.map((file) => to_extension(file, 'svelte'));
-
-    // add simple props
-    ['extension', 'language', 'private', 'change_frequence', 'priority', 'static'].forEach((key) => {
-        if (data && data._wyvr && data._wyvr[key] != null) {
-            wyvr_prop[key] = data._wyvr[key];
-        }
-    });
-
-    // set the new values
-    data._wyvr = wyvr_prop;
-
-    return data;
+    return [].concat(prop_value, default_value).filter((x, index, arr) => arr.indexOf(x) == index);
 }

@@ -162,15 +162,18 @@ describe('model/wyvr_data', () => {
     });
     it('nav preparing with url given', () => {
         deepStrictEqual(
-            WyvrData({
-                nav: [
-                    { visible: true, order: 100 },
-                    { visible: false, scope: 'test' },
-                    undefined,
-                    { url: '/url3' },
-                    {},
-                ],
-            }, '/url'),
+            WyvrData(
+                {
+                    nav: [
+                        { visible: true, order: 100 },
+                        { visible: false, scope: 'test' },
+                        undefined,
+                        { url: '/url3' },
+                        {},
+                    ],
+                },
+                '/url'
+            ),
             {
                 change_frequence: 'monthly',
                 extension: 'html',
@@ -179,6 +182,32 @@ describe('model/wyvr_data', () => {
                     { visible: true, url: '/url', order: 100, scope: 'default' },
                     { visible: false, url: '/url', order: 0, scope: 'test' },
                     { visible: true, url: '/url', order: 0, scope: 'default' },
+                ],
+                priority: 0.5,
+                private: false,
+                static: false,
+                template: {
+                    doc: ['Default.svelte'],
+                    layout: ['Default.svelte'],
+                    page: ['Default.svelte'],
+                },
+            }
+        );
+    });
+    it('nav preparing with url given', () => {
+        deepStrictEqual(
+            WyvrData(
+                {
+                    nav: { visible: true, scope: 'test', order: 100 },
+                },
+                '/url'
+            ),
+            {
+                change_frequence: 'monthly',
+                extension: 'html',
+                language: 'en',
+                nav: [
+                    { visible: true, url: '/url', order: 100, scope: 'test' },
                 ],
                 priority: 0.5,
                 private: false,

@@ -42,4 +42,13 @@ describe('utils/to/to_identifier_name', () => {
             'test_doc-test_layout-test_test_page'
         );
     });
+    it('with wrong paths', () => {
+        deepStrictEqual(
+            to_identifier_name(
+                join('demo', 'doc', 'test', 'Doc.svelte'),
+                join(path, 'layout', 'test', 'Layout.svelte')
+            ),
+            'demo_doc_test_doc-test_layout'
+        );
+    });
 });

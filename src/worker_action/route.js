@@ -12,8 +12,7 @@ export async function route(files) {
         if (is_null(wyvr_pages)) {
             continue;
         }
-        write_routes(wyvr_pages, (wyvr_page) => {
-            return process_page_data(wyvr_page);
-        });
+        const processed_pages = wyvr_pages.map((wyvr_page) => process_page_data(wyvr_page));
+        write_routes(processed_pages);
     }
 }

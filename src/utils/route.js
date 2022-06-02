@@ -123,7 +123,7 @@ export async function execute_route(route) {
     }
 }
 
-export function write_routes(route_entries, hook_before_process) {
+export function write_routes(route_entries) {
     if (!filled_array(route_entries)) {
         return [];
     }
@@ -133,16 +133,8 @@ export function write_routes(route_entries, hook_before_process) {
             if (is_null(route) || !filled_string(route.url)) {
                 return undefined;
             }
-            const url = route.url;
-            if (is_func(hook_before_process)) {
-                // replace route with hook result
-                route = hook_before_process(route);
-            }
-            if (!route) {
-                return undefined;
-            }
             // create data json for the given file
-            const raw_path = join(Cwd.get(), FOLDER_GEN_DATA, url);
+            const raw_path = join(Cwd.get(), FOLDER_GEN_DATA, route.url);
             const path = to_extension(to_index(raw_path, 'json'), 'json');
             create_dir(dirname(path), { recursive: true });
             write(path, JSON.stringify(route));

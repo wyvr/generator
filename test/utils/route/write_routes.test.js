@@ -56,20 +56,4 @@ describe('utils/route/write_routes', () => {
             remove(file);
         });
     });
-    it('hook', () => {
-        let result_route = null;
-        const result = write_routes([{ url: '/route-test-hook' }], (route) => {
-            result_route = route;
-            return route;
-        });
-        deepStrictEqual(result_route, { url: '/route-test-hook' });
-        result.forEach((file) => {
-            strictEqual(exists(file), true);
-            remove(file);
-        });
-    });
-    it('hook without result', () => {
-        const result = write_routes([{ url: '/route-test-hook-empty' }], (route) => {});
-        deepStrictEqual(result, []);
-    });
 });

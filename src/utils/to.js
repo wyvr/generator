@@ -94,3 +94,26 @@ export function to_svelte_paths(data) {
     }
     return undefined;
 }
+export function to_identifier_name(...parts) {
+    const default_sign = 'default';
+    if (!filled_array(parts)) {
+        return default_sign;
+    }
+    const identifiers = parts
+        .filter((x) => x)
+        .map((part) => {
+            const normalized_part = part.replace(/\.svelte$/, '').toLowerCase();
+            const index = normalized_part.indexOf(FOLDER_GEN_SERVER);
+            if (index < 0) {
+                return normalized_part;
+            }
+            return normalized_part.substring(index + FOLDER_GEN_SERVER.length).replace(/^\/(doc|layout|page)\//, '');
+        })
+        .map((part) => part.replace(/\//g, '_'));
+    // empty or all default identifiers gets combined into one
+    if (!filled_array(identifiers) || identifiers.filter((part) => part != default_sign).length == 0) {
+        return default_sign;
+    }
+    const combined = identifiers.join('-');
+    return combined;
+}

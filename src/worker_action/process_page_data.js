@@ -32,12 +32,13 @@ export function process_page_data(page_data) {
     enhanced_data._wyvr.template_files.page = page_file_name;
 
     const identifier = to_identifier_name(doc_file_name, layout_file_name, page_file_name);
+    const regex = new RegExp(`.+/${FOLDER_GEN_SERVER}/`);
     const identifier_emit = {
         type: WorkerEmit.identifier,
         identifier,
-        doc: doc_file_name,
-        layout: layout_file_name,
-        page: page_file_name,
+        doc: doc_file_name.replace(regex, '').replace(/^doc\//, ''),
+        layout: layout_file_name.replace(regex, '').replace(/^layout\//, ''),
+        page: page_file_name.replace(regex, '').replace(/^page\//, ''),
     };
     // emit identifier only when it was not added to the cache before
     // or avoid when the given data has to be static => no JS

@@ -2,6 +2,7 @@ import { join } from 'path';
 import { FOLDER_GEN_SERVER } from '../constants/folder.js';
 import { WyvrData } from '../model/wyvr_data.js';
 import { WorkerAction } from '../struc/worker_action.js';
+import { WorkerEmit } from '../struc/worker_emit.js';
 import { Config } from '../utils/config.js';
 import { find_file } from '../utils/file.js';
 import { to_identifier_name } from '../utils/to.js';
@@ -32,7 +33,7 @@ export function process_page_data(page_data) {
 
     const identifier = to_identifier_name(doc_file_name, layout_file_name, page_file_name);
     const identifier_emit = {
-        type: 'identifier',
+        type: WorkerEmit.identifier,
         identifier,
         doc: doc_file_name,
         layout: layout_file_name,

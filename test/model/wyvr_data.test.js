@@ -7,6 +7,7 @@ describe('model/wyvr_data', () => {
         deepStrictEqual(WyvrData(), {
             change_frequence: 'monthly',
             extension: 'html',
+            identifier: 'default',
             language: 'en',
             nav: [],
             priority: 0.5,
@@ -16,6 +17,11 @@ describe('model/wyvr_data', () => {
                 doc: ['Default.svelte'],
                 layout: ['Default.svelte'],
                 page: ['Default.svelte'],
+            },
+            template_files: {
+                doc: undefined,
+                layout: undefined,
+                page: undefined,
             },
         });
     });
@@ -32,6 +38,7 @@ describe('model/wyvr_data', () => {
             {
                 change_frequence: 'daily',
                 extension: 'json',
+                identifier: 'default',
                 language: 'de',
                 nav: [],
                 priority: 0.2,
@@ -41,6 +48,11 @@ describe('model/wyvr_data', () => {
                     doc: ['Default.svelte'],
                     layout: ['Default.svelte'],
                     page: ['Default.svelte'],
+                },
+                template_files: {
+                    doc: undefined,
+                    layout: undefined,
+                    page: undefined,
                 },
             }
         );
@@ -53,6 +65,7 @@ describe('model/wyvr_data', () => {
             {
                 change_frequence: 'monthly',
                 extension: 'html',
+                identifier: 'default',
                 language: 'en',
                 nav: [],
                 priority: 0.5,
@@ -62,6 +75,11 @@ describe('model/wyvr_data', () => {
                     doc: ['Default.svelte'],
                     layout: ['Default.svelte'],
                     page: ['Default.svelte'],
+                },
+                template_files: {
+                    doc: undefined,
+                    layout: undefined,
+                    page: undefined,
                 },
             }
         );
@@ -74,6 +92,7 @@ describe('model/wyvr_data', () => {
             {
                 change_frequence: 'monthly',
                 extension: 'html',
+                identifier: 'default',
                 language: 'en',
                 nav: [],
                 priority: 0.5,
@@ -83,6 +102,11 @@ describe('model/wyvr_data', () => {
                     doc: ['Page.svelte', 'Default.svelte'],
                     layout: ['Page.svelte', 'Default.svelte'],
                     page: ['Page.svelte', 'Default.svelte'],
+                },
+                template_files: {
+                    doc: undefined,
+                    layout: undefined,
+                    page: undefined,
                 },
             }
         );
@@ -95,6 +119,7 @@ describe('model/wyvr_data', () => {
             {
                 change_frequence: 'monthly',
                 extension: 'html',
+                identifier: 'default',
                 language: 'en',
                 nav: [],
                 priority: 0.5,
@@ -104,6 +129,11 @@ describe('model/wyvr_data', () => {
                     doc: ['CmsPage.svelte', 'Page.svelte', 'Default.svelte'],
                     layout: ['CmsPage.svelte', 'Page.svelte', 'Default.svelte'],
                     page: ['CmsPage.svelte', 'Page.svelte', 'Default.svelte'],
+                },
+                template_files: {
+                    doc: undefined,
+                    layout: undefined,
+                    page: undefined,
                 },
             }
         );
@@ -120,6 +150,7 @@ describe('model/wyvr_data', () => {
             {
                 change_frequence: 'monthly',
                 extension: 'html',
+                identifier: 'default',
                 language: 'en',
                 nav: [],
                 priority: 0.5,
@@ -129,6 +160,11 @@ describe('model/wyvr_data', () => {
                     doc: ['Doc.svelte', 'Default.svelte'],
                     layout: ['Layout.svelte', 'Default.svelte'],
                     page: ['Page.svelte', 'Default.svelte'],
+                },
+                template_files: {
+                    doc: undefined,
+                    layout: undefined,
+                    page: undefined,
                 },
             }
         );
@@ -147,6 +183,7 @@ describe('model/wyvr_data', () => {
             {
                 change_frequence: 'monthly',
                 extension: 'html',
+                identifier: 'default',
                 language: 'en',
                 nav: [],
                 priority: 0.5,
@@ -156,6 +193,11 @@ describe('model/wyvr_data', () => {
                     doc: ['Default.svelte'],
                     layout: ['Default.svelte'],
                     page: ['Default.svelte'],
+                },
+                template_files: {
+                    doc: undefined,
+                    layout: undefined,
+                    page: undefined,
                 },
             }
         );
@@ -177,6 +219,7 @@ describe('model/wyvr_data', () => {
             {
                 change_frequence: 'monthly',
                 extension: 'html',
+                identifier: 'default',
                 language: 'en',
                 nav: [
                     { visible: true, url: '/url', order: 100, scope: 'default' },
@@ -190,6 +233,11 @@ describe('model/wyvr_data', () => {
                     doc: ['Default.svelte'],
                     layout: ['Default.svelte'],
                     page: ['Default.svelte'],
+                },
+                template_files: {
+                    doc: undefined,
+                    layout: undefined,
+                    page: undefined,
                 },
             }
         );
@@ -205,10 +253,9 @@ describe('model/wyvr_data', () => {
             {
                 change_frequence: 'monthly',
                 extension: 'html',
+                identifier: 'default',
                 language: 'en',
-                nav: [
-                    { visible: true, url: '/url', order: 100, scope: 'test' },
-                ],
+                nav: [{ visible: true, url: '/url', order: 100, scope: 'test' }],
                 priority: 0.5,
                 private: false,
                 static: false,
@@ -216,6 +263,11 @@ describe('model/wyvr_data', () => {
                     doc: ['Default.svelte'],
                     layout: ['Default.svelte'],
                     page: ['Default.svelte'],
+                },
+                template_files: {
+                    doc: undefined,
+                    layout: undefined,
+                    page: undefined,
                 },
             }
         );

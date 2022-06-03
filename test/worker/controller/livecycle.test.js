@@ -2,10 +2,17 @@ import { deepStrictEqual, strictEqual } from 'assert';
 import { describe, it } from 'mocha';
 import { WorkerAction } from '../../../src/struc/worker_action.js';
 import { WorkerStatus } from '../../../src/struc/worker_status.js';
+import { Cwd } from '../../../src/vars/cwd.js';
 import { WorkerController } from '../../../src/worker/controller.js';
 
 describe('worker/controller/livecycle', () => {
     let messages;
+    before(() => {
+        Cwd.set(process.cwd());
+    });
+    after(() => {
+        Cwd.set(undefined);
+    });
     afterEach(() => {
         messages = undefined;
     });

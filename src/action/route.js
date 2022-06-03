@@ -38,4 +38,6 @@ export async function routes(package_tree) {
     await Plugin.after(name, list);
 
     Logger.stop(name, nano_to_milli(process.hrtime.bigint() - start));
+    
+    return identifiers;
 }

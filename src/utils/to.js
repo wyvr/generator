@@ -1,4 +1,4 @@
-import { dirname, join, resolve } from 'path';
+import { dirname, extname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
@@ -80,7 +80,11 @@ function replace_path(path, replace_with) {
     return path;
 }
 export function to_server_path(path) {
-    return replace_path(path, FOLDER_GEN_SERVER);
+    const mod_path = replace_path(path, FOLDER_GEN_SERVER);
+    if(extname(mod_path) != '.svelte') {
+        return mod_path;
+    }
+    return to_extension(mod_path, 'js');
 }
 export function to_client_path(path) {
     return replace_path(path, FOLDER_GEN_CLIENT);

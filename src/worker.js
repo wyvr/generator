@@ -4,6 +4,7 @@ import { WorkerStatus } from './struc/worker_status.js';
 import { Logger } from './utils/logger.js';
 import { IsWorker } from './vars/is_worker.js';
 import { send_status } from './worker/communication.js';
+import { build } from './worker_action/build.js';
 import { configure } from './worker_action/configure.js';
 import { route } from './worker_action/route.js';
 import { transform } from './worker_action/transform.js';
@@ -43,7 +44,10 @@ export async function process_message(msg) {
             await route(value);
             break;
         }
-        case WorkerAction.build:
+        case WorkerAction.build: {
+            await build(value);
+            break;
+        }
         case WorkerAction.inject:
         case WorkerAction.scripts:
         case WorkerAction.optimize:

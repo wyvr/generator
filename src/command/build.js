@@ -1,5 +1,6 @@
 import { cpus } from 'os';
 import { join } from 'path';
+import { build } from '../action/build.js';
 import { check_env } from '../action/check_env.js';
 import { clear_gen } from '../action/clear_gen.js';
 import { copy_files, copy_folder } from '../action/copy.js';
@@ -50,11 +51,11 @@ export const build_command = async (config) => {
     // clear gen folder
     clear_gen();
 
-    //  Build Global(storage) Data
+    // Build Global(storage) Data
     Storage.set_location(FOLDER_STORAGE);
     await Storage.set('config', config_data);
 
-    //  Collect packages
+    // Collect packages
     const package_json = read_json('package.json');
     const { available_packages, disabled_packages } = await collect_packages(package_json);
     package_report(available_packages, disabled_packages);
@@ -67,16 +68,16 @@ export const build_command = async (config) => {
     Logger.present('worker', worker_amount, Logger.color.dim(`of ${cpus().length} threads`));
     WorkerController.create_workers(worker_amount);
 
-    //  Initialize Plugins
+    // Initialize Plugins
     const plugin_files = await Plugin.load(FOLDER_GEN_PLUGINS);
     const plugins = await Plugin.generate(plugin_files);
     if (plugins) {
         Plugin.cache = plugins;
     }
 
-    //  Copy static files from packages
-    //  Copy files from packages and override in the package order
-    //  Build Tree of files and packages
+    // Copy static files from packages
+    // Copy files from packages and override in the package order
+    // Build Tree of files and packages
     const package_tree = {};
     available_packages.forEach((pkg) => {
         copy_folder(pkg.path, FOLDER_LIST_PACKAGE_COPY, join(Cwd.get(), FOLDER_GEN), (file, target) => {
@@ -91,24 +92,22 @@ export const build_command = async (config) => {
     });
     write_json(join(Cwd.get(), FOLDER_GEN, 'package_tree.json'), package_tree, false);
 
-    //  Copy configured asset files
+    // Copy configured asset files
     const assets = Config.get('assets');
     copy_files(assets, join(Cwd.get(), FOLDER_GEN_ASSETS));
 
-    //  Create Translations/I18N
+    // Create Translations/I18N
     i18n(available_packages);
 
     //  Transform Svelte files to client and server components
     await transform();
 
-    //  Execute Routes
-    await routes(package_tree);
+    // Execute Routes
+    const identifiers = await routes(package_tree);
+    Logger.info('identifiers', identifiers);
 
-    // Logger.info('routes', ...routes_list);
-
-    // @TODO
-    //  Build Pages
-    // @TODO
+    // Build Pages
+    await build();
     //  Inject Data into the pages
     // @TODO
     //  Build Script dependencies

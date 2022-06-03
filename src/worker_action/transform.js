@@ -1,7 +1,7 @@
 // import { Config } from '../utils/config.js';
 import { extname } from 'path';
 import { insert_import } from '../utils/compile.js';
-import { read, symlink, write } from '../utils/file.js';
+import { exists, read, symlink, write } from '../utils/file.js';
 import { to_client_path, to_server_path } from '../utils/to.js';
 // import { Logger } from '../utils/logger.js';
 import { combine_splits, replace_wyvr_magic } from '../utils/transform.js';
@@ -19,6 +19,9 @@ export async function transform(files) {
         return false;
     }
     for (const file of files) {
+        if (!exists(file)) {
+            continue;
+        }
         const extension = extname(file);
         const server_file = to_server_path(file);
         const client_file = to_client_path(file);
@@ -28,16 +31,19 @@ export async function transform(files) {
             if (filled_string(combined.content)) {
                 content = combined.content;
             }
-            
+
             // override the content
             write(file, content);
-            
+
             // generate server file
-            write(server_file, replace_wyvr_magic(content, false));
-            
+            const server_code = replace_wyvr_magic(content, false);
+            if (server_code) {
+                write(server_file, server_code);
+            }
+
             // generate client file
             write(client_file, replace_wyvr_magic(content, true));
-            
+
             continue;
         }
         // replace import in text files

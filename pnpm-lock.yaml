@@ -46,7 +46,7 @@ specifiers:
   sqlite3: 5.0.2
   stream-json: 1.7.4
   string-replace-async: ^3.0.2
-  svelte: 3.46.4
+  svelte: 3.48.0
   tosource: 2.0.0-alpha.3
   ts-node: 10.7.0
   tslib: ^2.3.1
@@ -90,7 +90,7 @@ dependencies:
   sqlite3: 5.0.2
   stream-json: 1.7.4
   string-replace-async: 3.0.2
-  svelte: 3.46.4
+  svelte: 3.48.0
   tslib: 2.3.1
   typescript: 4.6.2
   uuid: 8.3.2
@@ -104,7 +104,7 @@ devDependencies:
   jshint: 2.13.4
   locate-character: 2.0.5
   npm-check-updates: 12.5.4
-  rollup-plugin-svelte: 7.1.0_rollup@2.70.1+svelte@3.46.4
+  rollup-plugin-svelte: 7.1.0_rollup@2.70.1+svelte@3.48.0
   rollup-plugin-terser: 7.0.2_rollup@2.70.1
   source-map-support: 0.5.21
   tosource: 2.0.0-alpha.3
@@ -5266,7 +5266,7 @@ packages:
       rollup: 2.70.1
     dev: false
 
-  /rollup-plugin-svelte/7.1.0_rollup@2.70.1+svelte@3.46.4:
+  /rollup-plugin-svelte/7.1.0_rollup@2.70.1+svelte@3.48.0:
     resolution: {integrity: sha512-vopCUq3G+25sKjwF5VilIbiY6KCuMNHP1PFvx2Vr3REBNMDllKHFZN2B9jwwC+MqNc3UPKkjXnceLPEjTjXGXg==}
     engines: {node: '>=10'}
     peerDependencies:
@@ -5276,7 +5276,7 @@ packages:
       require-relative: 0.8.7
       rollup: 2.70.1
       rollup-pluginutils: 2.8.2
-      svelte: 3.46.4
+      svelte: 3.48.0
     dev: true
 
   /rollup-plugin-terser/7.0.2_rollup@2.70.1:
@@ -5724,8 +5724,8 @@ packages:
     engines: {node: '>= 0.4'}
     dev: false
 
-  /svelte/3.46.4:
-    resolution: {integrity: sha512-qKJzw6DpA33CIa+C/rGp4AUdSfii0DOTCzj/2YpSKKayw5WGSS624Et9L1nU1k2OVRS9vaENQXp2CVZNU+xvIg==}
+  /svelte/3.48.0:
+    resolution: {integrity: sha512-fN2YRm/bGumvjUpu6yI3BpvZnpIm9I6A7HR4oUNYd7ggYyIwSA/BX7DJ+UXXffLp6XNcUijyLvttbPVCYa/3xQ==}
     engines: {node: '>= 8'}
     dev: false
 

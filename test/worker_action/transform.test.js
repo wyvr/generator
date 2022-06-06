@@ -145,6 +145,6 @@ const Component = create_ssr_component(($$result, $$props, $$bindings, slots) =>
 
 export default Component;`
         );
-        //remove(join(path, '_import'));
+        remove(join(path, '_import'));
     });
 });

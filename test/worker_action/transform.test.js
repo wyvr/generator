@@ -105,7 +105,7 @@ export default Component;`
         strictEqual(
             read(join(path, '_import', FOLDER_GEN_CLIENT, 'svelte.svelte')),
             `<script>
-    import Container from '/home/p/wyvr/generator/test/worker_action/_tests/transform/gen/src/container.svelte';
+    import Container from '${process.cwd()}/test/worker_action/_tests/transform/gen/src/container.svelte';
     let a = 'test';
 function test(a) {
     return '#' + a;

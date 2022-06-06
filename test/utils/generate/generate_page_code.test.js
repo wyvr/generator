@@ -27,21 +27,21 @@ describe('utils/generate/generate_page_code', () => {
                     },
                 },
             }),
-            '\n' +
-                '<script type="module">\n' +
-                "    import Doc from '/home/p/wyvr/generator/test/utils/generate/_tests/generate_page_code/doc/Default';\n" +
-                "    import Layout from '/home/p/wyvr/generator/test/utils/generate/_tests/generate_page_code/doc/Default';\n" +
-                "    import Page from '/home/p/wyvr/generator/test/utils/generate/_tests/generate_page_code/doc/Default';\n" +
-                '    const data = {"_wyvr":{"url":"/url","template_files":{"doc":"/home/p/wyvr/generator/test/utils/generate/_tests/generate_page_code/doc/Default","layout":"/home/p/wyvr/generator/test/utils/generate/_tests/generate_page_code/doc/Default","page":"/home/p/wyvr/generator/test/utils/generate/_tests/generate_page_code/doc/Default"}}};\n' +
-                '</script>\n' +
-                '\n' +
-                '<Doc data={data}>\n' +
-                '    <Layout data={data}>\n' +
-                '        <Page data={data}>\n' +
-                "        {@html data.content || ''}\n" +
-                '        </Page>\n' +
-                '    </Layout>\n' +
-                '</Doc>'
+            `
+<script type="module">
+    import Doc from '${process.cwd()}/test/utils/generate/_tests/generate_page_code/doc/Default';
+    import Layout from '${process.cwd()}/test/utils/generate/_tests/generate_page_code/doc/Default';
+    import Page from '${process.cwd()}/test/utils/generate/_tests/generate_page_code/doc/Default';
+    const data = {"_wyvr":{"url":"/url","template_files":{"doc":"${process.cwd()}/test/utils/generate/_tests/generate_page_code/doc/Default","layout":"${process.cwd()}/test/utils/generate/_tests/generate_page_code/doc/Default","page":"${process.cwd()}/test/utils/generate/_tests/generate_page_code/doc/Default"}}};
+</script>
+
+<Doc data={data}>
+    <Layout data={data}>
+        <Page data={data}>
+        {@html data.content || ''}
+        </Page>
+    </Layout>
+</Doc>`
         );
     });
 });

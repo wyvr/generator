@@ -81,10 +81,7 @@ function replace_path(path, replace_with) {
 }
 export function to_server_path(path) {
     const mod_path = replace_path(path, FOLDER_GEN_SERVER);
-    if(extname(mod_path) != '.svelte') {
-        return mod_path;
-    }
-    return to_extension(mod_path, 'js');
+    return mod_path;
 }
 export function to_client_path(path) {
     return replace_path(path, FOLDER_GEN_CLIENT);

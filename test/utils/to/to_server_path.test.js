@@ -31,6 +31,6 @@ describe('utils/to/to_server_path', () => {
         strictEqual(to_server_path(join('huhu', 'gen', 'src', 'test.txt')), join('huhu', 'gen', 'server', 'test.txt'));
     });
     it('convert svelte files', () => {
-        strictEqual(to_server_path(join('huhu', 'gen', 'src', 'test.svelte')), join('huhu', 'gen', 'server', 'test.js'));
+        strictEqual(to_server_path(join('huhu', 'gen', 'src', 'test.svelte')), join('huhu', 'gen', 'server', 'test.svelte'));
     });
 });

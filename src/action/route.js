@@ -33,11 +33,12 @@ export async function routes(package_tree) {
     await WorkerController.process_in_workers(WorkerAction.route, list, 10);
 
     Event.off('emit', identifier_name, listener_id);
-    Logger.info('found', Object.keys(identifiers).length, 'identifiers', Logger.color.dim('different layout combinations'));
+    const identifier_length = Object.keys(identifiers).length;
+    Logger.info('found', identifier_length, identifier_length == 1 ? 'identifier' : 'identifiers');
 
     await Plugin.after(name, list);
 
     Logger.stop(name, nano_to_milli(process.hrtime.bigint() - start));
-    
+
     return identifiers;
 }

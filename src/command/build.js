@@ -3,6 +3,7 @@ import { join } from 'path';
 import { build } from '../action/build.js';
 import { check_env } from '../action/check_env.js';
 import { clear_gen } from '../action/clear_gen.js';
+import { compile } from '../action/compile.js';
 import { copy_files, copy_folder } from '../action/copy.js';
 import { get_config_data } from '../action/get_config_data.js';
 import { i18n } from '../action/i18n.js';
@@ -101,6 +102,9 @@ export const build_command = async (config) => {
 
     //  Transform Svelte files to client and server components
     await transform();
+
+    // Compile svelte files
+    await compile();
 
     // Execute Routes
     const identifiers = await routes(package_tree);

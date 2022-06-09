@@ -1,6 +1,6 @@
 import { dirname, extname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
-import { FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC } from '../constants/folder.js';
+import { FOLDER_GEN, FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { to_extension } from './file.js';
 import {
@@ -79,9 +79,29 @@ function replace_path(path, replace_with) {
     }
     return path;
 }
+/**
+ * Converts the given path to a relative path inside the first child of gen
+ * @param {string} path 
+ * @returns 
+ */
+export function to_relative_path(path) {
+    if (!filled_string(path)) {
+        return '';
+    }
+    const regex = new RegExp(`.+/${FOLDER_GEN}/[^/]+/`);
+    return path.replace(regex, '');
+}
+/**
+ * Converts the given path to gen/server path and convert svelte files to js
+ * @param {string} path 
+ * @returns 
+ */
 export function to_server_path(path) {
     const mod_path = replace_path(path, FOLDER_GEN_SERVER);
-    return mod_path;
+    if (extname(mod_path) != '.svelte') {
+        return mod_path;
+    }
+    return to_extension(mod_path, 'js');
 }
 export function to_client_path(path) {
     return replace_path(path, FOLDER_GEN_CLIENT);
@@ -103,7 +123,7 @@ export function to_identifier_name(...parts) {
     const identifiers = parts
         .filter((x) => x)
         .map((part) => {
-            const normalized_part = part.replace(/\.svelte$/, '').toLowerCase();
+            const normalized_part = part.replace(/\.[^.]+$/, '').toLowerCase();
             const index = normalized_part.indexOf(FOLDER_GEN_SERVER);
             if (index < 0) {
                 return normalized_part;

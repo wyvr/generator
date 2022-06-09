@@ -59,9 +59,9 @@ describe('worker_action/process_page_data', () => {
                         page: ['Default.svelte'],
                     },
                     template_files: {
-                        doc: join(path, FOLDER_GEN_SERVER, 'doc', 'Default.svelte'),
-                        layout: join(path, FOLDER_GEN_SERVER, 'layout', 'Default.svelte'),
-                        page: join(path, FOLDER_GEN_SERVER, 'page', 'Default.svelte'),
+                        doc: join(path, FOLDER_GEN_SERVER, 'doc', 'Default.js'),
+                        layout: join(path, FOLDER_GEN_SERVER, 'layout', 'Default.js'),
+                        page: join(path, FOLDER_GEN_SERVER, 'page', 'Default.js'),
                     },
                 },
                 url: '/url',

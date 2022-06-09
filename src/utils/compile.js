@@ -10,8 +10,7 @@ import { extname, sep } from 'path';
 import { replace_src_path } from './transform.js';
 import {
     compile_server_svelte_from_code,
-    execute_server_compiled_svelte,
-    render_server_compiled_svelte,
+    execute_server_compiled_svelte
 } from './compile_svelte.js';
 /**
  * replace @import in content

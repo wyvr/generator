@@ -2,11 +2,8 @@ import { FOLDER_GEN_DATA } from '../constants/folder.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
 import { nano_to_milli } from '../utils/convert.js';
-import { Event } from '../utils/event.js';
 import { collect_files } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
-import { Plugin } from '../utils/plugin.js';
-import { collect_routes } from '../utils/route.js';
 import { WorkerController } from '../worker/controller.js';
 import { wait_until_idle } from './wait_until_idle.js';
 

@@ -149,6 +149,21 @@ export function is_func(value) {
 }
 
 /**
+ * Check if the given value is a valid path string, used in imports
+ * @param {any} value
+ * @returns boolean
+ */
+export function is_path(value) {
+    if (!filled_string(value)) {
+        return false;
+    }
+    if (value.indexOf('.') == 0 || value.indexOf('/') == 0 || value.indexOf('@src') == 0) {
+        return true;
+    }
+    return false;
+}
+
+/**
  * Check if the given value matches the given structure
  * @param {any} value
  * @param {any} structure

@@ -19,7 +19,7 @@ export function replace_import_path(content) {
  * @param content source code with @src imports
  * @param to path to the src folder, relative to the cwd
  * @param extension the extension of the content, svelte files has to be handelt different
- * @returns the source code ith the replaced @src imports
+ * @returns the source code with the replaced @src imports
  */
 export function replace_src_path(content, to, extension) {
     if (!filled_string(content)) {
@@ -43,6 +43,22 @@ export function replace_src_path(content, to, extension) {
     content = extracted_style.content + extracted_style.tags.join('');
 
     return content;
+}
+/**
+ * Replace the @src imports with the given to path
+ * @param content source code with @src imports
+ * @param to path to the src folder, relative to the cwd
+ * @returns the path with the replaced @src
+ */
+export function replace_src_in_path(path, to) {
+    if (!filled_string(path)) {
+        return '';
+    }
+    if (!filled_string(to)) {
+        return path;
+    }
+    const replace = `${Cwd.get()}/${to.replace('^/', '').replace(/\/$/, '')}/`;
+    return path.replace(/^@src\//g, replace);
 }
 
 export async function combine_splits(path, content) {

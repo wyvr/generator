@@ -28,26 +28,40 @@ describe('utils/to/compile_server_svelte', () => {
         strictEqual(await compile_server_svelte(), undefined);
         deepStrictEqual(log, []);
     });
+    it('empty Slot file', async () => {
+        const file = join(__dirname, 'Default.svelte');
+        const content = read(file).replace(/\[root\]/g, process.cwd());
+        const result = await compile_server_svelte(content, file);
+        deepStrictEqual(log, [], 'log message');
+        strictEqual(result != undefined, true, 'nothing got compiled');
+        deepStrictEqual(Object.keys(result), ['compiled', 'component', 'result'], 'result object');
+        deepStrictEqual(Object.keys(result.compiled), ['js', 'css', 'ast', 'warnings', 'vars', 'stats'], 'result.compiled object');
+        deepStrictEqual(Object.keys(result.component), ['render', '$$render'], 'result.component object');
+        const rendered = result.component.render();
+        deepStrictEqual(rendered.html, '');
+    });
     it('simple', async () => {
         const file = join(__dirname, 'Simple.svelte');
         const content = read(file).replace(/\[root\]/g, process.cwd());
         const result = await compile_server_svelte(content, file);
-        deepStrictEqual(log, []);
-        strictEqual(result != undefined, true, 'nothing got compiled')
-        deepStrictEqual(Object.keys(result), ['compiled', 'component', 'result']);
-        deepStrictEqual(Object.keys(result.compiled), ['js', 'css', 'ast', 'warnings', 'vars', 'stats']);
-        deepStrictEqual(Object.keys(result.component), ['render', '$$render']);
+        deepStrictEqual(log, [], 'log message');
+        strictEqual(result != undefined, true, 'nothing got compiled');
+        deepStrictEqual(Object.keys(result), ['compiled', 'component', 'result'], 'result object');
+        deepStrictEqual(Object.keys(result.compiled), ['js', 'css', 'ast', 'warnings', 'vars', 'stats'], 'result.compiled object');
+        deepStrictEqual(Object.keys(result.component), ['render', '$$render'], 'result.component object');
         const rendered = result.component.render();
         deepStrictEqual(rendered.html, 'Hello /url');
     });
     // it('page with imports', async () => {
-    //     const content = read(join(__dirname, 'Page.svelte')).replace(/\[root\]/g, process.cwd());
-    //     const result = await compile_server_svelte(content);
-    //     deepStrictEqual(log, []);
-    //     deepStrictEqual(Object.keys(result), ['compiled', 'component', 'result', 'notes']);
-    //     deepStrictEqual(Object.keys(result.compiled), ['js', 'css', 'ast', 'warnings', 'vars', 'stats']);
-    //     deepStrictEqual(Object.keys(result.component), ['render', '$$render']);
+    //     const file = join(__dirname, 'Page.svelte');
+    //     const content = read(file).replace(/\[root\]/g, process.cwd());
+    //     const result = await compile_server_svelte(content, file);
+    //     deepStrictEqual(log, [], 'log message');
+    //     strictEqual(result != undefined, true, 'nothing got compiled');
+    //     deepStrictEqual(Object.keys(result), ['compiled', 'component', 'result'], 'result object');
+    //     deepStrictEqual(Object.keys(result.compiled), ['js', 'css', 'ast', 'warnings', 'vars', 'stats'], 'result.compiled object');
+    //     deepStrictEqual(Object.keys(result.component), ['render', '$$render'], 'result.component object');
     //     const rendered = await result.component.render();
-    //     deepStrictEqual(rendered.html, 'hello');
+    //     deepStrictEqual(rendered.html, '<!-- HTML_TAG_START -->hello<!-- HTML_TAG_END -->');
     // });
 });

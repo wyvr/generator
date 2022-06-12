@@ -5,13 +5,14 @@ export const WorkerAction = {
     emit: 3,
     route: 4,
     transform: 5,
-    generate: 6,
-    build: 7,
-    scripts: 8,
-    inject: 9,
-    cleanup: 10,
-    optimize: 11,
-    media: 12,
+    compile: 6,
+    generate: 7,
+    build: 8,
+    scripts: 9,
+    inject: 10,
+    cleanup: 11,
+    optimize: 12,
+    media: 13,
 };
 export function get_name(action) {
     return Object.keys(WorkerAction).find((key) => WorkerAction[key] == action);

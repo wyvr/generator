@@ -5,6 +5,7 @@ import { Logger } from './utils/logger.js';
 import { IsWorker } from './vars/is_worker.js';
 import { send_status } from './worker/communication.js';
 import { build } from './worker_action/build.js';
+import { compile } from './worker_action/compile.js';
 import { configure } from './worker_action/configure.js';
 import { route } from './worker_action/route.js';
 import { transform } from './worker_action/transform.js';
@@ -38,6 +39,10 @@ export async function process_message(msg) {
     switch (action) {
         case WorkerAction.transform: {
             await transform(value);
+            break;
+        }
+        case WorkerAction.compile: {
+            await compile(value);
             break;
         }
         case WorkerAction.route: {

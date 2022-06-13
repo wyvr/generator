@@ -42,5 +42,32 @@ describe('utils/compile_svelte/compile_server_svelte_from_code', () => {
         const content = read(file);
         const result = await compile_server_svelte_from_code(content, file);
         deepStrictEqual(Object.keys(result), ['js', 'css', 'ast', 'warnings', 'vars', 'stats']);
+        deepStrictEqual(log, []);
+    });
+    it('missing import file', async () => {
+        const file = join(path, 'Broken.svelte');
+        const content = read(file);
+        const result = await compile_server_svelte_from_code(content, file);
+        deepStrictEqual(log, [
+            [
+                '',
+                '',
+                '⚠',
+                '@svelte server compile\n' +
+                    `[Error] can't find import ${process.cwd()}/test/utils/compile_svelte/_tests/gen/server/nonexisting with the extensions .js,.mjs,.ts in ${process.cwd()}/test/utils/compile_svelte/_tests/Broken.svelte\n` +
+                    'stack\n' +
+                    'source Broken.svelte',
+            ],
+        ]);
+    });
+    it('throw error', async () => {
+        const file = join(path, 'Throw.svelte');
+        const content = read(file);
+        const result = await compile_server_svelte_from_code(content, file);
+        deepStrictEqual(log[0][2], '✖');
+        deepStrictEqual(
+            log[0][3],
+            '@svelte server compile\n[ParseError] <script> must have a closing tag\nstack\n- 12:     </div>\n- 13:     <Footer {data} />\n- 14: </div>\n-           ^\nsource Throw.svelte'
+        );
     });
 });

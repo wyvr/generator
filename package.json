@@ -21,7 +21,6 @@
         "axios": "0.26.1",
         "c8": "^7.11.0",
         "chokidar": "3.5.3",
-        "circular": "1.0.5",
         "critical": "4.0.1",
         "deepmerge": "4.2.2",
         "esbuild": "^0.14.27",

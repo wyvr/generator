@@ -11,7 +11,7 @@ import {
     lstatSync,
 } from 'fs';
 import { extname, dirname, join } from 'path';
-import circular from 'circular';
+import {stringify} from './json.js';
 import { is_string, filled_string, filled_array } from './validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { WyvrFile } from '../model/wyvr_file.js';
@@ -177,12 +177,11 @@ export function write(filename, content) {
  * @param filename
  * @returns void
  */
-export function write_json(filename, data = null, check_circular = true) {
+export function write_json(filename, data = null) {
     if (!is_string(filename)) {
         return false;
     }
     const spaces = Env.json_spaces();
-    const replacer = check_circular ? circular() : undefined;
 
     // @see https://dev.to/madhunimmo/json-stringify-rangeerror-invalid-string-length-3977
     if (filled_array(data)) {
@@ -192,7 +191,7 @@ export function write_json(filename, data = null, check_circular = true) {
         const len = data.length;
         writeFileSync(filename, '[', { flag: 'a' });
         for (let i = 0; i < len; i++) {
-            const content = JSON.stringify(data[i], replacer, spaces) + (i + 1 < len ? ',' : '');
+            const content = stringify(data[i], undefined, spaces) + (i + 1 < len ? ',' : '');
             writeFileSync(filename, content, {
                 flag: 'a',
             });
@@ -201,7 +200,7 @@ export function write_json(filename, data = null, check_circular = true) {
         return true;
     }
 
-    return write(filename, JSON.stringify(data, replacer, spaces));
+    return write(filename, stringify(data, spaces));
 }
 /**
  * search for one file out of multiple possible files, to depict hierachy of file overrides

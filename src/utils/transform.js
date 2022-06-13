@@ -4,7 +4,7 @@ import { filled_array, filled_object, filled_string, is_null, is_number, is_stri
 import { compile_sass, compile_typescript } from './compile.js';
 import { Cwd } from '../vars/cwd.js';
 import { to_dirname } from './to.js';
-import { clone } from './clone.js';
+import { clone } from './json.js';
 
 const __dirname = join(to_dirname(import.meta.url), '..');
 

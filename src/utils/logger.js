@@ -10,7 +10,7 @@ import {
     is_string,
     is_symbol,
 } from './validate.js';
-import circular from 'circular';
+import { stringify } from './json.js';
 import { Env } from '../vars/env.js';
 import { Report } from '../vars/report.js';
 import { Spinner } from './spinner.js';
@@ -165,7 +165,7 @@ export class Logger {
         if (is_string(data) || is_number(data) || is_symbol(data) || is_regex(data)) {
             return data.toString();
         }
-        return JSON.stringify(data, circular());
+        return stringify(data);
     }
 
     static start(name) {

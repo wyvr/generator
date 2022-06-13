@@ -1,0 +1,2 @@
+<script>
+    const a = true;

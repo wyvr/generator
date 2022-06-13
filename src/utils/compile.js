@@ -102,11 +102,8 @@ export async function compile_server_svelte(content, file) {
         return undefined;
     }
     const compiled = await compile_server_svelte_from_code(content, file);
-    if (is_null(compiled)) {
-        return undefined;
-    }
     const component = await execute_server_compiled_svelte(compiled, file);
-    if (is_null(component)) {
+    if (is_null(compiled) || is_null(component)) {
         return undefined;
     }
     return { compiled, component, result: undefined };

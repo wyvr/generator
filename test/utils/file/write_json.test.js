@@ -71,7 +71,7 @@ describe('utils/file/write_json', () => {
         };
         b.a.a = b;
         deepStrictEqual(write_json(filename, b), true);
-        deepStrictEqual(read(filename), '{"a":{"a":"[Circular]"}}');
+        deepStrictEqual(read(filename), '{"a":{}}');
         rmSync(filename);
     });
 });

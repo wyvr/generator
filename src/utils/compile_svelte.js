@@ -78,7 +78,7 @@ export async function compile_server_svelte_from_code(content, file) {
 
 export async function execute_server_compiled_svelte(compiled, file) {
     if (!search_segment(compiled, 'js.code')) {
-        Logger.warning("can't execute", file, ' no code found');
+        Logger.warning("can't execute", file, 'no code found');
         return undefined;
     }
 
@@ -96,6 +96,7 @@ export async function execute_server_compiled_svelte(compiled, file) {
             component = component.default;
         }
     } catch (e) {
+        component = undefined;
         Logger.error(get_error_message(e, file, 'svelte server execute'));
     }
     remove(tmp_file);

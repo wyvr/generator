@@ -35,7 +35,11 @@ describe('utils/to/compile_server_svelte', () => {
         deepStrictEqual(log, [], 'log message');
         strictEqual(result != undefined, true, 'nothing got compiled');
         deepStrictEqual(Object.keys(result), ['compiled', 'component', 'result'], 'result object');
-        deepStrictEqual(Object.keys(result.compiled), ['js', 'css', 'ast', 'warnings', 'vars', 'stats'], 'result.compiled object');
+        deepStrictEqual(
+            Object.keys(result.compiled),
+            ['js', 'css', 'ast', 'warnings', 'vars', 'stats'],
+            'result.compiled object'
+        );
         deepStrictEqual(Object.keys(result.component), ['render', '$$render'], 'result.component object');
         const rendered = result.component.render();
         deepStrictEqual(rendered.html, '');
@@ -47,7 +51,11 @@ describe('utils/to/compile_server_svelte', () => {
         deepStrictEqual(log, [], 'log message');
         strictEqual(result != undefined, true, 'nothing got compiled');
         deepStrictEqual(Object.keys(result), ['compiled', 'component', 'result'], 'result object');
-        deepStrictEqual(Object.keys(result.compiled), ['js', 'css', 'ast', 'warnings', 'vars', 'stats'], 'result.compiled object');
+        deepStrictEqual(
+            Object.keys(result.compiled),
+            ['js', 'css', 'ast', 'warnings', 'vars', 'stats'],
+            'result.compiled object'
+        );
         deepStrictEqual(Object.keys(result.component), ['render', '$$render'], 'result.component object');
         const rendered = result.component.render();
         deepStrictEqual(rendered.html, 'Hello /url');
@@ -64,4 +72,16 @@ describe('utils/to/compile_server_svelte', () => {
     //     const rendered = await result.component.render();
     //     deepStrictEqual(rendered.html, '<!-- HTML_TAG_START -->hello<!-- HTML_TAG_END -->');
     // });
+    it('Throw compile error', async () => {
+        const file = join(__dirname, 'Throw.svelte');
+        const content = read(file).replace(/\[root\]/g, process.cwd());
+        const result = await compile_server_svelte(content, file);
+        deepStrictEqual(result, undefined);
+        deepStrictEqual(log[0][0], '✖');
+        deepStrictEqual(
+            log[0][1].indexOf('@svelte server compile\n[ParseError] <script> must have a closing tag\nstack') == 0,
+            true,
+            'error message is wrong'
+        );
+    });
 });

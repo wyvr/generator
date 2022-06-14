@@ -10,6 +10,7 @@ export const FOLDER_GEN_CLIENT = join(FOLDER_GEN, FOLDER_CLIENT);
 export const FOLDER_ASSETS = 'assets';
 export const FOLDER_GEN_ASSETS = join(FOLDER_GEN, FOLDER_ASSETS);
 export const FOLDER_I18N = 'i18n';
+export const FOLDER_GEN_I18N = join(FOLDER_GEN, FOLDER_I18N);
 export const FOLDER_CACHE = 'cache';
 export const FOLDER_TEMP = 'tmp';
 export const FOLDER_GEN_TEMP = join(FOLDER_GEN, FOLDER_TEMP);

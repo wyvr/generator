@@ -3,9 +3,10 @@ import merge from 'deepmerge';
 import { join } from 'path';
 import { WyvrConfig } from '../model/wyvr_config.js';
 import { is_file } from './file.js';
+import { register_inject_config } from './global.js';
 import { Logger } from './logger.js';
 import { search_segment } from './segment.js';
-import { is_string } from './validate.js';
+import { filled_string, is_string } from './validate.js';
 
 // function get() {}
 // function set() {}
@@ -86,3 +87,45 @@ function config() {
 }
 
 export const Config = config();
+export async function inject_config(content) {
+    if(!filled_string(content)) {
+        return '';
+    }
+    const search_string = 'injectConfig(';
+    const start_index = content.indexOf(search_string);
+    // when not found
+    if (start_index == -1) {
+        return content;
+    }
+    let index = start_index + search_string.length + 1;
+    let open_brackets = 1;
+    let found_closing = false;
+    const length = content.length;
+    while (index < length && open_brackets > 0) {
+        const char = content[index];
+        switch (char) {
+            case '(':
+                open_brackets++;
+                break;
+            case ')':
+                open_brackets--;
+                if (open_brackets == 0) {
+                    found_closing = true;
+                }
+                break;
+        }
+        index++;
+    }
+    if (found_closing) {
+        // extract the function content, to execute it
+        register_inject_config();
+        const func_content = content.substr(start_index, index - start_index);
+        const result = await eval(func_content); // @NOTE throw error, must be catched outside
+
+        // insert result of getGlobal
+        const replaced = content.substr(0, start_index) + JSON.stringify(result) + content.substr(index);
+        // check if more onServer handlers are used
+        return await inject_config(replaced);
+    }
+    return content;
+}

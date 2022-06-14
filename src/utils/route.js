@@ -6,6 +6,7 @@ import { Cwd } from '../vars/cwd.js';
 import { compile_markdown } from './compile.js';
 import { get_error_message } from './error.js';
 import { collect_files, create_dir, exists, read, remove_index, to_extension, to_index, write } from './file.js';
+import { register_inject_config } from './global.js';
 import { Logger } from './logger.js';
 import { filled_array, filled_string, is_array, is_func, is_null, match_interface } from './validate.js';
 
@@ -49,12 +50,7 @@ export async function execute_route(route) {
 
     const extension = extname(route.path);
 
-    // if (!(<any>global).getGlobal || typeof (<any>global).getGlobal != 'function') {
-    //     (<any>global).getGlobal = async (key, fallback, callback) => {
-    //         const result = await Global.get(key, fallback || null, callback);
-    //         return result;
-    //     };
-    // }
+    register_inject_config();
 
     switch (extension) {
         case '.md': {

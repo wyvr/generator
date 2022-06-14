@@ -1,3 +1,3 @@
 /* eslint-disable */
-declare function getGlobal(key: string, fallback?: any): any;
+declare function injectConfig(key: string, fallback?: any): any;
 /* eslint-enable */

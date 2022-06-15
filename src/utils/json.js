@@ -1,6 +1,6 @@
 import { get_error_message } from './error.js';
 import { Logger } from './logger.js';
-import { is_null, is_object } from './validate.js';
+import { filled_string, is_null, is_object } from './validate.js';
 
 export function stringify(item, spaces) {
     const cache = [];
@@ -21,6 +21,9 @@ export function stringify(item, spaces) {
     );
 }
 export function parse(string) {
+    if(!filled_string(string)) {
+        return undefined;
+    }
     try {
         return JSON.parse(string);
     } catch (e) {

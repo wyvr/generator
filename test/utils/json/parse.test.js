@@ -1,12 +1,12 @@
 import { deepStrictEqual } from 'assert';
 import { describe, it } from 'mocha';
 import Sinon from 'sinon';
-import { clone } from '../../../src/utils/json.js';
+import { parse } from '../../../src/utils/json.js';
 import { Logger } from '../../../src/utils/logger.js';
 import { to_plain } from '../../../src/utils/to.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 
-describe('utils/json/clone', () => {
+describe('utils/json/parse', () => {
     let log = [];
     before(() => {
         Cwd.set(process.cwd());
@@ -23,29 +23,23 @@ describe('utils/json/clone', () => {
         Logger.output.restore();
     });
     it('undefined', () => {
-        const value = clone();
+        const value = parse();
         deepStrictEqual(value, undefined);
-    });
-    it('clone object', () => {
-        const value = clone({ key: 'value' });
-        deepStrictEqual(value, { key: 'value' });
-    });
-    it('error cloning', () => {
-        const value = clone({ key: 'value' });
-        deepStrictEqual(value, { key: 'value' });
-    });
-    it('circular reference', () => {
-        const obj1 = {
-            key: '1',
-            ref: undefined,
-        };
-        const obj2 = {
-            key: '2',
-            ref: obj1,
-        };
-        obj1.ref = obj2;
-        const value = clone(obj1);
         deepStrictEqual(log, []);
-        deepStrictEqual(value, { key: '1', ref: { key: '2' } });
+    });
+    it('empty string', () => {
+        const value = parse('');
+        deepStrictEqual(value, undefined);
+        deepStrictEqual(log, []);
+    });
+    it('true', () => {
+        const value = parse('true');
+        deepStrictEqual(value, true);
+        deepStrictEqual(log, []);
+    });
+    it('error', () => {
+        const value = parse('tre');
+        deepStrictEqual(value, undefined);
+        deepStrictEqual(log, [['', '', '✖', '@parse\n[SyntaxError] Unexpected token e in JSON at position 2\nstack']]);
     });
 });

@@ -131,7 +131,15 @@ export async function render_server_compiled_svelte(exec_result, data, file) {
     register_inject_config();
     // set the correct translations for the page
     register_i18n(get_language(data?._wyvr.language));
-    
+
+    // add registering onServer
+    global.onServer = async (callback) => {
+        if (!is_func(callback)) {
+            return undefined;
+        }
+        return await callback();
+    };
+
     try {
         exec_result.result = await exec_result.component.render(data);
     } catch (e) {

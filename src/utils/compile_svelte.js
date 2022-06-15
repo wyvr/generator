@@ -1,7 +1,7 @@
 import { compile } from 'svelte/compiler';
 import { get_error_message } from './error.js';
 import { Logger } from './logger.js';
-import { filled_string, is_null, is_path, match_interface } from './validate.js';
+import { filled_string, is_func, is_null, is_path, match_interface } from './validate.js';
 import { exists, remove, to_extension, write } from './file.js';
 import { dirname, extname, join, resolve } from 'path';
 import { Env } from '../vars/env.js';
@@ -21,7 +21,7 @@ export async function compile_server_svelte_from_code(content, file) {
     }
     let result;
     try {
-        const modified_content = content.replace(/import (.*?) from ['"]([^'"]+)['"]/g, (match, imported, path) => {
+        const replacer = (match, imported, path) => {
             if (is_path(path)) {
                 // correct the path
                 path = replace_src_in_path(path, FOLDER_GEN_SERVER).replace(
@@ -54,7 +54,8 @@ export async function compile_server_svelte_from_code(content, file) {
             }
 
             return `import ${imported} from '${path}'`;
-        });
+        };
+        const modified_content = content.replace(/import (.*?) from ['"]([^'"]+)['"]/g, replacer);
 
         const resourced_content = await inject_config(
             replace_src_path(modified_content, FOLDER_GEN_SERVER, extname(file))
@@ -127,12 +128,10 @@ export async function render_server_compiled_svelte(exec_result, data, file) {
     //     }
     // }
 
-
     register_inject_config();
     // set the correct translations for the page
-    register_i18n();
-    global.wyvr_i18n.set(get_language(data?._wyvr.language));
-    console.log('#', get_language(data?._wyvr.language))
+    register_i18n(get_language(data?._wyvr.language));
+    
     try {
         exec_result.result = await exec_result.component.render(data);
     } catch (e) {

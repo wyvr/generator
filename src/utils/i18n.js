@@ -47,14 +47,17 @@ export function write_language(language, data) {
     return write_json(path, data);
 }
 
-export function register_i18n() {
+export function register_i18n(translations) {
     // replace the injectConfig functions with the corresponding values
     if (!is_func(global.wyvr_i18n)) {
         const i18n = new I18N();
         global.wyvr_i18n = i18n;
     }
+    if (translations) {
+        global.wyvr_i18n.set(translations);
+    }
     if (!is_func(global.__)) {
-        global.__ = global.wyvr_i18n.tr;
+        global.__ = (...args) => global.wyvr_i18n.tr(...args);
     }
 }
 

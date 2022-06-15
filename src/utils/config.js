@@ -3,7 +3,7 @@ import merge from 'deepmerge';
 import { join } from 'path';
 import { WyvrConfig } from '../model/wyvr_config.js';
 import { is_file } from './file.js';
-import { register_inject_config } from './global.js';
+import { register_inject } from './global.js';
 import { Logger } from './logger.js';
 import { search_segment } from './segment.js';
 import { filled_string, is_string } from './validate.js';
@@ -87,11 +87,12 @@ function config() {
 }
 
 export const Config = config();
-export async function inject_config(content) {
+
+export async function inject(content, file) {
     if(!filled_string(content)) {
         return '';
     }
-    const search_string = 'injectConfig(';
+    const search_string = '_inject(';
     const start_index = content.indexOf(search_string);
     // when not found
     if (start_index == -1) {
@@ -118,14 +119,14 @@ export async function inject_config(content) {
     }
     if (found_closing) {
         // extract the function content, to execute it
-        register_inject_config();
+        register_inject(file);
         const func_content = content.substr(start_index, index - start_index);
         const result = await eval(func_content); // @NOTE throw error, must be catched outside
 
         // insert result of getGlobal
         const replaced = content.substr(0, start_index) + JSON.stringify(result) + content.substr(index);
         // check if more onServer handlers are used
-        return await inject_config(replaced);
+        return await inject(replaced);
     }
     return content;
 }

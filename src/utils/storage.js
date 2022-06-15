@@ -7,6 +7,8 @@ import { create_dir, exists, remove, collect_files } from './file.js';
 import { to_escaped, to_snake_case } from './to.js';
 import { Logger } from './logger.js';
 import { StorageCacheStructure, StorageDetailsStructure } from '../struc/storage.js';
+import { get_error_message } from './error.js';
+import { parse } from './json.js';
 
 export class Storage {
     /**
@@ -156,9 +158,9 @@ export class Storage {
         const db = await this.open(name);
         try {
             const result = await this.cache[db.name].get('SELECT value FROM "data" WHERE key=?;', key);
-            return JSON.parse(result.value);
+            return parse(result?.value);
         } catch (e) {
-            Logger.error(e);
+            Logger.error(get_error_message(e, name, 'storage'));
         }
         return undefined;
     }

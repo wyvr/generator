@@ -11,9 +11,9 @@ import { Cwd } from '../vars/cwd.js';
 import { FOLDER_GEN_SERVER, FOLDER_GEN_SRC, FOLDER_GEN_TEMP } from '../constants/folder.js';
 import { search_segment } from './segment.js';
 import { replace_src_in_path, replace_src_path } from './transform.js';
-import { register_inject_config } from './global.js';
-import { inject_config } from './config.js';
-import { get_language, register_i18n } from './i18n.js';
+import { register_inject, register_i18n } from './global.js';
+import { inject } from './config.js';
+import { get_language } from './i18n.js';
 
 export async function compile_server_svelte_from_code(content, file) {
     if (!filled_string(content) || !filled_string(file)) {
@@ -57,8 +57,9 @@ export async function compile_server_svelte_from_code(content, file) {
         };
         const modified_content = content.replace(/import (.*?) from ['"]([^'"]+)['"]/g, replacer);
 
-        const resourced_content = await inject_config(
-            replace_src_path(modified_content, FOLDER_GEN_SERVER, extname(file))
+        const resourced_content = await inject(
+            replace_src_path(modified_content, FOLDER_GEN_SERVER, extname(file)),
+            file
         );
 
         // compile svelte
@@ -128,7 +129,7 @@ export async function render_server_compiled_svelte(exec_result, data, file) {
     //     }
     // }
 
-    register_inject_config();
+    register_inject(file);
     // set the correct translations for the page
     register_i18n(get_language(data?._wyvr.language));
 

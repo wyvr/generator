@@ -1,8 +1,7 @@
 import { join } from 'path';
 import { FOLDER_GEN_I18N, FOLDER_I18N } from '../constants/folder.js';
-import { I18N } from '../model/i18n.js';
 import { collect_files, read_json, write_json } from '../utils/file.js';
-import { filled_array, filled_string, is_func } from '../utils/validate.js';
+import { filled_array, filled_string } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 
 const language_cache = {};
@@ -45,20 +44,6 @@ export function write_language(language, data) {
     language = language.toLowerCase();
     const path = join(Cwd.get(), FOLDER_GEN_I18N, `${language}.json`);
     return write_json(path, data);
-}
-
-export function register_i18n(translations) {
-    // replace the injectConfig functions with the corresponding values
-    if (!is_func(global.wyvr_i18n)) {
-        const i18n = new I18N();
-        global.wyvr_i18n = i18n;
-    }
-    if (translations) {
-        global.wyvr_i18n.set(translations);
-    }
-    if (!is_func(global.__)) {
-        global.__ = (...args) => global.wyvr_i18n.tr(...args);
-    }
 }
 
 export function get_language(language) {

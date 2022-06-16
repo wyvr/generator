@@ -169,8 +169,8 @@ export class Logger {
     }
 
     static start(name) {
+        this.output_type('start', name);
         if (Env.is_dev()) {
-            this.output_type('start', name);
             if (this.spinner) {
                 this.spinner.start(name);
             }

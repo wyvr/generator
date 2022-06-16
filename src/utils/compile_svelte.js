@@ -143,6 +143,8 @@ export async function render_server_compiled_svelte(exec_result, data, file) {
 
     try {
         exec_result.result = await exec_result.component.render(data);
+        // remove svelte comments
+        exec_result.result.html = exec_result.result.html.replace(/<!-- HTML_TAG_(?:START|END) -->/g, '');
     } catch (e) {
         Logger.error(get_error_message(e, file, 'svelte server render'));
         return undefined;

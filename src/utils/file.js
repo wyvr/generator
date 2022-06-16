@@ -57,8 +57,10 @@ export function to_extension(filename, extension) {
  * @param extension
  * @returns filename
  */
-export function to_index(filename, extension = null) {
+export function to_index(filename, extension) {
+    let had_empty_ext = false;
     if (!filled_string(extension)) {
+        had_empty_ext = true;
         extension = 'html';
     }
     const ext = extension.trim().replace(/^\./, '');
@@ -78,7 +80,7 @@ export function to_index(filename, extension = null) {
     }
     // dotfiles
     if (last.indexOf('.') == 0) {
-        parts[parts.length - 1] = `${last}.${ext}`;
+        parts[parts.length - 1] = had_empty_ext ? last : `${last}.${ext}`;
         return parts.join('/');
     }
     return filename;

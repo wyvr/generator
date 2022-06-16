@@ -43,4 +43,9 @@ describe('utils/file/to_index', () => {
         strictEqual(to_index('./test/.htaccess', 'json'), './test/.htaccess.json');
         strictEqual(to_index('foo/bar/.htaccess', 'json'), 'foo/bar/.htaccess.json');
     });
+    it('dotfiles without extension', () => {
+        strictEqual(to_index('/.htaccess'), '/.htaccess');
+        strictEqual(to_index('./test/.htaccess'), './test/.htaccess');
+        strictEqual(to_index('foo/bar/.htaccess'), 'foo/bar/.htaccess');
+    });
 });

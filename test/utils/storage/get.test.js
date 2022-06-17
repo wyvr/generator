@@ -20,6 +20,11 @@ describe('utils/storage/get', () => {
         Storage.set_location(__path);
         await Storage.open('test_get');
         await Storage.cache['test_get'].run('INSERT INTO "data" (key, value) VALUES (?, ?);', 'key', '"value"');
+        await Storage.cache['test_get'].run(
+            'INSERT INTO "data" (key, value) VALUES (?, ?);',
+            'json',
+            '{"value":true,"index":0}'
+        );
         Sinon.stub(Logger, 'output');
         Logger.output.callsFake((...msg) => {
             log.push(msg.map(to_plain));
@@ -47,6 +52,10 @@ describe('utils/storage/get', () => {
     });
     it('get value', async () => {
         deepStrictEqual(await Storage.get('test_get', 'key'), 'value');
+        deepStrictEqual(log, []);
+    });
+    it('get json value', async () => {
+        deepStrictEqual(await Storage.get('test_get', 'json'), { value: true, index: 0 });
         deepStrictEqual(log, []);
     });
     it('unknown key', async () => {

@@ -158,7 +158,8 @@ export class Storage {
         const db = await this.open(name);
         try {
             const result = await this.cache[db.name].get('SELECT value FROM "data" WHERE key=?;', key);
-            return parse(result?.value);
+            const parsed = parse(result?.value);
+            return parsed || result?.value;
         } catch (e) {
             Logger.error(get_error_message(e, name, 'storage'));
         }

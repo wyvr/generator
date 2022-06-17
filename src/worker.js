@@ -8,6 +8,7 @@ import { build } from './worker_action/build.js';
 import { compile } from './worker_action/compile.js';
 import { configure } from './worker_action/configure.js';
 import { route } from './worker_action/route.js';
+import { scripts } from './worker_action/scripts.js';
 import { transform } from './worker_action/transform.js';
 
 IsWorker.set(true);
@@ -53,8 +54,11 @@ export async function process_message(msg) {
             await build(value);
             break;
         }
+        case WorkerAction.scripts: {
+            await scripts(value);
+            break;
+        }
         case WorkerAction.inject:
-        case WorkerAction.scripts:
         case WorkerAction.optimize:
         case WorkerAction.media: {
             Logger.warning('unknown action', action, 'value', value);

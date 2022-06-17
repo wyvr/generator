@@ -12,6 +12,7 @@ import { collect_packages } from '../action/package.js';
 import { present } from '../action/present.js';
 import { publish } from '../action/publish.js';
 import { routes } from '../action/route.js';
+import { scripts } from '../action/script.js';
 import { transform } from '../action/transform.js';
 import { terminate } from '../cli/terminate.js';
 import {
@@ -110,7 +111,6 @@ export const build_command = async (config) => {
 
     // Execute Routes
     const identifiers = await routes(package_tree);
-    Logger.info('identifiers', identifiers);
 
     // Build Pages
     await build();
@@ -120,6 +120,7 @@ export const build_command = async (config) => {
     //  Build Script dependencies
     // @TODO
     //  Build Scripts
+    await scripts(identifiers);
     // @TODO
     //  Create Sitemap
     // @TODO

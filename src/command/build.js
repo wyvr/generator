@@ -3,13 +3,13 @@ import { join } from 'path';
 import { build } from '../action/build.js';
 import { check_env } from '../action/check_env.js';
 import { clear_gen } from '../action/clear_gen.js';
-import { clear_releases } from '../action/clear_releases.js';
 import { compile } from '../action/compile.js';
 import { copy_files, copy_folder } from '../action/copy.js';
 import { get_config_data } from '../action/get_config_data.js';
 import { i18n } from '../action/i18n.js';
 import { collect_packages } from '../action/package.js';
 import { present } from '../action/present.js';
+import { publish } from '../action/publish.js';
 import { routes } from '../action/route.js';
 import { transform } from '../action/transform.js';
 import { terminate } from '../cli/terminate.js';
@@ -127,7 +127,11 @@ export const build_command = async (config) => {
     // @TODO
     //  Optimize Pages
     // @TODO
-    clear_releases(Config.get('releases.keep', 0), build_id);
+    
+    // Publish the new release
+    await publish();
 
-    return 'build';
+
+
+    return build_id;
 };

@@ -17,7 +17,7 @@ export async function build(files) {
     const release_path = ReleasePath.get();
 
     for (const file of files) {
-        Logger.info(file);
+        Logger.debug('build', file);
         const data = read_json(file);
         const content = generate_page_code(data);
         const exec_result = await compile_server_svelte(content, file);

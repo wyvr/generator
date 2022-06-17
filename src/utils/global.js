@@ -10,16 +10,16 @@ export function register_inject(file) {
     // replace the injectConfig functions with the corresponding values
     if (!is_func(global.injectConfig)) {
         global._inject = async (key, fallback, callback) => {
-            if (!filled_string(key)) {
-                return fallback;
+            let value;
+            if (filled_string(key)) {
+                const parts = key.split('.');
+                const type = parts.shift();
+                key = parts.join('.');
+                
+                Storage.set_location(FOLDER_STORAGE);
+                value = await Storage.get(type, key);
             }
-            const parts = key.split('.');
-            const type = parts.shift();
-            key = parts.join('.');
-
-            Storage.set_location(FOLDER_STORAGE);
-            let value = await Storage.get(type, key);
-            if(is_null(value)) {
+            if (is_null(value)) {
                 value = fallback;
             }
 

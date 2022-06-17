@@ -59,3 +59,16 @@ export function get_language(language) {
     language_cache[language] = read_json(join(Cwd.get(), FOLDER_GEN_I18N, `${language}.json`));
     return language_cache[language];
 }
+
+export function clear_language(language) {
+    if (!filled_string(language)) {
+        return false;
+    }
+    language = language.toLowerCase();
+    if (language_cache[language]) {
+        language_cache[language] = undefined;
+        return true;
+    }
+    return false;
+
+}

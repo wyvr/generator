@@ -14,6 +14,7 @@ import { routes } from '../action/route.js';
 import { transform } from '../action/transform.js';
 import { terminate } from '../cli/terminate.js';
 import {
+    FOLDER_ASSETS,
     FOLDER_GEN,
     FOLDER_GEN_ASSETS,
     FOLDER_GEN_PLUGINS,
@@ -113,6 +114,7 @@ export const build_command = async (config) => {
 
     // Build Pages
     await build();
+
     //  Inject Data into the pages
     // @TODO
     //  Build Script dependencies
@@ -127,6 +129,9 @@ export const build_command = async (config) => {
     // @TODO
     //  Optimize Pages
     // @TODO
+
+    // Copy static and generated files into release
+    copy_folder(join(Cwd.get(), FOLDER_GEN), [FOLDER_ASSETS], ReleasePath.get());
     
     // Publish the new release
     await publish();

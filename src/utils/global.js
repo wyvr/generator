@@ -6,7 +6,7 @@ import { filled_string, is_func, is_null } from './validate.js';
 import { FOLDER_STORAGE } from '../constants/folder.js';
 
 export function register_inject(file) {
-    global.inject_file = file;
+    global._inject_file = file;
     // replace the injectConfig functions with the corresponding values
     if (!is_func(global.injectConfig)) {
         global._inject = async (key, fallback, callback) => {
@@ -29,7 +29,7 @@ export function register_inject(file) {
             try {
                 value = await callback(value);
             } catch (e) {
-                Logger.warning(get_error_message(e, global.inject_file, 'inject'));
+                Logger.warning(get_error_message(e, global._inject_file, 'inject'));
             }
             return value;
         };

@@ -8,11 +8,9 @@ import { join } from 'path';
 
 describe('utils/config/set', () => {
     let error;
-    const original = Config.get();
 
     before(() => {
         Cwd.set(join(to_dirname(import.meta.url), '_tests', 'inject'));
-        Config.replace({ key: 'value' });
     });
     afterEach(() => {
         error = undefined;
@@ -20,12 +18,10 @@ describe('utils/config/set', () => {
         delete global._inject_file;
     });
     after(() => {
-        Config.replace(original);
         Cwd.set(undefined);
     });
 
     it('undefined', async () => {
-        Config.set('key', undefined);
         let result;
         try {
             result = await inject();
@@ -36,7 +32,6 @@ describe('utils/config/set', () => {
         deepStrictEqual(error, undefined);
     });
     it('empty content', async () => {
-        Config.set('key', undefined);
         let result;
         try {
             result = await inject('', 'file');
@@ -47,18 +42,16 @@ describe('utils/config/set', () => {
         deepStrictEqual(error, undefined);
     });
     it('inject value', async () => {
-        Config.set('key', undefined);
         let result;
         try {
-            result = await inject(`<div>{_inject('key', false)}</div>`, 'file');
+            result = await inject(`<div>{_inject('key.key', false)}</div>`, 'file');
         } catch (e) {
             error = e;
         }
-        deepStrictEqual(result, `<div>{'value'}</div>`);
+        deepStrictEqual(result, `<div>{"value"}</div>`);
         deepStrictEqual(error, undefined);
     });
     it('inject fallback', async () => {
-        Config.set('key', undefined);
         let result;
         try {
             result = await inject(`<div>{_inject('unknown', false)}</div>`, 'file');

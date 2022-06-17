@@ -15,7 +15,7 @@ export function register_inject(file) {
                 const parts = key.split('.');
                 const type = parts.shift();
                 key = parts.join('.');
-                
+
                 Storage.set_location(FOLDER_STORAGE);
                 value = await Storage.get(type, key);
             }
@@ -37,14 +37,20 @@ export function register_inject(file) {
 }
 export function register_i18n(translations) {
     // replace the injectConfig functions with the corresponding values
-    if (!is_func(global.wyvr_i18n)) {
+    if (!is_func(global._i18n)) {
         const i18n = new I18N();
-        global.wyvr_i18n = i18n;
+        global._i18n = i18n;
     }
     if (translations) {
-        global.wyvr_i18n.set(translations);
+        global._i18n.set(translations);
     }
     if (!is_func(global.__)) {
-        global.__ = (...args) => global.wyvr_i18n.tr(...args);
+        global.__ = (key, ...args) => {
+            const error = global._i18n.get_error(key);
+            if (error) {
+                Logger.warning(error);
+            }
+            return global._i18n.tr(key, ...args);
+        };
     }
 }

@@ -93,7 +93,7 @@ export function get_error_message(e, filename, scope) {
         result.push(Logger.color.bold('@' + scope));
     }
     result.push(`[${data.name ? Logger.color.bold(data.name) : ''}] ${data.message ?? '-'}`);
-    if (Array.isArray(data.stack)) {
+    if (filled_array(data.stack)) {
         result.push(Logger.color.dim('stack'));
         result.push(...data.stack.map((entry) => `${Logger.color.dim('-')} ${entry}`));
     }

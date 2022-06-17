@@ -88,13 +88,7 @@ describe('utils/route/execute_route', () => {
     it('js file, error', async () => {
         deepStrictEqual(await execute_route(mockRoute('routes/error.js', undefined, root)), undefined);
         deepStrictEqual(log, [
-            [
-                '✖',
-                '@route execution\n' +
-                    '[ReferenceError] undefined_var is not defined\n' +
-                    'stack\n' +
-                    'source routes/error.js',
-            ],
+            ['✖', '@route execution\n' + '[ReferenceError] undefined_var is not defined\n' + 'source routes/error.js'],
         ]);
     });
     it('js file, error common js', async () => {
@@ -104,7 +98,6 @@ describe('utils/route/execute_route', () => {
                 '✖',
                 '@route execution\n' +
                     '[ReferenceError] exports is not defined in ES module scope\n' +
-                    'stack\n' +
                     'source routes/commonjs.js',
             ],
         ]);

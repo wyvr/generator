@@ -74,7 +74,6 @@ describe('utils/plugin/execute', () => {
                 '\x1B[31m✖\x1B[39m',
                 '\x1B[31merror in plugin for \x1B[1ma\x1B[22m \x1B[1mafter\x1B[22m \x1B[1m@plugin\x1B[22m\n' +
                     '[\x1B[1mSyntaxError\x1B[22m] missing code\n' +
-                    '\x1B[2mstack\x1B[22m\n' +
                     '\x1B[2msource\x1B[22m error\x1B[39m',
             ],
         ]);

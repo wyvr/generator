@@ -54,7 +54,7 @@ describe('utils/error/inject_worker_message_errors', () => {
         deepStrictEqual(inject_worker_message_errors(['[svelte]', 'test', { error: 'error' }]), [
             '\u001b[2m[svelte]\u001b[22m',
             'test',
-            '[] -\n\u001b[2mstack\u001b[22m',
+            '[] -',
         ]);
     });
     it('unknown error', () => {

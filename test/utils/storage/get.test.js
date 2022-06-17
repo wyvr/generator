@@ -71,12 +71,7 @@ describe('utils/storage/get', () => {
         await Storage.cache['test_get_error'].run('DROP TABLE "data";');
         deepStrictEqual(await Storage.get('test_get_error', 'key'), undefined);
         deepStrictEqual(log, [
-            [
-                '',
-                '',
-                '✖',
-                '@storage\n' + '[Error] SQLITE_ERROR: no such table: data\n' + 'stack\n' + 'source test_get_error',
-            ],
+            ['', '', '✖', '@storage\n' + '[Error] SQLITE_ERROR: no such table: data\n' + 'source test_get_error'],
         ]);
     });
 });

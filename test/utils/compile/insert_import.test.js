@@ -8,7 +8,7 @@ import { Cwd } from '../../../src/vars/cwd.js';
 describe('utils/to/insert_import', () => {
     let log = [];
     let console_error;
-    const __dirname = join(to_dirname(import.meta.url), '..', 'transform','_tests', 'combine_splits');
+    const __dirname = join(to_dirname(import.meta.url), '..', 'transform', '_tests', 'combine_splits');
     beforeEach(() => {
         Cwd.set(__dirname);
         console_error = console.error;
@@ -55,17 +55,14 @@ $primary-color: #7c5ed0;
     });
     it('non existing file', async () => {
         strictEqual(
-            await insert_import(
-                `@import '@src/nonexisting';\n\n    code {\n        display: block;\n    }`
-            ),
+            await insert_import(`@import '@src/nonexisting';\n\n    code {\n        display: block;\n    }`),
             '\n\n    code {\n        display: block;\n    }'
         );
         deepStrictEqual(log, [
             [
                 '⚠',
                 '@import\n' +
-                    `[] can not import ${__dirname}/gen/src/_nonexisting.scss into undefined, maybe the file doesn't exist\n` +
-                    'stack',
+                    `[] can not import ${__dirname}/gen/src/_nonexisting.scss into undefined, maybe the file doesn't exist`,
             ],
         ]);
     });

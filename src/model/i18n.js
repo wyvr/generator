@@ -98,7 +98,7 @@ export class I18N {
         if (!tr) {
             return `missing key "${key}"`;
         }
-        if (is_object(tr) && !search_segment(options, 'count')) {
+        if (is_object(tr) && (is_null(options) || is_null(options.count))) {
             return `missing "count" option for key "${key}"`;
         }
         return undefined;

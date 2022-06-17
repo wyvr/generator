@@ -35,7 +35,8 @@ export function register_inject(file) {
         };
     }
 }
-export function register_i18n(translations) {
+export function register_i18n(translations, file) {
+    global._i18n_file = file;
     // replace the injectConfig functions with the corresponding values
     if (!is_func(global._i18n)) {
         const i18n = new I18N();
@@ -45,12 +46,12 @@ export function register_i18n(translations) {
         global._i18n.set(translations);
     }
     if (!is_func(global.__)) {
-        global.__ = (key, ...args) => {
-            const error = global._i18n.get_error(key);
+        global.__ = (key, options) => {
+            const error = global._i18n.get_error(key, options);
             if (error) {
-                Logger.warning(error);
+                Logger.warning(get_error_message({ name: 'i18n', message: error }, global._i18n_file, 'inject'));
             }
-            return global._i18n.tr(key, ...args);
+            return global._i18n.tr(key, options);
         };
     }
 }

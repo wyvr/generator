@@ -12,6 +12,7 @@ describe('utils/global/register_i18n', () => {
     let log = [];
     let orig_log;
     before(() => {
+        Cwd.set(process.cwd());
         orig_log = Logger.output;
         Logger.output = (...args) => {
             log.push(...args.map(to_plain));
@@ -23,6 +24,7 @@ describe('utils/global/register_i18n', () => {
         log = [];
     });
     after(() => {
+        Cwd.set(undefined);
         Logger.output = orig_log;
     });
 
@@ -31,14 +33,28 @@ describe('utils/global/register_i18n', () => {
         let result;
         result = __('test');
         deepStrictEqual(result, 'test');
-        deepStrictEqual(log, ['', '', '⚠', 'missing translations']);
+        deepStrictEqual(log, ['', '', '⚠', '@inject\n[i18n] missing translations']);
+    });
+    it('missing translations with file', () => {
+        register_i18n(undefined, 'file');
+        let result;
+        result = __('test');
+        deepStrictEqual(result, 'test');
+        deepStrictEqual(log, ['', '', '⚠', '@inject\n[i18n] missing translations\nsource file']);
     });
     it('unknown key', () => {
         register_i18n({});
         let result;
         result = __('test');
         deepStrictEqual(result, 'test');
-        deepStrictEqual(log, ['', '', '⚠', 'missing key "test"']);
+        deepStrictEqual(log, ['', '', '⚠', '@inject\n[i18n] missing key "test"' ]);
+    });
+    it('unknown key with file', () => {
+        register_i18n({}, 'file');
+        let result;
+        result = __('test');
+        deepStrictEqual(result, 'test');
+        deepStrictEqual(log, ['', '', '⚠', '@inject\n[i18n] missing key "test"\nsource file' ]);
     });
     it('exists', () => {
         register_i18n({ test: 'value' });

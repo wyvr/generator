@@ -8,7 +8,6 @@ import { Plugin } from '../utils/plugin.js';
 import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { UniqId } from '../vars/uniq_id.js';
-import { sleep } from '../worker_action/sleep.js';
 import { clear_releases } from './clear_releases.js';
 
 export async function publish() {

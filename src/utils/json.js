@@ -7,7 +7,7 @@ export function stringify(item, spaces) {
     return JSON.stringify(
         item,
         (key, value) => {
-            if (!is_object(value) && !is_null(value)) {
+            if (!is_object(value) || is_null(value)) {
                 return value;
             }
             // Circular reference

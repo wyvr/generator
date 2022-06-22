@@ -28,9 +28,20 @@ describe('utils/dependency/dependencies_from_content', () => {
         deepStrictEqual(dependencies_from_content(`var a = 0;`, 'file'), {});
     });
     it('single dependencies', async () => {
-        deepStrictEqual(dependencies_from_content(`import a from './test';`, 'file'), { file: ['test.js'] });
+        deepStrictEqual(dependencies_from_content(`import a from './test';`, 'file'), { file: ['./test.js'] });
     });
     it('multiple dependencies', async () => {
-        deepStrictEqual(dependencies_from_content(`import a from './test';import a from './huhu';`, 'file'), { file: ['test.js', 'huhu.js'] });
+        deepStrictEqual(dependencies_from_content(`import a from './test';import a from './huhu';`, 'file'), {
+            file: ['./test.js', './huhu.js'],
+        });
+    });
+    it('different types', async () => {
+        deepStrictEqual(
+            dependencies_from_content(
+                `import a from './nonexisting';import ts from './ts';import js from './js';import mjs from './mjs';import cjs from './cjs';`,
+                'file'
+            ),
+            { file: ['./ts.ts', './js.js', './mjs.mjs', './cjs.cjs'] }
+        );
     });
 });

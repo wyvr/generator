@@ -36,3 +36,18 @@ export function dependencies_from_content(content, file) {
 
     return deps;
 }
+export function flip_dependency_tree(dependencies) {
+    if (!filled_object(dependencies)) {
+        return undefined;
+    }
+    const result = {};
+    Object.keys(dependencies).forEach((parent) => {
+        dependencies[parent].forEach((child) => {
+            if (!is_array(result[child])) {
+                result[child] = [];
+            }
+            result[child].push(parent);
+        });
+    });
+    return result;
+}

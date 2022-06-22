@@ -61,4 +61,14 @@ describe('utils/config/set', () => {
         deepStrictEqual(result, `<div>{false}</div>`);
         deepStrictEqual(error, undefined);
     });
+    it('inject callback', async () => {
+        let result;
+        try {
+            result = await inject(`<div>{_inject('unknown', false, (value) => !value)}</div>`, 'file');
+        } catch (e) {
+            error = e;
+        }
+        deepStrictEqual(result, `<div>{true}</div>`);
+        deepStrictEqual(error, undefined);
+    });
 });

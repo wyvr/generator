@@ -27,8 +27,13 @@ describe('utils/dependency/dependencies_from_content', () => {
     it('no dependencies', async () => {
         deepStrictEqual(dependencies_from_content(`var a = 0;`, './file.js'), {});
     });
+    it('npm dependencies', async () => {
+        deepStrictEqual(dependencies_from_content(`import a from 'axios';`, './file.js'), { './file.js': [] });
+    });
     it('single dependencies', async () => {
-        deepStrictEqual(dependencies_from_content(`import a from './test';`, './file.js'), { './file.js': ['./test.js'] });
+        deepStrictEqual(dependencies_from_content(`import a from './test';`, './file.js'), {
+            './file.js': ['./test.js'],
+        });
     });
     it('multiple dependencies', async () => {
         deepStrictEqual(dependencies_from_content(`import a from './test';import a from './huhu';`, './file.js'), {

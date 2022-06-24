@@ -9,14 +9,9 @@ import { get_name as get_status_name, WorkerStatus } from '../struc/worker_statu
 import { get_name as get_emit_name } from '../struc/worker_emit.js';
 import { get_type_name } from '../struc/log.js';
 import { inject_worker_message_errors } from '../utils/error.js';
-import { ReleasePath } from '../vars/release_path.js';
-import { WyvrPath } from '../vars/wyvr_path.js';
-import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
-import { Config } from '../utils/config.js';
-import { UniqId } from '../vars/uniq_id.js';
-import { Report } from '../vars/report.js';
 import { Queue } from '../model/queue.js';
+import { get_configure_data } from '../action/configure.js';
 
 export class WorkerController {
     static create_workers(amount, fork_fn) {
@@ -174,16 +169,7 @@ export class WorkerController {
         }
         switch (worker.status) {
             case WorkerStatus.exists: {
-                this.send_action(worker, WorkerAction.configure, {
-                    config: Config.get(),
-                    env: Env.get(),
-                    cwd: Cwd.get(),
-                    release_path: ReleasePath.get(),
-                    wyvr_path: WyvrPath.get(),
-                    uniq_id: UniqId.get(),
-                    report: Report.get(),
-                    // socket_port: this.socket_port,
-                });
+                this.send_action(worker, WorkerAction.configure, get_configure_data());
                 break;
             }
         }

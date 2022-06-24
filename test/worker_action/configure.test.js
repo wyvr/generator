@@ -38,18 +38,19 @@ describe('worker_action/configure', () => {
 
     it('undefined', async () => {
         strictEqual(await configure(), false);
-        deepStrictEqual(logger_messages, [['invalid config']]);
+        deepStrictEqual(logger_messages, [['empty configure data']]);
     });
-    it('wrong config', async () => {
+    it('partial config', async () => {
         const cwd = process.cwd();
         strictEqual(
             await configure({
                 cwd,
                 huhu: true,
             }),
-            false
+            true
         );
-        deepStrictEqual(logger_messages, [['invalid config', `{"cwd":"${cwd}","huhu":true}`]]);
+        strictEqual(Cwd.get(), cwd);
+        deepStrictEqual(logger_messages, []);
     });
     it('valid config', async () => {
         const cwd = process.cwd();
@@ -61,7 +62,7 @@ describe('worker_action/configure', () => {
                 release_path: join(cwd, 'test', 'worker_action', '_tests'),
                 wyvr_path: join(cwd, 'src'),
                 uniq_id: 'a1e00893577046ae804a0fb3ca202177',
-                report: false,
+                report: true,
             }),
             true
         );

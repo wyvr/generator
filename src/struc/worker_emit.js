@@ -7,6 +7,7 @@ export const WorkerEmit = {
     inject_shortcode_identifier: 6,
     inject_media: 7,
     errors: 8,
+    dependencies: 9
 };
 
 export function get_name(emit) {

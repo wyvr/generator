@@ -1,7 +1,9 @@
 import { dirname, join } from 'path';
+import { FOLDER_GEN_SRC } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
-import { find_file, to_extension } from './file.js';
-import { filled_object, filled_string, is_array, is_null } from './validate.js';
+import { exists, find_file, to_extension } from './file.js';
+import { replace_src } from './transform.js';
+import { filled_array, filled_object, filled_string, is_array, is_null } from './validate.js';
 
 export function dependencies_from_content(content, file) {
     if (!filled_string(content) || !filled_string(file)) {
@@ -19,20 +21,33 @@ export function dependencies_from_content(content, file) {
             deps[file] = [];
         }
         // node dependency
-        if (dep.indexOf('./') != 0 && dep.indexOf('/') != 0) {
+        if (dep.indexOf('./') != 0 && dep.indexOf('/') != 0 && dep.indexOf('@src') != 0) {
             return;
         }
+        // replace @src
+        dep = replace_src(dep, '');
+        const dep_file_path = join(Cwd.get(), FOLDER_GEN_SRC, dep);
+        let dep_file;
+        if (exists(dep_file_path)) {
+            dep_file = dep_file_path;
+        }
         // search for the file
-        const dep_file = find_file(
-            file_path,
-            ['js', 'mjs', 'cjs', 'ts'].map((ext) => to_extension(dep, ext))
-        );
+        if (is_null(dep_file)) {
+            dep_file = find_file(
+                file_path,
+                ['svelte', 'js', 'mjs', 'cjs', 'ts'].map((ext) => to_extension(dep, ext))
+            );
+        }
         if (dep_file) {
             deps[file].push(dep_file.replace(cwd, '.'));
-            return;
         }
         return;
     });
+
+    // clear empty dependencies
+    if (!filled_array(deps[file])) {
+        return undefined;
+    }
 
     return deps;
 }

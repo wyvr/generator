@@ -6,6 +6,7 @@ import { clear_gen } from '../action/clear_gen.js';
 import { compile } from '../action/compile.js';
 import { copy_files, copy_folder } from '../action/copy.js';
 import { copy_static_generated } from '../action/copy_static_generated.js';
+import { dependencies } from '../action/dependencies.js';
 import { get_config_data } from '../action/get_config_data.js';
 import { i18n } from '../action/i18n.js';
 import { collect_packages } from '../action/package.js';
@@ -103,8 +104,11 @@ export const build_command = async (config) => {
     // Create Translations/I18N
     i18n(available_packages);
 
-    //  Transform Svelte files to client and server components
+    // Transform Svelte files to client and server components
     await transform();
+
+    // Extract dependencies
+    await dependencies();
 
     // Compile svelte files
     await compile();

@@ -13,6 +13,7 @@ export const WorkerAction = {
     cleanup: 11,
     optimize: 12,
     media: 13,
+    dependencies: 14,
 };
 export function get_name(action) {
     return Object.keys(WorkerAction).find((key) => WorkerAction[key] == action);

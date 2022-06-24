@@ -7,6 +7,7 @@ import { send_status } from './worker/communication.js';
 import { build } from './worker_action/build.js';
 import { compile } from './worker_action/compile.js';
 import { configure } from './worker_action/configure.js';
+import { dependencies } from './worker_action/dependencies.js';
 import { route } from './worker_action/route.js';
 import { scripts } from './worker_action/scripts.js';
 import { transform } from './worker_action/transform.js';
@@ -40,6 +41,10 @@ export async function process_message(msg) {
     switch (action) {
         case WorkerAction.transform: {
             await transform(value);
+            break;
+        }
+        case WorkerAction.dependencies: {
+            await dependencies(value);
             break;
         }
         case WorkerAction.compile: {

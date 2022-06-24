@@ -58,6 +58,16 @@ export function replace_src_in_path(path, to) {
         return path;
     }
     const replace = `${Cwd.get()}/${to.replace('^/', '').replace(/\/$/, '')}/`;
+    return replace_src(path, replace);
+}
+
+export function replace_src(path, replace) {
+    if (!filled_string(path)) {
+        return '';
+    }
+    if (!is_string(replace)) {
+        return path;
+    }
     return path.replace(/^@src\//g, replace);
 }
 

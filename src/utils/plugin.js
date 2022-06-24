@@ -7,7 +7,7 @@ import { Cwd } from '../vars/cwd.js';
 import { get_error_message } from './error.js';
 import { collect_files } from './file.js';
 import { Logger } from './logger.js';
-import { filled_array, filled_string, is_null, is_object } from './validate.js';
+import { filled_array, filled_string, is_func, is_null, is_object } from './validate.js';
 import { nano_to_milli } from './convert.js';
 import { search_segment } from './segment.js';
 
@@ -75,14 +75,12 @@ export class Plugin {
     }
 
     static async before(name, ...args) {
-        return (await this.execute(name, 'before'))(...args);
+        return await (await this.execute(name, 'before'))(...args);
     }
-    // static async around(name: string, ...args) {
-    //     return (await this.build_listeners(name, 'around'))(...args);
-    // }
     static async after(name, ...args) {
-        return (await this.execute(name, 'after'))(...args);
+        return await (await this.execute(name, 'after'))(...args);
     }
+
     /**
      * Generator who returns a function which processes the plugin data
      * @param {string} name
@@ -100,10 +98,10 @@ export class Plugin {
         }
         const plugins = search_segment(this.cache, `${name}.${type}`);
         if (is_null(plugins)) {
-            return async () => {
+            return async (...args) => {
                 return {
-                    error: `plugin "${name}" ${type} not found`,
-                    args: undefined,
+                    error: `no ${type} plugin for "${name}" found`,
+                    args,
                 };
             };
         }
@@ -137,6 +135,28 @@ export class Plugin {
                 Logger.report(duration, 'plugin', name, type, plugins[i].source);
             }
             return result;
+        };
+    }
+    static async process(name, ...args) {
+        return async (original_function) => {
+            const out = {
+                error: undefined,
+                args,
+                result: undefined
+            }
+            if(!is_func(original_function)) {
+               out.error = 'missing plugin function'; 
+               return out;
+            }
+            const before_result = await Plugin.before(name, ...args);
+
+            //await WorkerController.process_in_workers(name, data, 100);
+            const result = await original_function(...args);
+
+            const after_result = await Plugin.after(name, ...args);
+
+            out.result = result;
+            return out;
         };
     }
 }

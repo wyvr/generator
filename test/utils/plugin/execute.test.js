@@ -35,8 +35,8 @@ describe('utils/plugin/execute', () => {
         const plugin = await Plugin.execute('a', 'after');
         strictEqual(typeof plugin, 'function');
         const { args, error } = await plugin(1, 2);
-        deepStrictEqual(error, 'plugin "a" after not found');
-        deepStrictEqual(args, undefined);
+        deepStrictEqual(error, 'no after plugin for "a" found');
+        deepStrictEqual(args, [1, 2]);
         deepStrictEqual(logger_messages, []);
     });
     it('found', async () => {

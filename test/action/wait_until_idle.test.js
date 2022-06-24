@@ -4,7 +4,7 @@ import { join } from 'path';
 import Sinon from 'sinon';
 import { wait_until_idle } from '../../src/action/wait_until_idle.js';
 import { WorkerStatus } from '../../src/struc/worker_status.js';
-import { to_dirname } from '../../src/utils/to.js';
+import { to_dirname, to_plain } from '../../src/utils/to.js';
 import { WorkerController } from '../../src/worker/controller.js';
 
 describe('action/wait_until_idle', () => {
@@ -14,6 +14,7 @@ describe('action/wait_until_idle', () => {
     const test_folder = join(__root, __path);
     let sandbox;
     let exit_code = 0;
+    let log = [];
 
     before(() => {
         WorkerController.workers = [];
@@ -23,9 +24,16 @@ describe('action/wait_until_idle', () => {
         process.exit.callsFake((code) => {
             exit_code = code;
         });
+        sandbox.stub(console, 'error');
+        console.error.callsFake((...args) => {
+            log.push(args.map(to_plain));
+        });
     });
     beforeEach(() => {
         exit_code = 0;
+    });
+    afterEach(() => {
+        log = [];
     });
     after(() => {
         WorkerController.workers = [];
@@ -68,7 +76,8 @@ describe('action/wait_until_idle', () => {
         } catch (e) {
             error = e;
         }
-        strictEqual(exit_code, 1);
+        strictEqual(exit_code, 1, 'exit code');
         deepStrictEqual(error, undefined);
+        deepStrictEqual(log[0][1].indexOf('emergency stop, waited'), 0, 'log contains emergency message');
     });
 });

@@ -5,6 +5,7 @@ import { exists, find_file, to_extension } from './file.js';
 import { to_relative_path } from './to.js';
 import { replace_src } from './transform.js';
 import { filled_array, filled_object, filled_string, is_array, is_null } from './validate.js';
+import { uniq_values } from './uniq.js';
 
 export function dependencies_from_content(content, file) {
     if (!filled_string(content) || !filled_string(file)) {
@@ -68,4 +69,14 @@ export function flip_dependency_tree(dependencies) {
         });
     });
     return result;
+}
+export function get_dependencies(tree, file) {
+    if (!filled_object(tree) || is_null(tree[file])) {
+        return [];
+    }
+    const result = tree[file];
+    tree[file].forEach((child) => {
+        result.push(...get_dependencies(tree, child));
+    });
+    return uniq_values(result);
 }

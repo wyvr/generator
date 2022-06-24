@@ -1,10 +1,18 @@
 import { WorkerAction } from '../struc/worker_action.js';
-import { worker_action } from './worker_action.js';
+import { Plugin } from '../utils/plugin.js';
+import { WorkerController } from '../worker/controller.js';
+import { measure_action } from './helper.js';
 
 export async function scripts(identifier) {
     const name = 'scripts';
 
-    await worker_action(name, WorkerAction.scripts, 1, async () => {
-        return Object.keys(identifier).map((key) => identifier[key]);
+    await measure_action(name, async () => {
+        const data = Object.keys(identifier).map((key) => identifier[key]);
+
+        // wrap in plugin
+        const caller = await Plugin.process(name, data);
+        await caller(async (data) => {
+            await WorkerController.process_in_workers(WorkerAction.scripts, data, 1);
+        });
     });
 }

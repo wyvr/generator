@@ -8,6 +8,7 @@ import { Event } from '../utils/event.js';
 import { collect_svelte_files, write_json } from '../utils/file.js';
 import { is_array, is_null } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
+import { configure } from './configure.js';
 import { worker_action } from './worker_action.js';
 
 export async function dependencies() {
@@ -42,4 +43,7 @@ export async function dependencies() {
     
     Config.set('dependencies.bottom', inverted_dependencies);
     write_json(join(Cwd.get(), FOLDER_GEN, 'dependencies_bottom.json'), inverted_dependencies);
+
+    // update the config in the workers
+    await configure();
 }

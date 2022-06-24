@@ -1,10 +1,11 @@
 import { join } from 'path';
-import { FOLDER_GEN_SRC } from '../constants/folder.js';
+import { FOLDER_GEN, FOLDER_GEN_SRC } from '../constants/folder.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
+import { Config } from '../utils/config.js';
+import { flip_dependency_tree } from '../utils/dependency.js';
 import { Event } from '../utils/event.js';
-import { collect_svelte_files } from '../utils/file.js';
-import { Logger } from '../utils/logger.js';
+import { collect_svelte_files, write_json } from '../utils/file.js';
 import { is_array, is_null } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { worker_action } from './worker_action.js';
@@ -32,5 +33,13 @@ export async function dependencies() {
 
     Event.off('emit', dependency_name, listener_id);
 
-    Logger.info('dependencies', dependencies);
+    // create bottom-top dependency tree
+    const inverted_dependencies = flip_dependency_tree(dependencies);
+    
+    // add to config and write gen files
+    Config.set('dependencies.top', dependencies);
+    write_json(join(Cwd.get(), FOLDER_GEN, 'dependencies_top.json'), dependencies);
+    
+    Config.set('dependencies.bottom', inverted_dependencies);
+    write_json(join(Cwd.get(), FOLDER_GEN, 'dependencies_bottom.json'), inverted_dependencies);
 }

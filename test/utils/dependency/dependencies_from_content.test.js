@@ -63,7 +63,7 @@ describe('utils/dependency/dependencies_from_content', () => {
     it('replace @src with found file in gen src', async () => {
         const file = join(Cwd.get(), 'file.js');
         const result = {};
-        result[file] = ['./gen/src/gen_src.svelte'];
+        result[file] = ['gen_src.svelte'];
         deepStrictEqual(dependencies_from_content(`import a from '@src/gen_src.svelte';`, file), result);
     });
 });

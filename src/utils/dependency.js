@@ -2,6 +2,7 @@ import { dirname, join } from 'path';
 import { FOLDER_GEN_SRC } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { exists, find_file, to_extension } from './file.js';
+import { to_relative_path } from './to.js';
 import { replace_src } from './transform.js';
 import { filled_array, filled_object, filled_string, is_array, is_null } from './validate.js';
 
@@ -16,9 +17,10 @@ export function dependencies_from_content(content, file) {
         file_path = join(cwd, file_path);
     }
     const deps = {};
+    const dep_key = to_relative_path(file);
     content.replace(/import .*? from ["']([^"']+)["'];?/g, (match, dep) => {
-        if (is_null(deps[file])) {
-            deps[file] = [];
+        if (is_null(deps[dep_key])) {
+            deps[dep_key] = [];
         }
         // node dependency
         if (dep.indexOf('./') != 0 && dep.indexOf('/') != 0 && dep.indexOf('@src') != 0) {
@@ -39,13 +41,14 @@ export function dependencies_from_content(content, file) {
             );
         }
         if (dep_file) {
-            deps[file].push(dep_file.replace(cwd, '.'));
+            dep_file = to_relative_path(dep_file.replace(cwd, '.'));
+            deps[dep_key].push(dep_file);
         }
         return;
     });
 
     // clear empty dependencies
-    if (!filled_array(deps[file])) {
+    if (!filled_array(deps[dep_key])) {
         return undefined;
     }
 

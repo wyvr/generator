@@ -5,6 +5,9 @@ import { compile_sass, compile_typescript } from './compile.js';
 import { Cwd } from '../vars/cwd.js';
 import { to_dirname } from './to.js';
 import { clone } from './json.js';
+import { WyvrFileLoading } from '../struc/wyvr_file.js';
+import { uniq_values } from './uniq.js';
+import { Env } from '../vars/env.js';
 
 const __dirname = join(to_dirname(import.meta.url), '..');
 
@@ -245,4 +248,101 @@ export function set_default_values(data, default_values) {
         }
     });
     return new_data;
+}
+export function insert_hydrate_tag(content, wyvr_file) {
+    if (!filled_string(content) || !wyvr_file) {
+        return '';
+    }
+    // extract scripts
+    const scripts = extract_tags_from_content(content, 'script');
+    content = scripts.content;
+    const styles = extract_tags_from_content(content, 'style');
+    content = styles.content;
+
+    // create props which gets hydrated
+    const props = extract_props(scripts.tags);
+    const props_include = `data-props="${props.map((prop) => `{_wyvrGenerateProp('${prop}', ${prop})}`).join(',')}"`;
+
+    // add portal when set
+    const portal = wyvr_file.config.portal ? `data-portal="${wyvr_file.config.portal}"` : '';
+    // add media when loading is media
+    const media = wyvr_file.config.loading == WyvrFileLoading.media ? `data-media="${wyvr_file.config.media}"` : '';
+    // add hydrate tag
+    const hydrate_tag = wyvr_file.config.display == 'inline' ? 'span' : 'div';
+    // debug info
+    const debug_info = Env.is_dev() ? `data-hydrate-path="${wyvr_file.rel_path}"` : '';
+    content = `<${hydrate_tag} data-hydrate="${wyvr_file.name}" ${debug_info} ${props_include} ${portal} ${media}>${content}</${hydrate_tag}>`;
+    content = replace_slots_static(content);
+    return scripts.tags.join('\n') + content + styles.tags.join('\n');
+}
+export function extract_props(scripts) {
+    const props = [];
+    if (!is_string(scripts)) {
+        scripts = [scripts];
+    }
+    scripts.forEach((script) => {
+        if (!filled_string(script)) {
+            return;
+        }
+        //export let price = null;
+        //export let price;
+        //export let price
+        script.replace(/export let ([^ =;\n]*)/g, (_, prop) => {
+            props.push(prop);
+            return '';
+        });
+    });
+    return uniq_values(props);
+}
+export function replace_slots(content, fn) {
+    if (!filled_string(content)) {
+        return '';
+    }
+    const content_replaced = content.replace(/(<slot[^>/]*>.*?<\/slot>|<slot[^>]*\/>)/g, (_, slot) => {
+        const match = slot.match(/name="(.*)"/);
+        let name = null;
+        if (match) {
+            name = match[1];
+        }
+        return fn(name || 'default', slot);
+    });
+    return content_replaced;
+}
+export function replace_slots_static(content) {
+    return replace_slots(content, (name, slot) => `<span data-slot="${name}">${slot}</span>`);
+}
+export function remove_on_server(content) {
+    if (!filled_string(content)) {
+        return '';
+    }
+    const search_string = 'onServer(';
+    const start_index = content.indexOf(search_string);
+    if (start_index == -1) {
+        return content;
+    }
+    let index = start_index + search_string.length;
+    let open_brackets = 1;
+    let found_closing = false;
+    const length = content.length;
+    while (index < length && open_brackets > 0) {
+        const char = content[index];
+        switch (char) {
+            case '(':
+                open_brackets++;
+                break;
+            case ')':
+                open_brackets--;
+                if (open_brackets == 0) {
+                    found_closing = true;
+                }
+                break;
+        }
+        index++;
+    }
+    if (found_closing) {
+        const replaced = content.substr(0, start_index) + content.substr(index);
+        // check if more onServer handlers are used
+        return remove_on_server(replaced);
+    }
+    return content;
 }

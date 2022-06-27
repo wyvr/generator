@@ -4,6 +4,7 @@ import { build } from '../action/build.js';
 import { check_env } from '../action/check_env.js';
 import { clear_gen } from '../action/clear_gen.js';
 import { compile } from '../action/compile.js';
+import { configure } from '../action/configure.js';
 import { copy_files, copy_folder } from '../action/copy.js';
 import { copy_static_generated } from '../action/copy_static_generated.js';
 import { dependencies } from '../action/dependencies.js';
@@ -109,6 +110,9 @@ export const build_command = async (config) => {
 
     // Extract dependencies
     await dependencies();
+
+    // update the config in the workers from transform and depencenies
+    await configure();
 
     // Compile svelte files
     await compile();

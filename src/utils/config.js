@@ -2,6 +2,7 @@
 import merge from 'deepmerge';
 import { join } from 'path';
 import { WyvrConfig } from '../model/wyvr_config.js';
+import { get_error_message } from './error.js';
 import { is_file } from './file.js';
 import { register_inject } from './global.js';
 import { Logger } from './logger.js';
@@ -69,17 +70,17 @@ function config() {
             if (!is_string(path)) {
                 return {};
             }
-            const filepah = join(path, 'wyvr.js');
-            if (!is_file(filepah)) {
+            const filepath = join(path, 'wyvr.js');
+            if (!is_file(filepath)) {
                 return {};
             }
             try {
-                const result = await import(filepah);
+                const result = await import(filepath);
                 if (result && result.default) {
                     return result.default;
                 }
             } catch (e) {
-                Logger.warning('can not load config from', filepah, e);
+                Logger.error(get_error_message(e, filepath, 'config'));
             }
             return {};
         },

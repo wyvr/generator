@@ -6,7 +6,8 @@ export function package_report(available_packages, disabled_packages) {
     if (filled_array(available_packages)) {
         Logger.present('packages', available_packages.map((pkg) => `${pkg.name}`).join(', '));
     } else {
-        Logger.warning('no packages active');
+        Logger.error('no packages active');
+        process.exit(1);
     }
     // list disabled packages
     if (filled_array(disabled_packages)) {

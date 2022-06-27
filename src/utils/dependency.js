@@ -4,8 +4,11 @@ import { Cwd } from '../vars/cwd.js';
 import { exists, find_file, to_extension } from './file.js';
 import { to_relative_path } from './to.js';
 import { replace_src } from './transform.js';
-import { filled_array, filled_object, filled_string, is_array, is_null } from './validate.js';
+import { filled_array, filled_object, filled_string, is_array, is_func, is_null } from './validate.js';
 import { uniq_values } from './uniq.js';
+import { WyvrFileRender } from '../struc/wyvr_file.js';
+import { clone } from './json.js';
+import { WyvrFile } from '../model/wyvr_file.js';
 
 export function dependencies_from_content(content, file) {
     if (!filled_string(content) || !filled_string(file)) {
@@ -70,13 +73,35 @@ export function flip_dependency_tree(dependencies) {
     });
     return result;
 }
-export function get_dependencies(tree, file) {
+export function get_dependencies(tree, file, callback) {
     if (!filled_object(tree) || is_null(tree[file])) {
         return [];
     }
-    const result = tree[file];
+    if(!is_func(callback)) {
+        callback = (list) => list;
+    }
+    const result = callback(tree[file], file);
     tree[file].forEach((child) => {
-        result.push(...get_dependencies(tree, child));
+        result.push(...get_dependencies(tree, child, callback));
     });
     return uniq_values(result);
+}
+
+export function get_hydrate_dependencies(tree, file_config_tree, file) {
+    if (!filled_object(tree) || !filled_object(file_config_tree) || is_null(file_config_tree[file])) {
+        return [];
+    }
+    const result = [];
+    const config = file_config_tree[file];
+    if(config.render == WyvrFileRender.hydrate) {
+        const entry = WyvrFile(file);
+        entry.config = file_config_tree[file];
+        return [entry];
+    }
+    if(!is_null(tree[file])) {
+        tree[file].forEach((child) => {
+            result.push(...get_hydrate_dependencies(tree, file_config_tree, child));
+        });
+    }
+    return result;
 }

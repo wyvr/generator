@@ -10,7 +10,6 @@ import { Plugin } from '../utils/plugin.js';
 import { is_array, is_null } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { WorkerController } from '../worker/controller.js';
-import { configure } from './configure.js';
 import { measure_action } from './helper.js';
 
 export async function dependencies() {
@@ -50,8 +49,6 @@ export async function dependencies() {
         
         Config.set('dependencies.bottom', inverted_dependencies);
         write_json(join(Cwd.get(), FOLDER_GEN, 'dependencies_bottom.json'), inverted_dependencies);
-    
-        // update the config in the workers
-        await configure();
+
     });    
 }

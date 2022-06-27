@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
-const wyvr_hydrate = (elements, cls) => {
+function wyvr_hydrate_instant(elements, cls) {
     if (!elements) {
         return;
     }

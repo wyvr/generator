@@ -8,26 +8,25 @@ import { Env } from '../vars/env.js';
 import { css_hash } from './hash.js';
 import { uniq_id } from './uniq.js';
 import { Cwd } from '../vars/cwd.js';
-import { FOLDER_GEN_SERVER, FOLDER_GEN_SRC, FOLDER_GEN_TEMP } from '../constants/folder.js';
+import { FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC, FOLDER_GEN_TEMP } from '../constants/folder.js';
 import { search_segment } from './segment.js';
 import { replace_src_in_path, replace_src_path } from './transform.js';
 import { register_inject, register_i18n } from './global.js';
 import { inject } from './config.js';
 import { get_language } from './i18n.js';
 
-export async function compile_server_svelte_from_code(content, file) {
-    if (!filled_string(content) || !filled_string(file)) {
+export async function compile_svelte_from_code(content, file, type) {
+    if (['client', 'server'].indexOf(type) == -1 || !filled_string(content) || !filled_string(file)) {
         return undefined;
     }
     let result;
+    const folder = type_value(type, FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER);
+    const scope = `svelte ${type} compile`;
     try {
-        const replacer = (match, imported, path) => {
+        const replacer = (_, imported, path) => {
             if (is_path(path)) {
                 // correct the path
-                path = replace_src_in_path(path, FOLDER_GEN_SERVER).replace(
-                    new RegExp(FOLDER_GEN_SRC, 'g'),
-                    FOLDER_GEN_SERVER
-                );
+                path = replace_src_in_path(path, folder).replace(new RegExp(FOLDER_GEN_SRC, 'g'), folder);
                 // transform to js from svelte
                 const ext = extname(path);
                 if (ext == '.svelte') {
@@ -45,7 +44,7 @@ export async function compile_server_svelte_from_code(content, file) {
                                     `can't find import ${path} with the extensions ${check_ext.join(',')} in ${file}`
                                 ),
                                 file,
-                                'svelte server compile'
+                                scope
                             )
                         );
                     }
@@ -57,15 +56,12 @@ export async function compile_server_svelte_from_code(content, file) {
         };
         const modified_content = content.replace(/import (.*?) from ['"]([^'"]+)['"]/g, replacer);
 
-        const resourced_content = await inject(
-            replace_src_path(modified_content, FOLDER_GEN_SERVER, extname(file)),
-            file
-        );
+        const resourced_content = await inject(replace_src_path(modified_content, folder, extname(file)), file);
 
         // compile svelte
         const compiled = await compile(resourced_content, {
             dev: Env.is_dev(),
-            generate: 'ssr',
+            generate: type_value(type, 'dom', 'ssr'),
             format: 'esm',
             immutable: true,
             hydratable: true,
@@ -73,9 +69,25 @@ export async function compile_server_svelte_from_code(content, file) {
         });
         result = compiled;
     } catch (e) {
-        Logger.error(get_error_message(e, file, 'svelte server compile'), e.stack);
+        Logger.error(get_error_message(e, file, scope), e.stack);
     }
     return result;
+}
+export function type_value(type, client, server) {
+    if (type === 'client') {
+        return client;
+    }
+    if (type === 'server') {
+        return server;
+    }
+    return undefined;
+}
+
+export async function compile_server_svelte_from_code(content, file) {
+    return compile_svelte_from_code(content, file, 'server');
+}
+export async function compile_client_svelte_from_code(content, file) {
+    return compile_svelte_from_code(content, file, 'client');
 }
 
 export async function execute_server_compiled_svelte(compiled, file) {

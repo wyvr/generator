@@ -3,7 +3,8 @@ import { describe, it } from 'mocha';
 import { join } from 'path';
 import Sinon from 'sinon';
 import { Config } from '../../../src/utils/config.js';
-import { to_dirname } from '../../../src/utils/to.js';
+import { to_dirname, to_plain } from '../../../src/utils/to.js';
+import { Cwd } from '../../../src/vars/cwd.js';
 
 describe('utils/config/load', () => {
     const __dirname = to_dirname(import.meta.url);
@@ -11,14 +12,16 @@ describe('utils/config/load', () => {
     before(() => {
         Sinon.stub(console, 'error');
         console.error.callsFake((...msg) => {
-            logger_messages.push(msg);
+            logger_messages.push(msg.map(to_plain));
         });
+        Cwd.set(process.cwd());
     });
     afterEach(() => {
         logger_messages = [];
     });
     after(() => {
         console.error.restore();
+        Cwd.set(undefined);
     });
 
     it('undefined', async () => {
@@ -46,8 +49,10 @@ describe('utils/config/load', () => {
         deepStrictEqual(config, {});
         deepStrictEqual(logger_messages, [
             [
-                '\x1B[33m⚠\x1B[39m',
-                `\x1B[33mcan not load config from ${join(__dirname,'_tests/invalid/wyvr.js')} {}\x1B[39m`,
+                '✖',
+                '@config\n' +
+                    '[ReferenceError] module is not defined in ES module scope\n' +
+                    'source test/utils/config/_tests/invalid/wyvr.js',
             ],
         ]);
     });

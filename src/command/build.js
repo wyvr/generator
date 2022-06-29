@@ -11,6 +11,7 @@ import { copy_static_generated } from '../action/copy_static_generated.js';
 import { dependencies } from '../action/dependencies.js';
 import { get_config_data } from '../action/get_config_data.js';
 import { i18n } from '../action/i18n.js';
+import { media } from '../action/media.js';
 import { collect_packages } from '../action/package.js';
 import { present } from '../action/present.js';
 import { publish } from '../action/publish.js';
@@ -23,6 +24,7 @@ import {
     FOLDER_GEN_ASSETS,
     FOLDER_GEN_PLUGINS,
     FOLDER_LIST_PACKAGE_COPY,
+    FOLDER_MEDIA,
     FOLDER_PLUGINS,
     FOLDER_RELEASES,
     FOLDER_STORAGE,
@@ -30,7 +32,7 @@ import {
 import { env_report } from '../presentation/env_report.js';
 import { package_report } from '../presentation/package_report.js';
 import { Config } from '../utils/config.js';
-import { read, read_json, write, write_json } from '../utils/file.js';
+import { read, read_json, symlink, write, write_json } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
 import { Storage } from '../utils/storage.js';
@@ -122,7 +124,7 @@ export const build_command = async (config) => {
     const identifiers = await routes(package_tree);
 
     // Build Pages
-    await build();
+    const build_result = await build();
 
     //  Inject Data into the pages
     // @TODO
@@ -133,15 +135,16 @@ export const build_command = async (config) => {
     // @TODO
     //  Create Sitemap
     // @TODO
-    //  Create Symlinks
-    // @TODO
-    //  Generate Media/Images
-    // @TODO
+    // Generate Media/Images
+    await media(build_result.media);
     //  Optimize Pages
     // @TODO
-
+    
     // Copy static and generated files into release
     await copy_static_generated();
+    
+    // Create Symlinks
+    symlink(join(Cwd.get(), FOLDER_MEDIA), join(ReleasePath.get(), FOLDER_MEDIA));
 
     // Publish the new release
     await publish();

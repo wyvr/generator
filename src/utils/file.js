@@ -166,7 +166,7 @@ export function read_json(filename) {
  * @returns void
  */
 export function write(filename, content) {
-    if (!is_string(filename) || !is_string(content)) {
+    if (!is_string(filename) || (!is_string(content) && !Buffer.isBuffer(content))) {
         return false;
     }
     // create containing folder

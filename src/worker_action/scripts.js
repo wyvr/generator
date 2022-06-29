@@ -102,6 +102,6 @@ export async function scripts(identifiers) {
                 identifier_file
             )
         );
-        Logger.info('identifier', identifier, dependencies);
+        Logger.debug('identifier', identifier, dependencies);
     }
 }

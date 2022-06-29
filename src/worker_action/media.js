@@ -8,7 +8,7 @@ export async function media(files) {
     }
 
     for (const file of files) {
-        Logger.info('file', file);
+        Logger.debug('file', file);
         await process(file);
     }
 }

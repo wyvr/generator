@@ -54,7 +54,15 @@ export async function compile_svelte_from_code(content, file, type) {
 
             return `import ${imported} from '${path}'`;
         };
-        const modified_content = content.replace(/import (.*?) from ['"]([^'"]+)['"]/g, replacer);
+        let modified_content = content.replace(/import (.*?) from ['"]([^'"]+)['"]/g, replacer);
+        // replace names of components because some can not used, which are default html tags
+        if (type === 'server') {
+            // import Nav from
+            // <Nav/>
+            // <Nav />
+            // <Nav a="nav"></Nav>
+            modified_content = modified_content.replace(/(<|<\/|\s)(Nav)(\s|\/|>)/gi, '$1wyvr$2$3');
+        }
 
         const resourced_content = await inject(replace_src_path(modified_content, folder, extname(file)), file);
 

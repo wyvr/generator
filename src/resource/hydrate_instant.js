@@ -28,4 +28,4 @@ function wyvr_hydrate_instant(elements, cls) {
             target.setAttribute('data-hydrated', 'true');
         });
     });
-};
+}

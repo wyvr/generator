@@ -1,6 +1,6 @@
 import { extname, join } from 'path';
 import { exists, read, to_extension } from './file.js';
-import { filled_array, filled_object, filled_string, is_null, is_number, is_string } from './validate.js';
+import { filled_array, filled_object, filled_string, is_array, is_null, is_number, is_string } from './validate.js';
 import { compile_sass, compile_typescript } from './compile.js';
 import { Cwd } from '../vars/cwd.js';
 import { to_dirname } from './to.js';
@@ -8,6 +8,7 @@ import { clone } from './json.js';
 import { WyvrFileLoading } from '../struc/wyvr_file.js';
 import { uniq_values } from './uniq.js';
 import { Env } from '../vars/env.js';
+import { Logger } from './logger.js';
 
 const __dirname = join(to_dirname(import.meta.url), '..');
 
@@ -261,7 +262,8 @@ export function insert_hydrate_tag(content, wyvr_file) {
 
     // create props which gets hydrated
     const props = extract_props(scripts.tags);
-    const props_include = `data-props="${props.map((prop) => `{_wyvrGenerateProp('${prop}', ${prop})}`).join(',')}"`;
+    Logger.debug('props', wyvr_file.path, props);
+    const props_include = `data-props="${props.map((prop) => `{_prop('${prop}', ${prop})}`).join(',')}"`;
 
     // add portal when set
     const portal = wyvr_file.config.portal ? `data-portal="${wyvr_file.config.portal}"` : '';
@@ -277,8 +279,11 @@ export function insert_hydrate_tag(content, wyvr_file) {
 }
 export function extract_props(scripts) {
     const props = [];
-    if (!is_string(scripts)) {
+    if (is_string(scripts)) {
         scripts = [scripts];
+    }
+    if(!is_array(scripts)) {
+        return [];
     }
     scripts.forEach((script) => {
         if (!filled_string(script)) {

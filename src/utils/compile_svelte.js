@@ -11,7 +11,7 @@ import { Cwd } from '../vars/cwd.js';
 import { FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC, FOLDER_GEN_TEMP } from '../constants/folder.js';
 import { search_segment } from './segment.js';
 import { replace_src_in_path, replace_src_path } from './transform.js';
-import { register_inject, register_i18n } from './global.js';
+import { register_inject, register_i18n, register_prop } from './global.js';
 import { inject } from './config.js';
 import { get_language } from './i18n.js';
 
@@ -150,6 +150,8 @@ export async function render_server_compiled_svelte(exec_result, data, file) {
     // }
 
     register_inject(file);
+    // transform props to allow loading them from external file
+    register_prop(file);
     // set the correct translations for the page
     register_i18n(get_language(data?._wyvr.language), file);
 

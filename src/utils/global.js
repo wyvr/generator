@@ -3,7 +3,10 @@ import { Storage } from './storage.js';
 import { get_error_message } from './error.js';
 import { Logger } from './logger.js';
 import { filled_string, is_func, is_null } from './validate.js';
-import { FOLDER_STORAGE } from '../constants/folder.js';
+import { FOLDER_GEN_PROP, FOLDER_STORAGE } from '../constants/folder.js';
+import { create_hash } from './hash.js';
+import { write } from './file.js';
+import { join } from 'path';
 
 export function register_inject(file) {
     global._inject_file = file;
@@ -54,4 +57,20 @@ export function register_i18n(translations, file) {
             return global._i18n.tr(key, options);
         };
     }
+}
+export function register_prop(file) {
+    global._prop_file = file;
+    // replace the injectConfig functions with the corresponding values
+    if (is_func(global._prop)) {
+        return;
+    }
+    global._prop = (prop, value) => {
+        const converted = JSON.stringify(value);
+        if (converted.length > 1000) {
+            const hash = create_hash(converted);
+            write(join(FOLDER_GEN_PROP, `${prop}_${hash}.json`), converted);
+            return `|${prop}|:|@(/prop/${prop}_${hash}.json)|`;
+        }
+        return `|${prop}|:${converted.replace(/\|/g, '§|§').replace(/"/g, '|')}`;
+    };
 }

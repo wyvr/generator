@@ -12,14 +12,24 @@ export async function build() {
     const name = 'build';
     const identifier_name = get_name(WorkerEmit.identifier);
     const identifiers = {};
+    const media_name = get_name(WorkerEmit.media);
+    const media = {};
 
     await measure_action(name, async () => {
-        const listener_id = Event.on('emit', identifier_name, (data) => {
+        const identifier_id = Event.on('emit', identifier_name, (data) => {
             if (!data) {
                 return;
             }
             delete data.type;
             identifiers[data.identifier] = data;
+        });
+        const media_id = Event.on('emit', media_name, (data) => {
+            if (!data) {
+                return;
+            }
+            Object.keys(data.media).forEach((key) => {
+                media[key] = data.media[key];
+            });
         });
 
         const data = collect_files(FOLDER_GEN_DATA, 'json');
@@ -31,7 +41,8 @@ export async function build() {
         });
 
         // remove listeners
-        Event.off('emit', identifier_name, listener_id);
+        Event.off('emit', identifier_name, identifier_id);
+        Event.off('emit', media_name, media_id);
 
         Logger.info(
             'found',
@@ -39,5 +50,11 @@ export async function build() {
             'identifiers',
             Logger.color.dim('different layout combinations')
         );
+        Logger.info('found', Object.keys(media).length, 'media files');
     });
+
+    return {
+        identifiers,
+        media,
+    };
 }

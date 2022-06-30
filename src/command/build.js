@@ -128,9 +128,7 @@ export const build_command = async (config) => {
 
     //  Inject Data into the pages
     // @TODO
-    //  Build Script dependencies
-    // @TODO
-    //  Build Scripts
+    // Build Scripts
     await scripts(identifiers);
     // @TODO
     //  Create Sitemap

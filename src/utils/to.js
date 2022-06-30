@@ -104,11 +104,7 @@ export function to_server_path(path) {
     return to_extension(mod_path, 'js');
 }
 export function to_client_path(path) {
-    const mod_path = replace_path(path, FOLDER_GEN_CLIENT);
-    if (extname(mod_path) != '.svelte') {
-        return mod_path;
-    }
-    return to_extension(mod_path, 'js');
+    return replace_path(path, FOLDER_GEN_CLIENT);
 }
 export function to_svelte_paths(data) {
     if (filled_string(data)) {

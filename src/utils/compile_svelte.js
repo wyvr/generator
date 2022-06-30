@@ -1,7 +1,7 @@
 import { compile } from 'svelte/compiler';
 import { get_error_message } from './error.js';
 import { Logger } from './logger.js';
-import { filled_string, is_func, is_null, is_path, match_interface } from './validate.js';
+import { array_contains, filled_string, is_func, is_null, is_path, match_interface } from './validate.js';
 import { exists, remove, to_extension, write } from './file.js';
 import { dirname, extname, join, resolve } from 'path';
 import { Env } from '../vars/env.js';
@@ -15,13 +15,20 @@ import { register_inject, register_i18n, register_prop } from './global.js';
 import { inject } from './config.js';
 import { get_language } from './i18n.js';
 
-export async function compile_svelte_from_code(content, file, type) {
-    if (['client', 'server'].indexOf(type) == -1 || !filled_string(content) || !filled_string(file)) {
+export async function prepare_code_to_compile(content, file, type) {
+    if (!array_contains(['client', 'server'], type) || !filled_string(content) || !filled_string(file)) {
         return undefined;
     }
-    let result;
     const folder = type_value(type, FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER);
-    const scope = `svelte ${type} compile`;
+    const scope = `svelte ${type} prepare`;
+    // replace names of components because some can not used, which are default html tags
+    if (type === 'server') {
+        // import Nav from
+        // <Nav/>
+        // <Nav />
+        // <Nav a="nav"></Nav>
+        content = content.replace(/(<|<\/|\s)(Nav)(\s|\/|>)/gi, '$1wyvr$2$3');
+    }
     try {
         const replacer = (_, imported, path) => {
             if (is_path(path)) {
@@ -29,7 +36,7 @@ export async function compile_svelte_from_code(content, file, type) {
                 path = replace_src_in_path(path, folder).replace(new RegExp(FOLDER_GEN_SRC, 'g'), folder);
                 // transform to js from svelte
                 const ext = extname(path);
-                if (ext == '.svelte') {
+                if (type === 'server' && ext == '.svelte') {
                     path = to_extension(path, 'js');
                 }
                 // force file ending when nothing is specified
@@ -64,10 +71,23 @@ export async function compile_svelte_from_code(content, file, type) {
             modified_content = modified_content.replace(/(<|<\/|\s)(Nav)(\s|\/|>)/gi, '$1wyvr$2$3');
         }
 
-        const resourced_content = await inject(replace_src_path(modified_content, folder, extname(file)), file);
+        return await inject(replace_src_path(modified_content, folder, extname(file)), file);
 
+    } catch (e) {
+        Logger.error(get_error_message(e, file, scope), e.stack);
+    }
+    return undefined;
+}
+
+export async function compile_svelte_from_code(content, file, type) {
+    if (!array_contains(['client', 'server'], type) || !filled_string(content) || !filled_string(file)) {
+        return undefined;
+    }
+    let result;
+    const scope = `svelte ${type} compile`;
+    try {
         // compile svelte
-        const compiled = await compile(resourced_content, {
+        const compiled = await compile(content, {
             dev: Env.is_dev(),
             generate: type_value(type, 'dom', 'ssr'),
             format: 'esm',
@@ -92,10 +112,11 @@ export function type_value(type, client, server) {
 }
 
 export async function compile_server_svelte_from_code(content, file) {
-    return compile_svelte_from_code(content, file, 'server');
+    const prepared_content = await prepare_code_to_compile(content, file, 'server');
+    return await compile_svelte_from_code(prepared_content, file, 'server');
 }
 export async function compile_client_svelte_from_code(content, file) {
-    return compile_svelte_from_code(content, file, 'client');
+    return await prepare_code_to_compile(content, file, 'client');
 }
 
 export async function execute_server_compiled_svelte(compiled, file) {

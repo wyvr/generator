@@ -53,7 +53,7 @@ describe('utils/compile_svelte/compile_server_svelte_from_code', () => {
                 '',
                 '',
                 '⚠',
-                '@svelte server compile\n' +
+                '@svelte server prepare\n' +
                     `[Error] can't find import ${process.cwd()}/test/utils/compile_svelte/_tests/gen/server/nonexisting with the extensions .js,.mjs,.ts in ${process.cwd()}/test/utils/compile_svelte/_tests/Broken.svelte\n` +
                     'source Broken.svelte',
             ],

@@ -25,6 +25,7 @@
         "deepmerge": "4.2.2",
         "esbuild": "^0.14.27",
         "esbuild-plugin-globals": "^0.1.1",
+        "esbuild-svelte": "^0.7.1",
         "front-matter": "4.0.2",
         "fs-extra": "10.0.1",
         "html-minifier": "4.0.0",

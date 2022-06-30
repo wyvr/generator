@@ -18,6 +18,7 @@ specifiers:
   deepmerge: 4.2.2
   esbuild: ^0.14.27
   esbuild-plugin-globals: ^0.1.1
+  esbuild-svelte: ^0.7.1
   eslint: 8.11.0
   front-matter: 4.0.2
   fs-extra: 10.0.1
@@ -68,6 +69,7 @@ dependencies:
   deepmerge: 4.2.2
   esbuild: 0.14.27
   esbuild-plugin-globals: 0.1.1
+  esbuild-svelte: 0.7.1_f4bkiz7wdmqqmvcdssx65kytja
   front-matter: 4.0.2
   fs-extra: 10.0.1
   html-minifier: 4.0.0
@@ -2134,6 +2136,17 @@ packages:
     dev: false
     optional: true
 
+  /esbuild-svelte/0.7.1_f4bkiz7wdmqqmvcdssx65kytja:
+    resolution: {integrity: sha512-83vRAJ2OmoKxmK+rLFZVmyv5bJ8ahsYQwJ2RGmNAlHBIHq4ENUwA/hiwA2+AohrWD1BgZnGPMj8DL3l0I0xkug==}
+    engines: {node: '>=14'}
+    peerDependencies:
+      esbuild: '>=0.9.6'
+      svelte: '>=3.43.0'
+    dependencies:
+      esbuild: 0.14.27
+      svelte: 3.48.0
+    dev: false
+
   /esbuild-windows-32/0.14.27:
     resolution: {integrity: sha512-Q9/zEjhZJ4trtWhFWIZvS/7RUzzi8rvkoaS9oiizkHTTKd8UxFwn/Mm2OywsAfYymgUYm8+y2b+BKTNEFxUekw==}
     engines: {node: '>=12'}
@@ -2584,6 +2597,7 @@ packages:
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
     os: [darwin]
     requiresBuild: true
+    dev: false
     optional: true
 
   /fstream/1.0.12:
@@ -5346,6 +5360,7 @@ packages:
     hasBin: true
     optionalDependencies:
       fsevents: 2.3.2
+    dev: false
 
   /run-parallel/1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
@@ -5771,6 +5786,7 @@ packages:
   /svelte/3.48.0:
     resolution: {integrity: sha512-fN2YRm/bGumvjUpu6yI3BpvZnpIm9I6A7HR4oUNYd7ggYyIwSA/BX7DJ+UXXffLp6XNcUijyLvttbPVCYa/3xQ==}
     engines: {node: '>= 8'}
+    dev: false
 
   /svgo/1.3.2:
     resolution: {integrity: sha512-yhy/sQYxR5BkC98CY7o31VGsg014AKLEPxdfhora76l36hD9Rdy5NZA/Ocn6yayNPgSamYdtX2rFJdcv07AYVw==}
@@ -6071,6 +6087,7 @@ packages:
     resolution: {integrity: sha512-HM/hFigTBHZhLXshn9sN37H085+hQGeJHJ/X7LpBWLID/fbc2acUMfU+lGD98X81sKP+pFa9f0DZmCwB9GnbAg==}
     engines: {node: '>=4.2.0'}
     hasBin: true
+    dev: false
 
   /uglify-js/3.15.2:
     resolution: {integrity: sha512-peeoTk3hSwYdoc9nrdiEJk+gx1ALCtTjdYuKSXMTDqq7n1W7dHPqWDdSi+BPL0ni2YMeHD7hKUSdbj3TZauY2A==}

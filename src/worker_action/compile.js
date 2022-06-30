@@ -36,12 +36,8 @@ export async function compile(files) {
         // generate client file
         const client_file = to_client_path(file);
         const client_code = remove_on_server(replace_wyvr_magic(content, true));
-        if (client_code) {
-            const compiled = await compile_client_svelte_from_code(client_code, file);
-            if (compiled?.js?.code) {
-                write(client_file, compiled.js.code);
-            }
-        }
+        const prepared_client_content = await compile_client_svelte_from_code(client_code, file);
+        write(client_file, prepared_client_content);
     }
     return true;
 }

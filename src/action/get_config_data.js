@@ -23,6 +23,9 @@ export function get_config_data(cli_config, build_id) {
             Logger.remove_color = true;
             Logger.spinner.remove_color = true;
         }
+        if (cli_config.cli.flags.silent) {
+            Logger.disable = true;
+        }
     }
     config.cwd = Cwd.get();
     config.env = Env.name();

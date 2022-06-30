@@ -42,7 +42,7 @@ import { ReleasePath } from '../vars/release_path.js';
 import { UniqId } from '../vars/uniq_id.js';
 import { WorkerController } from '../worker/controller.js';
 
-export const build_command = async (config) => {
+export async function build_command(config) {
     const check_env_report = await check_env();
     // execution can end here when environment is not correct
     env_report(check_env_report);
@@ -137,10 +137,10 @@ export const build_command = async (config) => {
     await media(build_result.media);
     //  Optimize Pages
     // @TODO
-    
+
     // Copy static and generated files into release
     await copy_static_generated();
-    
+
     // Create Symlinks
     symlink(join(Cwd.get(), FOLDER_MEDIA), join(ReleasePath.get(), FOLDER_MEDIA));
 
@@ -150,4 +150,4 @@ export const build_command = async (config) => {
     await clear_releases(build_id);
 
     return build_id;
-};
+}

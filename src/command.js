@@ -1,4 +1,5 @@
 // import { app_command } from './command/app';
+import { get_config_data } from './action/get_config_data.js';
 import { build_command } from './command/build.js';
 // import { clear_command } from './command/clear';
 // import { create_command } from './command/create';
@@ -7,8 +8,11 @@ import { build_command } from './command/build.js';
 // import { regenerate_command } from './command/regenerate';
 // import { report_command } from './command/report';
 import { unknown_command } from './command/unknown.js';
+import { version_command } from './command/version.js';
+import { get_logo } from './presentation/logo.js';
 import { nano_to_milli } from './utils/convert.js';
 import { Logger } from './utils/logger.js';
+import { to_plain } from './utils/to.js';
 import { filled_array } from './utils/validate.js';
 
 export function get_command(config) {
@@ -22,11 +26,23 @@ export function get_command(config) {
 export async function command(config) {
     const start = process.hrtime.bigint();
     let result = '';
+    config = get_config_data(config);
+    if(!config?.cli?.flags?.silent) {
+        const logo = get_logo(config?.version);
+        /* eslint-disable no-console */
+        console.error(config?.cli?.flags?.plain ? to_plain(logo) : logo);
+        console.error('');
+        /* eslint-enable */    
+    }
+
     switch (get_command(config)) {
         // case 'app':
         //     return await app_command(config);
         case 'build':
             result = await build_command(config);
+            break;
+        case 'version':
+            result = await version_command(config);
             break;
         // case 'clear':
         //     return await clear_command(config);

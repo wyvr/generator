@@ -45,6 +45,9 @@ export class Logger {
 
     /* eslint-disable */
     static output(type, color_fn, char, ...messages) {
+        if(this.disable) {
+            return;
+        }
         if (IsWorker.get()) {
             if (this.pre) {
                 messages.unshift(this.pre);
@@ -196,4 +199,5 @@ Logger.pre = '';
 Logger.spinner = Spinner;
 Logger.color = kleur;
 Logger.remove_color = false;
+Logger.disable = false;
 Logger.report_content = [];

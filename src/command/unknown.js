@@ -6,6 +6,6 @@ export async function unknown_command(config) {
     if (!filled_array(command)) {
         command = [];
     }
-    Logger.error(command.length == 0 ? 'no command set' : `unknown command ${command.join(' ')}`);
+    Logger.error(command.length == 0 ? 'no command found' : `unknown command ${command.join(' ')}`);
     process.exit(1);
 }

@@ -47,12 +47,12 @@ describe('command/unknown', () => {
         const result = await unknown_command();
         strictEqual(exit_code, 1, 'exit code is not 1');
         strictEqual(result, undefined);
-        deepStrictEqual(logger_messages, [['no command given']]);
+        deepStrictEqual(logger_messages[0][0], 'command is missing');
     });
     it('unknown', async () => {
         const result = await unknown_command({ cli: { command: ['unknown'] } });
         strictEqual(exit_code, 1, 'exit code is not 1');
         strictEqual(result, undefined);
-        deepStrictEqual(logger_messages, [['unknown command unknown']]);
+        deepStrictEqual(logger_messages[0][0], 'unknown command unknown');
     });
 });

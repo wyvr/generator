@@ -6,6 +6,28 @@ export async function unknown_command(config) {
     if (!filled_array(command)) {
         command = [];
     }
-    Logger.error(command.length == 0 ? 'no command found' : `unknown command ${command.join(' ')}`);
+    const value = command.join(' ');
+    Logger.error(command.length == 0 ? 'command is missing' : `unknown command ${value}`);
+    const command_map = {
+        build: {
+            desc: 'statically generate site',
+            flags: [],
+        },
+        cron: {
+            desc: 'execute the cronjobs',
+            flags: [],
+        },
+        app: {
+            desc: 'run as a service for server side execution',
+            flags: [],
+        },
+        watch: {
+            desc: 'statically generate site and watch for file changes',
+            flags: [],
+        },
+    };
+    Object.keys(command_map).forEach((key) => {
+        Logger.present(key, command_map[key].desc);
+    });
     process.exit(1);
 }

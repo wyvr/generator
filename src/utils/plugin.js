@@ -148,12 +148,12 @@ export class Plugin {
                out.error = 'missing plugin function'; 
                return out;
             }
-            const before_result = await Plugin.before(name, ...args);
+            await Plugin.before(name, ...args);
 
             //await WorkerController.process_in_workers(name, data, 100);
             const result = await original_function(...args);
 
-            const after_result = await Plugin.after(name, ...args);
+            await Plugin.after(name, ...args);
 
             out.result = result;
             return out;

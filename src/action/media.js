@@ -1,5 +1,4 @@
 import { WorkerAction } from '../struc/worker_action.js';
-import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
 import { WorkerController } from '../worker/controller.js';
 import { measure_action } from './helper.js';

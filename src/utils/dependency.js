@@ -7,7 +7,6 @@ import { replace_src } from './transform.js';
 import { filled_array, filled_object, filled_string, is_array, is_func, is_null } from './validate.js';
 import { uniq_values } from './uniq.js';
 import { WyvrFileRender } from '../struc/wyvr_file.js';
-import { clone } from './json.js';
 import { WyvrFile } from '../model/wyvr_file.js';
 
 export function dependencies_from_content(content, file) {

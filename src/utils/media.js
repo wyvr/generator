@@ -1,6 +1,6 @@
 import { dirname, join } from 'path';
 import replaceAsync from 'string-replace-async';
-import { FOLDER_CACHE, FOLDER_MEDIA } from '../constants/folder.js';
+import { FOLDER_MEDIA } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { create_dir, is_file, read_buffer, to_extension, write } from './file.js';
 import { filled_string, match_interface } from './validate.js';
@@ -86,8 +86,8 @@ export async function process(media) {
     return undefined;
 }
 
+/*
 export function extract_config(url) {
-    /*
     if (!url || typeof url != 'string') {
         return null;
     }
@@ -128,8 +128,9 @@ export function extract_config(url) {
     result.result = url;
     result.output = MediaModelOutput.Path;
 
-    return result;*/
+    return result;
 }
+*/
 
 export async function replace_media(content) {
     const result = {

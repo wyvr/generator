@@ -8,6 +8,9 @@ export function css_hash(data) {
     return `wyvr-${data.hash(data.css)}`;
 }
 export function create_hash(value) {
+    if(!value) {
+        return '';
+    }
     const hash = cryptoCreateHash('sha256');
     hash.update(value);
     return hash.digest('hex').substring(0, 8);

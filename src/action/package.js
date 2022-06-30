@@ -1,12 +1,3 @@
-// import { Config } from '@lib/config';
-// import { Error } from '@lib/error';
-// import { File } from '@lib/file';
-// import { Logger } from '@lib/logger';
-// import { join } from 'path';
-// import { existsSync } from 'fs-extra';
-// import { IObject } from '@lib/interface/object';
-// import { IPackage } from '@lib/interface/package';
-
 import { join, sep } from 'path';
 import { Config } from '../utils/config.js';
 import { exists } from '../utils/file.js';

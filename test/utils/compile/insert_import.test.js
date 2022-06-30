@@ -36,20 +36,7 @@ describe('utils/to/insert_import', () => {
             await insert_import(
                 `@import '@src/_test.scss';\n\n    code {\n        display: block;\n    }\n    button {\n        @include button();\n    }\n`
             ),
-            `a {
-    color: red;
-}
-
-
-$primary-color: #7c5ed0;
-
-@mixin button($color: $primary-color) {
-    border: 2px solid $color;
-    background: transparent;
-    padding: 10px;
-    font-size: 16px;
-    color: $color;
-}\n\n\n    code {\n        display: block;\n    }\n    button {\n        @include button();\n    }\n`
+            `a {     color: red; }   $primary-color: #7c5ed0;  @mixin button($color: $primary-color) {     border: 2px solid $color;     background: transparent;     padding: 10px;     font-size: 16px;     color: $color; } \n\n    code {\n        display: block;\n    }\n    button {\n        @include button();\n    }\n`
         );
         deepStrictEqual(log, []);
     });

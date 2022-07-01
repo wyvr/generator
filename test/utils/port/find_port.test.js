@@ -83,4 +83,9 @@ describe('utils/port/find_port', () => {
             }, 10);
         }, 10);
     });
+    it('port to high', async () => {
+        const result = await find_port(65536);
+
+        strictEqual(result, undefined);
+    });
 });

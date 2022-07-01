@@ -36,6 +36,7 @@ import { read, read_json, symlink, write, write_json } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
 import { Storage } from '../utils/storage.js';
+import { to_identifiers } from '../utils/to.js';
 import { replace_import_path } from '../utils/transform.js';
 import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
@@ -121,10 +122,13 @@ export async function build_command(config) {
     await compile();
 
     // Execute Routes
-    const identifiers = await routes(package_tree);
+    const route_identifiers = await routes(package_tree);
 
     // Build Pages
     const build_result = await build();
+
+    // combine identifiers
+    const identifiers = to_identifiers(route_identifiers, build_result.identifiers);
 
     //  Inject Data into the pages
     // @TODO

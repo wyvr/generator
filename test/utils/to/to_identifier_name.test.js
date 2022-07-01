@@ -22,6 +22,35 @@ describe('utils/to/to_identifier_name', () => {
             'default'
         );
     });
+    it('no page', () => {
+        deepStrictEqual(
+            to_identifier_name(
+                join(path, 'doc', 'Default.svelte'),
+                join(path, 'layout', 'Default.svelte')
+            ),
+            'default'
+        );
+    });
+    it('no layout', () => {
+        deepStrictEqual(
+            to_identifier_name(
+                join(path, 'doc', 'Default.svelte'),
+                undefined,
+                join(path, 'page', 'Default.svelte')
+            ),
+            'default'
+        );
+    });
+    it('no doc', () => {
+        deepStrictEqual(
+            to_identifier_name(
+                undefined,
+                join(path, 'layout', 'Default.svelte'),
+                join(path, 'page', 'Default.svelte')
+            ),
+            'default'
+        );
+    });
     it('simple', () => {
         deepStrictEqual(
             to_identifier_name(
@@ -30,6 +59,36 @@ describe('utils/to/to_identifier_name', () => {
                 join(path, 'page', 'Page.svelte')
             ),
             'doc-layout-page'
+        );
+    });
+    it('simple without doc', () => {
+        deepStrictEqual(
+            to_identifier_name(
+                undefined,
+                join(path, 'layout', 'Layout.svelte'),
+                join(path, 'page', 'Page.svelte')
+            ),
+            'default-layout-page'
+        );
+    });
+    it('simple without layout', () => {
+        deepStrictEqual(
+            to_identifier_name(
+                join(path, 'doc', 'Doc.svelte'),
+                undefined,
+                join(path, 'page', 'Page.svelte')
+            ),
+            'doc-default-page'
+        );
+    });
+    it('simple without page', () => {
+        deepStrictEqual(
+            to_identifier_name(
+                join(path, 'doc', 'Doc.svelte'),
+                join(path, 'layout', 'Layout.svelte'),
+                undefined
+            ),
+            'doc-layout-default'
         );
     });
     it('with paths', () => {

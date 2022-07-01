@@ -81,8 +81,8 @@ function replace_path(path, replace_with) {
 }
 /**
  * Converts the given path to a relative path inside the first child of gen
- * @param {string} path 
- * @returns 
+ * @param {string} path
+ * @returns
  */
 export function to_relative_path(path) {
     if (!filled_string(path)) {
@@ -93,8 +93,8 @@ export function to_relative_path(path) {
 }
 /**
  * Converts the given path to gen/server path and convert svelte files to js
- * @param {string} path 
- * @returns 
+ * @param {string} path
+ * @returns
  */
 export function to_server_path(path) {
     const mod_path = replace_path(path, FOLDER_GEN_SERVER);
@@ -121,7 +121,7 @@ export function to_identifier_name(...parts) {
         return default_sign;
     }
     const identifiers = parts
-        .filter((x) => x)
+        .map((part) => (!filled_string(part) ? 'default' : part))
         .map((part) => {
             const normalized_part = part.replace(/\.[^.]+$/, '').toLowerCase();
             const index = normalized_part.indexOf(FOLDER_GEN_SERVER);

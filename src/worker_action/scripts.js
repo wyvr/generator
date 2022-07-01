@@ -69,7 +69,8 @@ export async function scripts(identifiers) {
                             `,
                                 real_lazy_file_path
                             );
-                            write(real_lazy_file_path, result);
+                            write(real_lazy_file_path, result.code.replace('%sourcemap%', `# sourceMappingURL=${to_extension(file.path, 'js')}.map`));
+                            write(real_lazy_file_path + '.map', result.sourcemap);
                         }
                         // set marker for the needed hydrate methods
                         has[file.config.loading] = true;
@@ -107,7 +108,8 @@ export async function scripts(identifiers) {
                 identifier_file
             );
         }
-        write(identifier_file, result);
+        write(identifier_file, result.code.replace('%sourcemap%', `# sourceMappingURL=/js/${identifier.identifier}.js.map`));
+        write(identifier_file + '.map', result.sourcemap);
         Logger.debug('identifier', identifier, dependencies);
     }
 }

@@ -16,7 +16,7 @@ export async function build(content, file) {
         return undefined;
     }
     const tmp_file = join(Cwd.get(), FOLDER_GEN_TEMP, `${uniq_id()}.js`);
-    let result;
+    let code;
     write(tmp_file, content);
     try {
         await esbuild.build({
@@ -43,10 +43,14 @@ export async function build(content, file) {
             ],
         });
         // scope the output otherwise multiple client files will have naming collions when minified
-        result = `(() => {${insert_import(read(tmp_file), file, FOLDER_CLIENT)}})()`;
+        code = `(() => {${insert_import(read(tmp_file), file, FOLDER_CLIENT)}})()`;
     } catch (e) {
         Logger.error(get_error_message(e, file, 'build'));
     }
     remove(tmp_file);
-    return result;
+    const tmp_sourcemap = tmp_file + '.map';
+    const sourcemap = read(tmp_sourcemap);
+
+    remove(tmp_sourcemap);
+    return { code: code.replace(/\/\/# sourceMappingURL=[^.]+\.js\.map/g, '// %sourcemap%'), sourcemap };
 }

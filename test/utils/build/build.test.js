@@ -38,7 +38,7 @@ describe('utils/build/build', () => {
             .replace(/\[cwd\]/g, __dirname)
             .replace(/\[root\]/g, process.cwd());
             const result = await build(content, 'single.js');
-        strictEqual(result.indexOf('document.querySelectorAll(\'[data-hydrate="file"]\')') > -1, true, 'contains selector');
-        strictEqual(result.indexOf('@import') == -1, true, 'should not contain @import');
+        strictEqual(result.code.indexOf('document.querySelectorAll(\'[data-hydrate="file"]\')') > -1, true, 'contains selector');
+        strictEqual(result.code.indexOf('@import') == -1, true, 'should not contain @import');
     });
 });

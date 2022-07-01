@@ -138,3 +138,17 @@ export function to_identifier_name(...parts) {
     const combined = identifiers.join('-');
     return combined;
 }
+/**
+ * Combine identifiers into one object
+ * @param  {...{ identifier: string, doc: string, layout: string, page:string }} items
+ * @returns
+ */
+export function to_identifiers(...items) {
+    const identifiers = {};
+    items.forEach((obj) => {
+        Object.keys(obj).forEach((key) => {
+            identifiers[key] = obj[key];
+        });
+    });
+    return identifiers;
+}

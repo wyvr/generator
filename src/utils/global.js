@@ -7,6 +7,8 @@ import { FOLDER_GEN_PROP, FOLDER_STORAGE } from '../constants/folder.js';
 import { create_hash } from './hash.js';
 import { write } from './file.js';
 import { join } from 'path';
+import { stringify } from './json.js';
+import { Cwd } from '../vars/cwd.js';
 
 export function register_inject(file) {
     global._inject_file = file;
@@ -65,10 +67,10 @@ export function register_prop(file) {
         return;
     }
     global._prop = (prop, value) => {
-        const converted = JSON.stringify(value);
+        const converted = stringify(value);
         if (converted.length > 1000) {
             const hash = create_hash(converted);
-            write(join(FOLDER_GEN_PROP, `${prop}_${hash}.json`), converted);
+            write(join(Cwd.get(), FOLDER_GEN_PROP, `${prop}_${hash}.json`), converted);
             return `|${prop}|:|@(/prop/${prop}_${hash}.json)|`;
         }
         return `|${prop}|:${converted.replace(/\|/g, '§|§').replace(/"/g, '|')}`;

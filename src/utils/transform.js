@@ -9,6 +9,7 @@ import { WyvrFileLoading } from '../struc/wyvr_file.js';
 import { uniq_values } from './uniq.js';
 import { Env } from '../vars/env.js';
 import { Logger } from './logger.js';
+import { FOLDER_GEN_SRC } from '../constants/folder.js';
 
 const __dirname = join(to_dirname(import.meta.url), '..');
 
@@ -91,10 +92,11 @@ export async function combine_splits(path, content) {
     }
     // load styles
     const style_extract = await extract_and_load_split(path, content, 'style', ['css', 'scss']);
+    const style_content = (style_extract.loaded_content || '') + style_extract.tags.join('\n');
+    if (filled_string(style_content)) {
+        content = `${style_extract.content}<style>${style_content}</style>`;
+    }
     if (filled_string(style_extract.loaded_content)) {
-        content = `${style_extract.content}<style>${style_extract.loaded_content}${style_extract.tags.join(
-            '\n'
-        )}</style>`;
         result.css = style_extract.loaded_file;
     }
 
@@ -108,7 +110,8 @@ export async function combine_splits(path, content) {
     }
 
     // set content
-    result.content = content;
+    // replaced src has to be reverted otherwise the next steps will not work when building the tree
+    result.content = content.replace(new RegExp(join(Cwd.get(), FOLDER_GEN_SRC), 'g'), '@src');
     return result;
 }
 
@@ -159,7 +162,7 @@ export async function extract_and_load_split(path, content, tag, extensions) {
     };
     if (filled_string(content)) {
         const ext = path ? extname(path) : undefined;
-        content = replace_src_path(content, 'gen/src', ext);
+        content = replace_src_path(content, FOLDER_GEN_SRC, ext);
         result.content = content;
     }
     if (!filled_string(tag)) {
@@ -282,7 +285,7 @@ export function extract_props(scripts) {
     if (is_string(scripts)) {
         scripts = [scripts];
     }
-    if(!is_array(scripts)) {
+    if (!is_array(scripts)) {
         return [];
     }
     scripts.forEach((script) => {

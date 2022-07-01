@@ -4,9 +4,16 @@ import { describe, it } from 'mocha';
 import { join } from 'path';
 import { to_dirname } from '../../../src/utils/to.js';
 import { combine_splits } from '../../../src/utils/transform.js';
+import { Cwd } from '../../../src/vars/cwd.js';
 
 describe('utils/transform/combine_splits', () => {
     const __dirname = join(to_dirname(import.meta.url), '_tests', 'combine_splits');
+    before(() => {
+        Cwd.set(__dirname);
+    });
+    after(() => {
+        Cwd.set(undefined);
+    });
 
     it('undefined', async () => {
         deepStrictEqual(await combine_splits(), {

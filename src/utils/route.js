@@ -8,7 +8,7 @@ import { get_error_message } from './error.js';
 import { collect_files, create_dir, exists, read, remove_index, to_extension, to_index, write } from './file.js';
 import { register_inject } from './global.js';
 import { Logger } from './logger.js';
-import { filled_array, filled_string, is_array, is_func, is_null, match_interface } from './validate.js';
+import { filled_array, filled_string, in_array, is_array, is_func, is_null, match_interface } from './validate.js';
 
 export function collect_routes(dir, package_tree) {
     if (!dir) {
@@ -23,7 +23,7 @@ export function collect_routes(dir, package_tree) {
             const extension = extname(file_name);
             // files starting with a _ are no routes, these are helper files
             // allow only specific file extensions as routes
-            if (file_name.match(/^_/) || ['.js', '.ts', '.md'].indexOf(extension) < 0) {
+            if (file_name.match(/^_/) || !in_array(['.js', '.ts', '.md'], extension)) {
                 return false;
             }
             return true;

@@ -3,7 +3,7 @@ import { FOLDER_GEN } from '../constants/folder.js';
 import { RESERVED_KEYWORDS } from '../constants/keywords.js';
 import { WyvrFileConfig } from '../struc/wyvr_file.js';
 import { clone } from '../utils/json.js';
-import { filled_string } from '../utils/validate.js';
+import { filled_string, in_array } from '../utils/validate.js';
 
 export function WyvrFile(path) {
     let name = '',
@@ -17,7 +17,7 @@ export function WyvrFile(path) {
         rel_path = join('@src', ...rel_splitts);
         name = rel_splitts.join('_').replace(new RegExp(`${extname(path).replace('.', '\\.')}$`), '');
         // avoid reserved keywords
-        if (RESERVED_KEYWORDS.indexOf(name.toLowerCase()) > -1) {
+        if (in_array(RESERVED_KEYWORDS, name.toLowerCase())) {
             name = `_${name}`;
         }
     } else {
@@ -38,7 +38,7 @@ export function WyvrFile(path) {
 
 export function extract_wyvr_file_config(content) {
     const config = clone(WyvrFileConfig);
-    if(!filled_string(content)) {
+    if (!filled_string(content)) {
         return config;
     }
     const match = content.match(/wyvr:\s*?(\{[^}]*\})/);

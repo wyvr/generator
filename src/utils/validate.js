@@ -69,7 +69,7 @@ export function filled_array(value) {
     return is_array(value) && value.length > 0;
 }
 
-export function array_contains(array, value) {
+export function in_array(array, value) {
     if (!filled_array(array) || (!is_string(value) && !is_number(value))) {
         return false;
     }
@@ -176,5 +176,5 @@ export function match_interface(value, structure) {
     const required_keys = Object.keys(structure).filter((key) => structure[key]);
     const object_keys = Object.keys(value);
 
-    return required_keys.every((key) => object_keys.indexOf(key) > -1);
+    return required_keys.every((key) => in_array(object_keys, key));
 }

@@ -8,7 +8,7 @@ import { exists, read, to_extension, write } from '../utils/file.js';
 import { stringify } from '../utils/json.js';
 import { Logger } from '../utils/logger.js';
 import { to_dirname } from '../utils/to.js';
-import { filled_array } from '../utils/validate.js';
+import { filled_array, in_array } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 
 const __dirname = to_dirname(import.meta.url);
@@ -48,12 +48,10 @@ export async function scripts(identifiers) {
                     }
                     // build seperate file for the component
                     if (
-                        [
-                            WyvrFileLoading.lazy,
-                            WyvrFileLoading.idle,
-                            WyvrFileLoading.media,
-                            WyvrFileLoading.none,
-                        ].indexOf(file.config.loading) > -1
+                        in_array(
+                            [WyvrFileLoading.lazy, WyvrFileLoading.idle, WyvrFileLoading.media, WyvrFileLoading.none],
+                            file.config.loading
+                        )
                     ) {
                         const lazy_file_path = `/js/${to_extension(file.path, 'js')}`;
                         const real_lazy_file_path = join(Cwd.get(), FOLDER_GEN, lazy_file_path);

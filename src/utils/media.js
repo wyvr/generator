@@ -3,7 +3,7 @@ import replaceAsync from 'string-replace-async';
 import { FOLDER_MEDIA } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { create_dir, is_file, read_buffer, to_extension, write } from './file.js';
-import { filled_string, match_interface } from './validate.js';
+import { filled_string, in_array, match_interface } from './validate.js';
 import axios from 'axios';
 import sharp from 'sharp';
 import { MediaModel } from '../model/media.js';
@@ -35,7 +35,7 @@ export async function process(media) {
         options.height = Math.ceil(media.height);
     }
     // add white background when empty space can be added and format is not transparent able
-    if (['jpg', 'jpeg'].indexOf(media.format) > -1 && media.mode != MediaModelMode.cover) {
+    if (in_array(['jpg', 'jpeg'], media.format) && media.mode != MediaModelMode.cover) {
         options.background = { r: 255, g: 255, b: 255 };
     }
     Logger.debug(media.src, JSON.stringify(options));

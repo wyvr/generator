@@ -1,7 +1,7 @@
 import { compile } from 'svelte/compiler';
 import { get_error_message } from './error.js';
 import { Logger } from './logger.js';
-import { array_contains, filled_string, is_func, is_null, is_path, match_interface } from './validate.js';
+import { in_array, filled_string, is_func, is_null, is_path, match_interface } from './validate.js';
 import { exists, remove, to_extension, write } from './file.js';
 import { dirname, extname, join, resolve } from 'path';
 import { Env } from '../vars/env.js';
@@ -16,7 +16,7 @@ import { inject } from './config.js';
 import { get_language } from './i18n.js';
 
 export async function prepare_code_to_compile(content, file, type) {
-    if (!array_contains(['client', 'server'], type) || !filled_string(content) || !filled_string(file)) {
+    if (!in_array(['client', 'server'], type) || !filled_string(content) || !filled_string(file)) {
         return undefined;
     }
     const folder = type_value(type, FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER);
@@ -80,7 +80,7 @@ export async function prepare_code_to_compile(content, file, type) {
 }
 
 export async function compile_svelte_from_code(content, file, type) {
-    if (!array_contains(['client', 'server'], type) || !filled_string(content) || !filled_string(file)) {
+    if (!in_array(['client', 'server'], type) || !filled_string(content) || !filled_string(file)) {
         return undefined;
     }
     let result;

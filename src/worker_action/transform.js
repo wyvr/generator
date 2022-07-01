@@ -6,7 +6,7 @@ import { insert_import } from '../utils/compile.js';
 import { exists, read, symlink, write } from '../utils/file.js';
 import { to_client_path, to_relative_path, to_server_path } from '../utils/to.js';
 import { combine_splits } from '../utils/transform.js';
-import { filled_array, filled_string } from '../utils/validate.js';
+import { filled_array, filled_string, in_array } from '../utils/validate.js';
 import { send_action } from '../worker/communication.js';
 
 export async function transform(files) {
@@ -39,7 +39,7 @@ export async function transform(files) {
             continue;
         }
         // replace import in text files
-        if (['.js', '.ts', '.css', '.scss'].indexOf(extension) > -1) {
+        if (in_array(['.js', '.ts', '.css', '.scss'], extension)) {
             const expanded_content = insert_import(read(file), file);
             write(file, expanded_content);
         }

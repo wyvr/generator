@@ -7,10 +7,9 @@ import { Cwd } from '../vars/cwd.js';
 import { get_error_message } from './error.js';
 import { collect_files } from './file.js';
 import { Logger } from './logger.js';
-import { filled_array, filled_string, is_func, is_null, is_object } from './validate.js';
+import { filled_array, filled_string, in_array, is_func, is_null, is_object } from './validate.js';
 import { nano_to_milli } from './convert.js';
 import { search_segment } from './segment.js';
-
 // import { Logger } from '@lib/logger';
 // import { join } from 'path';
 // import { Error } from '@lib/error';
@@ -52,7 +51,7 @@ export class Plugin {
                         result[name].after = [];
                     }
                     Object.keys(plugin[name]).forEach((type) => {
-                        if (['before', 'after', 'around'].indexOf(type) < 0) {
+                        if (!in_array(['before', 'after', 'around'], type)) {
                             Logger.warning('unkown plugin type', type, file_path);
                             return;
                         }

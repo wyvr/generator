@@ -1,5 +1,5 @@
 import { EnvType } from '../struc/env.js';
-import { array_contains, is_int } from '../utils/validate.js';
+import { in_array, is_int } from '../utils/validate.js';
 
 export class Env {
     static get() {
@@ -10,7 +10,7 @@ export class Env {
     }
     static set(value) {
         // allow only allowed types
-        if (array_contains(Object.values(EnvType), value)) {
+        if (in_array(Object.values(EnvType), value)) {
             this.value = value;
         }
         return this.get();

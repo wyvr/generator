@@ -33,7 +33,12 @@ export async function routes(package_tree) {
         Event.off('emit', identifier_name, listener_id);
 
         const identifier_length = Object.keys(identifiers).length;
-        Logger.info('found', identifier_length, identifier_length == 1 ? 'identifier' : 'identifiers');
+        Logger.info(
+            'found',
+            identifier_length,
+            identifier_length == 1 ? 'identifier' : 'identifiers',
+            Logger.color.dim('different layout combinations')
+        );
     });
 
     return identifiers;

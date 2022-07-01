@@ -44,10 +44,11 @@ export async function build() {
         Event.off('emit', identifier_name, identifier_id);
         Event.off('emit', media_name, media_id);
 
+        const identifier_length = Object.keys(identifiers).length;
         Logger.info(
             'found',
-            Object.keys(identifiers).length,
-            'identifiers',
+            identifier_length,
+            identifier_length == 1 ? 'identifier' : 'identifiers',
             Logger.color.dim('different layout combinations')
         );
         Logger.info('found', Object.keys(media).length, 'media files');

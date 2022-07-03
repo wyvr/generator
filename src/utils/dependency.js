@@ -20,10 +20,11 @@ export function dependencies_from_content(content, file) {
         file_path = join(cwd, file_path);
     }
     const deps = {};
-    const dep_key = to_relative_path(file);
-    content.replace(/import .*? from ["']([^"']+)["'];?/g, (match, dep) => {
-        if (is_null(deps[dep_key])) {
-            deps[dep_key] = [];
+    const i18n = {};
+    const key = to_relative_path(file);
+    content.replace(/import .*? from ["']([^"']+)["'];?/g, (_, dep) => {
+        if (is_null(deps[key])) {
+            deps[key] = [];
         }
         // node dependency
         if (dep.indexOf('./') != 0 && dep.indexOf('/') != 0 && dep.indexOf('@src') != 0) {
@@ -45,17 +46,24 @@ export function dependencies_from_content(content, file) {
         }
         if (dep_file) {
             dep_file = to_relative_path(dep_file.replace(cwd, '.'));
-            deps[dep_key].push(dep_file);
+            deps[key].push(dep_file);
         }
         return;
     });
 
+    content.replace(/__\(["']([^"']*)["']/g, (_, translation) => {
+        if (is_null(i18n[key])) {
+            i18n[key] = [];
+        }
+        i18n[key].push(translation);
+    });
+
     // clear empty dependencies
-    if (!filled_array(deps[dep_key])) {
-        return undefined;
+    if (!filled_array(deps[key])) {
+        return { dependencies: undefined, i18n };
     }
 
-    return deps;
+    return { dependencies: deps, i18n };
 }
 export function flip_dependency_tree(dependencies) {
     if (!filled_object(dependencies)) {
@@ -76,7 +84,7 @@ export function get_dependencies(tree, file, callback) {
     if (!filled_object(tree) || is_null(tree[file])) {
         return [];
     }
-    if(!is_func(callback)) {
+    if (!is_func(callback)) {
         callback = (list) => list;
     }
     const result = callback(tree[file], file);
@@ -92,12 +100,12 @@ export function get_hydrate_dependencies(tree, file_config_tree, file) {
     }
     const result = [];
     const config = file_config_tree[file];
-    if(config.render == WyvrFileRender.hydrate) {
+    if (config.render == WyvrFileRender.hydrate) {
         const entry = WyvrFile(file);
         entry.config = file_config_tree[file];
         return [entry];
     }
-    if(!is_null(tree[file])) {
+    if (!is_null(tree[file])) {
         tree[file].forEach((child) => {
             result.push(...get_hydrate_dependencies(tree, file_config_tree, child));
         });

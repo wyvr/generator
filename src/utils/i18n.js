@@ -3,6 +3,7 @@ import { FOLDER_GEN_I18N, FOLDER_I18N } from '../constants/folder.js';
 import { collect_files, read_json, write_json } from '../utils/file.js';
 import { filled_array, filled_string } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
+import { stringify } from './json.js';
 
 const language_cache = {};
 
@@ -70,5 +71,21 @@ export function clear_language(language) {
         return true;
     }
     return false;
+}
 
+export function inject_language(content, language) {
+    const data = get_language(language);
+    if (!data || content.indexOf('</body>') == -1) {
+        return content;
+    }
+    return content.replace(
+        /<\/body>/,
+        `<script>
+    window._translation = ${stringify(data)};
+
+    if(window._i18n) {
+        window._i18n.set(window._translation);
+    }
+    </script>`
+    );
 }

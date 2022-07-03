@@ -9,7 +9,8 @@ export const WorkerEmit = {
     errors: 8,
     dependencies: 9,
     wyvr_config: 10,
-    media: 11
+    media: 11,
+    i18n: 12
 };
 
 export function get_name(emit) {

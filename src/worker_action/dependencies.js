@@ -15,13 +15,20 @@ export async function dependencies(files) {
         }
         const content = read(file);
         // build and send dependencies
-        const dependencies = dependencies_from_content(content, file);
-        if (!is_null(dependencies)) {
+        const result = dependencies_from_content(content, file);
+        if (!is_null(result)) {
+            // send dependencies
             const dependency_emit = {
                 type: WorkerEmit.dependencies,
-                dependencies,
+                dependencies: result.dependencies,
             };
             send_action(WorkerAction.emit, dependency_emit);
+            // send translations
+            const i18n_emit = {
+                type: WorkerEmit.i18n,
+                i18n: result.i18n,
+            };
+            send_action(WorkerAction.emit, i18n_emit);
         }
     }
     return true;

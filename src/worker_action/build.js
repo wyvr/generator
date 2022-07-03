@@ -40,6 +40,8 @@ export async function build(files) {
                 });
             }
 
+            // @TODO inject translations for known dependencies
+
             // write the html code
             write(path, media_result.content);
             // write css

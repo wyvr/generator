@@ -18,8 +18,11 @@ export async function dependencies() {
     const dependency_name = get_name(WorkerEmit.dependencies);
     const dependencies = {};
 
+    const i18n_name = get_name(WorkerEmit.i18n);
+    const i18n = {};
+
     await measure_action(name, async () => {
-        const listener_id = Event.on('emit', dependency_name, (data) => {
+        const dep_listener_id = Event.on('emit', dependency_name, (data) => {
             const deps = data?.dependencies;
             if (!is_null(deps)) {
                 Object.keys(deps).forEach((file) => {
@@ -27,6 +30,17 @@ export async function dependencies() {
                         dependencies[file] = [];
                     }
                     dependencies[file].push(...deps[file]);
+                });
+            }
+        });
+        const i18n_listener_id = Event.on('emit', i18n_name, (data) => {
+            const result = data?.i18n;
+            if (!is_null(result)) {
+                Object.keys(result).forEach((file) => {
+                    if (!is_array(i18n[file])) {
+                        i18n[file] = [];
+                    }
+                    i18n[file].push(...result[file]);
                 });
             }
         });
@@ -38,17 +52,20 @@ export async function dependencies() {
             await WorkerController.process_in_workers(WorkerAction.dependencies, data, 10);
         });
 
-        Event.off('emit', dependency_name, listener_id);
+        Event.off('emit', dependency_name, dep_listener_id);
+        Event.off('emit', i18n_name, i18n_listener_id);
 
         // create bottom-top dependency tree
         const inverted_dependencies = flip_dependency_tree(dependencies);
-        
+
         // add to config and write gen files
         Config.set('dependencies.top', dependencies);
         write_json(join(Cwd.get(), FOLDER_GEN, 'dependencies_top.json'), dependencies);
-        
+
         Config.set('dependencies.bottom', inverted_dependencies);
         write_json(join(Cwd.get(), FOLDER_GEN, 'dependencies_bottom.json'), inverted_dependencies);
 
-    });    
+        Config.set('dependencies.i18n', i18n);
+        write_json(join(Cwd.get(), FOLDER_GEN, 'dependencies_i18n.json'), i18n);
+    });
 }

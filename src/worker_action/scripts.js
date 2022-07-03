@@ -91,7 +91,7 @@ export async function scripts(identifiers) {
         scripts.push(read(join(resouce_dir, 'events.js')));
         scripts.push(read(join(resouce_dir, 'props.js')));
         scripts.push(read(join(resouce_dir, 'portal.js')));
-        scripts.push(read(join(resouce_dir, 'i18n.js')).replace(/@lib/g, lib_dir));
+        scripts.push(read(join(resouce_dir, 'i18n.js')).replace(/\[lib\]/g, lib_dir));
 
         /**/
         const identifier_file = join(Cwd.get(), FOLDER_GEN_JS, `${identifier.identifier}.js`);

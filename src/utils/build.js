@@ -25,9 +25,10 @@ export async function build(content, file) {
             allowOverwrite: true,
             sourcemap: true,
             minify: Env.is_prod(),
-            format: 'esm',
+            format: 'iife',
             bundle: true,
             platform: 'browser',
+            treeShaking: true,
             plugins: [
                 sveltePlugin({
                     compilerOptions: { css: true },
@@ -42,8 +43,7 @@ export async function build(content, file) {
                 }),
             ],
         });
-        // scope the output otherwise multiple client files will have naming collions when minified
-        code = `(() => {${insert_import(read(tmp_file), file, FOLDER_CLIENT)}})()`;
+        code = insert_import(read(tmp_file), file, FOLDER_CLIENT);
     } catch (e) {
         Logger.error(get_error_message(e, file, 'build'));
     }

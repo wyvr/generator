@@ -25,19 +25,25 @@ describe('utils/dependency/dependencies_from_content', () => {
         deepStrictEqual(dependencies_from_content(undefined, 'a'), undefined);
     });
     it('no dependencies', async () => {
-        deepStrictEqual(dependencies_from_content(`var a = 0;`, './file.js'), undefined);
+        deepStrictEqual(dependencies_from_content(`var a = 0;`, './file.js'), { dependencies: undefined, i18n: {} });
     });
     it('npm dependencies', async () => {
-        deepStrictEqual(dependencies_from_content(`import a from 'axios';`, './file.js'), undefined);
+        deepStrictEqual(dependencies_from_content(`import a from 'axios';`, './file.js'), { dependencies: undefined, i18n: {} });
     });
     it('single dependencies', async () => {
         deepStrictEqual(dependencies_from_content(`import a from './test';`, './file.js'), {
-            './file.js': ['./test.js'],
+            dependencies: {
+                './file.js': ['./test.js'],
+            },
+            i18n: {},
         });
     });
     it('multiple dependencies', async () => {
         deepStrictEqual(dependencies_from_content(`import a from './test';import a from './huhu';`, './file.js'), {
-            './file.js': ['./test.js', './huhu.js'],
+            dependencies: {
+                './file.js': ['./test.js', './huhu.js'],
+            },
+            i18n: {},
         });
     });
     it('different types', async () => {
@@ -46,24 +52,30 @@ describe('utils/dependency/dependencies_from_content', () => {
                 `import a from './nonexisting';import ts from './ts';import js from './js';import mjs from './mjs';import cjs from './cjs';`,
                 './file.js'
             ),
-            { './file.js': ['./ts.ts', './js.js', './mjs.mjs', './cjs.cjs'] }
+            {
+                dependencies: { './file.js': ['./ts.ts', './js.js', './mjs.mjs', './cjs.cjs'] },
+                i18n: {},
+            }
         );
     });
     it('replace @src', async () => {
         deepStrictEqual(dependencies_from_content(`import a from '@src/svelte.svelte';`, './file.js'), {
-            './file.js': ['./svelte.svelte'],
+            dependencies: {
+                './file.js': ['./svelte.svelte'],
+            },
+            i18n: {},
         });
     });
     it('replace @src with absolute path', async () => {
         const file = join(Cwd.get(), 'file.js');
-        const result = {};
-        result[file] = ['./svelte.svelte'];
+        const result = { dependencies: {}, i18n: {} };
+        result.dependencies[file] = ['./svelte.svelte'];
         deepStrictEqual(dependencies_from_content(`import a from '@src/svelte.svelte';`, file), result);
     });
     it('replace @src with found file in gen src', async () => {
         const file = join(Cwd.get(), 'file.js');
-        const result = {};
-        result[file] = ['gen_src.svelte'];
+        const result = { dependencies: {}, i18n: {} };
+        result.dependencies[file] = ['gen_src.svelte'];
         deepStrictEqual(dependencies_from_content(`import a from '@src/gen_src.svelte';`, file), result);
     });
 });

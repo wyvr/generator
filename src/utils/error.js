@@ -41,11 +41,11 @@ export function extract_error(e, source) {
                     return entry.replace(/.*?at (?:file:\/\/)?/, '').replace(gen_dir + '/', '');
                 }
                 // sass errors can contain "│" (no pipe) at the beginning add them too
-                if(entry.indexOf('│') > -1 || entry.indexOf('╷') > -1 || entry.indexOf('╵') > -1) {
+                if (entry.indexOf('│') > -1 || entry.indexOf('╷') > -1 || entry.indexOf('╵') > -1) {
                     return entry;
                 }
                 // ts errors can contain "<stdin>" at the beginning add them too
-                if(entry.indexOf('<stdin>:') > -1) {
+                if (entry.indexOf('<stdin>:') > -1) {
                     return entry.replace(/^<stdin>:/, '');
                 }
 
@@ -81,6 +81,18 @@ export function extract_error(e, source) {
     // when stack is empty
     if (!Array.isArray(object.stack)) {
         object.stack = [];
+    }
+    // esbuild errors
+    if (filled_array(e.errors) && e.name == 'Error') {
+        object.message = e.errors
+            .map((error) => {
+                let text = '- ' + error.text;
+                if (error.location && error.location.line && error.location.column) {
+                    text += ` ${error.location.line}:${error.location.column}`;
+                }
+                return text;
+            })
+            .join('\n');
     }
 
     return object;

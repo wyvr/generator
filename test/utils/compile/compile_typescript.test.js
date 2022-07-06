@@ -43,7 +43,7 @@ describe('utils/to/compile_typescript', () => {
             [
                 '✖',
                 '@typescript\n' +
-                    '[Error] Transform failed with 1 error:\n' +
+                    '[Error] - Unexpected end of file 3:8\n' +
                     'stack\n' +
                     '- 3:8: ERROR: Unexpected end of file\n' +
                     'source test.ts',
@@ -63,7 +63,7 @@ describe('utils/to/compile_typescript', () => {
             [
                 '✖',
                 '@typescript\n' +
-                    '[Error] Transform failed with 1 error:\n' +
+                    '[Error] - Unexpected end of file 3:8\n' +
                     'stack\n' +
                     '- 3:8: ERROR: Unexpected end of file',
             ],

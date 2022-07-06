@@ -289,4 +289,37 @@ describe('utils/error/extract_error', () => {
         });
         deepStrictEqual(error.stack, ['a', 'b']);
     });
+    it('esbuild error', () => {
+        const error = extract_error({
+            name: 'Error',
+            errors: [
+                {
+                    detail: undefined,
+                    id: '',
+                    location: {
+                        column: 17,
+                        file: 'test/utils/build/_tests/gen/tmp/416e310ccc464fa1bc3da767bc4d791b.js',
+                        length: 78,
+                        line: 130,
+                        lineText:
+                            "import file from 'file.svelte';",
+                        namespace: '',
+                        suggestion: '',
+                    },
+                    notes: [],
+                    pluginName: '',
+                    text: 'Could not resolve "file.svelte"',
+                },
+                {
+                    detail: undefined,
+                    id: '',
+                    location: {},
+                    notes: [],
+                    pluginName: '',
+                    text: 'errortext',
+                },
+            ],
+        });
+        deepStrictEqual(error.message, '- Could not resolve "file.svelte" 130:17\n- errortext');
+    });
 });

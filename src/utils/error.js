@@ -87,7 +87,7 @@ export function extract_error(e, source) {
         object.message = e.errors
             .map((error) => {
                 let text = '- ' + error.text;
-                if (error.location && error.location.line && error.location.column) {
+                if (error.location && !is_null(error.location.line) && !is_null(error.location.column)) {
                     text += ` ${error.location.line}:${error.location.column}`;
                 }
                 return text;

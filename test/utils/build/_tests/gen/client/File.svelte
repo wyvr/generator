@@ -12,5 +12,11 @@
     b {
         border: 1px solid red;
     }
+    a {
+        color: blue;
+    }
+    [data-slot="default"] {
+        border: 1px solid blue;
+    }
     @import '@src/_test.css';
 </style>

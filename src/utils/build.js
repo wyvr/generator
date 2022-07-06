@@ -13,7 +13,7 @@ import { filled_string } from './validate.js';
 
 export async function build(content, file) {
     if (!filled_string(content) || !filled_string(content)) {
-        return undefined;
+        return { code: undefined, sourcemap: undefined };
     }
     const tmp_file = join(Cwd.get(), FOLDER_GEN_TEMP, `${uniq_id()}.js`);
     let code;
@@ -29,6 +29,7 @@ export async function build(content, file) {
             bundle: true,
             platform: 'browser',
             treeShaking: true,
+            logLevel: 'silent',
             plugins: [
                 sveltePlugin({
                     compilerOptions: { css: true },
@@ -39,11 +40,12 @@ export async function build(content, file) {
                         }
                         Logger.warning(get_error_message(warning, file, 'svelte'));
                         return false;
-                    },
+                    }
                 }),
             ],
         });
         code = insert_import(read(tmp_file), file, FOLDER_CLIENT);
+        code = code.replace(/\/\/# sourceMappingURL=[^.]+\.js\.map/g, '// %sourcemap%');
     } catch (e) {
         Logger.error(get_error_message(e, file, 'build'));
     }
@@ -52,5 +54,5 @@ export async function build(content, file) {
     const sourcemap = read(tmp_sourcemap);
 
     remove(tmp_sourcemap);
-    return { code: code.replace(/\/\/# sourceMappingURL=[^.]+\.js\.map/g, '// %sourcemap%'), sourcemap };
+    return { code, sourcemap };
 }

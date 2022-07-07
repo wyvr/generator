@@ -74,8 +74,14 @@ export function clear_language(language) {
 }
 
 export function inject_language(content, language) {
+    if (!filled_string(content)) {
+        return '';
+    }
+    if (content.indexOf('</body>') == -1) {
+        return content;
+    }
     const data = get_language(language);
-    if (!data || content.indexOf('</body>') == -1) {
+    if (!data) {
         return content;
     }
     return content.replace(

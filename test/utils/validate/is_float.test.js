@@ -51,6 +51,9 @@ describe('utils/validate/is_float', () => {
     it('regex', () => {
         strictEqual(is_float(/.*/), false);
     });
+    it('buffer', () => {
+        strictEqual(is_float(Buffer.from([])), false);
+    });
     it('function', () => {
         strictEqual(
             is_float(() => {}),

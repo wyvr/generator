@@ -51,6 +51,9 @@ describe('utils/validate/is_object', () => {
     it('regex', () => {
         strictEqual(is_object(/.*/), false);
     });
+    it('buffer', () => {
+        strictEqual(is_object(Buffer.from([])), true);
+    });
     it('function', () => {
         strictEqual(
             is_object(() => {}),

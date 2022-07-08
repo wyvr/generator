@@ -51,6 +51,9 @@ describe('utils/validate/is_path', () => {
     it('regex', () => {
         strictEqual(is_path(/.*/), false);
     });
+    it('buffer', () => {
+        strictEqual(is_path(Buffer.from([])), false);
+    });
     it('function', () => {
         strictEqual(
             is_path(() => {}),

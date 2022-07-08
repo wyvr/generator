@@ -51,6 +51,9 @@ describe('utils/validate/is_number', () => {
     it('regex', () => {
         strictEqual(is_number(/.*/), false);
     });
+    it('buffer', () => {
+        strictEqual(is_number(Buffer.from([])), false);
+    });
     it('function', () => {
         strictEqual(
             is_number(() => {}),

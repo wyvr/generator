@@ -51,6 +51,9 @@ describe('utils/validate/is_date', () => {
     it('regex', () => {
         strictEqual(is_date(/.*/), false);
     });
+    it('buffer', () => {
+        strictEqual(is_date(Buffer.from([])), false);
+    });
     it('function', () => {
         strictEqual(
             is_date(() => {}),

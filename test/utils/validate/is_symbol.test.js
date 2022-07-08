@@ -51,6 +51,9 @@ describe('utils/validate/is_symbol', () => {
     it('regex', () => {
         strictEqual(is_symbol(/.*/), false);
     });
+    it('buffer', () => {
+        strictEqual(is_symbol(Buffer.from([])), false);
+    });
     it('function', () => {
         strictEqual(
             is_symbol(() => {}),

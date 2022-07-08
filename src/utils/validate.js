@@ -164,6 +164,15 @@ export function is_path(value) {
 }
 
 /**
+ * Check if the given value is a valid buffer
+ * @param {any} value
+ * @returns boolean
+ */
+export function is_buffer(value) {
+    return Buffer.isBuffer(value);
+}
+
+/**
  * Check if the given value matches the given structure
  * @param {any} value
  * @param {any} structure

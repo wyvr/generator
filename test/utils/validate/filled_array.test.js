@@ -51,6 +51,9 @@ describe('utils/validate/filled_array', () => {
     it('regex', () => {
         strictEqual(filled_array(/.*/), false);
     });
+    it('buffer', () => {
+        strictEqual(filled_array(Buffer.from([])), false);
+    });
     it('function', () => {
         strictEqual(
             filled_array(() => {}),

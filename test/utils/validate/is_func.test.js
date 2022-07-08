@@ -51,6 +51,9 @@ describe('utils/validate/is_func', () => {
     it('regex', () => {
         strictEqual(is_func(/.*/), false);
     });
+    it('buffer', () => {
+        strictEqual(is_func(Buffer.from([])), false);
+    });
     it('function', () => {
         strictEqual(
             is_func(() => {}),

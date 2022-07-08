@@ -51,6 +51,9 @@ describe('utils/validate/is_null', () => {
     it('regex', () => {
         strictEqual(is_null(/.*/), false);
     });
+    it('buffer', () => {
+        strictEqual(is_null(Buffer.from([])), false);
+    });
     it('function', () => {
         strictEqual(
             is_null(() => {}),

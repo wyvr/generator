@@ -54,6 +54,9 @@ describe('utils/validate/filled_string', () => {
     it('regex', () => {
         strictEqual(filled_string(/.*/), false);
     });
+    it('buffer', () => {
+        strictEqual(filled_string(Buffer.from([])), false);
+    });
     it('function', () => {
         strictEqual(
             filled_string(() => {}),

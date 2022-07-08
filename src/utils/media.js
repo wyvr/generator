@@ -86,52 +86,6 @@ export async function process(media) {
     return undefined;
 }
 
-/*
-export function extract_config(url) {
-    if (!url || typeof url != 'string') {
-        return null;
-    }
-    const matches = url.match(/^\/media\/([^/]+)\/(.*)/);
-    if (!matches) {
-        return null;
-    }
-
-    let result: MediaModel = new MediaModel({});
-    // check for domain matches
-    if (matches[1] == '_d') {
-        const domain_matches = matches[2].match(/^([^/]+)\/([^/]+)\/(.*)/);
-        if (!domain_matches) {
-            return null;
-        }
-        try {
-            const config_string = Buffer.from(domain_matches[2], 'base64').toString('ascii');
-            result = JSON.parse(config_string);
-            result.format = this.correct_format(result.format, url);
-        } catch (e) {
-            Logger.error(Error.get(e, domain_matches[3], 'media on demand'));
-        }
-        result.domain = Buffer.from(domain_matches[1], 'base64').toString('ascii');
-        result.src = `https://${result.domain}/${domain_matches[3]}`;
-        result.result = url;
-        result.output = MediaModelOutput.Path;
-        return result;
-    }
-    // extract local file
-    try {
-        const config_string = Buffer.from(matches[1], 'base64').toString('ascii');
-        result = JSON.parse(config_string);
-        result.format = this.correct_format(result.format, url);
-    } catch (e) {
-        Logger.error(Error.get(e, matches[2], 'media on demand'));
-    }
-    result.src = matches[2];
-    result.result = url;
-    result.output = MediaModelOutput.Path;
-
-    return result;
-}
-*/
-
 export async function replace_media(content) {
     const result = {
         content: '',

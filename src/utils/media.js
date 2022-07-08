@@ -131,6 +131,9 @@ export async function get_config(content) {
 }
 
 export function get_config_from_content(content) {
+    if(!filled_string(content)) {
+        return undefined;
+    }
     const exec_code = `(() => {
         return {${content.replace(/&quot;/g, '"').replace(/&#39;/g, "'")}}
     })()`;

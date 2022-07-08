@@ -12,6 +12,14 @@ describe('utils/media/get_config_from_content', () => {
         Cwd.set(undefined);
     });
     // it('undefined', async () => {});
+    it('undefined', async () => {
+        const result = await get_config_from_content(undefined);
+        deepStrictEqual(result, undefined);
+    });
+    it('empty', async () => {
+        const result = await get_config_from_content('');
+        deepStrictEqual(result, undefined);
+    });
     it('no media', async () => {
         const result = await get_config_from_content('huhu');
         deepStrictEqual(result, undefined);

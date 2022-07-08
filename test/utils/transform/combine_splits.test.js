@@ -86,4 +86,14 @@ function b(v) {
             js: undefined,
         });
     });
+    it('empty', async () => {
+        const path = join(__dirname, 'real_empty.svelte');
+        const content = readFileSync(path, { encoding: 'utf-8' });
+        deepStrictEqual(await combine_splits(path, content), {
+            content: '',
+            css: undefined,
+            js: undefined,
+            path: join(__dirname, 'real_empty.svelte'),
+        });
+    });
 });

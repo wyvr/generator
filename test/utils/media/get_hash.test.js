@@ -8,12 +8,12 @@ import { Cwd } from '../../../src/vars/cwd.js';
 
 describe('utils/media/get_hash', () => {
     it('undefined', () => {
-        deepStrictEqual(get_hash(), undefined);
+        deepStrictEqual(get_hash(), 'undefined');
     });
     it('value', () => {
         deepStrictEqual(get_hash('a'), 'YQ==');
     });
     it('wrong format', () => {
-        deepStrictEqual(get_hash(true), undefined);
+        deepStrictEqual(get_hash(true), 'undefined');
     });
 });

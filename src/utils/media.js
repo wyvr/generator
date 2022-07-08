@@ -161,7 +161,7 @@ export function get_config_hash(config) {
 }
 export function get_hash(value) {
     if (!filled_string(value)) {
-        return undefined;
+        return 'undefined';
     }
     return Buffer.from(value).toString('base64');
 }

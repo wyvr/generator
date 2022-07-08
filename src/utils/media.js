@@ -200,9 +200,9 @@ export function get_config_hash(config) {
     return get_hash(JSON.stringify(hash_config));
 }
 export function get_hash(value) {
-    // const hash = cryptoCreateHash('sha256');
-    // hash.update(value);
-    // return hash.digest('hex').substr(0, 16);
+    if(!filled_string(value)) {
+       return undefined; 
+    }
     return Buffer.from(value).toString('base64');
 }
 export async function get_buffer(src) {

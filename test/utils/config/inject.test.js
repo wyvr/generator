@@ -41,6 +41,36 @@ describe('utils/config/set', () => {
         deepStrictEqual(result, '');
         deepStrictEqual(error, undefined);
     });
+    it('nothing to inject', async () => {
+        let result;
+        try {
+            result = await inject('test', 'file');
+        } catch (e) {
+            error = e;
+        }
+        deepStrictEqual(result, 'test');
+        deepStrictEqual(error, undefined);
+    });
+    it('avoid inject', async () => {
+        let result;
+        try {
+            result = await inject('test_inject(true)', 'file');
+        } catch (e) {
+            error = e;
+        }
+        deepStrictEqual(result, 'test_inject(true)');
+        deepStrictEqual(error, undefined);
+    });
+    it('inject after avoid inject', async () => {
+        let result;
+        try {
+            result = await inject(`test_inject(true) _inject('key.key', false)`, 'file');
+        } catch (e) {
+            error = e;
+        }
+        deepStrictEqual(result, 'test_inject(true) "value"');
+        deepStrictEqual(error, undefined);
+    });
     it('inject value', async () => {
         let result;
         try {
@@ -49,6 +79,16 @@ describe('utils/config/set', () => {
             error = e;
         }
         deepStrictEqual(result, `<div>{"value"}</div>`);
+        deepStrictEqual(error, undefined);
+    });
+    it('missing close', async () => {
+        let result;
+        try {
+            result = await inject(`<div>{_inject('key.key', false}</div>`, 'file');
+        } catch (e) {
+            error = e;
+        }
+        deepStrictEqual(result, `<div>{_inject('key.key', false}</div>`);
         deepStrictEqual(error, undefined);
     });
     it('inject fallback', async () => {

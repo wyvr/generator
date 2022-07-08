@@ -90,15 +90,16 @@ function config() {
 export const Config = config();
 
 export async function inject(content, file) {
-    if(!filled_string(content)) {
+    if (!filled_string(content)) {
         return '';
     }
     const search_string = '_inject(';
-    const start_index = content.indexOf(search_string);
-    // when not found
-    if (start_index == -1) {
+    const found = content.match(new RegExp('\\W' + search_string.replace('(', '\\(')));
+    // when not found or part of another word
+    if(!found) {
         return content;
     }
+    const start_index = found.index + 1;
     let index = start_index + search_string.length + 1;
     let open_brackets = 1;
     let found_closing = false;

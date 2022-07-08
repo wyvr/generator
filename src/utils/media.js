@@ -235,15 +235,20 @@ export function get_output(src) {
     return join(Cwd.get(), src);
 }
 export function correct_format(format, src) {
-    if (!filled_string(format) || format == 'null') {
+    if(format == 'null') {
+        format = undefined;
+    }
+    if ((!filled_string(format)) && filled_string(src)) {
         const ext_match = src.match(/\.([^.]+)$/);
         if (ext_match) {
-            if (ext_match[1] == 'jpg') {
-                ext_match[1] = 'jpeg';
-            }
-            return ext_match[1];
+            format = ext_match[1];
         }
-        return null;
+    }
+    if (format == 'jpg') {
+        return 'jpeg';
+    }
+    if (!filled_string(format)) {
+        return undefined;
     }
     return format;
 }

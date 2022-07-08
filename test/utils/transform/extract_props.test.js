@@ -13,4 +13,7 @@ describe('utils/transform/extract_props', () => {
     it('string', async () => {
         deepStrictEqual(extract_props(`export let value=0;`), ['value']);
     });
+    it('empty', async () => {
+        deepStrictEqual(extract_props(''), []);
+    });
 });

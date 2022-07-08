@@ -206,8 +206,8 @@ export function get_hash(value) {
     return Buffer.from(value).toString('base64');
 }
 export async function get_buffer(src) {
-    if (!src) {
-        return null;
+    if (!filled_string(src)) {
+        return undefined;
     }
     // download the image and return buffer from it
     if (src.indexOf('http') == 0) {
@@ -221,7 +221,7 @@ export async function get_buffer(src) {
         } catch (err) {
             // @TODO implement logging
             // console.log(err);
-            return null;
+            return undefined;
         }
     }
     // assets are located in the gen folder, because they are combined from the packages

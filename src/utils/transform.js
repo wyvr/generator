@@ -254,8 +254,11 @@ export function set_default_values(data, default_values) {
     return new_data;
 }
 export function insert_hydrate_tag(content, wyvr_file) {
-    if (!filled_string(content) || !wyvr_file) {
+    if (!filled_string(content)) {
         return '';
+    }
+    if (!wyvr_file) {
+        return content;
     }
     // extract scripts
     const scripts = extract_tags_from_content(content, 'script');

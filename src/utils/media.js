@@ -3,7 +3,7 @@ import replaceAsync from 'string-replace-async';
 import { FOLDER_MEDIA } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { create_dir, is_file, read_buffer, to_extension, write } from './file.js';
-import { filled_string, in_array, match_interface } from './validate.js';
+import { filled_object, filled_string, in_array, is_object, match_interface } from './validate.js';
 import axios from 'axios';
 import sharp from 'sharp';
 import { MediaModel } from '../model/media.js';
@@ -192,16 +192,22 @@ export function get_config_from_content(content) {
 
 export function get_config_hash(config) {
     const hash_config = {};
+    if (!is_object(config)) {
+        return 'undefined';
+    }
     ['width', 'height', 'mode', 'format', 'quality'].forEach((key) => {
         if (config[key]) {
             hash_config[key] = config[key];
         }
     });
+    if (!filled_object(hash_config)) {
+        return 'empty';
+    }
     return get_hash(JSON.stringify(hash_config));
 }
 export function get_hash(value) {
-    if(!filled_string(value)) {
-       return undefined; 
+    if (!filled_string(value)) {
+        return undefined;
     }
     return Buffer.from(value).toString('base64');
 }
@@ -235,10 +241,10 @@ export function get_output(src) {
     return join(Cwd.get(), src);
 }
 export function correct_format(format, src) {
-    if(format == 'null') {
+    if (format == 'null') {
         format = undefined;
     }
-    if ((!filled_string(format)) && filled_string(src)) {
+    if (!filled_string(format) && filled_string(src)) {
         const ext_match = src.match(/\.([^.]+)$/);
         if (ext_match) {
             format = ext_match[1];

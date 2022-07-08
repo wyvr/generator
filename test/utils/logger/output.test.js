@@ -80,6 +80,14 @@ describe('utils/logger/output', () => {
         Logger.pre = '';
         deepStrictEqual(result, [['#', 'a']]);
     });
+    it('disable', () => {
+        Logger.disable = true;
+        Logger.pre = Logger.color.green('pre');
+        Logger.output(undefined, Logger.color.yellow, Logger.color.red('#'), Logger.color.blue('a'));
+        Logger.disable = false;
+        Logger.pre = '';
+        deepStrictEqual(result, []);
+    });
     it('send to primary from worker', () => {
         IsWorker.set(true);
         Logger.output(LogType.log, undefined, undefined, 'b');

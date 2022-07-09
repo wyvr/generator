@@ -232,7 +232,7 @@ export function find_file(in_dir, possible_files) {
  * @param extension optional extension
  * @returns list of the paths
  */
-export function collect_files(dir, extension = null) {
+export function collect_files(dir, extension) {
     if (!exists(dir)) {
         return [];
     }

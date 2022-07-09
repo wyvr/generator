@@ -1,5 +1,5 @@
 import { compile_server_svelte } from '../utils/compile.js';
-import { exists, read_json, to_index, write } from '../utils/file.js';
+import { exists, read_json, to_extension, to_index, write } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { generate_page_code } from '../utils/generate.js';
 import { filled_array, filled_string } from '../utils/validate.js';
@@ -13,6 +13,8 @@ import { replace_media } from '../utils/media.js';
 import { send_action } from '../worker/communication.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerEmit } from '../struc/worker_emit.js';
+import { stringify } from '../utils/json.js';
+import { get_language } from '../utils/i18n.js';
 
 export async function build(files) {
     if (!filled_array(files)) {
@@ -25,7 +27,8 @@ export async function build(files) {
     for (const file of files) {
         Logger.debug('build', file);
         const data = read_json(file);
-        const content = generate_page_code(data);
+        const identifier = data._wyvr.identifier;
+        let content = generate_page_code(data);
         const exec_result = await compile_server_svelte(content, file);
 
         const rendered_result = await render_server_compiled_svelte(exec_result, data, file);
@@ -39,14 +42,21 @@ export async function build(files) {
                     media_files[key] = media_result.media[key];
                 });
             }
+            content = media_result.content;
 
-            // @TODO inject translations for known dependencies
+            // inject translations
+            if (data._wyvr.language) {
+                content = content.replace(
+                    /<\/body>/,
+                    `<script>window._translations = ${stringify(get_language(data._wyvr.language))};</script></body>`
+                );
+            }
 
             // write the html code
-            write(path, media_result.content);
+            write(path, content);
             // write css
-            if (filled_string(data._wyvr.identifier) && search_segment(rendered_result.result, 'css.code')) {
-                const css_file_path = join(Cwd.get(), FOLDER_GEN_CSS, `${data._wyvr.identifier}.css`);
+            if (filled_string(identifier) && search_segment(rendered_result.result, 'css.code')) {
+                const css_file_path = join(Cwd.get(), FOLDER_GEN_CSS, `${identifier}.css`);
                 if (!exists(css_file_path)) {
                     write(css_file_path, rendered_result.result.css.code);
                 }

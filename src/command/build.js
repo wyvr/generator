@@ -12,6 +12,7 @@ import { dependencies } from '../action/dependencies.js';
 import { get_config_data } from '../action/get_config_data.js';
 import { i18n } from '../action/i18n.js';
 import { media } from '../action/media.js';
+import { optimize } from '../action/optimize.js';
 import { collect_packages } from '../action/package.js';
 import { present } from '../action/present.js';
 import { publish } from '../action/publish.js';
@@ -134,18 +135,21 @@ export async function build_command(config) {
 
     //  Inject Data into the pages
     // @TODO
+    
     // Build Scripts
     await scripts(identifiers);
-    // @TODO
-    //  Create Sitemap
-    // @TODO
-    // Generate Media/Images
-    await media(build_result.media);
-    //  Optimize Pages
+
+    // Create Sitemap
     // @TODO
 
+    // Generate Media/Images
+    await media(build_result.media);
+    
     // Copy static and generated files into release
     await copy_static_generated();
+
+    // Optimize Pages
+    await optimize();
 
     // Create Symlinks
     symlink(join(Cwd.get(), FOLDER_MEDIA), join(ReleasePath.get(), FOLDER_MEDIA));

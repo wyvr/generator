@@ -112,3 +112,16 @@ export function get_hydrate_dependencies(tree, file_config_tree, file) {
     }
     return result;
 }
+
+export function get_translations_of_dependencies(tree, i18n, file) {
+    if (!filled_object(tree) || !filled_object(i18n)) {
+        return [];
+    }
+    const translations = i18n[file] || [];
+    if (!is_null(tree[file])) {
+        tree[file].forEach((child) => {
+            translations.push(...get_translations_of_dependencies(tree, i18n, child));
+        });
+    }
+    return translations;
+}

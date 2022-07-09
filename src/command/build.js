@@ -129,6 +129,8 @@ export async function build_command(config) {
 
     // combine identifiers
     const identifiers = to_identifiers(route_identifiers, build_result.identifiers);
+    Config.set('identifiers', identifiers);
+    write_json(join(Cwd.get(), FOLDER_GEN, 'identifiers.json'), identifiers);
 
     //  Inject Data into the pages
     // @TODO

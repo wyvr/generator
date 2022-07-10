@@ -203,6 +203,22 @@ export class WorkerController {
         });
         return false;
     }
+    /**
+     * set global available key value in all workers
+     * WARNING: can cause memory leak, when not cleared
+     * @param {string} key 
+     * @param {any} value 
+     * @returns whether the value was sent to the workers or not
+     */
+    static set_all_workers(key, value) {
+        if (!filled_string(key)) {
+            return false;
+        }
+        this.workers.forEach((worker) => {
+            this.send_action(worker, WorkerAction.set, { key, value });
+        });
+        return true;
+    }
 
     static get_workers_by_status(status) {
         const name = get_status_name(status);

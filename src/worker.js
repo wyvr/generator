@@ -23,6 +23,8 @@ process.on('message', async (msg) => {
     await process_message(msg);
 });
 
+global.cache = {};
+
 export async function process_message(msg) {
     const action = msg?.action?.key;
     const value = msg?.action?.value;
@@ -41,6 +43,12 @@ export async function process_message(msg) {
 
     send_status(WorkerStatus.busy);
     switch (action) {
+        case WorkerAction.set: {
+            const set_key = value.key,
+                set_value = value.value;
+            global.cache[set_key] = set_value;
+            break;
+        }
         case WorkerAction.transform: {
             await transform(value);
             break;

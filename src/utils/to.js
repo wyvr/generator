@@ -2,6 +2,7 @@ import { dirname, extname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { FOLDER_GEN, FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
+import { ReleasePath } from '../vars/release_path.js';
 import { to_extension } from './file.js';
 import {
     is_object,
@@ -89,7 +90,7 @@ export function to_relative_path(path) {
         return '';
     }
     const regex = new RegExp(`.+/${FOLDER_GEN}/[^/]+/`);
-    return path.replace(regex, '');
+    return path.replace(regex, '').replace(ReleasePath.get(), '');
 }
 /**
  * Converts the given path to gen/server path and convert svelte files to js

@@ -15,8 +15,24 @@ export async function optimize(files) {
         return false;
     }
     const hash_keys = Object.keys(global.cache.hashes);
+    const media_query_files_keys = Object.keys(global.cache.media_query_files);
     for (const file of files) {
         let content = read(file);
+        // replace media query files
+        const media_query_links = [];
+        media_query_files_keys.forEach((file) => {
+            if (content.indexOf(file) > -1) {
+                Object.keys(global.cache.media_query_files[file]).forEach((media) =>
+                    media_query_links.push(
+                        `<link href="${global.cache.media_query_files[file][media]}" rel="stylesheet" media="${media}">`
+                    )
+                );
+            }
+        });
+        if(filled_array(media_query_links)) {
+            content = content.replace('</head>', media_query_links.join('') + '</head>')
+        }
+        // replace the hashed files
         hash_keys.forEach((key) => {
             if (content.indexOf(key)) {
                 content = content.replace(new RegExp(key, 'g'), global.cache.hashes[key].path);

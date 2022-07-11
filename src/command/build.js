@@ -149,7 +149,7 @@ export async function build_command(config) {
     await copy_static_generated();
 
     // Optimize Pages
-    await optimize();
+    await optimize(build_result.media_query_files);
 
     // Create Symlinks
     symlink(join(Cwd.get(), FOLDER_MEDIA), join(ReleasePath.get(), FOLDER_MEDIA));

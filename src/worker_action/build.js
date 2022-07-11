@@ -5,9 +5,9 @@ import { generate_page_code } from '../utils/generate.js';
 import { filled_array, filled_string } from '../utils/validate.js';
 import { render_server_compiled_svelte } from '../utils/compile_svelte.js';
 import { ReleasePath } from '../vars/release_path.js';
-import { join } from 'path';
+import { join, sep } from 'path';
 import { Cwd } from '../vars/cwd.js';
-import { FOLDER_GEN_CSS } from '../constants/folder.js';
+import { FOLDER_CSS, FOLDER_GEN_CSS } from '../constants/folder.js';
 import { search_segment } from '../utils/segment.js';
 import { replace_media } from '../utils/media.js';
 import { send_action } from '../worker/communication.js';
@@ -15,6 +15,8 @@ import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerEmit } from '../struc/worker_emit.js';
 import { stringify } from '../utils/json.js';
 import { get_language } from '../utils/i18n.js';
+import { split_css_into_media_query_files } from '../utils/css.js';
+import { to_relative_path } from '../utils/to.js';
 
 export async function build(files) {
     if (!filled_array(files)) {
@@ -23,6 +25,8 @@ export async function build(files) {
     const release_path = ReleasePath.get();
     const media_files = {};
     let has_media = false;
+    const media_query_files = {};
+    let has_media_query_files = false;
 
     for (const file of files) {
         Logger.debug('build', file);
@@ -54,11 +58,18 @@ export async function build(files) {
 
             // write the html code
             write(path, content);
+
             // write css
             if (filled_string(identifier) && search_segment(rendered_result.result, 'css.code')) {
                 const css_file_path = join(Cwd.get(), FOLDER_GEN_CSS, `${identifier}.css`);
                 if (!exists(css_file_path)) {
-                    write(css_file_path, rendered_result.result.css.code);
+                    const mqf = split_css_into_media_query_files(rendered_result.result.css.code, css_file_path);
+                    if (mqf) {
+                        media_query_files[sep + join(FOLDER_CSS, to_relative_path(css_file_path))] = mqf;
+                        has_media_query_files = true;
+                    } else {
+                        write(css_file_path, rendered_result.result.css.code);
+                    }
                 }
             }
         }
@@ -70,5 +81,13 @@ export async function build(files) {
             media: media_files,
         };
         send_action(WorkerAction.emit, media_emit);
+    }
+    // emit media query files
+    if (has_media_query_files) {
+        const media_query_files_emit = {
+            type: WorkerEmit.media_query_files,
+            media_query_files,
+        };
+        send_action(WorkerAction.emit, media_query_files_emit);
     }
 }

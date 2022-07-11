@@ -7,7 +7,7 @@ import { ReleasePath } from '../vars/release_path.js';
 import { WorkerController } from '../worker/controller.js';
 import { measure_action } from './helper.js';
 
-export async function optimize() {
+export async function optimize(media_query_files) {
     // optimize is only active in production mode
     if (Env.is_dev()) {
         return;
@@ -18,11 +18,15 @@ export async function optimize() {
         const optimize_files = files.filter((file) => file.match(/\.(html|htm|css|[mc]?js)$/));
         const hashes = get_files_hashes(files.filter((file) => file.match(/\.(css|[mc]?js)$/)));
         WorkerController.set_all_workers('hashes', hashes);
+        WorkerController.set_all_workers('media_query_files', media_query_files);
         // wrap in plugin
         const caller = await Plugin.process(name, optimize_files);
         await caller(async (files) => {
             await WorkerController.process_in_workers(WorkerAction.optimize, files, 10);
         });
         WorkerController.set_all_workers('hashes', undefined);
+        WorkerController.set_all_workers('media_query_files', undefined);
+        console.log(hashes)
+        console.log(media_query_files)
     });
 }

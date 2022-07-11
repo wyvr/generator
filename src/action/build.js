@@ -14,6 +14,8 @@ export async function build() {
     const identifiers = {};
     const media_name = get_name(WorkerEmit.media);
     const media = {};
+    const media_query_files_name = get_name(WorkerEmit.media_query_files);
+    const media_query_files = {};
 
     await measure_action(name, async () => {
         const identifier_id = Event.on('emit', identifier_name, (data) => {
@@ -31,6 +33,14 @@ export async function build() {
                 media[key] = data.media[key];
             });
         });
+        const media_query_files_id = Event.on('emit', media_query_files_name, (data) => {
+            if (!data || !data.media_query_files) {
+                return;
+            }
+            Object.keys(data.media_query_files).forEach((file)=> {
+                media_query_files[file] = data.media_query_files[file];
+            })
+        });
 
         const data = collect_files(FOLDER_GEN_DATA, 'json');
 
@@ -43,6 +53,7 @@ export async function build() {
         // remove listeners
         Event.off('emit', identifier_name, identifier_id);
         Event.off('emit', media_name, media_id);
+        Event.off('emit', media_query_files_name, media_query_files_id);
 
         const identifier_length = Object.keys(identifiers).length;
         Logger.info(
@@ -57,5 +68,6 @@ export async function build() {
     return {
         identifiers,
         media,
+        media_query_files
     };
 }

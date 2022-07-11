@@ -14,13 +14,19 @@ export async function optimize(files) {
     if (!filled_array(files)) {
         return false;
     }
+    const hash_keys = Object.keys(global.cache.hashes);
     for (const file of files) {
         let content = read(file);
+        hash_keys.forEach((key) => {
+            if (content.indexOf(key)) {
+                content = content.replace(new RegExp(key, 'g'), global.cache.hashes[key].path);
+            }
+        });
         switch (extname(file)) {
             case '.html':
             case '.htm': {
                 try {
-                    content = minify(content, {
+                    const minified_content = minify(content, {
                         collapseBooleanAttributes: true,
                         collapseInlineTagWhitespace: true,
                         collapseWhitespace: true,
@@ -31,7 +37,8 @@ export async function optimize(files) {
                         removeStyleLinkTypeAttributes: true,
                         useShortDoctype: true,
                     });
-                    write(file, content);
+
+                    write(file, minified_content);
                 } catch (e) {
                     Logger.error(get_error_message(e, file, 'minify'));
                 }
@@ -50,6 +57,16 @@ export async function optimize(files) {
                 } catch (e) {
                     Logger.error(get_error_message(e, file, 'css'));
                 }
+                break;
+            }
+            case '.cjs':
+            case '.mjs':
+            case '.js': {
+                const file_hash = global.cache.hashes[to_relative_path(file)];
+                if (!file_hash) {
+                    break;
+                }
+                write(join(ReleasePath.get(), file_hash.path), content);
                 break;
             }
         }

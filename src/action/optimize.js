@@ -15,8 +15,8 @@ export async function optimize() {
     const name = 'optimize';
     await measure_action(name, async () => {
         const files = collect_files(ReleasePath.get());
-        const optimize_files = files.filter((file) => file.match(/\.(html|htm|css)$/));
-        const hashes = get_files_hashes(files.filter((file) => file.match(/\.(css|js|mjs|cjs)$/)));
+        const optimize_files = files.filter((file) => file.match(/\.(html|htm|css|[mc]?js)$/));
+        const hashes = get_files_hashes(files.filter((file) => file.match(/\.(css|[mc]?js)$/)));
         WorkerController.set_all_workers('hashes', hashes);
         // wrap in plugin
         const caller = await Plugin.process(name, optimize_files);

@@ -45,7 +45,7 @@ export class Logger {
 
     /* eslint-disable */
     static output(type, color_fn, char, ...messages) {
-        if(this.disable) {
+        if (this.disable) {
             return;
         }
         if (IsWorker.get()) {
@@ -76,7 +76,11 @@ export class Logger {
         text = this.out(text);
 
         if (!this.spinner.persist(this.out(kleur.dim('│')), `${symbol} ${this.out(this.pre)}${text}`)) {
-            console.error(symbol, text);
+            const content = [symbol, text];
+            if (this.inset) {
+                content.unshift(this.out(kleur.dim('│')));
+            }
+            console.error(...content);
         }
     }
     /* eslint-enable */
@@ -173,6 +177,7 @@ export class Logger {
 
     static start(name) {
         this.output_type('start', name);
+        this.inset = true;
         if (Env.is_dev()) {
             if (this.spinner) {
                 this.spinner.start(name);
@@ -180,6 +185,7 @@ export class Logger {
         }
     }
     static stop(name, duration) {
+        this.inset = false;
         if (this.spinner) {
             const result = this.spinner.stop(name, duration);
             if (result) {
@@ -200,4 +206,5 @@ Logger.spinner = Spinner;
 Logger.color = kleur;
 Logger.remove_color = false;
 Logger.disable = false;
+Logger.inset = false;
 Logger.report_content = [];

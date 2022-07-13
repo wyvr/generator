@@ -27,12 +27,20 @@ export async function build(files) {
     let has_media = false;
     const media_query_files = {};
     let has_media_query_files = false;
+    const identifier_files = {};
 
     for (const file of files) {
         Logger.debug('build', file);
         const data = read_json(file);
         const identifier = data._wyvr.identifier;
+        // add the current url to the used identifier
+        if (!identifier_files[identifier]) {
+            identifier_files[identifier] = [];
+        }
+        identifier_files[identifier].push(data.url);
+        
         let content = generate_page_code(data);
+
         const exec_result = await compile_server_svelte(content, file);
 
         const rendered_result = await render_server_compiled_svelte(exec_result, data, file);
@@ -90,4 +98,9 @@ export async function build(files) {
         };
         send_action(WorkerAction.emit, media_query_files_emit);
     }
+    const identifier_files_emit = {
+        type: WorkerEmit.identifier_files,
+        identifier_files,
+    };
+    send_action(WorkerAction.emit, identifier_files_emit);
 }

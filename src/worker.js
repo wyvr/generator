@@ -7,6 +7,7 @@ import { send_status } from './worker/communication.js';
 import { build } from './worker_action/build.js';
 import { compile } from './worker_action/compile.js';
 import { configure } from './worker_action/configure.js';
+import { critical } from './worker_action/critical.js';
 import { dependencies } from './worker_action/dependencies.js';
 import { media } from './worker_action/media.js';
 import { optimize } from './worker_action/optimize.js';
@@ -79,6 +80,10 @@ export async function process_message(msg) {
         }
         case WorkerAction.inject: {
             Logger.warning('unknown action', action, 'value', value);
+            break;
+        }
+        case WorkerAction.critical: {
+            await critical(value);
             break;
         }
         case WorkerAction.optimize: {

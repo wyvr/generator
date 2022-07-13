@@ -11,7 +11,9 @@ export const WorkerEmit = {
     wyvr_config: 10,
     media: 11,
     i18n: 12,
-    media_query_files: 13
+    media_query_files: 13,
+    identifier_files: 14,
+    critical: 15,
 };
 
 export function get_name(emit) {

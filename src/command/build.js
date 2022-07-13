@@ -8,6 +8,7 @@ import { compile } from '../action/compile.js';
 import { configure } from '../action/configure.js';
 import { copy_files, copy_folder } from '../action/copy.js';
 import { copy_static_generated } from '../action/copy_static_generated.js';
+import { critical } from '../action/critical.js';
 import { dependencies } from '../action/dependencies.js';
 import { get_config_data } from '../action/get_config_data.js';
 import { i18n } from '../action/i18n.js';
@@ -148,8 +149,11 @@ export async function build_command(config) {
     // Copy static and generated files into release
     await copy_static_generated();
 
+    // Generate critical css
+    const critical_result = await critical();
+
     // Optimize Pages
-    await optimize(build_result.media_query_files);
+    await optimize(build_result.media_query_files, critical_result);
 
     // Create Symlinks
     symlink(join(Cwd.get(), FOLDER_MEDIA), join(ReleasePath.get(), FOLDER_MEDIA));

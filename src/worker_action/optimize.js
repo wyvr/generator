@@ -16,6 +16,14 @@ export async function optimize(files) {
     }
     const hash_keys = Object.keys(global.cache.hashes);
     const media_query_files_keys = Object.keys(global.cache.media_query_files);
+    // create map of the critical css and file relation
+    const file_critical_map = {};
+    Object.keys(global.cache.critical).forEach((identifier) => {
+        global.cache.critical[identifier].files.forEach((file) => {
+            file_critical_map[file] = identifier;
+        });
+    });
+
     for (const file of files) {
         let content = read(file);
         // replace media query files
@@ -29,8 +37,8 @@ export async function optimize(files) {
                 );
             }
         });
-        if(filled_array(media_query_links)) {
-            content = content.replace('</head>', media_query_links.join('') + '</head>')
+        if (filled_array(media_query_links)) {
+            content = content.replace('</head>', media_query_links.join('') + '</head>');
         }
         // replace the hashed files
         hash_keys.forEach((key) => {
@@ -41,6 +49,14 @@ export async function optimize(files) {
         switch (extname(file)) {
             case '.html':
             case '.htm': {
+                const rel_file = to_relative_path(file);
+                // insert critical css
+                if (file_critical_map[rel_file]) {
+                    content = content.replace(
+                        '</head>',
+                        `<style id="critical">${global.cache.critical[file_critical_map[rel_file]]?.css}</style></head>`
+                    );
+                }
                 try {
                     const minified_content = minify(content, {
                         collapseBooleanAttributes: true,

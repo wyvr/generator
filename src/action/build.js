@@ -5,6 +5,7 @@ import { Event } from '../utils/event.js';
 import { collect_files } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
+import { Storage } from '../utils/storage.js';
 import { WorkerController } from '../worker/controller.js';
 import { measure_action } from './helper.js';
 
@@ -16,6 +17,8 @@ export async function build() {
     const media = {};
     const media_query_files_name = get_name(WorkerEmit.media_query_files);
     const media_query_files = {};
+    const identifier_files_name = get_name(WorkerEmit.identifier_files);
+    const identifier_files = {};
 
     await measure_action(name, async () => {
         const identifier_id = Event.on('emit', identifier_name, (data) => {
@@ -41,6 +44,17 @@ export async function build() {
                 media_query_files[file] = data.media_query_files[file];
             })
         });
+        const identifier_files_id = Event.on('emit', identifier_files_name, (data) => {
+            if (!data || !data.identifier_files) {
+                return;
+            }
+            Object.keys(data.identifier_files).forEach((identifier)=> {
+                if(!identifier_files[identifier]) {
+                    identifier_files[identifier] = [];
+                }
+                identifier_files[identifier].push(...data.identifier_files[identifier]);
+            });
+        });
 
         const data = collect_files(FOLDER_GEN_DATA, 'json');
 
@@ -54,6 +68,10 @@ export async function build() {
         Event.off('emit', identifier_name, identifier_id);
         Event.off('emit', media_name, media_id);
         Event.off('emit', media_query_files_name, media_query_files_id);
+        Event.off('emit', identifier_files_name, identifier_files_id);
+
+        // store the identifier_files in the collection storage
+        await Storage.set('collection', 'identifier_files', identifier_files);
 
         const identifier_length = Object.keys(identifiers).length;
         Logger.info(

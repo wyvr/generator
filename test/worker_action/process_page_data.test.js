@@ -53,7 +53,7 @@ describe('worker_action/process_page_data', () => {
                         {
                             order: 0,
                             scope: 'all',
-                            url: '',
+                            url: '/url',
                             visible: true,
                         },
                     ],

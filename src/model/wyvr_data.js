@@ -1,7 +1,16 @@
+import { clone } from '../utils/json.js';
 import { to_svelte_paths } from '../utils/to.js';
-import { filled_object, filled_string, in_array, is_array, is_null, is_string } from '../utils/validate.js';
+import {
+    filled_array,
+    filled_object,
+    filled_string,
+    in_array,
+    is_array,
+    is_null,
+    is_string,
+} from '../utils/validate.js';
 
-export function WyvrData(data) {
+export function WyvrData(data, url) {
     // enrich _wyvr property
     // this are the default values
     const wyvr_prop = {
@@ -15,7 +24,7 @@ export function WyvrData(data) {
             layout: undefined,
             page: undefined,
         },
-        collection: build_collection(),
+        collection: build_collection(undefined, url),
         extension: 'html',
         identifier: 'default',
         language: 'en',
@@ -64,7 +73,7 @@ export function WyvrData(data) {
         wyvr_prop.template[key] = to_svelte_paths(wyvr_prop.template[key]);
     });
 
-    wyvr_prop.collection = build_collection(data.collection, data.url);
+    wyvr_prop.collection = build_collection(data.collection, url);
 
     return wyvr_prop;
 }
@@ -83,11 +92,15 @@ function merge_property(prop_value, default_value) {
 }
 
 function build_collection(value, url) {
-    const collections = [build_collection_entry({ scope: 'all' }, url)];
+    const collections = [];
     if (filled_object(value)) {
+        const all_entry = clone(value);
+        all_entry.scope = 'all';
+        collections.push(build_collection_entry(all_entry, url));
         collections.push(build_collection_entry(value, url));
     }
     if (is_array(value)) {
+        collections.push(build_collection_entry({ scope: 'all' }, url));
         const keys = [];
         value
             .filter((x) => filled_object(x))
@@ -111,6 +124,9 @@ function build_collection(value, url) {
                 keys.push(entry.scope);
                 collections.push(entry);
             });
+    }
+    if (!filled_array(collections) && filled_string(url)) {
+        collections.push(build_collection_entry({ scope: 'all' }, url));
     }
     return collections;
 }

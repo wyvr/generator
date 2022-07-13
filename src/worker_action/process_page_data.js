@@ -19,7 +19,7 @@ export function process_page_data(page_data) {
         return undefined;
     }
     const default_values = Config.get('default_values');
-    page_data._wyvr = WyvrData(page_data._wyvr);
+    page_data._wyvr = WyvrData(page_data._wyvr, page_data.url);
     const enhanced_data = set_default_values(page_data, default_values);
 
     // search template files

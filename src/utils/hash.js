@@ -20,7 +20,7 @@ export function create_hash(value) {
 }
 export function get_files_hashes(files) {
     const result = {};
-    if (!filled_array) {
+    if (!filled_array(files)) {
         return result;
     }
     files.forEach((file) => {

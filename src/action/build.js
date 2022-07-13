@@ -40,16 +40,16 @@ export async function build() {
             if (!data || !data.media_query_files) {
                 return;
             }
-            Object.keys(data.media_query_files).forEach((file)=> {
+            Object.keys(data.media_query_files).forEach((file) => {
                 media_query_files[file] = data.media_query_files[file];
-            })
+            });
         });
         const identifier_files_id = Event.on('emit', identifier_files_name, (data) => {
             if (!data || !data.identifier_files) {
                 return;
             }
-            Object.keys(data.identifier_files).forEach((identifier)=> {
-                if(!identifier_files[identifier]) {
+            Object.keys(data.identifier_files).forEach((identifier) => {
+                if (!identifier_files[identifier]) {
                     identifier_files[identifier] = [];
                 }
                 identifier_files[identifier].push(...data.identifier_files[identifier]);
@@ -86,6 +86,6 @@ export async function build() {
     return {
         identifiers,
         media,
-        media_query_files
+        media_query_files,
     };
 }

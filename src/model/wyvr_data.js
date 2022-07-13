@@ -1,7 +1,7 @@
 import { to_svelte_paths } from '../utils/to.js';
-import { filled_object, filled_string, is_array, is_null, is_string } from '../utils/validate.js';
+import { filled_object, filled_string, in_array, is_array, is_null, is_string } from '../utils/validate.js';
 
-export function WyvrData(data, url) {
+export function WyvrData(data) {
     // enrich _wyvr property
     // this are the default values
     const wyvr_prop = {
@@ -15,7 +15,7 @@ export function WyvrData(data, url) {
             layout: undefined,
             page: undefined,
         },
-        nav: [],
+        collection: build_collection(),
         extension: 'html',
         identifier: 'default',
         language: 'en',
@@ -64,24 +64,7 @@ export function WyvrData(data, url) {
         wyvr_prop.template[key] = to_svelte_paths(wyvr_prop.template[key]);
     });
 
-    // prepare nav property
-    if (!is_null(data.nav) && filled_string(url)) {
-        // allow to add multiple nav entries per page
-        const nav = Array.isArray(data.nav) ? data.nav : [data.nav];
-        wyvr_prop.nav = nav
-            .filter((x) => filled_object(x))
-            .map((nav) => {
-                let visible = nav.visible;
-                if (is_null(visible)) {
-                    visible = true;
-                }
-                nav.scope = nav.scope || 'default';
-                nav.url = url;
-                nav.visible = visible;
-                nav.order = nav.order || 0;
-                return nav;
-            });
-    }
+    wyvr_prop.collection = build_collection(data.collection, data.url);
 
     return wyvr_prop;
 }
@@ -97,4 +80,55 @@ function merge_property(prop_value, default_value) {
         prop_value = [prop_value];
     }
     return [].concat(prop_value, default_value).filter((x, index, arr) => arr.indexOf(x) == index);
+}
+
+function build_collection(value, url) {
+    const collections = [build_collection_entry({ scope: 'all' }, url)];
+    if (filled_object(value)) {
+        collections.push(build_collection_entry(value, url));
+    }
+    if (is_array(value)) {
+        const keys = [];
+        value
+            .filter((x) => filled_object(x))
+            .forEach((x) => {
+                const entry = build_collection_entry(x, url);
+                // void multiple entries of the same scope
+                if (in_array(keys, entry.scope)) {
+                    collections.find((item) => {
+                        if (item.scope == entry.scope) {
+                            Object.keys(entry).forEach((key) => {
+                                if (!is_null(x[key])) {
+                                    item[key] = x[key];
+                                }
+                            });
+                            return true;
+                        }
+                        return false;
+                    });
+                    return;
+                }
+                keys.push(entry.scope);
+                collections.push(entry);
+            });
+    }
+    return collections;
+}
+
+function build_collection_entry(entry, url) {
+    const result = {
+        order: 0,
+        scope: 'none',
+        visible: true,
+        url: '',
+    };
+    if (filled_string(url)) {
+        result.url = url;
+    }
+    Object.keys(result).forEach((key) => {
+        if (!is_null(entry[key])) {
+            result[key] = entry[key];
+        }
+    });
+    return result;
 }

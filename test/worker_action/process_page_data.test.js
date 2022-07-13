@@ -49,7 +49,14 @@ describe('worker_action/process_page_data', () => {
                     extension: 'html',
                     identifier: 'default',
                     language: 'en',
-                    nav: [],
+                    collection: [
+                        {
+                            order: 0,
+                            scope: 'all',
+                            url: '',
+                            visible: true,
+                        },
+                    ],
                     priority: 0.5,
                     private: false,
                     static: false,

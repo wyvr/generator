@@ -9,7 +9,14 @@ describe('model/wyvr_data', () => {
             extension: 'html',
             identifier: 'default',
             language: 'en',
-            nav: [],
+            collection: [
+                {
+                    order: 0,
+                    scope: 'all',
+                    url: '',
+                    visible: true,
+                },
+            ],
             priority: 0.5,
             private: false,
             static: false,
@@ -40,7 +47,14 @@ describe('model/wyvr_data', () => {
                 extension: 'json',
                 identifier: 'default',
                 language: 'de',
-                nav: [],
+                collection: [
+                    {
+                        order: 0,
+                        scope: 'all',
+                        url: '',
+                        visible: true,
+                    },
+                ],
                 priority: 0.2,
                 private: true,
                 static: true,
@@ -67,7 +81,14 @@ describe('model/wyvr_data', () => {
                 extension: 'html',
                 identifier: 'default',
                 language: 'en',
-                nav: [],
+                collection: [
+                    {
+                        order: 0,
+                        scope: 'all',
+                        url: '',
+                        visible: true,
+                    },
+                ],
                 priority: 0.5,
                 private: false,
                 static: false,
@@ -94,7 +115,14 @@ describe('model/wyvr_data', () => {
                 extension: 'html',
                 identifier: 'default',
                 language: 'en',
-                nav: [],
+                collection: [
+                    {
+                        order: 0,
+                        scope: 'all',
+                        url: '',
+                        visible: true,
+                    },
+                ],
                 priority: 0.5,
                 private: false,
                 static: false,
@@ -121,7 +149,14 @@ describe('model/wyvr_data', () => {
                 extension: 'html',
                 identifier: 'default',
                 language: 'en',
-                nav: [],
+                collection: [
+                    {
+                        order: 0,
+                        scope: 'all',
+                        url: '',
+                        visible: true,
+                    },
+                ],
                 priority: 0.5,
                 private: false,
                 static: false,
@@ -152,7 +187,14 @@ describe('model/wyvr_data', () => {
                 extension: 'html',
                 identifier: 'default',
                 language: 'en',
-                nav: [],
+                collection: [
+                    {
+                        order: 0,
+                        scope: 'all',
+                        url: '',
+                        visible: true,
+                    },
+                ],
                 priority: 0.5,
                 private: false,
                 static: false,
@@ -169,10 +211,11 @@ describe('model/wyvr_data', () => {
             }
         );
     });
-    it('nav preparing', () => {
+    it('collection preparing', () => {
         deepStrictEqual(
             WyvrData({
-                nav: [
+                url: '/url2',
+                collection: [
                     { visible: true, order: 100 },
                     { visible: false, scope: 'test' },
                     undefined,
@@ -185,46 +228,25 @@ describe('model/wyvr_data', () => {
                 extension: 'html',
                 identifier: 'default',
                 language: 'en',
-                nav: [],
-                priority: 0.5,
-                private: false,
-                static: false,
-                template: {
-                    doc: ['Default.svelte'],
-                    layout: ['Default.svelte'],
-                    page: ['Default.svelte'],
-                },
-                template_files: {
-                    doc: undefined,
-                    layout: undefined,
-                    page: undefined,
-                },
-            }
-        );
-    });
-    it('nav preparing with url given', () => {
-        deepStrictEqual(
-            WyvrData(
-                {
-                    nav: [
-                        { visible: true, order: 100 },
-                        { visible: false, scope: 'test' },
-                        undefined,
-                        { url: '/url3' },
-                        {},
-                    ],
-                },
-                '/url'
-            ),
-            {
-                change_frequence: 'monthly',
-                extension: 'html',
-                identifier: 'default',
-                language: 'en',
-                nav: [
-                    { visible: true, url: '/url', order: 100, scope: 'default' },
-                    { visible: false, url: '/url', order: 0, scope: 'test' },
-                    { visible: true, url: '/url', order: 0, scope: 'default' },
+                collection: [
+                    {
+                        order: 0,
+                        scope: 'all',
+                        url: '/url2',
+                        visible: true,
+                    },
+                    {
+                        order: 100,
+                        scope: 'none',
+                        url: '/url3',
+                        visible: true,
+                    },
+                    {
+                        order: 0,
+                        scope: 'test',
+                        url: '/url2',
+                        visible: false,
+                    },
                 ],
                 priority: 0.5,
                 private: false,
@@ -242,20 +264,31 @@ describe('model/wyvr_data', () => {
             }
         );
     });
-    it('nav preparing with url given', () => {
+    it('collection as object', () => {
         deepStrictEqual(
-            WyvrData(
-                {
-                    nav: { visible: true, scope: 'test', order: 100 },
-                },
-                '/url'
-            ),
+            WyvrData({
+                url: '/url2',
+                collection: { visible: false, scope: 'test' },
+            }),
             {
                 change_frequence: 'monthly',
                 extension: 'html',
                 identifier: 'default',
                 language: 'en',
-                nav: [{ visible: true, url: '/url', order: 100, scope: 'test' }],
+                collection: [
+                    {
+                        order: 0,
+                        scope: 'all',
+                        url: '/url2',
+                        visible: true,
+                    },
+                    {
+                        order: 0,
+                        scope: 'test',
+                        url: '/url2',
+                        visible: false,
+                    },
+                ],
                 priority: 0.5,
                 private: false,
                 static: false,

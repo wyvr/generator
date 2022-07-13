@@ -10,7 +10,7 @@ import { uniq_id } from './uniq.js';
 import { Cwd } from '../vars/cwd.js';
 import { FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC, FOLDER_GEN_TEMP } from '../constants/folder.js';
 import { search_segment } from './segment.js';
-import { replace_src_in_path, replace_src_path } from './transform.js';
+import { fix_reserved_tag_names, replace_src_in_path, replace_src_path } from './transform.js';
 import { register_inject, register_i18n, register_prop } from './global.js';
 import { inject } from './config.js';
 import { get_language } from './i18n.js';
@@ -23,11 +23,7 @@ export async function prepare_code_to_compile(content, file, type) {
     const scope = `svelte ${type} prepare`;
     // replace names of components because some can not used, which are default html tags
     if (type === 'server') {
-        // import Nav from
-        // <Nav/>
-        // <Nav />
-        // <Nav a="nav"></Nav>
-        content = content.replace(/(<|<\/|\s)(Nav)(\s|\/|>)/gi, '$1wyvr$2$3');
+        content = fix_reserved_tag_names(content);
     }
     try {
         const replacer = (_, imported, path) => {
@@ -64,11 +60,7 @@ export async function prepare_code_to_compile(content, file, type) {
         let modified_content = content.replace(/import (.*?) from ['"]([^'"]+)['"]/g, replacer);
         // replace names of components because some can not used, which are default html tags
         if (type === 'server') {
-            // import Nav from
-            // <Nav/>
-            // <Nav />
-            // <Nav a="nav"></Nav>
-            modified_content = modified_content.replace(/(<|<\/|\s)(Nav)(\s|\/|>)/gi, '$1wyvr$2$3');
+            modified_content = fix_reserved_tag_names(modified_content);
         }
 
         return await inject(replace_src_path(modified_content, folder, extname(file)), file);

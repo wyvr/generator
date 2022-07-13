@@ -357,3 +357,15 @@ export function remove_on_server(content) {
     }
     return content;
 }
+
+export function fix_reserved_tag_names(content) {
+    // replace:
+    // import Nav from
+    // <Nav/>
+    // <Nav />
+    // <Nav a="nav"></Nav>
+
+    // avoid replacing
+    // const nav 
+    return content.replace(/(<|<\/|import\s)(Nav)(\s|\/|>)/g, '$1Wyvr$2$3');
+}

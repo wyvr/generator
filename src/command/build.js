@@ -98,6 +98,8 @@ export async function build_command(config) {
             const target_key = file.target.replace(/^\.\//, '');
             package_tree[target_key] = pkg;
             if (target.indexOf(`/${FOLDER_PLUGINS}/`) > -1) {
+    //             const stats = statSync(route.path)
+    // console.log(route.rel_path, stats.mtime, stats.mtimeMs, new Date())
                 write(target, replace_import_path(read(target)));
             }
         });

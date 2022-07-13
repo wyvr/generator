@@ -177,11 +177,12 @@ describe('model/wyvr_data', () => {
                         { visible: true, order: 100 },
                         { visible: false, scope: 'test' },
                         undefined,
-                        { url: '/url3' },
+                        { url: '/url3', name: 'huhu' },
                         {},
                     ],
                 },
-                '/url2'
+                '/url2',
+                'test'
             ),
             {
                 change_frequence: 'monthly',
@@ -190,18 +191,21 @@ describe('model/wyvr_data', () => {
                 language: 'en',
                 collection: [
                     {
+                        name: 'test',
                         order: 0,
                         scope: 'all',
                         url: '/url2',
                         visible: true,
                     },
                     {
+                        name: 'huhu',
                         order: 100,
                         scope: 'none',
                         url: '/url3',
                         visible: true,
                     },
                     {
+                        name: 'test',
                         order: 0,
                         scope: 'test',
                         url: '/url2',
@@ -228,9 +232,10 @@ describe('model/wyvr_data', () => {
         deepStrictEqual(
             WyvrData(
                 {
-                    collection: { visible: false, scope: 'test' },
+                    collection: { visible: false, scope: 'test', name: 'huhu' },
                 },
-                '/url2'
+                '/url2',
+                'test'
             ),
             {
                 change_frequence: 'monthly',
@@ -239,12 +244,14 @@ describe('model/wyvr_data', () => {
                 language: 'en',
                 collection: [
                     {
+                        name: 'huhu',
                         order: 0,
                         scope: 'all',
                         url: '/url2',
                         visible: false,
                     },
                     {
+                        name: 'huhu',
                         order: 0,
                         scope: 'test',
                         url: '/url2',

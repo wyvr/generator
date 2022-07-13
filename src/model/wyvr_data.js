@@ -10,7 +10,7 @@ import {
     is_string,
 } from '../utils/validate.js';
 
-export function WyvrData(data, url) {
+export function WyvrData(data, url, name) {
     // enrich _wyvr property
     // this are the default values
     const wyvr_prop = {
@@ -24,7 +24,7 @@ export function WyvrData(data, url) {
             layout: undefined,
             page: undefined,
         },
-        collection: build_collection(undefined, url),
+        collection: build_collection(undefined, url, name),
         extension: 'html',
         identifier: 'default',
         language: 'en',
@@ -73,7 +73,7 @@ export function WyvrData(data, url) {
         wyvr_prop.template[key] = to_svelte_paths(wyvr_prop.template[key]);
     });
 
-    wyvr_prop.collection = build_collection(data.collection, url);
+    wyvr_prop.collection = build_collection(data.collection, url, name);
 
     return wyvr_prop;
 }
@@ -91,21 +91,21 @@ function merge_property(prop_value, default_value) {
     return [].concat(prop_value, default_value).filter((x, index, arr) => arr.indexOf(x) == index);
 }
 
-function build_collection(value, url) {
+function build_collection(value, url, name) {
     const collections = [];
     if (filled_object(value)) {
         const all_entry = clone(value);
         all_entry.scope = 'all';
-        collections.push(build_collection_entry(all_entry, url));
-        collections.push(build_collection_entry(value, url));
+        collections.push(build_collection_entry(all_entry, url, name));
+        collections.push(build_collection_entry(value, url, name));
     }
     if (is_array(value)) {
-        collections.push(build_collection_entry({ scope: 'all' }, url));
+        collections.push(build_collection_entry({ scope: 'all' }, url, name));
         const keys = [];
         value
             .filter((x) => filled_object(x))
             .forEach((x) => {
-                const entry = build_collection_entry(x, url);
+                const entry = build_collection_entry(x, url, name);
                 // void multiple entries of the same scope
                 if (in_array(keys, entry.scope)) {
                     collections.find((item) => {
@@ -126,13 +126,14 @@ function build_collection(value, url) {
             });
     }
     if (!filled_array(collections) && filled_string(url)) {
-        collections.push(build_collection_entry({ scope: 'all' }, url));
+        collections.push(build_collection_entry({ scope: 'all' }, url, name));
     }
     return collections;
 }
 
-function build_collection_entry(entry, url) {
+function build_collection_entry(entry, url, name) {
     const result = {
+        name: undefined,
         order: 0,
         scope: 'none',
         visible: true,
@@ -140,6 +141,9 @@ function build_collection_entry(entry, url) {
     };
     if (filled_string(url)) {
         result.url = url;
+    }
+    if (filled_string(name)) {
+        result.name = name;
     }
     Object.keys(result).forEach((key) => {
         if (!is_null(entry[key])) {

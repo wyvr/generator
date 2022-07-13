@@ -1,5 +1,5 @@
 import { compile_server_svelte } from '../utils/compile.js';
-import { exists, read_json, to_extension, to_index, write } from '../utils/file.js';
+import { exists, read_json, to_index, write } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { generate_page_code } from '../utils/generate.js';
 import { filled_array, filled_string } from '../utils/validate.js';

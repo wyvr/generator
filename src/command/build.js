@@ -84,7 +84,7 @@ export async function build_command(config) {
     const { package_tree } = await copy(available_packages);
 
     // Create Translations/I18N
-    i18n(available_packages);
+    await i18n(available_packages);
 
     // Transform Svelte files to client and server components
     await transform();

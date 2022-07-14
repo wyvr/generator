@@ -1,3 +1,4 @@
+import { statSync } from 'fs';
 import { cpus } from 'os';
 import { join } from 'path';
 import { build } from '../action/build.js';
@@ -29,6 +30,8 @@ import {
     FOLDER_MEDIA,
     FOLDER_PLUGINS,
     FOLDER_RELEASES,
+    FOLDER_ROUTES,
+    FOLDER_SRC,
     FOLDER_STORAGE,
 } from '../constants/folder.js';
 import { env_report } from '../presentation/env_report.js';
@@ -38,7 +41,7 @@ import { read, read_json, symlink, write, write_json } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
 import { Storage } from '../utils/storage.js';
-import { to_identifiers } from '../utils/to.js';
+import { to_identifiers, to_relative_path } from '../utils/to.js';
 import { replace_import_path } from '../utils/transform.js';
 import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
@@ -91,20 +94,31 @@ export async function build_command(config) {
     // Copy files from packages and override in the package order
     // Build Tree of files and packages
     const package_tree = {};
+    const mtime = {};
     available_packages.forEach((pkg) => {
         copy_folder(pkg.path, FOLDER_LIST_PACKAGE_COPY, join(Cwd.get(), FOLDER_GEN), (file, target) => {
+            const rel_path = to_relative_path(target);
+            // get file modify time of route files
+            if (target.match(new RegExp(`/${FOLDER_ROUTES}/`)) && !target.match(new RegExp(`/${FOLDER_SRC}/`))) {
+                const stats = statSync(file.src);
+                mtime[rel_path] = {
+                    mtime: stats.mtime,
+                    src: file.src,
+                };
+            }
+
             // e.g. target "./src/file.svelte"
             // transform to "./src/file.svelte" "src/file.svelte"
             const target_key = file.target.replace(/^\.\//, '');
             package_tree[target_key] = pkg;
             if (target.indexOf(`/${FOLDER_PLUGINS}/`) > -1) {
-    //             const stats = statSync(route.path)
-    // console.log(route.rel_path, stats.mtime, stats.mtimeMs, new Date())
                 write(target, replace_import_path(read(target)));
             }
         });
     });
     write_json(join(Cwd.get(), FOLDER_GEN, 'package_tree.json'), package_tree, false);
+    write_json(join(Cwd.get(), FOLDER_GEN, 'mtime.json'), mtime, false);
+
 
     // Copy configured asset files
     const assets = Config.get('assets');
@@ -138,7 +152,7 @@ export async function build_command(config) {
 
     //  Inject Data into the pages
     // @TODO
-    
+
     // Build Scripts
     await scripts(identifiers);
 
@@ -147,7 +161,7 @@ export async function build_command(config) {
 
     // Generate Media/Images
     await media(build_result.media);
-    
+
     // Copy static and generated files into release
     await copy_static_generated();
 

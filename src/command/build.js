@@ -1,4 +1,3 @@
-import { statSync } from 'fs';
 import { cpus } from 'os';
 import { join } from 'path';
 import { build } from '../action/build.js';
@@ -7,7 +6,7 @@ import { clear_gen } from '../action/clear_gen.js';
 import { clear_releases } from '../action/clear_releases.js';
 import { compile } from '../action/compile.js';
 import { configure } from '../action/configure.js';
-import { copy_files, copy_folder } from '../action/copy.js';
+import { copy } from '../action/copy.js';
 import { copy_static_generated } from '../action/copy_static_generated.js';
 import { critical } from '../action/critical.js';
 import { dependencies } from '../action/dependencies.js';
@@ -22,27 +21,15 @@ import { routes } from '../action/route.js';
 import { scripts } from '../action/script.js';
 import { transform } from '../action/transform.js';
 import { terminate } from '../cli/terminate.js';
-import {
-    FOLDER_GEN,
-    FOLDER_GEN_ASSETS,
-    FOLDER_GEN_PLUGINS,
-    FOLDER_LIST_PACKAGE_COPY,
-    FOLDER_MEDIA,
-    FOLDER_PLUGINS,
-    FOLDER_RELEASES,
-    FOLDER_ROUTES,
-    FOLDER_SRC,
-    FOLDER_STORAGE,
-} from '../constants/folder.js';
+import { FOLDER_GEN, FOLDER_GEN_PLUGINS, FOLDER_MEDIA, FOLDER_RELEASES, FOLDER_STORAGE } from '../constants/folder.js';
 import { env_report } from '../presentation/env_report.js';
 import { package_report } from '../presentation/package_report.js';
 import { Config } from '../utils/config.js';
-import { read, read_json, symlink, write, write_json } from '../utils/file.js';
+import { read_json, symlink, write_json } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
 import { Storage } from '../utils/storage.js';
-import { to_identifiers, to_relative_path } from '../utils/to.js';
-import { replace_import_path } from '../utils/transform.js';
+import { to_identifiers } from '../utils/to.js';
 import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { UniqId } from '../vars/uniq_id.js';
@@ -92,37 +79,9 @@ export async function build_command(config) {
 
     // Copy static files from packages
     // Copy files from packages and override in the package order
-    // Build Tree of files and packages
-    const package_tree = {};
-    const mtime = {};
-    available_packages.forEach((pkg) => {
-        copy_folder(pkg.path, FOLDER_LIST_PACKAGE_COPY, join(Cwd.get(), FOLDER_GEN), (file, target) => {
-            const rel_path = to_relative_path(target);
-            // get file modify time of route files
-            if (target.match(new RegExp(`/${FOLDER_ROUTES}/`)) && !target.match(new RegExp(`/${FOLDER_SRC}/`))) {
-                const stats = statSync(file.src);
-                mtime[rel_path] = {
-                    mtime: stats.mtime,
-                    src: file.src,
-                };
-            }
-
-            // e.g. target "./src/file.svelte"
-            // transform to "./src/file.svelte" "src/file.svelte"
-            const target_key = file.target.replace(/^\.\//, '');
-            package_tree[target_key] = pkg;
-            if (target.indexOf(`/${FOLDER_PLUGINS}/`) > -1) {
-                write(target, replace_import_path(read(target)));
-            }
-        });
-    });
-    write_json(join(Cwd.get(), FOLDER_GEN, 'package_tree.json'), package_tree, false);
-    write_json(join(Cwd.get(), FOLDER_GEN, 'mtime.json'), mtime, false);
-
-
     // Copy configured asset files
-    const assets = Config.get('assets');
-    copy_files(assets, join(Cwd.get(), FOLDER_GEN_ASSETS));
+    // Build Tree of files and packages
+    const { package_tree } = await copy(available_packages);
 
     // Create Translations/I18N
     i18n(available_packages);

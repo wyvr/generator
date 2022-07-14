@@ -9,7 +9,7 @@ import { filled_string } from '../utils/validate.js';
 import { WorkerController } from '../worker/controller.js';
 import { measure_action } from './helper.js';
 
-export async function routes(package_tree) {
+export async function routes(package_tree, mtime) {
     const name = 'route';
     const identifier_name = get_name(WorkerEmit.identifier);
     const identifiers = {};
@@ -41,11 +41,15 @@ export async function routes(package_tree) {
 
         const data = collect_routes(undefined, package_tree);
 
+        WorkerController.set_all_workers('mtime', mtime);
+        
         // wrap in plugin
         const caller = await Plugin.process(name, data);
         await caller(async (data) => {
             await WorkerController.process_in_workers(WorkerAction.route, data, 10);
         });
+        
+        WorkerController.set_all_workers('mtime', undefined);
 
         // remove listeners
         Event.off('emit', identifier_name, identifier_id);

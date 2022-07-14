@@ -38,17 +38,19 @@ describe('worker_action/process_page_data', () => {
         deepStrictEqual(process_page_data(), undefined);
     });
     it('sample page', () => {
+        const mtime = new Date().toISOString();
         deepStrictEqual(
             process_page_data({
                 url: '/url',
                 content: 'text',
-            }),
+            }, mtime),
             {
                 _wyvr: {
                     change_frequence: 'monthly',
                     extension: 'html',
                     identifier: 'default',
                     language: 'en',
+                    mtime,
                     collection: [
                         {
                             order: 0,

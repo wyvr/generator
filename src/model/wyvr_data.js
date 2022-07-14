@@ -10,7 +10,8 @@ import {
     is_string,
 } from '../utils/validate.js';
 
-export function WyvrData(data, url, name) {
+export function WyvrData(data, url, name, mtime_default) {
+    const mtime = mtime_default || new Date().toISOString();
     // enrich _wyvr property
     // this are the default values
     const wyvr_prop = {
@@ -32,6 +33,7 @@ export function WyvrData(data, url, name) {
         change_frequence: 'monthly',
         priority: 0.5,
         static: false,
+        mtime
     };
     // when no wyvr data is set use the default values
     if (is_null(data)) {
@@ -39,7 +41,7 @@ export function WyvrData(data, url, name) {
     }
 
     // add simple props
-    ['extension', 'language', 'private', 'change_frequence', 'priority', 'static'].forEach((key) => {
+    ['extension', 'language', 'private', 'change_frequence', 'priority', 'static', 'mtime'].forEach((key) => {
         if (!is_null(data[key])) {
             wyvr_prop[key] = data[key];
         }
@@ -73,7 +75,7 @@ export function WyvrData(data, url, name) {
         wyvr_prop.template[key] = to_svelte_paths(wyvr_prop.template[key]);
     });
 
-    wyvr_prop.collection = build_collection(data.collection, url, name);
+    wyvr_prop.collection = build_collection(data.collection, url, name, wyvr_prop.mtime);
 
     return wyvr_prop;
 }
@@ -91,21 +93,21 @@ function merge_property(prop_value, default_value) {
     return [].concat(prop_value, default_value).filter((x, index, arr) => arr.indexOf(x) == index);
 }
 
-function build_collection(value, url, name) {
+function build_collection(value, url, name, mtime) {
     const collections = [];
     if (filled_object(value)) {
         const all_entry = clone(value);
         all_entry.scope = 'all';
-        collections.push(build_collection_entry(all_entry, url, name));
-        collections.push(build_collection_entry(value, url, name));
+        collections.push(build_collection_entry(all_entry, url, name, mtime));
+        collections.push(build_collection_entry(value, url, name, mtime));
     }
     if (is_array(value)) {
-        collections.push(build_collection_entry({ scope: 'all' }, url, name));
+        collections.push(build_collection_entry({ scope: 'all' }, url, name, mtime));
         const keys = [];
         value
             .filter((x) => filled_object(x))
             .forEach((x) => {
-                const entry = build_collection_entry(x, url, name);
+                const entry = build_collection_entry(x, url, name, mtime);
                 // void multiple entries of the same scope
                 if (in_array(keys, entry.scope)) {
                     collections.find((item) => {
@@ -126,18 +128,19 @@ function build_collection(value, url, name) {
             });
     }
     if (!filled_array(collections) && filled_string(url)) {
-        collections.push(build_collection_entry({ scope: 'all' }, url, name));
+        collections.push(build_collection_entry({ scope: 'all' }, url, name, mtime));
     }
     return collections;
 }
 
-function build_collection_entry(entry, url, name) {
+function build_collection_entry(entry, url, name, mtime) {
     const result = {
         name: undefined,
         order: 0,
         scope: 'none',
         visible: true,
         url: '',
+        mtime
     };
     if (filled_string(url)) {
         result.url = url;

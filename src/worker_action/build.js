@@ -31,6 +31,7 @@ export async function build(files) {
 
     for (const file of files) {
         Logger.debug('build', file);
+
         const data = read_json(file);
         const identifier = data._wyvr.identifier;
         // add the current url to the used identifier

@@ -81,7 +81,7 @@ export async function build_command(config) {
     // Copy files from packages and override in the package order
     // Copy configured asset files
     // Build Tree of files and packages
-    const { package_tree } = await copy(available_packages);
+    const { package_tree, mtime } = await copy(available_packages);
 
     // Create Translations/I18N
     await i18n(available_packages);
@@ -99,7 +99,7 @@ export async function build_command(config) {
     await compile();
 
     // Execute Routes
-    const route_identifiers = await routes(package_tree);
+    const route_identifiers = await routes(package_tree, mtime);
 
     // Build Pages
     const build_result = await build();

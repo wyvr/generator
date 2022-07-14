@@ -14,12 +14,13 @@ import { send_action } from '../worker/communication.js';
 
 const identifiers_cache = {};
 
-export function process_page_data(page_data) {
+export function process_page_data(page_data, mtime) {
     if (is_null(page_data)) {
         return undefined;
     }
     const default_values = Config.get('default_values');
-    page_data._wyvr = WyvrData(page_data._wyvr, page_data.url, page_data.title);
+    page_data._wyvr = WyvrData(page_data._wyvr, page_data.url, page_data.title, mtime);
+
     const enhanced_data = set_default_values(page_data, default_values);
 
     // search template files

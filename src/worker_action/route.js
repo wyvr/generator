@@ -1,5 +1,6 @@
 import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerEmit } from '../struc/worker_emit.js';
+import { Logger } from '../utils/logger.js';
 import { execute_route, write_routes } from '../utils/route.js';
 import { filled_array, is_null } from '../utils/validate.js';
 import { send_action } from '../worker/communication.js';
@@ -11,12 +12,14 @@ export async function route(files) {
     }
     const collections = [];
     for (const route of files) {
+        Logger.debug('route', route);
         const wyvr_pages = await execute_route(route);
         if (is_null(wyvr_pages)) {
             continue;
         }
+        const mtime = global.cache.mtime ? global.cache.mtime[route.rel_path] : undefined;
         const processed_pages = wyvr_pages.map((wyvr_page) => {
-            const page = process_page_data(wyvr_page);
+            const page = process_page_data(wyvr_page, mtime);
             if (page._wyvr.collection) {
                 collections.push(...page._wyvr.collection);
             }

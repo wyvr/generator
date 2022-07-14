@@ -4,11 +4,14 @@ import { WyvrData } from '../../src/model/wyvr_data.js';
 
 describe('model/wyvr_data', () => {
     it('undefined', () => {
-        deepStrictEqual(WyvrData(), {
+        const mtime = new Date().toISOString();
+
+        deepStrictEqual(WyvrData(undefined, undefined, undefined, mtime), {
             change_frequence: 'monthly',
             extension: 'html',
             identifier: 'default',
             language: 'en',
+            mtime,
             collection: [],
             priority: 0.5,
             private: false,
@@ -26,20 +29,28 @@ describe('model/wyvr_data', () => {
         });
     });
     it('replace properties', () => {
+        const mtime = new Date().toISOString();
+
         deepStrictEqual(
-            WyvrData({
-                change_frequence: 'daily',
-                extension: 'json',
-                language: 'de',
-                priority: 0.2,
-                private: true,
-                static: true,
-            }),
+            WyvrData(
+                {
+                    change_frequence: 'daily',
+                    extension: 'json',
+                    language: 'de',
+                    priority: 0.2,
+                    private: true,
+                    static: true,
+                },
+                undefined,
+                undefined,
+                mtime
+            ),
             {
                 change_frequence: 'daily',
                 extension: 'json',
                 identifier: 'default',
                 language: 'de',
+                mtime,
                 collection: [],
                 priority: 0.2,
                 private: true,
@@ -58,15 +69,23 @@ describe('model/wyvr_data', () => {
         );
     });
     it('avoid adding properties', () => {
+        const mtime = new Date().toISOString();
+
         deepStrictEqual(
-            WyvrData({
-                test: ['some', 'test'],
-            }),
+            WyvrData(
+                {
+                    test: ['some', 'test'],
+                },
+                undefined,
+                undefined,
+                mtime
+            ),
             {
                 change_frequence: 'monthly',
                 extension: 'html',
                 identifier: 'default',
                 language: 'en',
+                mtime,
                 collection: [],
                 priority: 0.5,
                 private: false,
@@ -85,193 +104,113 @@ describe('model/wyvr_data', () => {
         );
     });
     it('template as string', () => {
-        deepStrictEqual(
-            WyvrData({
-                template: 'Page',
-            }),
-            {
-                change_frequence: 'monthly',
-                extension: 'html',
-                identifier: 'default',
-                language: 'en',
-                collection: [],
-                priority: 0.5,
-                private: false,
-                static: false,
-                template: {
-                    doc: ['Page.svelte', 'Default.svelte'],
-                    layout: ['Page.svelte', 'Default.svelte'],
-                    page: ['Page.svelte', 'Default.svelte'],
-                },
-                template_files: {
-                    doc: undefined,
-                    layout: undefined,
-                    page: undefined,
-                },
-            }
-        );
+        const result = WyvrData({
+            template: 'Page',
+        });
+        deepStrictEqual(result.template, {
+            doc: ['Page.svelte', 'Default.svelte'],
+            layout: ['Page.svelte', 'Default.svelte'],
+            page: ['Page.svelte', 'Default.svelte'],
+        });
     });
     it('template as array', () => {
+        const result = WyvrData({
+            template: ['CmsPage', 'Page'],
+        });
         deepStrictEqual(
-            WyvrData({
-                template: ['CmsPage', 'Page'],
-            }),
+            result.template,
+
             {
-                change_frequence: 'monthly',
-                extension: 'html',
-                identifier: 'default',
-                language: 'en',
-                collection: [],
-                priority: 0.5,
-                private: false,
-                static: false,
-                template: {
-                    doc: ['CmsPage.svelte', 'Page.svelte', 'Default.svelte'],
-                    layout: ['CmsPage.svelte', 'Page.svelte', 'Default.svelte'],
-                    page: ['CmsPage.svelte', 'Page.svelte', 'Default.svelte'],
-                },
-                template_files: {
-                    doc: undefined,
-                    layout: undefined,
-                    page: undefined,
-                },
+                doc: ['CmsPage.svelte', 'Page.svelte', 'Default.svelte'],
+                layout: ['CmsPage.svelte', 'Page.svelte', 'Default.svelte'],
+                page: ['CmsPage.svelte', 'Page.svelte', 'Default.svelte'],
             }
         );
     });
     it('explicite templates', () => {
-        deepStrictEqual(
-            WyvrData({
-                template: {
-                    doc: ['Doc'],
-                    layout: ['Layout'],
-                    page: ['Page'],
-                },
-            }),
-            {
-                change_frequence: 'monthly',
-                extension: 'html',
-                identifier: 'default',
-                language: 'en',
-                collection: [],
-                priority: 0.5,
-                private: false,
-                static: false,
-                template: {
-                    doc: ['Doc.svelte', 'Default.svelte'],
-                    layout: ['Layout.svelte', 'Default.svelte'],
-                    page: ['Page.svelte', 'Default.svelte'],
-                },
-                template_files: {
-                    doc: undefined,
-                    layout: undefined,
-                    page: undefined,
-                },
-            }
-        );
+        const result = WyvrData({
+            template: {
+                doc: ['Doc'],
+                layout: ['Layout'],
+                page: ['Page'],
+            },
+        });
+        deepStrictEqual(result.template, {
+            doc: ['Doc.svelte', 'Default.svelte'],
+            layout: ['Layout.svelte', 'Default.svelte'],
+            page: ['Page.svelte', 'Default.svelte'],
+        });
     });
     it('collection preparing', () => {
-        deepStrictEqual(
-            WyvrData(
-                {
-                    collection: [
-                        { visible: true, order: 100 },
-                        { visible: false, scope: 'test' },
-                        undefined,
-                        { url: '/url3', name: 'huhu' },
-                        {},
-                    ],
-                },
-                '/url2',
-                'test'
-            ),
+        const mtime = new Date().toISOString();
+        const result = WyvrData(
             {
-                change_frequence: 'monthly',
-                extension: 'html',
-                identifier: 'default',
-                language: 'en',
                 collection: [
-                    {
-                        name: 'test',
-                        order: 0,
-                        scope: 'all',
-                        url: '/url2',
-                        visible: true,
-                    },
-                    {
-                        name: 'huhu',
-                        order: 100,
-                        scope: 'none',
-                        url: '/url3',
-                        visible: true,
-                    },
-                    {
-                        name: 'test',
-                        order: 0,
-                        scope: 'test',
-                        url: '/url2',
-                        visible: false,
-                    },
+                    { visible: true, order: 100 },
+                    { visible: false, scope: 'test' },
+                    undefined,
+                    { url: '/url3', name: 'huhu', mtime: 'haha' },
+                    {},
                 ],
-                priority: 0.5,
-                private: false,
-                static: false,
-                template: {
-                    doc: ['Default.svelte'],
-                    layout: ['Default.svelte'],
-                    page: ['Default.svelte'],
-                },
-                template_files: {
-                    doc: undefined,
-                    layout: undefined,
-                    page: undefined,
-                },
-            }
+            },
+            '/url2',
+            'test',
+            mtime
         );
+        deepStrictEqual(result.collection, [
+            {
+                name: 'test',
+                order: 0,
+                scope: 'all',
+                url: '/url2',
+                visible: true,
+                mtime,
+            },
+            {
+                name: 'huhu',
+                order: 100,
+                scope: 'none',
+                url: '/url3',
+                visible: true,
+                mtime: 'haha',
+            },
+            {
+                name: 'test',
+                order: 0,
+                scope: 'test',
+                url: '/url2',
+                visible: false,
+                mtime,
+            },
+        ]);
     });
     it('collection as object', () => {
-        deepStrictEqual(
-            WyvrData(
-                {
-                    collection: { visible: false, scope: 'test', name: 'huhu' },
-                },
-                '/url2',
-                'test'
-            ),
+        const mtime = new Date().toISOString();
+        const result = WyvrData(
             {
-                change_frequence: 'monthly',
-                extension: 'html',
-                identifier: 'default',
-                language: 'en',
-                collection: [
-                    {
-                        name: 'huhu',
-                        order: 0,
-                        scope: 'all',
-                        url: '/url2',
-                        visible: false,
-                    },
-                    {
-                        name: 'huhu',
-                        order: 0,
-                        scope: 'test',
-                        url: '/url2',
-                        visible: false,
-                    },
-                ],
-                priority: 0.5,
-                private: false,
-                static: false,
-                template: {
-                    doc: ['Default.svelte'],
-                    layout: ['Default.svelte'],
-                    page: ['Default.svelte'],
-                },
-                template_files: {
-                    doc: undefined,
-                    layout: undefined,
-                    page: undefined,
-                },
-            }
+                collection: { visible: false, scope: 'test', name: 'huhu' },
+            },
+            '/url2',
+            'test',
+            mtime
         );
+        deepStrictEqual(result.collection, [
+            {
+                name: 'huhu',
+                order: 0,
+                scope: 'all',
+                url: '/url2',
+                mtime,
+                visible: false,
+            },
+            {
+                name: 'huhu',
+                order: 0,
+                scope: 'test',
+                url: '/url2',
+                mtime,
+                visible: false,
+            },
+        ]);
     });
 });

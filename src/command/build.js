@@ -19,6 +19,7 @@ import { present } from '../action/present.js';
 import { publish } from '../action/publish.js';
 import { routes } from '../action/route.js';
 import { scripts } from '../action/script.js';
+import { sitemap } from '../action/sitemap.js';
 import { transform } from '../action/transform.js';
 import { terminate } from '../cli/terminate.js';
 import { FOLDER_GEN, FOLDER_GEN_PLUGINS, FOLDER_MEDIA, FOLDER_RELEASES, FOLDER_STORAGE } from '../constants/folder.js';
@@ -132,6 +133,9 @@ export async function build_command(config) {
 
     // Create Symlinks
     symlink(join(Cwd.get(), FOLDER_MEDIA), join(ReleasePath.get(), FOLDER_MEDIA));
+
+    // Create sitemap
+    await sitemap();
 
     // Publish the new release
     await publish();

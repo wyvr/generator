@@ -116,9 +116,6 @@ export async function build_command(config) {
     // Build Scripts
     await scripts(identifiers);
 
-    // Create Sitemap
-    // @TODO
-
     // Generate Media/Images
     await media(build_result.media);
 

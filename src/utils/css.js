@@ -3,11 +3,15 @@ import { FOLDER_CSS } from '../constants/folder.js';
 import { Env } from '../vars/env.js';
 import { exists, write } from './file.js';
 import { to_relative_path } from './to.js';
+import { filled_string } from './validate.js';
 
 export function split_css_into_media_query_files(content, file) {
     if (Env.is_prod()) {
         const media_files = {};
         const media_query_files = {};
+        if(!filled_string(content) || !exists(file)) {
+            return media_query_files;
+        }
         // extract the media queries from the css_code
         const remaining_content = content.replace(/@media([^{]*)\{((?:(?!\}\s*\}).)*\})}/g, (_, media, code) => {
             const key = media.trim();

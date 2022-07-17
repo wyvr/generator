@@ -1,10 +1,18 @@
 import { join } from 'path';
+import { terminate } from '../cli/terminate.js';
 import { ERRORS } from '../constants/errors.js';
+import { env_report } from '../presentation/env_report.js';
 import { is_file, read_json } from '../utils/file.js';
 import { to_dirname } from '../utils/to.js';
 import { Cwd } from '../vars/cwd.js';
 
 export async function check_env() {
+    const check_env_report = await get_report();
+    // execution can end here when environment is not correct
+    env_report(check_env_report);
+    terminate(!check_env_report || !check_env_report.success);
+}
+export async function get_report() {
     const report = {
         success: true,
         info: [],
@@ -40,3 +48,4 @@ export async function check_env() {
 
     return report;
 }
+

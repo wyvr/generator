@@ -6,19 +6,14 @@ import { intial_build } from '../action/initial_build.js';
 import { optimize } from '../action/optimize.js';
 import { publish } from '../action/publish.js';
 import { sitemap } from '../action/sitemap.js';
-import { terminate } from '../cli/terminate.js';
 import { FOLDER_MEDIA } from '../constants/folder.js';
-import { env_report } from '../presentation/env_report.js';
 import { symlink } from '../utils/file.js';
 import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { UniqId } from '../vars/uniq_id.js';
 
 export async function build_command(config) {
-    const check_env_report = await check_env();
-    // execution can end here when environment is not correct
-    env_report(check_env_report);
-    terminate(!check_env_report || !check_env_report.success);
+    await check_env();
 
     const build_id = UniqId.get();
     UniqId.set(build_id);

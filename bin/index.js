@@ -18,8 +18,8 @@ const config = {
 };
 
 // console.error(config);
-const result = await command(config);
-console.log(result);
+const {result, duration} = await command(config);
+console.log(result, duration);
 
 process.exit(0);
 /* eslint-enable */

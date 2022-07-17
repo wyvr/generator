@@ -64,7 +64,8 @@ export async function command(config) {
             result = await unknown_command(config);
             break;
     }
-    const duration_text = `${Math.round(nano_to_milli(process.hrtime.bigint() - start))} ${Logger.color.dim('ms')}`;
+    const duration = nano_to_milli(process.hrtime.bigint() - start);
+    const duration_text = `${Math.round(duration)} ${Logger.color.dim('ms')}`;
     Logger.success('total execution time', duration_text);
-    return result;
+    return {result, duration};
 }

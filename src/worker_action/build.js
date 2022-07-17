@@ -72,12 +72,12 @@ export async function build(files) {
             if (filled_string(identifier) && search_segment(rendered_result.result, 'css.code')) {
                 const css_file_path = join(Cwd.get(), FOLDER_GEN_CSS, `${identifier}.css`);
                 if (!exists(css_file_path)) {
+                    write(css_file_path, rendered_result.result.css.code);
+                    // file must exists before it can be splitted
                     const mqf = split_css_into_media_query_files(rendered_result.result.css.code, css_file_path);
                     if (mqf) {
                         media_query_files[sep + join(FOLDER_CSS, to_relative_path(css_file_path))] = mqf;
                         has_media_query_files = true;
-                    } else {
-                        write(css_file_path, rendered_result.result.css.code);
                     }
                 }
             }

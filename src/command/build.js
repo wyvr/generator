@@ -1,40 +1,18 @@
-import { cpus } from 'os';
 import { join } from 'path';
-import { build } from '../action/build.js';
 import { check_env } from '../action/check_env.js';
-import { clear_gen } from '../action/clear_gen.js';
 import { clear_releases } from '../action/clear_releases.js';
-import { compile } from '../action/compile.js';
-import { configure } from '../action/configure.js';
-import { copy } from '../action/copy.js';
-import { copy_static_generated } from '../action/copy_static_generated.js';
 import { critical } from '../action/critical.js';
-import { dependencies } from '../action/dependencies.js';
-import { get_config_data } from '../action/get_config_data.js';
-import { i18n } from '../action/i18n.js';
-import { media } from '../action/media.js';
+import { intial_build } from '../action/initial_build.js';
 import { optimize } from '../action/optimize.js';
-import { collect_packages } from '../action/package.js';
-import { present } from '../action/present.js';
 import { publish } from '../action/publish.js';
-import { routes } from '../action/route.js';
-import { scripts } from '../action/script.js';
 import { sitemap } from '../action/sitemap.js';
-import { transform } from '../action/transform.js';
 import { terminate } from '../cli/terminate.js';
-import { FOLDER_GEN, FOLDER_GEN_PLUGINS, FOLDER_MEDIA, FOLDER_RELEASES, FOLDER_STORAGE } from '../constants/folder.js';
+import { FOLDER_MEDIA } from '../constants/folder.js';
 import { env_report } from '../presentation/env_report.js';
-import { package_report } from '../presentation/package_report.js';
-import { Config } from '../utils/config.js';
-import { read_json, symlink, write_json } from '../utils/file.js';
-import { Logger } from '../utils/logger.js';
-import { Plugin } from '../utils/plugin.js';
-import { Storage } from '../utils/storage.js';
-import { to_identifiers } from '../utils/to.js';
+import { symlink } from '../utils/file.js';
 import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { UniqId } from '../vars/uniq_id.js';
-import { WorkerController } from '../worker/controller.js';
 
 export async function build_command(config) {
     const check_env_report = await check_env();
@@ -44,89 +22,14 @@ export async function build_command(config) {
 
     const build_id = UniqId.get();
     UniqId.set(build_id);
-    const config_data = get_config_data(config, build_id);
 
-    // set release folder
-    ReleasePath.set(join(Cwd.get(), FOLDER_RELEASES, build_id));
-
-    present(config_data);
-
-    // clear gen folder
-    clear_gen();
-
-    // Build Global(storage) Data
-    Storage.set_location(FOLDER_STORAGE);
-    await Storage.set('config', config_data);
-
-    // Collect packages
-    const package_json = read_json('package.json');
-    const { available_packages, disabled_packages } = await collect_packages(package_json);
-    package_report(available_packages, disabled_packages);
-
-    // set worker ratio
-    WorkerController.set_worker_ratio(Config.get('worker.ratio', 1));
-
-    // Create the workers for the processing
-    const worker_amount = WorkerController.get_worker_amount_from_ratio();
-    Logger.present('worker', worker_amount, Logger.color.dim(`of ${cpus().length} threads`));
-    WorkerController.create_workers(worker_amount);
-
-    // Initialize Plugins
-    const plugin_files = await Plugin.load(FOLDER_GEN_PLUGINS);
-    const plugins = await Plugin.generate(plugin_files);
-    if (plugins) {
-        Plugin.cache = plugins;
-    }
-
-    // Copy static files from packages
-    // Copy files from packages and override in the package order
-    // Copy configured asset files
-    // Build Tree of files and packages
-    const { package_tree, mtime } = await copy(available_packages);
-
-    // Create Translations/I18N
-    await i18n(available_packages);
-
-    // Transform Svelte files to client and server components
-    await transform();
-
-    // Extract dependencies
-    await dependencies();
-
-    // update the config in the workers from transform and depencenies
-    await configure();
-
-    // Compile svelte files
-    await compile();
-
-    // Execute Routes
-    const route_identifiers = await routes(package_tree, mtime);
-
-    // Build Pages
-    const build_result = await build();
-
-    // combine identifiers
-    const identifiers = to_identifiers(route_identifiers, build_result.identifiers);
-    Config.set('identifiers', identifiers);
-    write_json(join(Cwd.get(), FOLDER_GEN, 'identifiers.json'), identifiers);
-
-    //  Inject Data into the pages
-    // @TODO
-
-    // Build Scripts
-    await scripts(identifiers);
-
-    // Generate Media/Images
-    await media(build_result.media);
-
-    // Copy static and generated files into release
-    await copy_static_generated();
+    const { media_query_files } = await intial_build(build_id, config);
 
     // Generate critical css
     const critical_result = await critical();
 
     // Optimize Pages
-    await optimize(build_result.media_query_files, critical_result);
+    await optimize(media_query_files, critical_result);
 
     // Create Symlinks
     symlink(join(Cwd.get(), FOLDER_MEDIA), join(ReleasePath.get(), FOLDER_MEDIA));

@@ -1,6 +1,7 @@
 // import { app_command } from './command/app';
 import { get_config_data } from './action/get_config_data.js';
 import { build_command } from './command/build.js';
+import { dev_command } from './command/dev.js';
 // import { clear_command } from './command/clear';
 // import { create_command } from './command/create';
 // import { cron_command } from './command/cron';
@@ -27,17 +28,20 @@ export async function command(config) {
     const start = process.hrtime.bigint();
     let result = '';
     config = get_config_data(config);
-    if(!config?.cli?.flags?.silent) {
+    if (!config?.cli?.flags?.silent) {
         const logo = get_logo(config?.version);
         /* eslint-disable no-console */
         console.error(config?.cli?.flags?.plain ? to_plain(logo) : logo);
         console.error('');
-        /* eslint-enable */    
+        /* eslint-enable */
     }
 
     switch (get_command(config)) {
         // case 'app':
         //     return await app_command(config);
+        case 'dev':
+            result = await dev_command(config);
+            break;
         case 'build':
             result = await build_command(config);
             break;

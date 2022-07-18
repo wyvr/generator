@@ -109,6 +109,7 @@ export async function intial_build(build_id, config) {
     // console.log(build_result)
 
     return {
+        packages: available_packages,
         identifiers,
         media: build_result.media,
         media_query_files: build_result.media_query_files,

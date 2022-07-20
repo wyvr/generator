@@ -1,5 +1,7 @@
 import { check_env } from '../action/check_env.js';
-import { intial_build } from '../action/initial_build.js';
+import { get_config_data } from '../action/get_config_data.js';
+import { intial_build, pre_initial_build } from '../action/initial_build.js';
+import { present } from '../action/present.js';
 import { EnvType } from '../struc/env.js';
 import { package_watcher } from '../utils/watcher.js';
 import { Env } from '../vars/env.js';
@@ -16,8 +18,17 @@ export async function dev_command(config) {
     const build_id = UniqId.load();
     UniqId.set(build_id);
 
-    const { packages } = await intial_build(build_id, config);
-    console.log(packages);
+    let packages;
+    if (config?.cli?.flags?.fast) {
+        const config_data = get_config_data(config, build_id);
+        present(config_data);
+        const { available_packages } = await pre_initial_build(build_id, config_data);
+
+        packages = available_packages;
+    } else {
+        const result = await intial_build(build_id, config);
+        packages = result.packages;
+    }
 
     await package_watcher(packages);
 

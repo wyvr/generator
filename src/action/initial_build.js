@@ -27,16 +27,9 @@ import { media } from './media.js';
 import { copy_static_generated } from './copy_static_generated.js';
 import { copy } from './copy.js';
 
-export async function intial_build(build_id, config) {
-    const config_data = get_config_data(config, build_id);
-
+export async function pre_initial_build(build_id, config_data) {
     // set release folder
     ReleasePath.set(join(Cwd.get(), FOLDER_RELEASES, build_id));
-
-    present(config_data);
-
-    // clear gen folder
-    clear_gen();
 
     // Build Global(storage) Data
     Storage.set_location(FOLDER_STORAGE);
@@ -54,6 +47,23 @@ export async function intial_build(build_id, config) {
     const worker_amount = WorkerController.get_worker_amount_from_ratio();
     Logger.present('worker', worker_amount, Logger.color.dim(`of ${cpus().length} threads`));
     WorkerController.create_workers(worker_amount);
+
+    return {
+        package_json,
+        available_packages,
+        disabled_packages,
+    };
+}
+
+export async function intial_build(build_id, config) {
+    const config_data = get_config_data(config, build_id);
+
+    present(config_data);
+
+    // clear gen folder
+    clear_gen();
+
+    const { available_packages } = await pre_initial_build(build_id, config_data);
 
     // Initialize Plugins
     const plugin_files = await Plugin.load(FOLDER_GEN_PLUGINS);

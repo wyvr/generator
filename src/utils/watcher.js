@@ -8,6 +8,8 @@ import { FOLDER_GEN } from '../constants/folder.js';
 import { restart } from '../cli/restart.js';
 import { uniq_values } from './uniq.js';
 
+let watcher;
+
 export async function package_watcher(packages) {
     return new Promise((resolve, reject) => {
         if (!filled_array(packages)) {
@@ -19,7 +21,7 @@ export async function package_watcher(packages) {
         watch_folder.push(join(Cwd.get(), 'wyvr.js'));
         let changed_files = {};
 
-        watch(watch_folder, {
+        watcher = watch(watch_folder, {
             ignoreInitial: true,
         }).on('all', (event, path) => {
             if (ignore_watched_file(event, path)) {
@@ -33,7 +35,7 @@ export async function package_watcher(packages) {
             debouncer = setTimeout(() => {
                 process_changed_files(changed_files);
                 changed_files = {};
-            }, 1000);
+            }, 250);
         });
         Logger.success('watching', packages.length, 'packages');
     });
@@ -115,6 +117,7 @@ export async function process_changed_files(changed_files) {
     const changed_config_files = [];
     events.forEach((event) => {
         changed_files[event].forEach((path) => {
+            Logger.info(event, path);
             // when config file is changed restart
             if (path.match(/wyvr\.js$/)) {
                 restart_required = true;
@@ -125,8 +128,9 @@ export async function process_changed_files(changed_files) {
 
     if (restart_required) {
         Logger.warning('restart required because of the following file changes', changed_config_files.join(', '));
-
-        //restart();
+        // needed otherwise wyvr instances get kept alive
+        await unwatch();
+        restart();
     }
 }
 
@@ -139,4 +143,20 @@ export function ignore_watched_file(event, path) {
         event == 'addDir' ||
         event == 'unlinkDir'
     );
+}
+
+export async function unwatch() {
+    return new Promise((resolve, reject) => {
+        if (watcher) {
+            const save_guard = setTimeout(() => {
+                reject();
+            });
+            watcher.close().then(() => {
+                clearTimeout(save_guard);
+                resolve();
+            });
+            return;
+        }
+        resolve();
+    });
 }

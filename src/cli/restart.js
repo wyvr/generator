@@ -8,7 +8,6 @@ export function restart() {
     clearTimeout(debouncer);
     debouncer = setTimeout(() => {
         process.on('exit', function () {
-            console.log(process.argv)
             spawn(process.argv.shift(), process.argv, {
                 cwd: process.cwd(),
                 detached: true,

@@ -1,0 +1,50 @@
+import { deepStrictEqual, strictEqual } from 'assert';
+import { describe, it } from 'mocha';
+import Sinon from 'sinon';
+import { restart } from '../../../src/cli/restart.js';
+import { to_plain } from '../../../src/utils/to.js';
+
+describe('cli/restart/restart', () => {
+    let exit_value, console_log, console_warn, console_error;
+    let log = [];
+    let called_callback = false;
+    let sandbox;
+    before(() => {
+        sandbox = Sinon.createSandbox();
+        sandbox.stub(process, 'exit');
+        process.exit.callsFake((code) => {
+            exit_value = code;
+        });
+        sandbox.stub(process, 'on');
+        process.on.callsFake((ev, cb) => {
+            called_callback = true;
+        });
+        sandbox.stub(console, 'log');
+        console.log.callsFake((...values) => {
+            log.push(values.map(to_plain));
+        });
+        sandbox.stub(console, 'warn');
+        console.warn.callsFake((...values) => {
+            log.push(values.map(to_plain));
+        });
+        sandbox.stub(console, 'error');
+        console.error.callsFake((...values) => {
+            log.push(values.map(to_plain));
+        });
+    });
+    afterEach(() => {
+        exit_value = undefined;
+        log = [];
+        called_callback = false;
+    });
+    after(() => {
+        sandbox.restore();
+    });
+    it('restart', () => {
+        restart();
+        setTimeout(() => {
+            deepStrictEqual(exit_value, 0);
+            deepStrictEqual(called_callback, true);
+        }, 1050);
+    });
+});

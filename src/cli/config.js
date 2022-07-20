@@ -66,5 +66,6 @@ export function get_wyvr_version() {
     if (pkg && pkg.version) {
         return pkg.version;
     }
+    /* c8 ignore next */
     return undefined;
 }

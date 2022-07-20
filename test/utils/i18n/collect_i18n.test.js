@@ -19,6 +19,10 @@ describe('action/i18n/collect_i18n', () => {
         const result = collect_i18n([{ name: 'test' }]);
         deepStrictEqual(result, {});
     });
+    it('empty file', () => {
+        const result = collect_i18n([{ path: join(__dirname, '_tests/empty') }]);
+        deepStrictEqual(result, {});
+    });
     it('simple', () => {
         const result = collect_i18n([{ path: join(__dirname, '_tests/simple') }]);
         deepStrictEqual(result, {

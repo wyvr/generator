@@ -1,7 +1,7 @@
 import { join } from 'path';
 import { FOLDER_GEN_I18N, FOLDER_I18N } from '../constants/folder.js';
 import { collect_files, read_json, write_json } from '../utils/file.js';
-import { filled_array, filled_string } from '../utils/validate.js';
+import { filled_array, filled_object, filled_string } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { stringify } from './json.js';
 
@@ -17,10 +17,18 @@ export function collect_i18n(packages) {
             return;
         }
         collect_files(join(pkg.path, FOLDER_I18N)).forEach((file) => {
-            const info = file.match(new RegExp(`.+/${FOLDER_I18N}/([^/]+)/(.+)\\.json`));
+            const i18n_folder = `/${FOLDER_I18N}/`;
+            // search from last i18n not the first
+            const search_path = file.split(i18n_folder).slice(-2).join(i18n_folder);
+            const info = search_path.match(new RegExp(`.*?/${FOLDER_I18N}/([^/]+?)/(.+)\\.json$`));
             if (!info) {
                 return;
             }
+            const data = read_json(file);
+            if (!filled_object(data)) {
+                return;
+            }
+
             const language = info[1];
             if (!translations[language]) {
                 translations[language] = {};
@@ -29,7 +37,6 @@ export function collect_i18n(packages) {
             if (!translations[language][name]) {
                 translations[language][name] = {};
             }
-            const data = read_json(file);
             Object.keys(data).forEach((key) => {
                 translations[language][name][key] = data[key];
             });

@@ -15,6 +15,7 @@ import { nano_to_milli } from './utils/convert.js';
 import { Logger } from './utils/logger.js';
 import { to_plain } from './utils/to.js';
 import { filled_array } from './utils/validate.js';
+import { WorkerController } from './worker/controller.js';
 
 export function get_command(config) {
     const commands = config?.cli?.command;
@@ -64,6 +65,7 @@ export async function command(config) {
             result = await unknown_command(config);
             break;
     }
+    WorkerController.exit();
     const duration = nano_to_milli(process.hrtime.bigint() - start);
     const duration_text = `${Math.round(duration)} ${Logger.color.dim('ms')}`;
     Logger.success('total execution time', duration_text);

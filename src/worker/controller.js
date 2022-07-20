@@ -81,12 +81,22 @@ export class WorkerController {
             Logger.debug('process', worker.pid, 'exit', code);
         });
         worker.process.on('close', () => {
+            if(this.exiting) {
+                return;
+            }
             Logger.warning('worker died PID', worker.pid);
             Logger.info('create new worker');
             this.remove_worker(worker.pid);
             this.workers.push(this.create(fork_fn));
         });
         return worker;
+    }
+    static exit() {
+        this.exiting = true;
+        Logger.debug('killing', this.workers.length, 'workers');
+        this.workers.forEach((worker) => {
+            process.kill(worker.pid);
+        });
     }
     static remove_worker(pid) {
         this.workers = this.workers.filter((worker) => worker.pid != pid);
@@ -327,5 +337,6 @@ export class WorkerController {
         });
     }
 }
+WorkerController.exiting = false;
 WorkerController.workers = [];
 WorkerController.worker_ratio = 0;

@@ -2,17 +2,12 @@ import { join } from 'path';
 import { FOLDER_GEN_SERVER } from '../constants/folder.js';
 import { Identifier } from '../model/identifier.js';
 import { WyvrData } from '../model/wyvr_data.js';
-import { WorkerAction } from '../struc/worker_action.js';
-import { WorkerEmit } from '../struc/worker_emit.js';
 import { Config } from '../utils/config.js';
 import { find_file } from '../utils/file.js';
 import { to_server_path } from '../utils/to.js';
 import { set_default_values } from '../utils/transform.js';
 import { is_null } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
-import { send_action } from '../worker/communication.js';
-
-const identifiers_cache = {};
 
 export function process_page_data(page_data, mtime) {
     if (is_null(page_data)) {
@@ -34,20 +29,11 @@ export function process_page_data(page_data, mtime) {
     enhanced_data._wyvr.template_files.page = page_file_name;
 
     // build identifier
-    const identifier_emit = Identifier(doc_file_name, layout_file_name, page_file_name);
-    identifier_emit.type = WorkerEmit.identifier;
-
-    const identifier_name = identifier_emit.identifier;
-
-    // emit identifier only when it was not added to the cache before
-    // or avoid when the given data has to be static => no JS
-    if (!identifiers_cache[identifier_name] && !enhanced_data._wyvr.static) {
-        identifiers_cache[identifier_name] = true;
-        send_action(WorkerAction.emit, identifier_emit);
-    }
+    const identifier = Identifier(doc_file_name, layout_file_name, page_file_name);
 
     // add the identifier to the wyvr object
-    enhanced_data._wyvr.identifier = identifier_name;
+    enhanced_data._wyvr.identifier = identifier.identifier;
+    enhanced_data._wyvr.identifier_data = identifier;
 
     // if (!entry.add_to_global) {
     //     return result.data;

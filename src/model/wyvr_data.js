@@ -28,6 +28,7 @@ export function WyvrData(data, url, name, mtime_default) {
         collection: build_collection(undefined, url, name),
         extension: 'html',
         identifier: 'default',
+        identifier_data: {},
         language: 'en',
         private: false,
         change_frequence: 'monthly',

@@ -10,8 +10,6 @@ import { FOLDER_GEN_SERVER } from '../../src/constants/folder.js';
 
 describe('worker_action/process_page_data', () => {
     let log = [];
-    let send_data;
-    let mock_send;
     const path = join(process.cwd(), 'test', 'worker_action', '_tests', 'process_page_data');
     before(() => {
         Cwd.set(path);
@@ -19,10 +17,6 @@ describe('worker_action/process_page_data', () => {
         Logger.output.callsFake((...msg) => {
             log.push(msg.map(to_plain));
         });
-        mock_send = process.send;
-        process.send = (data) => {
-            send_data = data;
-        };
     });
     beforeEach(() => {});
     afterEach(() => {
@@ -31,7 +25,6 @@ describe('worker_action/process_page_data', () => {
     after(() => {
         Cwd.set(undefined);
         Logger.output.restore();
-        process.send = mock_send;
     });
 
     it('undefined', () => {
@@ -40,15 +33,24 @@ describe('worker_action/process_page_data', () => {
     it('sample page', () => {
         const mtime = new Date().toISOString();
         deepStrictEqual(
-            process_page_data({
-                url: '/url',
-                content: 'text',
-            }, mtime),
+            process_page_data(
+                {
+                    url: '/url',
+                    content: 'text',
+                },
+                mtime
+            ),
             {
                 _wyvr: {
                     change_frequence: 'monthly',
                     extension: 'html',
                     identifier: 'default',
+                    identifier_data: {
+                        doc: 'Default.js',
+                        identifier: 'default',
+                        layout: 'Default.js',
+                        page: 'Default.js',
+                    },
                     language: 'en',
                     mtime,
                     collection: [
@@ -77,6 +79,5 @@ describe('worker_action/process_page_data', () => {
                 content: 'text',
             }
         );
-        deepStrictEqual(send_data.data.action.value.identifier, 'default');
     });
 });

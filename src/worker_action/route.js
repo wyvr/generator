@@ -1,5 +1,6 @@
 import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerEmit } from '../struc/worker_emit.js';
+import { clone } from '../utils/json.js';
 import { Logger } from '../utils/logger.js';
 import { execute_route, write_routes } from '../utils/route.js';
 import { filled_array, is_null } from '../utils/validate.js';
@@ -11,6 +12,8 @@ export async function route(files) {
         return;
     }
     const collections = [];
+    const identifiers_cache = {};
+    let routes = [];
     for (const route of files) {
         Logger.debug('route', route);
         const wyvr_pages = await execute_route(route);
@@ -23,10 +26,21 @@ export async function route(files) {
             if (page._wyvr.collection) {
                 collections.push(...page._wyvr.collection);
             }
+            if (page._wyvr.identifier && page._wyvr.identifier_data) {
+                if (!identifiers_cache[page._wyvr.identifier] && !page._wyvr.static) {
+                    const identifier_emit = clone(page._wyvr.identifier_data);
+                    identifier_emit.type = WorkerEmit.identifier;
+                    // emit identifier only when it was not added to the cache before
+                    // or avoid when the given data has to be static => no JS
+                    identifiers_cache[page._wyvr.identifier] = true;
+                    send_action(WorkerAction.emit, identifier_emit);
+                }
+            }
             return page;
         });
-        write_routes(processed_pages);
+        routes = write_routes(processed_pages);
     }
+
     if (filled_array(collections)) {
         const collection_emit = {
             type: WorkerEmit.collection,
@@ -34,4 +48,8 @@ export async function route(files) {
         };
         send_action(WorkerAction.emit, collection_emit);
     }
+    send_action(WorkerAction.emit, {
+        type: WorkerEmit.route,
+        routes,
+    });
 }

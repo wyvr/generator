@@ -1,10 +1,10 @@
-import { FOLDER_GEN, FOLDER_GEN_SRC } from '../constants/folder.js';
+import { FOLDER_GEN_SRC } from '../constants/folder.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
-import { Config } from '../utils/config.js';
+import { set_config_cache } from '../utils/config_cache.js';
 import { flip_dependency_tree } from '../utils/dependency.js';
 import { Event } from '../utils/event.js';
-import { collect_svelte_files, write_json } from '../utils/file.js';
+import { collect_svelte_files } from '../utils/file.js';
 import { Plugin } from '../utils/plugin.js';
 import { is_array, is_null } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
@@ -58,13 +58,10 @@ export async function dependencies() {
         const inverted_dependencies = flip_dependency_tree(dependencies);
 
         // add to config and write gen files
-        Config.set('dependencies.top', dependencies);
-        write_json(Cwd.get(FOLDER_GEN, 'dependencies_top.json'), dependencies);
+        set_config_cache('dependencies.top', dependencies);
 
-        Config.set('dependencies.bottom', inverted_dependencies);
-        write_json(Cwd.get(FOLDER_GEN, 'dependencies_bottom.json'), inverted_dependencies);
+        set_config_cache('dependencies.bottom', inverted_dependencies);
 
-        Config.set('dependencies.i18n', i18n);
-        write_json(Cwd.get(FOLDER_GEN, 'dependencies_i18n.json'), i18n);
+        set_config_cache('dependencies.i18n', i18n);
     });
 }

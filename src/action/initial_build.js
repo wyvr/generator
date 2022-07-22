@@ -2,10 +2,10 @@ import { cpus } from 'os';
 import { get_config_data } from './get_config_data.js';
 import { collect_packages } from './package.js';
 import { present } from './present.js';
-import { FOLDER_GEN, FOLDER_GEN_PLUGINS, FOLDER_RELEASES, FOLDER_STORAGE } from '../constants/folder.js';
+import { FOLDER_GEN_PLUGINS, FOLDER_RELEASES, FOLDER_STORAGE } from '../constants/folder.js';
 import { package_report } from '../presentation/package_report.js';
 import { Config } from '../utils/config.js';
-import { read_json, write_json } from '../utils/file.js';
+import { read_json } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
 import { Storage } from '../utils/storage.js';
@@ -25,6 +25,7 @@ import { scripts } from './script.js';
 import { media } from './media.js';
 import { copy_static_generated } from './copy_static_generated.js';
 import { copy } from './copy.js';
+import { set_config_cache } from '../utils/config_cache.js';
 
 export async function pre_initial_build(build_id, config_data) {
     // set release folder
@@ -100,8 +101,7 @@ export async function intial_build(build_id, config) {
 
     // combine identifiers
     const identifiers = to_identifiers(route_identifiers, build_result.identifiers);
-    Config.set('identifiers', identifiers);
-    write_json(Cwd.get(FOLDER_GEN, 'identifiers.json'), identifiers);
+    set_config_cache('identifiers', identifiers);
 
     //  Inject Data into the pages
     // @TODO

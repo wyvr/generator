@@ -1,9 +1,9 @@
-import { FOLDER_GEN, FOLDER_GEN_SRC } from '../constants/folder.js';
+import { FOLDER_GEN_SRC } from '../constants/folder.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
-import { Config } from '../utils/config.js';
+import { set_config_cache } from '../utils/config_cache.js';
 import { Event } from '../utils/event.js';
-import { collect_files, write_json } from '../utils/file.js';
+import { collect_files } from '../utils/file.js';
 import { Plugin } from '../utils/plugin.js';
 import { is_null, match_interface } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
@@ -34,8 +34,6 @@ export async function transform() {
             Event.off('emit', identifier_name, listener_id);
         });
 
-        Config.set('dependencies.config', file_configs);
-        write_json(Cwd.get(FOLDER_GEN, 'dependencies_config.json'), file_configs);
-
+        set_config_cache('dependencies.config', file_configs);
     });
 }

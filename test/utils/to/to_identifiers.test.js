@@ -18,4 +18,10 @@ describe('utils/to/to_identifiers', () => {
             huhu: identifier,
         });
     });
+    it('invalid', () => {
+        deepStrictEqual(to_identifiers({ test: identifier, huhu: identifier }, undefined), {
+            test: identifier,
+            huhu: identifier,
+        });
+    });
 });

@@ -14,6 +14,7 @@ import {
     is_big_int,
     is_string,
     filled_array,
+    filled_object,
 } from './validate.js';
 
 export function to_string(value) {
@@ -147,6 +148,9 @@ export function to_identifier_name(...parts) {
 export function to_identifiers(...items) {
     const identifiers = {};
     items.forEach((obj) => {
+        if(!filled_object(obj)) {
+            return;
+        }
         Object.keys(obj).forEach((key) => {
             identifiers[key] = obj[key];
         });

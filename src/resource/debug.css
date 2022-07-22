@@ -157,6 +157,10 @@
     display: block;
     white-space: nowrap;
 }
+.wyvr_debug_toolbar button:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
 .wyvr_debug_toolbar #wyvr_debug_rebuild {
     opacity: 0.5;
     filter: grayscale(1);

@@ -1,4 +1,3 @@
-import { join } from 'path';
 import { FOLDER_PUBLISH } from '../constants/folder.js';
 import { remove, symlink } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
@@ -18,7 +17,7 @@ export async function publish() {
         // wrap in plugin
         const caller = await Plugin.process(name, build_id, release_path);
         await caller(async () => {
-            const pub = join(Cwd.get(), FOLDER_PUBLISH);
+            const pub = Cwd.get(FOLDER_PUBLISH);
             remove(pub);
             symlink(release_path, pub);
         });

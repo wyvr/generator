@@ -1,4 +1,4 @@
-import { dirname, join } from 'path';
+import { dirname } from 'path';
 import { FOLDER_GEN_SRC } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { exists, find_file, to_extension } from './file.js';
@@ -13,11 +13,10 @@ export function dependencies_from_content(content, file) {
     if (!filled_string(content) || !filled_string(file)) {
         return undefined;
     }
-    const cwd = Cwd.get();
     let file_path = dirname(file);
     // prepand absolute path when it is relative
     if (file_path.indexOf('/') != 0) {
-        file_path = join(cwd, file_path);
+        file_path = Cwd.get(file_path);
     }
     const deps = {};
     const i18n = {};
@@ -32,7 +31,7 @@ export function dependencies_from_content(content, file) {
         }
         // replace @src
         dep = replace_src(dep, '');
-        const dep_file_path = join(Cwd.get(), FOLDER_GEN_SRC, dep);
+        const dep_file_path = Cwd.get(FOLDER_GEN_SRC, dep);
         let dep_file;
         if (exists(dep_file_path)) {
             dep_file = dep_file_path;
@@ -45,7 +44,7 @@ export function dependencies_from_content(content, file) {
             );
         }
         if (dep_file) {
-            dep_file = to_relative_path(dep_file.replace(cwd, '.'));
+            dep_file = to_relative_path(dep_file.replace(Cwd.get(), '.'));
             deps[key].push(dep_file);
         }
         return;

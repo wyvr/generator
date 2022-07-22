@@ -30,7 +30,7 @@ export async function get_report() {
     }
 
     // check if a package.json is present
-    const package_json_path = join(Cwd.get(), 'package.json');
+    const package_json_path = Cwd.get('package.json');
     if(!is_file(package_json_path)) {
         report.warning.push(ERRORS.package_is_not_present);
     } else {
@@ -40,7 +40,7 @@ export async function get_report() {
     }
     
     // check if a wyvr.js is present
-    const wyvr_js_path = join(Cwd.get(), 'wyvr.js');
+    const wyvr_js_path = Cwd.get('wyvr.js');
     if(!is_file(wyvr_js_path)) {
         report.success = false;
         report.error.push(ERRORS.wyvr_js_is_not_present);

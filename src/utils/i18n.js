@@ -50,7 +50,7 @@ export function write_language(language, data) {
         return false;
     }
     language = language.toLowerCase();
-    const path = join(Cwd.get(), FOLDER_GEN_I18N, `${language}.json`);
+    const path = Cwd.get(FOLDER_GEN_I18N, `${language}.json`);
     return write_json(path, data);
 }
 
@@ -64,7 +64,7 @@ export function get_language(language) {
         return language_cache[language];
     }
     // load from file
-    language_cache[language] = read_json(join(Cwd.get(), FOLDER_GEN_I18N, `${language}.json`));
+    language_cache[language] = read_json(Cwd.get(FOLDER_GEN_I18N, `${language}.json`));
     return language_cache[language];
 }
 

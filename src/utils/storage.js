@@ -20,7 +20,7 @@ export class Storage {
         if (!filled_string(path)) {
             return undefined;
         }
-        const location = join(Cwd.get(), path);
+        const location = Cwd.get(path);
         this.location = location;
         return location;
     }

@@ -1,6 +1,6 @@
-import { dirname, join } from 'path';
+import { dirname } from 'path';
 import replaceAsync from 'string-replace-async';
-import { FOLDER_MEDIA } from '../constants/folder.js';
+import { FOLDER_GEN, FOLDER_MEDIA } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { create_dir, is_file, read_buffer, to_extension, write } from './file.js';
 import { filled_object, filled_string, in_array, is_object, match_interface } from './validate.js';
@@ -189,13 +189,13 @@ export async function get_buffer(src) {
     }
     // assets are located in the gen folder, because they are combined from the packages
     if (src.match(/^\/?assets\//)) {
-        return read_buffer(join(Cwd.get(), 'gen', src));
+        return read_buffer(Cwd.get(FOLDER_GEN, src));
     }
     // local file, somewhere in the project
-    return read_buffer(join(Cwd.get(), src));
+    return read_buffer(Cwd.get(src));
 }
 export function get_output(src) {
-    return join(Cwd.get(), src);
+    return Cwd.get(src);
 }
 export function correct_format(format, src) {
     if (format == 'null') {

@@ -1,4 +1,4 @@
-import { basename, dirname, extname, join } from 'path';
+import { basename, dirname, extname } from 'path';
 import { FOLDER_GEN_DATA, FOLDER_GEN_ROUTES } from '../constants/folder.js';
 import { Route } from '../model/route.js';
 import { RouteStructure } from '../struc/route.js';
@@ -12,7 +12,7 @@ import { filled_array, filled_string, in_array, is_array, is_func, is_null, matc
 
 export function collect_routes(dir, package_tree) {
     if (!dir) {
-        dir = join(Cwd.get(), FOLDER_GEN_ROUTES);
+        dir = Cwd.get(FOLDER_GEN_ROUTES);
     }
     if (!exists(dir)) {
         return [];
@@ -129,7 +129,7 @@ export function write_routes(route_entries) {
                 return undefined;
             }
             // create data json for the given file
-            const raw_path = join(Cwd.get(), FOLDER_GEN_DATA, route.url);
+            const raw_path = Cwd.get(FOLDER_GEN_DATA, route.url);
             const path = to_extension(to_index(raw_path, 'json'), 'json');
             create_dir(dirname(path), { recursive: true });
             write(path, JSON.stringify(route));

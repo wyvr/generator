@@ -1,4 +1,4 @@
-import { join, sep } from 'path';
+import { sep } from 'path';
 import { Config } from '../utils/config.js';
 import { exists } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
@@ -58,7 +58,7 @@ async function process_package(pkg, index, package_json) {
     }
     // search inside the node_modules folder
     if (package_json && pkg.name && !pkg.path) {
-        const path = join(Cwd.get(), 'node_modules', pkg.name);
+        const path = Cwd.get('node_modules', pkg.name);
         if (exists(path)) {
             pkg.path = path;
         }
@@ -81,7 +81,7 @@ async function process_package(pkg, index, package_json) {
     if (pkg.path) {
         // use absolute path
         if (pkg.path.indexOf(sep) != 0) {
-            pkg.path = join(Cwd.get(), pkg.path);
+            pkg.path = Cwd.get(pkg.path);
         }
         // load the package config
         config = await Config.load(pkg.path);

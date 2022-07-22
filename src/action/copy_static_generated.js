@@ -1,4 +1,3 @@
-import { join } from 'path';
 import { FOLDER_ASSETS, FOLDER_CSS, FOLDER_GEN, FOLDER_I18N, FOLDER_JS } from '../constants/folder.js';
 import { Plugin } from '../utils/plugin.js';
 import { Cwd } from '../vars/cwd.js';
@@ -13,7 +12,7 @@ export async function copy_static_generated() {
         // wrap in plugin
         const caller = await Plugin.process(name);
         await caller(async () => {
-            copy_folder(join(Cwd.get(), FOLDER_GEN), [FOLDER_ASSETS, FOLDER_CSS, FOLDER_JS, FOLDER_I18N], ReleasePath.get());
+            copy_folder(Cwd.get(FOLDER_GEN), [FOLDER_ASSETS, FOLDER_CSS, FOLDER_JS, FOLDER_I18N], ReleasePath.get());
         });
     });
 }

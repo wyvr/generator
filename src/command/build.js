@@ -27,7 +27,7 @@ export async function build_command(config) {
     await optimize(media_query_files, critical_result);
 
     // Create Symlinks
-    symlink(join(Cwd.get(), FOLDER_MEDIA), join(ReleasePath.get(), FOLDER_MEDIA));
+    symlink(Cwd.get(FOLDER_MEDIA), join(ReleasePath.get(), FOLDER_MEDIA));
 
     // Create sitemap
     await sitemap();

@@ -1,4 +1,3 @@
-import { join } from 'path';
 import { Cwd } from '../vars/cwd.js';
 import { Logger } from './logger.js';
 import { filled_array } from './validate.js';
@@ -19,7 +18,7 @@ export async function package_watcher(packages) {
         
         let debouncer;
         const watch_folder = packages.map((pkg) => pkg.path);
-        watch_folder.push(join(Cwd.get(), 'wyvr.js'));
+        watch_folder.push(Cwd.get('wyvr.js'));
         let changed_files = {};
 
         watcher = watch(watch_folder, {

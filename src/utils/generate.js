@@ -9,7 +9,7 @@ export function generate_page_code(data) {
     if(!filled_object(data)) {
         return undefined;
     }
-    const base_path = join(Cwd.get(), FOLDER_GEN_SERVER);
+    const base_path = Cwd.get(FOLDER_GEN_SERVER);
     const tmpl_files = search_segment(data, '_wyvr.template_files', {
         doc: join(base_path, 'doc', 'Default.svelte'),
         layout: join(base_path, 'layout', 'Default.svelte'),

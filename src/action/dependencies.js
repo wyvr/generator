@@ -1,4 +1,3 @@
-import { join } from 'path';
 import { FOLDER_GEN, FOLDER_GEN_SRC } from '../constants/folder.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
@@ -45,7 +44,7 @@ export async function dependencies() {
             }
         });
 
-        const data = collect_svelte_files(join(Cwd.get(), FOLDER_GEN_SRC)).map((file) => file.path);
+        const data = collect_svelte_files(Cwd.get(FOLDER_GEN_SRC)).map((file) => file.path);
         // wrap in plugin
         const caller = await Plugin.process(name, data);
         await caller(async (data) => {
@@ -60,12 +59,12 @@ export async function dependencies() {
 
         // add to config and write gen files
         Config.set('dependencies.top', dependencies);
-        write_json(join(Cwd.get(), FOLDER_GEN, 'dependencies_top.json'), dependencies);
+        write_json(Cwd.get(FOLDER_GEN, 'dependencies_top.json'), dependencies);
 
         Config.set('dependencies.bottom', inverted_dependencies);
-        write_json(join(Cwd.get(), FOLDER_GEN, 'dependencies_bottom.json'), inverted_dependencies);
+        write_json(Cwd.get(FOLDER_GEN, 'dependencies_bottom.json'), inverted_dependencies);
 
         Config.set('dependencies.i18n', i18n);
-        write_json(join(Cwd.get(), FOLDER_GEN, 'dependencies_i18n.json'), i18n);
+        write_json(Cwd.get(FOLDER_GEN, 'dependencies_i18n.json'), i18n);
     });
 }

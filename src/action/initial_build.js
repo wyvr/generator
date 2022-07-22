@@ -1,5 +1,4 @@
 import { cpus } from 'os';
-import { join } from 'path';
 import { get_config_data } from './get_config_data.js';
 import { collect_packages } from './package.js';
 import { present } from './present.js';
@@ -29,7 +28,7 @@ import { copy } from './copy.js';
 
 export async function pre_initial_build(build_id, config_data) {
     // set release folder
-    ReleasePath.set(join(Cwd.get(), FOLDER_RELEASES, build_id));
+    ReleasePath.set(Cwd.get(FOLDER_RELEASES, build_id));
 
     // Build Global(storage) Data
     Storage.set_location(FOLDER_STORAGE);
@@ -102,7 +101,7 @@ export async function intial_build(build_id, config) {
     // combine identifiers
     const identifiers = to_identifiers(route_identifiers, build_result.identifiers);
     Config.set('identifiers', identifiers);
-    write_json(join(Cwd.get(), FOLDER_GEN, 'identifiers.json'), identifiers);
+    write_json(Cwd.get(FOLDER_GEN, 'identifiers.json'), identifiers);
 
     //  Inject Data into the pages
     // @TODO

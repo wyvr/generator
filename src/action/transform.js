@@ -1,4 +1,3 @@
-import { join } from 'path';
 import { FOLDER_GEN, FOLDER_GEN_SRC } from '../constants/folder.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
@@ -15,7 +14,7 @@ export async function transform() {
     const name = 'transform';
 
     await measure_action(name, async () => {
-        const data = collect_files(join(Cwd.get(), FOLDER_GEN_SRC));
+        const data = collect_files(Cwd.get(FOLDER_GEN_SRC));
         const identifier_name = get_name(WorkerEmit.wyvr_config);
         const file_configs = {};
 
@@ -36,7 +35,7 @@ export async function transform() {
         });
 
         Config.set('dependencies.config', file_configs);
-        write_json(join(Cwd.get(), FOLDER_GEN, 'dependencies_config.json'), file_configs);
+        write_json(Cwd.get(FOLDER_GEN, 'dependencies_config.json'), file_configs);
 
     });
 }

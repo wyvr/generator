@@ -1,6 +1,5 @@
 import esbuild from 'esbuild';
 import sveltePlugin from 'esbuild-svelte';
-import { join } from 'path';
 import { FOLDER_CLIENT, FOLDER_GEN_TEMP } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
@@ -15,7 +14,7 @@ export async function build(content, file) {
     if (!filled_string(content) || !filled_string(content)) {
         return { code: undefined, sourcemap: undefined };
     }
-    const tmp_file = join(Cwd.get(), FOLDER_GEN_TEMP, `${uniq_id()}.js`);
+    const tmp_file = Cwd.get(FOLDER_GEN_TEMP, `${uniq_id()}.js`);
     let code;
     write(tmp_file, content);
     try {

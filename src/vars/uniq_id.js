@@ -1,4 +1,3 @@
-import { join } from 'path';
 import { FOLDER_CACHE } from '../constants/folder.js';
 import { read, write } from '../utils/file.js';
 import { uniq_id } from '../utils/uniq.js';
@@ -20,6 +19,6 @@ export class UniqId {
     }
 
     static file() {
-        return join(Cwd.get(), FOLDER_CACHE, 'uniq');
+        return Cwd.get(FOLDER_CACHE, 'uniq');
     }
 }

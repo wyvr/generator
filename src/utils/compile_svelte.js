@@ -3,7 +3,7 @@ import { get_error_message } from './error.js';
 import { Logger } from './logger.js';
 import { in_array, filled_string, is_func, is_null, is_path, match_interface } from './validate.js';
 import { exists, remove, to_extension, write } from './file.js';
-import { dirname, extname, join, resolve } from 'path';
+import { dirname, extname, resolve } from 'path';
 import { Env } from '../vars/env.js';
 import { css_hash } from './hash.js';
 import { uniq_id } from './uniq.js';
@@ -122,7 +122,7 @@ export async function execute_server_compiled_svelte(compiled, file) {
         return undefined;
     }
     let component;
-    const tmp_file = join(Cwd.get(), FOLDER_GEN_TEMP, `${uniq_id()}.js`);
+    const tmp_file = Cwd.get(FOLDER_GEN_TEMP, `${uniq_id()}.js`);
     write(tmp_file, compiled.js.code);
     try {
         component = await import(tmp_file);

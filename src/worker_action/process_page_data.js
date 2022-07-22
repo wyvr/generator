@@ -19,7 +19,7 @@ export function process_page_data(page_data, mtime) {
     const enhanced_data = set_default_values(page_data, default_values);
 
     // search template files
-    const root_path = join(Cwd.get(), FOLDER_GEN_SERVER);
+    const root_path = Cwd.get(FOLDER_GEN_SERVER);
     const doc_file_name = find_file(join(root_path, 'doc'), page_data._wyvr.template.doc.map(to_server_path));
     const layout_file_name = find_file(join(root_path, 'layout'), page_data._wyvr.template.layout.map(to_server_path));
     const page_file_name = find_file(join(root_path, 'page'), page_data._wyvr.template.page.map(to_server_path));

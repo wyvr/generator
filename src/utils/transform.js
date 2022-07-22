@@ -111,7 +111,7 @@ export async function combine_splits(path, content) {
 
     // set content
     // replaced src has to be reverted otherwise the next steps will not work when building the tree
-    result.content = content.replace(new RegExp(join(Cwd.get(), FOLDER_GEN_SRC), 'g'), '@src');
+    result.content = content.replace(new RegExp(Cwd.get(FOLDER_GEN_SRC), 'g'), '@src');
     return result;
 }
 

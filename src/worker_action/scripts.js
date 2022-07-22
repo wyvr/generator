@@ -35,8 +35,7 @@ export async function scripts(identifiers) {
             await Promise.all(
                 dependencies.map(async (file) => {
                     const target = `const ${file.name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');`;
-                    // const import_path = to_extension(join(Cwd.get(), FOLDER_GEN_CLIENT, file.path), 'js');
-                    const import_path = join(Cwd.get(), FOLDER_GEN_CLIENT, file.path);
+                    const import_path = Cwd.get(FOLDER_GEN_CLIENT, file.path);
                     const instant_code = `
                 import ${file.name} from '${import_path}';
                 ${target}
@@ -54,7 +53,7 @@ export async function scripts(identifiers) {
                         )
                     ) {
                         const lazy_file_path = `/js/${to_extension(file.path, 'js')}`;
-                        const real_lazy_file_path = join(Cwd.get(), FOLDER_GEN, lazy_file_path);
+                        const real_lazy_file_path = Cwd.get(FOLDER_GEN, lazy_file_path);
                         // write the lazy file from the component
                         if (!exists(real_lazy_file_path)) {
                             // ${script_partials.hydrate}
@@ -94,7 +93,7 @@ export async function scripts(identifiers) {
         scripts.push(read(join(resouce_dir, 'i18n.js')).replace(/\[lib\]/g, lib_dir));
 
         /**/
-        const identifier_file = join(Cwd.get(), FOLDER_GEN_JS, `${identifier.identifier}.js`);
+        const identifier_file = Cwd.get(FOLDER_GEN_JS, `${identifier.identifier}.js`);
 
         let result = '';
         if (filled_array(content)) {

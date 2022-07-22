@@ -25,7 +25,7 @@ export async function regenerate_command(changed_files) {
     Logger.info('fragments', fragments);
     const packages = Config.get('packages');
     Logger.info('packages', packages);
-    const gen_folder = join(Cwd.get(), FOLDER_GEN);
+    const gen_folder = Cwd.get(FOLDER_GEN);
 
     await measure_action('regenerate', async () => {
         // regenerate assets
@@ -51,7 +51,7 @@ export async function regenerate_command(changed_files) {
         // regenerate i18n
         if (in_array(fragments, FOLDER_I18N)) {
             await i18n(packages);
-            copy_folder(join(Cwd.get(), FOLDER_GEN), [FOLDER_I18N], ReleasePath.get());
+            copy_folder(Cwd.get(FOLDER_GEN), [FOLDER_I18N], ReleasePath.get());
             // @TODO reload the whole browser page
         }
 

@@ -70,7 +70,7 @@ export async function build(files) {
 
             // write css
             if (filled_string(identifier) && search_segment(rendered_result.result, 'css.code')) {
-                const css_file_path = join(Cwd.get(), FOLDER_GEN_CSS, `${identifier}.css`);
+                const css_file_path = Cwd.get(FOLDER_GEN_CSS, `${identifier}.css`);
                 if (!exists(css_file_path)) {
                     write(css_file_path, rendered_result.result.css.code);
                     // file must exists before it can be splitted

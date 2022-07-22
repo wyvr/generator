@@ -32,7 +32,7 @@ export async function copy(available_packages) {
             // Copy files from packages and override in the package order
             // Build Tree of files and packages
             packages.forEach((pkg) => {
-                copy_folder(pkg.path, FOLDER_LIST_PACKAGE_COPY, join(Cwd.get(), FOLDER_GEN), (file, target) => {
+                copy_folder(pkg.path, FOLDER_LIST_PACKAGE_COPY, Cwd.get(FOLDER_GEN), (file, target) => {
                     const rel_path = to_relative_path(target);
                     // get file modify time of route files
                     if (
@@ -55,13 +55,13 @@ export async function copy(available_packages) {
                     }
                 });
             });
-            write_json(join(Cwd.get(), FOLDER_GEN, 'package_tree.json'), package_tree, false);
-            write_json(join(Cwd.get(), FOLDER_GEN, 'mtime.json'), mtime, false);
+            write_json(Cwd.get(FOLDER_GEN, 'package_tree.json'), package_tree, false);
+            write_json(Cwd.get(FOLDER_GEN, 'mtime.json'), mtime, false);
             Logger.info('copied files');
 
             // Copy configured asset files
             const assets = Config.get('assets');
-            copy_files(assets, join(Cwd.get(), FOLDER_GEN_ASSETS));
+            copy_files(assets, Cwd.get(FOLDER_GEN_ASSETS));
             Logger.info('copied configured assets');
         });
     });

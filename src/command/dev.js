@@ -6,6 +6,7 @@ import { FOLDER_GEN, FOLDER_RELEASES } from '../constants/folder.js';
 import { EnvType } from '../struc/env.js';
 import { exists } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
+import { watch_server } from '../utils/server.js';
 import { package_watcher } from '../utils/watcher.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
@@ -39,7 +40,11 @@ export async function dev_command(config) {
         packages = result.packages;
     }
 
+    watch_server('localhost', 3333);
+
     await package_watcher(packages);
+
+
 
     /*
     private init() {

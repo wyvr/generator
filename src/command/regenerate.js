@@ -12,7 +12,7 @@ import { Event } from '../utils/event.js';
 import { remove } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { to_identifiers } from '../utils/to.js';
-import { filled_array, filled_string, in_array } from '../utils/validate.js';
+import { filled_array, filled_object, filled_string, in_array } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { WorkerController } from '../worker/controller.js';
@@ -125,19 +125,15 @@ export async function regenerate_command(changed_files) {
             Event.off('emit', identifier_name, identifier_id);
         }
 
+        if(filled_object(identifiers)) {
+            const data = Object.keys(identifiers).map((key) => identifiers[key]);
+            await WorkerController.process_in_workers(WorkerAction.scripts, data, 1);
+        }
+
+        // update the identifiers cache
         const merged_identifiers = to_identifiers(get_config_cache('identifiers'), identifiers);
         set_config_cache('identifiers', merged_identifiers);
-        Logger.info('identifiers', merged_identifiers);
 
-        // Object.keys(changed_files).forEach((event) => {
-        //     changed_files[event].forEach((file) => {
-        //         switch (event) {
-        //             case 'unlink':
-        //                 remove_deleted_files(file.rel_path);
-        //                 break;
-        //         }
-        //     });
-        // });
     });
 
     return;

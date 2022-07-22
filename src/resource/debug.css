@@ -108,7 +108,7 @@
     background: var(--wyvr-debug-primary);
 }
 .wyvr_debug_toolbar.disconnected:after {
-    background: var(--wyvr-debug-disabled);
+    border: 2px solid var(--wyvr-debug-disabled);
 }
 
 .wyvr_debug_toolbar nav:before {

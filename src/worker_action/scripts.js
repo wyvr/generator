@@ -3,6 +3,7 @@ import { FOLDER_GEN, FOLDER_GEN_CLIENT, FOLDER_GEN_JS } from '../constants/folde
 import { WyvrFileLoading } from '../struc/wyvr_file.js';
 import { build } from '../utils/build.js';
 import { Config } from '../utils/config.js';
+import { get_config_cache } from '../utils/config_cache.js';
 import { get_hydrate_dependencies } from '../utils/dependency.js';
 import { exists, read, to_extension, write } from '../utils/file.js';
 import { stringify } from '../utils/json.js';
@@ -20,9 +21,9 @@ export async function scripts(identifiers) {
         return;
     }
 
-    const file_config = Config.get('dependencies.config');
+    const file_config = get_config_cache('dependencies.config');
     for (const identifier of identifiers) {
-        const tree = Config.get('dependencies.top');
+        const tree = get_config_cache('dependencies.top');
         const dependencies = [];
         ['doc', 'layout', 'page'].forEach((type) => {
             dependencies.push(
@@ -68,7 +69,13 @@ export async function scripts(identifiers) {
                             `,
                                 real_lazy_file_path
                             );
-                            write(real_lazy_file_path, result.code.replace('%sourcemap%', `# sourceMappingURL=${to_extension(file.path, 'js')}.map`));
+                            write(
+                                real_lazy_file_path,
+                                result.code.replace(
+                                    '%sourcemap%',
+                                    `# sourceMappingURL=${to_extension(file.path, 'js')}.map`
+                                )
+                            );
                             write(real_lazy_file_path + '.map', result.sourcemap);
                         }
                         // set marker for the needed hydrate methods
@@ -95,7 +102,7 @@ export async function scripts(identifiers) {
         /**/
         const identifier_file = Cwd.get(FOLDER_GEN_JS, `${identifier.identifier}.js`);
 
-        let result = '';
+        let result = { code: '', sourcemap: '' };
         if (filled_array(content)) {
             result = await build(
                 `const identifier = ${stringify(identifier)};
@@ -107,7 +114,10 @@ export async function scripts(identifiers) {
                 identifier_file
             );
         }
-        write(identifier_file, result.code.replace('%sourcemap%', `# sourceMappingURL=/js/${identifier.identifier}.js.map`));
+        write(
+            identifier_file,
+            result.code.replace('%sourcemap%', `# sourceMappingURL=/js/${identifier.identifier}.js.map`)
+        );
         write(identifier_file + '.map', result.sourcemap);
         Logger.debug('identifier', identifier, dependencies);
     }

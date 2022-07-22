@@ -50,4 +50,10 @@ describe('utils/spinner/stop', () => {
         const message = Spinner.stop(text, 500);
         strictEqual(message, `${text}  500 ms`);
     });
+    it('dev spinner', () => {
+        const text = 'this is some too long text for the spinner to display in the given format';
+        const message = Spinner.stop(text, 500);
+        strictEqual(message, undefined);
+        strictEqual(result, `${text}  500 ms`);
+    });
 });

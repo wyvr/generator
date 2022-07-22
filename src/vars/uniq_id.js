@@ -1,11 +1,16 @@
 import { FOLDER_CACHE } from '../constants/folder.js';
 import { read, write } from '../utils/file.js';
 import { uniq_id } from '../utils/uniq.js';
+import { is_null } from '../utils/validate.js';
 import { Cwd } from './cwd.js';
 
 export class UniqId {
     static load() {
-        return read(this.file());
+        let value = read(this.file());
+        if (is_null(value)) {
+            return undefined;
+        }
+        return value.trim();
     }
     static get() {
         if (!this.value) {

@@ -2,7 +2,6 @@ import { join } from 'path';
 import { FOLDER_GEN, FOLDER_GEN_CLIENT, FOLDER_GEN_JS } from '../constants/folder.js';
 import { WyvrFileLoading } from '../struc/wyvr_file.js';
 import { build } from '../utils/build.js';
-import { Config } from '../utils/config.js';
 import { get_config_cache } from '../utils/config_cache.js';
 import { get_hydrate_dependencies } from '../utils/dependency.js';
 import { exists, read, to_extension, write } from '../utils/file.js';
@@ -11,6 +10,7 @@ import { Logger } from '../utils/logger.js';
 import { to_dirname } from '../utils/to.js';
 import { filled_array, in_array } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
+import { Env } from '../vars/env.js';
 
 const __dirname = to_dirname(import.meta.url);
 const lib_dir = join(__dirname, '..');
@@ -98,6 +98,9 @@ export async function scripts(identifiers) {
         scripts.push(read(join(resouce_dir, 'props.js')));
         scripts.push(read(join(resouce_dir, 'portal.js')));
         scripts.push(read(join(resouce_dir, 'i18n.js')).replace(/\[lib\]/g, lib_dir));
+        if (Env.is_dev()) {
+            scripts.push(read(join(resouce_dir, 'debug.js')));
+        }
 
         /**/
         const identifier_file = Cwd.get(FOLDER_GEN_JS, `${identifier.identifier}.js`);

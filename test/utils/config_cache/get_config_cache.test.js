@@ -35,4 +35,9 @@ describe('utils/config_cache/get_config_cache', () => {
         Cwd.set(join(__dirname, 'simple'));
         deepStrictEqual(get_config_cache('huhu', false), false);
     });
+    it('found config', () => {
+        Cwd.set(join(__dirname, 'simple'));
+        Config.replace({ test: 'huhu' });
+        deepStrictEqual(get_config_cache('test', false), 'huhu');
+    });
 });

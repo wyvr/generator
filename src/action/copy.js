@@ -9,6 +9,7 @@ import {
     FOLDER_SRC,
 } from '../constants/folder.js';
 import { Config } from '../utils/config.js';
+import { set_config_cache } from '../utils/config_cache.js';
 import { collect_files, copy as copy_file, exists, read, write, write_json } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
@@ -55,8 +56,8 @@ export async function copy(available_packages) {
                     }
                 });
             });
-            write_json(Cwd.get(FOLDER_GEN, 'package_tree.json'), package_tree, false);
-            write_json(Cwd.get(FOLDER_GEN, 'mtime.json'), mtime, false);
+            set_config_cache('package_tree', package_tree);
+            set_config_cache('mtime', mtime);
             Logger.info('copied files');
 
             // Copy configured asset files

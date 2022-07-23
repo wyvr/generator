@@ -4,7 +4,7 @@ import { describe } from 'mocha';
 import { join } from 'path';
 import { EnvType } from '../../../src/struc/env.js';
 import { split_css_into_media_query_files } from '../../../src/utils/css.js';
-import { collect_files, remove, write } from '../../../src/utils/file.js';
+import { exists, remove, write } from '../../../src/utils/file.js';
 import { to_dirname, to_plain } from '../../../src/utils/to.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 import { Env } from '../../../src/vars/env.js';
@@ -23,9 +23,11 @@ describe('utils/css/split_css_into_media_query_files', () => {
     });
     afterEach(() => {
         log = [];
-        readdirSync(__dirname).forEach((file) => {
-            remove(join(__dirname, file));
-        });
+        if (exists(__dirname)) {
+            readdirSync(__dirname).forEach((file) => {
+                remove(join(__dirname, file));
+            });
+        }
     });
     after(() => {
         console_error = console.error;

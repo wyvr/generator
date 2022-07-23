@@ -3,7 +3,7 @@ import { readdirSync } from 'fs';
 import { describe } from 'mocha';
 import { join } from 'path';
 import { get_critical_css } from '../../../src/utils/critical.js';
-import { remove } from '../../../src/utils/file.js';
+import { exists, remove } from '../../../src/utils/file.js';
 import { to_dirname, to_plain } from '../../../src/utils/to.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 import { ReleasePath } from '../../../src/vars/release_path.js';
@@ -32,9 +32,11 @@ describe('utils/css/get_critical_css', () => {
     });
     afterEach(() => {
         log = [];
-        readdirSync(__dirname).forEach((file) => {
-            remove(join(__dirname, file));
-        });
+        if(exists(__dirname)) {
+            readdirSync(__dirname).forEach((file) => {
+                remove(join(__dirname, file));
+            });
+        }
     });
     after(() => {
         console.error = console_error;

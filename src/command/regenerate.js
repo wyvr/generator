@@ -2,7 +2,7 @@ import { join } from 'path';
 import { copy_files, copy_folder } from '../action/copy.js';
 import { measure_action } from '../action/helper.js';
 import { i18n } from '../action/i18n.js';
-import { FOLDER_ASSETS, FOLDER_GEN, FOLDER_I18N, FOLDER_ROUTES } from '../constants/folder.js';
+import { FOLDER_ASSETS, FOLDER_GEN, FOLDER_I18N, FOLDER_ROUTES, FOLDER_SRC } from '../constants/folder.js';
 import { Route } from '../model/route.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
@@ -23,6 +23,9 @@ import { WorkerController } from '../worker/controller.js';
 export async function regenerate_command(changed_files) {
     const frag_files = split_changed_files_by_fragment(changed_files);
     const fragments = Object.keys(frag_files);
+    if(!filled_array(fragments)) {
+        return;
+    }
     Logger.info('changed_files', changed_files);
     Logger.info('fragments', fragments);
     const packages = Config.get('packages');
@@ -37,7 +40,7 @@ export async function regenerate_command(changed_files) {
             if (assets.change || assets.add) {
                 const mod_assets = []
                     .concat(assets.change || [], assets.add || [])
-                    .map((file) => ({ src: file.path, target: '.' + file.rel_path }));
+                    .map((file) => ({ src: file.path, target: './' + file.rel_path }));
                 copy_files(mod_assets, ReleasePath.get());
                 copy_files(mod_assets, gen_folder);
             }
@@ -64,12 +67,12 @@ export async function regenerate_command(changed_files) {
         if (in_array(fragments, FOLDER_ROUTES)) {
             if (frag_files.routes.change || frag_files.routes.add) {
                 const mod_routes = [].concat(frag_files.routes.change || [], frag_files.routes.add || []);
-                const mod_routes_copy = mod_routes.map((file) => ({ src: file.path, target: '.' + file.rel_path }));
+                const mod_routes_copy = mod_routes.map((file) => ({ src: file.path, target: './' + file.rel_path }));
                 copy_files(mod_routes_copy, gen_folder);
                 const routes_data = mod_routes.map((file) => {
                     return new Route({
                         path: join(gen_folder, file.rel_path),
-                        rel_path: file.rel_path.replace(/^\//, ''),
+                        rel_path: file.rel_path,
                         pkg: file.pkg,
                     });
                 });
@@ -143,6 +146,9 @@ export function split_changed_files_by_fragment(changed_files) {
     const result = {};
     Object.keys(changed_files).forEach((event) => {
         changed_files[event].forEach((file) => {
+            if(!file) {
+                return;
+            }
             const fragment = file.rel_path.split('/').find((x) => x);
             if (!result[fragment]) {
                 result[fragment] = {};

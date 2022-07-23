@@ -5,6 +5,7 @@ import { watch } from 'chokidar';
 import { restart } from '../cli/restart.js';
 import { uniq_values } from './uniq.js';
 import { regenerate_command } from '../command/regenerate.js';
+import { get_config_cache } from './config_cache.js';
 
 let watcher;
 let working = false;
@@ -15,7 +16,6 @@ export async function package_watcher(packages) {
         return;
     }
     return new Promise(() => {
-        
         let debouncer;
         const watch_folder = packages.map((pkg) => pkg.path);
         watch_folder.push(Cwd.get('wyvr.js'));
@@ -33,7 +33,7 @@ export async function package_watcher(packages) {
             }
             changed_files[event] = uniq_values([path, ...changed_files[event]]);
 
-            if(working) {
+            if (working) {
                 return;
             }
 
@@ -52,6 +52,7 @@ export async function package_watcher(packages) {
 
 export async function process_changed_files(changed_files, packages) {
     const events = Object.keys(changed_files);
+    const package_tree = get_config_cache('package_tree');
 
     let restart_required = false;
     const changed_config_files = [];
@@ -65,7 +66,13 @@ export async function process_changed_files(changed_files, packages) {
 
             // @TODO check if the file from this package is used
 
-            const rel_path = path.replace(pkg_path, '');
+            const rel_path = path.replace(pkg_path + '/', '');
+
+            const used_pkg = package_tree[rel_path];
+            if (used_pkg && used_pkg.path != pkg_path) {
+                Logger.warning(`ignoring ${event} of ${rel_path} from ${pkg.name}, it is used from ${used_pkg.name} ${Logger.color.dim(used_pkg.path)}`);
+                return;
+            }
 
             Logger.info('detect', event, Logger.color.dim(pkg_path) + rel_path);
 
@@ -119,7 +126,6 @@ export async function unwatch() {
         resolve();
     });
 }
-
 
 function set_waiting() {
     Logger.output(undefined, undefined, Logger.color.dim('...'));

@@ -8,13 +8,13 @@ toolbar.setAttribute('class', 'wyvr_debug_toolbar');
 toolbar.innerHTML = `
 <span><img width="48" height="17" src="${icon}" alt="wyvr Debug toolbar"/></span>
 <nav>
-    <button id="wyvr_debug_rebuild" title="Rebuild" disabled>♻️</button>
-    <button id="wyvr_debug_outline" title="Outline hydrated elements" disabled>🔍</button>
+    <button id="wyvr_debug_rebuild" title="Rebuild">♻️</button>
+    <button id="wyvr_debug_outline" title="Outline hydrated elements">🔍</button>
     <button id="wyvr_debug_ct.css" title="ct.css">🧠</button>
     <a href="https://csswizardry.com/ct/" target="_blank" rel="noopener">Let’s take a look inside your &lt;head&gt;</a>
-    <button id="wyvr_debug_inspect" title="Inspect data" disabled>✏️</button>
-    <button id="wyvr_debug_inspect_global" title="Inspect global data" disabled>🌐</button>
-    <button id="wyvr_debug_inspect_structure" title="Inspect structure" disabled>🏗</button>
+    <button id="wyvr_debug_inspect" title="Inspect data">✏️</button>
+    <button id="wyvr_debug_inspect_global" title="Inspect global data">🌐</button>
+    <button id="wyvr_debug_inspect_structure" title="Inspect structure">🏗</button>
     <button id="wyvr_debug_show_breakpoints" title="Show media breakpoints">📱</button>
     <button id="wyvr_debug_measure_cwv" title="Measure CWV">📈</button>
     <button id="wyvr_debug_clear_storage" title="Clear Storage">🗑️</button>

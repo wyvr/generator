@@ -19,6 +19,7 @@ import { split_css_into_media_query_files } from '../utils/css.js';
 import { to_dirname, to_relative_path } from '../utils/to.js';
 import { Env } from '../vars/env.js';
 import { Config } from '../utils/config.js';
+import { add_debug_code } from '../utils/debug.js';
 
 export async function build(files) {
     if (!filled_array(files)) {
@@ -80,7 +81,7 @@ export async function build(files) {
             }
 
             // write the html code
-            write(path, content);
+            write(path, add_debug_code(content, path, data));
 
             // write css
             if (filled_string(identifier) && search_segment(rendered_result.result, 'css.code')) {

@@ -1,6 +1,7 @@
 import { FOLDER_GEN_DATA } from '../constants/folder.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
+import { set_config_cache } from '../utils/config_cache.js';
 import { Event } from '../utils/event.js';
 import { collect_files } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
@@ -72,6 +73,7 @@ export async function build() {
 
         // store the identifier_files in the collection storage
         await Storage.set('collection', 'identifier_files', identifier_files);
+        set_config_cache('identifier.files', identifier_files)
 
         const identifier_length = Object.keys(identifiers).length;
         Logger.info(

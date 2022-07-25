@@ -15,13 +15,13 @@ export async function transform() {
 
     await measure_action(name, async () => {
         const data = collect_files(Cwd.get(FOLDER_GEN_SRC));
-        const identifier_name = get_name(WorkerEmit.wyvr_config);
+        const config_name = get_name(WorkerEmit.wyvr_config);
         const file_configs = {};
 
         // wrap in plugin
         const caller = await Plugin.process(name, data);
         await caller(async (data) => {
-            const listener_id = Event.on('emit', identifier_name, (data) => {
+            const config_id = Event.on('emit', config_name, (data) => {
                 if (is_null(data) || !match_interface(data, { file: true, config: true })) {
                     return;
                 }
@@ -31,7 +31,7 @@ export async function transform() {
             await WorkerController.process_in_workers(WorkerAction.transform, data, 10);
 
             // remove listeners
-            Event.off('emit', identifier_name, listener_id);
+            Event.off('emit', config_name, config_id);
         });
 
         set_config_cache('dependencies.config', file_configs);

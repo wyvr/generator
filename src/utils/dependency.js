@@ -8,6 +8,7 @@ import { filled_array, filled_object, filled_string, is_array, is_func, is_null 
 import { uniq_values } from './uniq.js';
 import { WyvrFileRender } from '../struc/wyvr_file.js';
 import { WyvrFile } from '../model/wyvr_file.js';
+import { Identifier } from '../model/identifier.js';
 
 export function dependencies_from_content(content, file) {
     if (!filled_string(content) || !filled_string(file)) {
@@ -123,4 +124,60 @@ export function get_translations_of_dependencies(tree, i18n, file) {
         });
     }
     return translations;
+}
+
+export function get_identifiers_of_file(reversed_tree, file) {
+    const parents = { doc: [], layout: [], page: [] };
+    const lists = get_parents_of_file_recursive(reversed_tree, file);
+    if (is_null(lists)) {
+        return { identifiers_of_file: parents, files: [] };
+    }
+    let has_values = false;
+    const files = uniq_values([file].concat(...lists));
+
+    files
+        .filter((x) => x)
+        .forEach((file) => {
+            if (file.indexOf('doc/') == 0) {
+                parents.doc.push(file);
+                has_values = true;
+            }
+            if (file.indexOf('layout/') == 0) {
+                parents.layout.push(file);
+                has_values = true;
+            }
+            if (file.indexOf('page/') == 0) {
+                parents.page.push(file);
+                has_values = true;
+            }
+        });
+    if (!has_values) {
+        return { identifiers_of_file: parents, files };
+    }
+    if (!filled_array(parents.doc)) {
+        parents.doc.push(undefined);
+    }
+    if (!filled_array(parents.layout)) {
+        parents.layout.push(undefined);
+    }
+    if (!filled_array(parents.page)) {
+        parents.page.push(undefined);
+    }
+    const identifiers = [];
+    parents.doc.forEach((doc) => {
+        parents.layout.forEach((layout) => {
+            parents.page.forEach((page) => {
+                identifiers.push(Identifier(doc, layout, page));
+            });
+        });
+    });
+    return { identifiers_of_file: uniq_values(identifiers), files };
+}
+function get_parents_of_file_recursive(tree, file) {
+    if (!tree[file]) {
+        return undefined;
+    }
+    const parents = tree[file];
+    parents.push(...tree[file].map((parent) => get_parents_of_file_recursive(tree, parent)));
+    return parents;
 }

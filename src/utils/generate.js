@@ -9,6 +9,8 @@ export function generate_page_code(data) {
     if(!filled_object(data)) {
         return undefined;
     }
+    const cache_breaker = Env.is_dev() ? `?${Date.now()}` : '';
+
     const base_path = Cwd.get(FOLDER_GEN_SERVER);
     const tmpl_files = search_segment(data, '_wyvr.template_files', {
         doc: join(base_path, 'doc', 'Default.svelte'),
@@ -18,9 +20,9 @@ export function generate_page_code(data) {
 
     const code = `
 <script type="module">
-    import Doc from '${tmpl_files.doc}';
-    import Layout from '${tmpl_files.layout}';
-    import Page from '${tmpl_files.page}';
+    import Doc from '${tmpl_files.doc}${cache_breaker}';
+    import Layout from '${tmpl_files.layout}${cache_breaker}';
+    import Page from '${tmpl_files.page}${cache_breaker}';
     const data = ${JSON.stringify(data, null, Env.json_spaces())};
 </script>
 

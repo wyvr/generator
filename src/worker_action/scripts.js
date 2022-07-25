@@ -20,6 +20,7 @@ export async function scripts(identifiers) {
     if (!filled_array(identifiers)) {
         return;
     }
+    const cache_breaker = Env.is_dev() ? `?${Date.now()}` : '';
 
     const file_config = get_config_cache('dependencies.config');
     for (const identifier of identifiers) {
@@ -38,7 +39,7 @@ export async function scripts(identifiers) {
                     const target = `const ${file.name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');`;
                     const import_path = Cwd.get(FOLDER_GEN_CLIENT, file.path);
                     const instant_code = `
-                import ${file.name} from '${import_path}';
+                import ${file.name} from '${import_path}${cache_breaker}';
                 ${target}
                 wyvr_hydrate_instant(${file.name}_target, ${file.name});`;
                     // loading=instant

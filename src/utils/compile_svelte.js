@@ -21,6 +21,7 @@ export async function prepare_code_to_compile(content, file, type) {
     }
     const folder = type_value(type, FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER);
     const scope = `svelte ${type} prepare`;
+    const cache_breaker = Env.is_dev() ? `?${Date.now()}` : '';
     // replace names of components because some can not used, which are default html tags
     if (type === 'server') {
         content = fix_reserved_tag_names(content);
@@ -53,6 +54,7 @@ export async function prepare_code_to_compile(content, file, type) {
                     }
                     path = `${path}${new_ext || ''}`;
                 }
+                path += cache_breaker;
             }
 
             return `import ${imported} from '${path}'`;
@@ -64,7 +66,6 @@ export async function prepare_code_to_compile(content, file, type) {
         }
 
         return await inject(replace_src_path(modified_content, folder, extname(file)), file);
-
     } catch (e) {
         Logger.error(get_error_message(e, file, scope), e.stack);
     }

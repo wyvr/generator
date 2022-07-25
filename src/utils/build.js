@@ -31,7 +31,7 @@ export async function build(content, file) {
             logLevel: 'silent',
             plugins: [
                 sveltePlugin({
-                    compilerOptions: { css: true },
+                    compilerOptions: { css: true, dev: Env.is_dev() },
                     filterWarnings: (warning) => {
                         // ignore some warnings
                         if (warning.code == 'css-unused-selector' && warning.message.indexOf('[data-slot=') > -1) {
@@ -39,7 +39,7 @@ export async function build(content, file) {
                         }
                         Logger.warning(get_error_message(warning, file, 'svelte'));
                         return false;
-                    }
+                    },
                 }),
             ],
         });

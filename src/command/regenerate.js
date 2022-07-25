@@ -2,17 +2,29 @@ import { join } from 'path';
 import { copy_files, copy_folder } from '../action/copy.js';
 import { measure_action } from '../action/helper.js';
 import { i18n } from '../action/i18n.js';
-import { FOLDER_ASSETS, FOLDER_GEN, FOLDER_I18N, FOLDER_ROUTES, FOLDER_SRC } from '../constants/folder.js';
+import {
+    FOLDER_ASSETS,
+    FOLDER_CSS,
+    FOLDER_GEN,
+    FOLDER_GEN_DATA,
+    FOLDER_GEN_SRC,
+    FOLDER_I18N,
+    FOLDER_JS,
+    FOLDER_ROUTES,
+    FOLDER_SRC,
+} from '../constants/folder.js';
 import { Route } from '../model/route.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
 import { Config } from '../utils/config.js';
 import { get_config_cache, set_config_cache } from '../utils/config_cache.js';
+import { get_identifiers_of_file } from '../utils/dependency.js';
 import { Event } from '../utils/event.js';
-import { remove } from '../utils/file.js';
+import { copy, remove, to_index } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { to_identifiers } from '../utils/to.js';
-import { filled_array, filled_object, filled_string, in_array } from '../utils/validate.js';
+import { uniq_values } from '../utils/uniq.js';
+import { filled_array, filled_object, filled_string, in_array, is_null, match_interface } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { WorkerController } from '../worker/controller.js';
@@ -23,7 +35,7 @@ import { WorkerController } from '../worker/controller.js';
 export async function regenerate_command(changed_files) {
     const frag_files = split_changed_files_by_fragment(changed_files);
     const fragments = Object.keys(frag_files);
-    if(!filled_array(fragments)) {
+    if (!filled_array(fragments)) {
         return;
     }
     Logger.info('changed_files', changed_files);
@@ -59,10 +71,72 @@ export async function regenerate_command(changed_files) {
             copy_folder(Cwd.get(FOLDER_GEN), [FOLDER_I18N], ReleasePath.get());
             // @TODO reload the whole browser page
         }
+        const identifiers = {};
+        let routes = [];
+
+        if (in_array(fragments, FOLDER_SRC)) {
+            const identifier_files = get_config_cache('identifier.files');
+            const dependencies_bottom = get_config_cache('dependencies.bottom');
+            const src = frag_files.src;
+            if (src.change || src.add) {
+                const identifier_list = [];
+                const dependent_files = [];
+                const files = [].concat(src.change || [], src.add || []).map((file) => {
+                    const { identifiers_of_file, files } = get_identifiers_of_file(
+                        dependencies_bottom,
+                        file.rel_path.replace(/^src\//, '')
+                    );
+                    dependent_files.push(...files);
+                    if (filled_array(identifiers_of_file)) {
+                        identifier_list.push(...identifiers_of_file);
+                    }
+                    const target = Cwd.get(FOLDER_GEN, file.rel_path);
+                    copy(file.path, target);
+                    return target;
+                    // console.log(file.rel_path, dependencies_bottom);
+                });
+                const combined_files = uniq_values(
+                    [].concat(
+                        files,
+                        dependent_files.filter((x) => x).map((path) => Cwd.get(FOLDER_GEN_SRC, path))
+                    )
+                );
+
+                const config_name = get_name(WorkerEmit.wyvr_config);
+                const file_configs = get_config_cache('dependencies.config', {});
+
+                // wrap in plugin
+                const config_id = Event.on('emit', config_name, (data) => {
+                    if (is_null(data) || !match_interface(data, { file: true, config: true })) {
+                        return;
+                    }
+                    file_configs[data.file] = data.config;
+                });
+
+                await WorkerController.process_in_workers(WorkerAction.transform, combined_files, 10);
+
+                // @TODO update dependencies
+
+                await WorkerController.process_in_workers(WorkerAction.compile, combined_files, 10);
+
+                // remove listeners
+                Event.off('emit', config_name, config_id);
+
+                set_config_cache('dependencies.config', file_configs);
+
+                const data_files = []
+                    .concat(
+                        ...uniq_values(identifier_list).map((identifier) => {
+                            identifiers[identifier.identifier] = identifier;
+                            return identifier_files[identifier.identifier];
+                        })
+                    )
+                    .map((url) => Cwd.get(FOLDER_GEN_DATA, to_index(url, 'json')));
+                routes.push(...data_files);
+            }
+        }
 
         // regenerate routes
-        let routes = [];
-        const identifiers = {};
         const collections = {};
         if (in_array(fragments, FOLDER_ROUTES)) {
             if (frag_files.routes.change || frag_files.routes.add) {
@@ -115,7 +189,8 @@ export async function regenerate_command(changed_files) {
             // @TODO reload the whole browser page
         }
 
-        if(filled_array(routes)) {
+        Logger.debug('routes', routes)
+        if (filled_array(routes)) {
             const identifier_name = get_name(WorkerEmit.identifier);
             const identifier_id = Event.on('emit', identifier_name, (data) => {
                 if (!data) {
@@ -127,8 +202,8 @@ export async function regenerate_command(changed_files) {
             await WorkerController.process_in_workers(WorkerAction.build, routes, 100);
             Event.off('emit', identifier_name, identifier_id);
         }
-
-        if(filled_object(identifiers)) {
+        Logger.debug('identifiers', identifiers)
+        if (filled_object(identifiers)) {
             const data = Object.keys(identifiers).map((key) => identifiers[key]);
             await WorkerController.process_in_workers(WorkerAction.scripts, data, 1);
         }
@@ -137,6 +212,7 @@ export async function regenerate_command(changed_files) {
         const merged_identifiers = to_identifiers(get_config_cache('identifiers'), identifiers);
         set_config_cache('identifiers', merged_identifiers);
 
+        copy_folder(Cwd.get(FOLDER_GEN), [FOLDER_ASSETS, FOLDER_CSS, FOLDER_JS, FOLDER_I18N], ReleasePath.get());
     });
 
     return;
@@ -146,7 +222,7 @@ export function split_changed_files_by_fragment(changed_files) {
     const result = {};
     Object.keys(changed_files).forEach((event) => {
         changed_files[event].forEach((file) => {
-            if(!file) {
+            if (!file) {
                 return;
             }
             const fragment = file.rel_path.split('/').find((x) => x);

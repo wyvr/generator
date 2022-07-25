@@ -15,7 +15,6 @@ export function Identifier(doc, layout, page) {
         layout: 'Default.js',
         page: 'Default.js',
     };
-    identifier.identifier = to_identifier_name(doc, layout, page);
     if (filled_string(doc)) {
         identifier.doc = to_relative_path(doc).replace(/^doc\//, '');
     }
@@ -25,5 +24,6 @@ export function Identifier(doc, layout, page) {
     if (filled_string(page)) {
         identifier.page = to_relative_path(page).replace(/^page\//, '');
     }
+    identifier.identifier = to_identifier_name(identifier.doc, identifier.layout, identifier.page);
     return identifier;
 }

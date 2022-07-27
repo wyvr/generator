@@ -10,7 +10,7 @@ import {
 } from '../constants/folder.js';
 import { Config } from '../utils/config.js';
 import { set_config_cache } from '../utils/config_cache.js';
-import { collect_files, copy as copy_file, exists, read, write, write_json } from '../utils/file.js';
+import { collect_files, copy as copy_file, exists, read, write } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
 import { to_relative_path } from '../utils/to.js';

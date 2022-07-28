@@ -70,11 +70,15 @@ export async function process_changed_files(changed_files, packages) {
 
             const used_pkg = package_tree[rel_path];
             if (used_pkg && used_pkg.path != pkg_path) {
-                Logger.warning(`ignoring ${event} of ${rel_path} from ${pkg.name}, it is used from ${used_pkg.name} ${Logger.color.dim(used_pkg.path)}`);
+                Logger.warning(
+                    `ignoring ${event} of ${rel_path} from ${pkg.name}, it is used from ${
+                        used_pkg.name
+                    } ${Logger.color.dim(used_pkg.path)}`
+                );
                 return;
             }
 
-            Logger.info('detect', event, Logger.color.dim(pkg_path) + rel_path);
+            Logger.info('detect', event, Logger.color.dim(pkg_path + '/') + rel_path);
 
             // when config file is changed restart
             if (path.match(/wyvr\.js$/)) {

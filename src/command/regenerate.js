@@ -5,6 +5,7 @@ import { i18n } from '../action/i18n.js';
 import {
     FOLDER_ASSETS,
     FOLDER_CSS,
+    FOLDER_EXEC,
     FOLDER_GEN,
     FOLDER_GEN_DATA,
     FOLDER_GEN_SRC,
@@ -71,6 +72,17 @@ export async function regenerate_command(changed_files) {
             copy_folder(Cwd.get(FOLDER_GEN), [FOLDER_I18N], ReleasePath.get());
             // @TODO reload the whole browser page
         }
+
+        // copy exec
+        if (in_array(fragments, FOLDER_EXEC)) {
+            const exec = frag_files.exec;
+            if (exec.change || exec.add) {
+                [].concat(exec.change || [], exec.add || []).map((file) => {
+                    copy(file.path, Cwd.get(FOLDER_GEN, file.rel_path));
+                });
+                // @TODO reload the whole browser page
+            }
+        }
         const identifiers = {};
         let routes = [];
 
@@ -90,6 +102,7 @@ export async function regenerate_command(changed_files) {
                     if (filled_array(identifiers_of_file)) {
                         identifier_list.push(...identifiers_of_file);
                     }
+                    console.log(identifier_list, file.rel_path)
                     const target = Cwd.get(FOLDER_GEN, file.rel_path);
                     copy(file.path, target);
                     return target;
@@ -189,7 +202,7 @@ export async function regenerate_command(changed_files) {
             // @TODO reload the whole browser page
         }
 
-        Logger.debug('routes', routes)
+        Logger.debug('routes', routes);
         if (filled_array(routes)) {
             const identifier_name = get_name(WorkerEmit.identifier);
             const identifier_id = Event.on('emit', identifier_name, (data) => {
@@ -202,7 +215,7 @@ export async function regenerate_command(changed_files) {
             await WorkerController.process_in_workers(WorkerAction.build, routes, 100);
             Event.off('emit', identifier_name, identifier_id);
         }
-        Logger.debug('identifiers', identifiers)
+        Logger.debug('identifiers', identifiers);
         if (filled_object(identifiers)) {
             const data = Object.keys(identifiers).map((key) => identifiers[key]);
             await WorkerController.process_in_workers(WorkerAction.scripts, data, 1);

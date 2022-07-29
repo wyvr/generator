@@ -6,10 +6,17 @@ import static_server from 'node-static';
 import { WebSocketServer } from 'ws';
 import { Cwd } from '../vars/cwd.js';
 import { get_error_message } from './error.js';
+import { get_exec, run_exec } from './exec.js';
+import { FOLDER_CSS, FOLDER_GEN_JS, FOLDER_JS } from '../constants/folder.js';
+import { copy, exists, write } from './file.js';
+import { split_css_into_media_query_files } from './css.js';
+import { ReleasePath } from '../vars/release_path.js';
+import { join } from 'path';
+import { scripts } from '../worker_action/scripts.js';
 
 export function server(host, port, on_request, on_end) {
     if (!filled_string(host) || !is_number(port)) {
-        Logger.warning('server could not be started because ');
+        Logger.warning('server could not be started because host or port is missing');
     }
     createServer((req, res) => {
         const start = process.hrtime.bigint();
@@ -38,7 +45,29 @@ export function watch_server(host, port, wsport, fallback) {
     server(host, port, undefined, async (req, res, uid) => {
         pub.serve(req, res, async (err) => {
             if (err) {
-                if (is_func(fallback)) {
+                const exec = get_exec(req.url);
+                if (exec) {
+                    const result = await run_exec(req, res, uid, exec);
+                    // write css
+                    if (filled_string(result?.data?._wyvr?.identifier) && result?.result?.css?.code) {
+                        const css_file_path = join(ReleasePath.get(), FOLDER_CSS, `${result.data._wyvr.identifier}.css`);
+                        //if (!exists(css_file_path)) {
+                            write(css_file_path, result.result.css.code);
+                        //}
+                    }
+                    const js_path = join(ReleasePath.get(), FOLDER_JS, `${result.data._wyvr.identifier}.js`);
+                    if(result?.data?._wyvr?.identifier_data) {
+                        const identifiers = [result?.data?._wyvr?.identifier_data];
+                        // save the file to gen
+                        await scripts(identifiers);
+                        copy(Cwd.get(FOLDER_GEN_JS, `${result.data._wyvr.identifier}.js`), js_path);
+                    }
+                    if(result?.result?.html) {
+                        res.writeHead(200, { 'Content-Type': 'text/html' });
+                        res.end(result.result.html); 
+                    }
+                }
+                if (!res.writableEnded && is_func(fallback)) {
                     await fallback(req, res, uid, err);
                 }
                 if (!res.writableEnded) {
@@ -50,7 +79,7 @@ export function watch_server(host, port, wsport, fallback) {
                         Logger.color.dim(err.status)
                     );
                     res.writeHead(404, { 'Content-Type': 'text/html' });
-                    res.end(undefined);
+                    res.end('the resource could not be found');
                 }
             }
         });

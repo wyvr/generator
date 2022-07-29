@@ -20,6 +20,7 @@ export const FOLDER_GEN_DATA = join(FOLDER_GEN, FOLDER_DATA);
 export const FOLDER_PLUGINS = 'plugins';
 export const FOLDER_GEN_PLUGINS = join(FOLDER_GEN, FOLDER_PLUGINS);
 export const FOLDER_EXEC = 'exec';
+export const FOLDER_GEN_EXEC = join(FOLDER_GEN, FOLDER_EXEC);
 export const FOLDER_ROUTES = 'routes';
 export const FOLDER_GEN_ROUTES = join(FOLDER_GEN, FOLDER_ROUTES);
 export const FOLDER_CSS = 'css';

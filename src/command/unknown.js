@@ -25,6 +25,13 @@ export async function unknown_command(config) {
             desc: 'statically generate site and watch for file changes',
             flags: [],
         },
+        dev: {
+            desc: 'build the site in development mode and rebuild when changes are made',
+            flags: [{
+                key: 'fast',
+                desc: 'fast starting watch server without building the site'
+            }],
+        },
     };
     Object.keys(command_map).forEach((key) => {
         Logger.present(key, command_map[key].desc);

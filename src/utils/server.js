@@ -29,7 +29,13 @@ export function server(host, port, on_request, on_end) {
             res.end(undefined);
         }).resume();
     }).listen(port, host, () => {
-        Logger.success('server started', `http://${host}:${port}`);
+        const pre_text = 'server started at';
+        const text = `http://${host}:${port}`;
+        const filler = new Array(2+ pre_text.length + 1 + text.length).fill('─').join('');
+        Logger.output(undefined, undefined, Logger.color.dim(filler));
+        Logger.success(pre_text, text);
+        Logger.output(undefined, undefined, Logger.color.dim(filler));
+        Logger.output(undefined, undefined, Logger.color.dim('...'));
     });
 }
 
@@ -90,7 +96,7 @@ export function watch_server(host, port, wsport, fallback) {
         await static_server(req, res, uid, async (err) => {
             if (err) {
                 const exec_result = await exec_request(req, res, uid, false);
-                if(exec_result) {
+                if (exec_result) {
                     return true;
                 }
                 if (!res.writableEnded && is_func(fallback)) {

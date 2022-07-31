@@ -1,5 +1,6 @@
 // import { app_command } from './command/app';
 import { get_config_data } from './action/get_config_data.js';
+import { app_command } from './command/app.js';
 import { build_command } from './command/build.js';
 import { dev_command } from './command/dev.js';
 // import { clear_command } from './command/clear';
@@ -38,8 +39,9 @@ export async function command(config) {
     }
 
     switch (get_command(config)) {
-        // case 'app':
-        //     return await app_command(config);
+        case 'app':
+            result = await app_command(config);
+            break;
         case 'dev':
             result = await dev_command(config);
             break;
@@ -69,5 +71,5 @@ export async function command(config) {
     const duration = nano_to_milli(process.hrtime.bigint() - start);
     const duration_text = `${Math.round(duration)} ${Logger.color.dim('ms')}`;
     Logger.success('total execution time', duration_text);
-    return {result, duration};
+    return { result, duration };
 }

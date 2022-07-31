@@ -8,11 +8,11 @@ import { exists } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { watch_server } from '../utils/server.js';
 import { package_watcher } from '../utils/watcher.js';
-import { find_port } from '../utils/port.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
 import { UniqId } from '../vars/uniq_id.js';
 import { Config } from '../utils/config.js';
+import { get_ports } from '../action/port.js';
 
 export async function dev_command(config) {
     // dev command has forced dev state, when nothing is defined
@@ -89,15 +89,4 @@ export async function dev_command(config) {
 }
 export function is_fast_build(config, build_id) {
     return config?.cli?.flags?.fast && exists(Cwd.get(FOLDER_RELEASES, build_id)) && exists(Cwd.get(FOLDER_GEN));
-}
-export async function get_ports(config) {
-    const port = await find_port(config?.cli?.flags?.port || 3000);
-    const wsport = await find_port(config?.cli?.flags?.wsport || 3001);
-    if (config?.cli?.flags?.port && config.cli.flags.port != port) {
-        Logger.warning('can not use the given port', config.cli.flags.port, 'using', port, 'instead');
-    }
-    if (config?.cli?.flags?.wsport && config.cli.flags.wsport != wsport) {
-        Logger.warning('can not use the given wsport', config.cli.flags.wsport, 'using', wsport, 'instead');
-    }
-    return { port, wsport };
 }

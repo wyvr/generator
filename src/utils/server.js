@@ -39,7 +39,8 @@ export function server(host, port, on_request, on_end) {
 }
 
 export function log_start(req, uid) {
-    Logger.debug(req.method, Logger.color.bold(req.url), Logger.color.dim(uid));
+    const date = new Date();
+    Logger.debug(req.method, Logger.color.bold(req.url), date.toLocaleTimeString(), Logger.color.dim(date.toLocaleDateString()), Logger.color.dim(uid));
     return process.hrtime.bigint();
 }
 export function log_end(req, uid, start) {

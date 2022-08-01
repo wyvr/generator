@@ -25,13 +25,12 @@ export function server(host, port, on_request, on_end) {
             if (is_func(on_end)) {
                 return await on_end(req, res, uid, start);
             }
-            res.writeHead(404, { 'Content-Type': 'text/html' });
-            res.end(undefined);
+            return return_not_found(req, res, uid, 'Not found', 404, start);
         }).resume();
     }).listen(port, host, () => {
         const pre_text = 'server started at';
         const text = `http://${host}:${port}`;
-        const filler = new Array(2+ pre_text.length + 1 + text.length).fill('─').join('');
+        const filler = new Array(2 + pre_text.length + 1 + text.length).fill('─').join('');
         Logger.output(undefined, undefined, Logger.color.dim(filler));
         Logger.success(pre_text, text);
         Logger.output(undefined, undefined, Logger.color.dim(filler));
@@ -39,11 +38,34 @@ export function server(host, port, on_request, on_end) {
     });
 }
 
+export function log_start(req, uid) {
+    Logger.debug(req.method, Logger.color.bold(req.url), Logger.color.dim(uid));
+    return process.hrtime.bigint();
+}
+export function log_end(req, uid, start) {
+    Logger.success(req.method, Logger.color.bold(req.url), ...get_base_log_infos(start, uid));
+}
+export function return_not_found(req, res, uid, message, status, start) {
+    Logger.error(
+        req.method,
+        Logger.color.bold(req.url),
+        message,
+        Logger.color.dim(status),
+        ...get_base_log_infos(start, uid)
+    );
+    res.writeHead(status, { 'Content-Type': 'text/html' });
+    res.end(message);
+    return;
+}
+export function get_base_log_infos(start, uid) {
+    const date = new Date();
+    return [nano_to_milli(process.hrtime.bigint() - start) + Logger.color.dim('ms'), date.toLocaleTimeString(), Logger.color.dim(date.toLocaleDateString()), Logger.color.dim(uid)];
+}
+
 let static_server_instance;
 export function static_server(req, res, uid, on_end) {
     const cache = Env.is_prod() ? 3600 : false;
-    Logger.info(req.method, Logger.color.bold(req.url), Logger.color.dim(uid));
-    const start = process.hrtime.bigint();
+    const start = log_start(req, uid);
 
     if (!static_server_instance) {
         static_server_instance = new NodeStatic.Server(Cwd.get('pub'), {
@@ -56,26 +78,11 @@ export function static_server(req, res, uid, on_end) {
             const is_error = await on_end(err, req, res, uid);
 
             if (is_error && !res.writableEnded) {
-                Logger.error(
-                    req.method,
-                    Logger.color.bold(req.url),
-                    err.message,
-                    Logger.color.dim(err.status),
-                    nano_to_milli(process.hrtime.bigint() - start) + 'ms',
-                    Logger.color.dim(uid)
-                );
-                res.writeHead(404, { 'Content-Type': 'text/html' });
-                res.end('the resource could not be found');
-                return;
+                return return_not_found(req, res, uid, err.message, err.status, start);
             }
         }
         if (res.writableEnded) {
-            Logger.success(
-                req.method,
-                Logger.color.bold(req.url),
-                nano_to_milli(process.hrtime.bigint() - start) + 'ms',
-                Logger.color.dim(uid)
-            );
+            log_end(req, uid, start);
         }
     });
 }
@@ -95,7 +102,7 @@ export function watch_server(host, port, wsport, fallback) {
     server(host, port, undefined, async (req, res, uid) => {
         await static_server(req, res, uid, async (err) => {
             if (err) {
-                const exec_result = await exec_request(req, res, uid, false);
+                const exec_result = await exec_request(req, res, uid, true);
                 if (exec_result) {
                     return true;
                 }

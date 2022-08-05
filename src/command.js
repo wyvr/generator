@@ -16,6 +16,7 @@ import { nano_to_milli } from './utils/convert.js';
 import { Logger } from './utils/logger.js';
 import { to_plain } from './utils/to.js';
 import { filled_array } from './utils/validate.js';
+import { Cwd } from './vars/cwd.js';
 import { WorkerController } from './worker/controller.js';
 
 export function get_command(config) {
@@ -28,6 +29,7 @@ export function get_command(config) {
 
 export async function command(config) {
     const start = process.hrtime.bigint();
+    Cwd.set(config?.cli?.cwd);
     let result = '';
     config = get_config_data(config);
     if (!config?.cli?.flags?.silent) {

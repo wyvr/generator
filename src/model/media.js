@@ -12,6 +12,7 @@ export class MediaModel {
         this.quality = 60;
         this.output = MediaModelOutput.path;
         this.domain = undefined;
+        this.result_exists = false;
         if (config) {
             Object.keys(this).forEach((key) => {
                 if (config[key]) {

@@ -2,7 +2,7 @@ import { dirname } from 'path';
 import replaceAsync from 'string-replace-async';
 import { FOLDER_GEN, FOLDER_MEDIA } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
-import { create_dir, is_file, read_buffer, to_extension, write } from './file.js';
+import { create_dir, exists, is_file, read_buffer, to_extension, write } from './file.js';
 import { filled_object, filled_string, in_array, is_object, match_interface } from './validate.js';
 import axios from 'axios';
 import sharp from 'sharp';
@@ -23,6 +23,7 @@ export async function process(media) {
     }
     const buffer = await get_buffer(media.src);
     if (!buffer) {
+        console.log(media)
         Logger.error('@media', `input file "${media.src}" doesn't exist`);
         return undefined;
     }
@@ -84,6 +85,52 @@ export async function process(media) {
     }
 
     return undefined;
+}
+
+export function config_from_url(url) {
+    if (!filled_string(url)) {
+        return undefined;
+    }
+    const matches = url.match(/^\/media\/([^/]+)\/(.*)/);
+    if (!matches) {
+        return undefined;
+    }
+
+    let result = new MediaModel({});
+    // check for domain matches
+    if (matches[1] == '_d') {
+        const domain_matches = matches[2].match(/^([^/]+)\/([^/]+)\/(.*)/);
+        if (!domain_matches) {
+            return undefined;
+        }
+        try {
+            const config_string = Buffer.from(domain_matches[2], 'base64').toString('ascii');
+            result = JSON.parse(config_string);
+            result.format = correct_format(result.format, url);
+        } catch (e) {
+            Logger.error(Error.get(e, domain_matches[3], 'media on demand'));
+        }
+        result.domain = Buffer.from(domain_matches[1], 'base64').toString('ascii');
+        result.src = `https://${result.domain}/${domain_matches[3]}`;
+        result.result = url;
+        result.result_exists = exists(Cwd.get(result.result));
+        result.output = MediaModelOutput.path;
+        return result;
+    }
+    // extract local file
+    try {
+        const config_string = Buffer.from(matches[1], 'base64').toString('ascii');
+        result = JSON.parse(config_string);
+        result.format = correct_format(result.format, url);
+    } catch (e) {
+        Logger.error(Error.get(e, matches[2], 'media on demand'));
+    }
+    result.src = matches[2];
+    result.result = url;
+    result.result_exists = exists(Cwd.get(result.result));
+    result.output = MediaModelOutput.path;
+
+    return result;
 }
 
 export async function replace_media(content) {

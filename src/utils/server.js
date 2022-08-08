@@ -9,6 +9,8 @@ import { get_error_message } from './error.js';
 import { nano_to_milli } from './convert.js';
 import { Env } from '../vars/env.js';
 import { exec_request } from '../action/exec.js';
+import { config_from_url } from './media.js';
+import { media } from '../action/media.js';
 
 export function server(host, port, on_request, on_end) {
     if (!filled_string(host) || !is_number(port)) {
@@ -40,7 +42,13 @@ export function server(host, port, on_request, on_end) {
 
 export function log_start(req, uid) {
     const date = new Date();
-    Logger.debug(req.method, Logger.color.bold(req.url), date.toLocaleTimeString(), Logger.color.dim(date.toLocaleDateString()), Logger.color.dim(uid));
+    Logger.debug(
+        req.method,
+        Logger.color.bold(req.url),
+        date.toLocaleTimeString(),
+        Logger.color.dim(date.toLocaleDateString()),
+        Logger.color.dim(uid)
+    );
     return process.hrtime.bigint();
 }
 export function log_end(req, uid, start) {
@@ -60,7 +68,12 @@ export function return_not_found(req, res, uid, message, status, start) {
 }
 export function get_base_log_infos(start, uid) {
     const date = new Date();
-    return [nano_to_milli(process.hrtime.bigint() - start) + Logger.color.dim('ms'), date.toLocaleTimeString(), Logger.color.dim(date.toLocaleDateString()), Logger.color.dim(uid)];
+    return [
+        nano_to_milli(process.hrtime.bigint() - start) + Logger.color.dim('ms'),
+        date.toLocaleTimeString(),
+        Logger.color.dim(date.toLocaleDateString()),
+        Logger.color.dim(uid),
+    ];
 }
 
 let static_server_instance;
@@ -101,11 +114,17 @@ export function app_server(host, port) {
 
 export function watch_server(host, port, wsport, fallback) {
     server(host, port, undefined, async (req, res, uid) => {
+        // check for media files
+        const media_config = config_from_url(req.url);
+        if (media_config && !media_config.result_exists) {
+            // generate media on demand
+            await media([media_config]);
+        }
         await static_server(req, res, uid, async (err) => {
             if (err) {
                 const exec_result = await exec_request(req, res, uid, true);
                 if (exec_result) {
-                    return true;
+                    return;
                 }
                 if (!res.writableEnded && is_func(fallback)) {
                     await fallback(req, res, uid, err);

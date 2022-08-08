@@ -76,9 +76,9 @@ export function static_server(req, res, uid, on_end) {
     }
     static_server_instance.serve(req, res, async (err) => {
         if (is_func(on_end)) {
-            const is_error = await on_end(err, req, res, uid);
+            await on_end(err, req, res, uid);
 
-            if (is_error && !res.writableEnded) {
+            if (!res.writableEnded) {
                 return return_not_found(req, res, uid, err.message, err.status, start);
             }
         }

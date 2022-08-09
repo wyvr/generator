@@ -102,7 +102,6 @@ export async function regenerate_command(changed_files) {
                     if (filled_array(identifiers_of_file)) {
                         identifier_list.push(...identifiers_of_file);
                     }
-                    console.log(identifier_list, file.rel_path)
                     const target = Cwd.get(FOLDER_GEN, file.rel_path);
                     copy(file.path, target);
                     return target;

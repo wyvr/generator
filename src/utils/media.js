@@ -23,7 +23,6 @@ export async function process(media) {
     }
     const buffer = await get_buffer(media.src);
     if (!buffer) {
-        console.log(media)
         Logger.error('@media', `input file "${media.src}" doesn't exist`);
         return undefined;
     }

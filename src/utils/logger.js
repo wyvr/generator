@@ -176,8 +176,10 @@ export class Logger {
     }
 
     static start(name) {
-        this.output_type('start', name);
-        this.inset = true;
+        if (this.inset != name) {
+            this.output_type('start', name);
+        }
+        this.inset = name;
         if (Env.is_dev()) {
             if (this.spinner) {
                 this.spinner.start(name);

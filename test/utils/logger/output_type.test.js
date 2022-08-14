@@ -1,6 +1,7 @@
 import { deepStrictEqual } from 'assert';
 import { describe, it } from 'mocha';
 import { Logger } from '../../../src/utils/logger.js';
+import { to_plain } from '../../../src/utils/to.js';
 
 describe('utils/logger/output_type', () => {
     let log, err;
@@ -10,11 +11,11 @@ describe('utils/logger/output_type', () => {
         // runs once before the first test in this block
         log = console.log;
         console.log = (...args) => {
-            result.push(args);
+            result.push(args.map((x) => to_plain(x)));
         };
         err = console.error;
         console.error = (...args) => {
-            result.push(args);
+            result.push(args.map((x) => to_plain(x)));
         };
     });
     afterEach(() => {
@@ -43,5 +44,12 @@ describe('utils/logger/output_type', () => {
     it('log two values', () => {
         Logger.output_type('log', 'key', 'val1', 'val2');
         deepStrictEqual(result, [['key', 'val1 val2']]);
+    });
+
+    it('no value inset', () => {
+        Logger.inset = 'test';
+        Logger.output_type('log', 'key');
+        Logger.inset = false;
+        deepStrictEqual(result, [['│', 'key', '']]);
     });
 });

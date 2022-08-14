@@ -50,13 +50,9 @@ export class Spinner {
             return text;
         }
         // create spinner when not already started
-        if (!this.spinner) {
-            this.spinner = this.create(name);
-            if (!this.spinner) {
-                return;
-            }
+        if (this.spinner) {
+            this.spinner.succeed(text);
         }
-        this.spinner.succeed(text);
         this.spinner = undefined;
         return;
     }
@@ -72,8 +68,8 @@ export class Spinner {
      * @param {string} text
      * @returns the unstyled text or the original text
      */
-     static out(text) {
-        if(this.remove_color) {
+    static out(text) {
+        if (this.remove_color) {
             return to_plain(text);
         }
         return text;

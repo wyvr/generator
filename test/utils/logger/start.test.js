@@ -45,6 +45,6 @@ describe('utils/logger/start', () => {
 
     it('name', () => {
         logger.start('name');
-        deepStrictEqual(result, [['│', icon, 'name']]);
+        deepStrictEqual(result, [[icon, 'name']]);
     });
 });

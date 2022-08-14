@@ -128,12 +128,15 @@ export function get_translations_of_dependencies(tree, i18n, file) {
 
 export function get_identifiers_of_file(reversed_tree, file) {
     const parents = { doc: [], layout: [], page: [] };
+    if (!reversed_tree || !filled_string(file)) {
+        return { identifiers_of_file: parents, files: [] };
+    }
     const lists = get_parents_of_file_recursive(reversed_tree, file);
     if (is_null(lists)) {
         return { identifiers_of_file: parents, files: [] };
     }
     let has_values = false;
-    const files = uniq_values([file].concat(...lists));
+    const files = uniq_values([file].concat(...lists.filter((x) => x)));
 
     files
         .filter((x) => x)

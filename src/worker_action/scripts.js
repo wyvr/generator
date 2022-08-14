@@ -25,12 +25,15 @@ export async function scripts(identifiers) {
     const file_config = get_config_cache('dependencies.config');
     for (const identifier of identifiers) {
         const tree = get_config_cache('dependencies.top');
-        const dependencies = [];
-        ['doc', 'layout', 'page'].forEach((type) => {
-            dependencies.push(
-                ...get_hydrate_dependencies(tree, file_config, `${type}/${to_extension(identifier[type], 'svelte')}`)
-            );
-        });
+        const dependencies = [].concat(
+            ...['doc', 'layout', 'page'].map((type) => {
+                return get_hydrate_dependencies(
+                    tree,
+                    file_config,
+                    `${type}/${to_extension(identifier[type], 'svelte')}`
+                );
+            })
+        );
         const has = { instant: false };
         // build file content
         const content = (

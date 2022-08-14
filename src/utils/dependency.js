@@ -116,32 +116,31 @@ export function get_hydrate_dependencies(tree, file_config_tree, file) {
 export function get_identifiers_of_file(reversed_tree, file) {
     const parents = { doc: [], layout: [], page: [] };
     if (!reversed_tree || !filled_string(file)) {
-        return { identifiers_of_file: parents, files: [] };
+        return { identifiers_of_file: [], files: [] };
     }
     const lists = get_parents_of_file_recursive(reversed_tree, file);
     if (is_null(lists)) {
-        return { identifiers_of_file: parents, files: [file] };
+        return { identifiers_of_file: [], files: [file] };
     }
     let has_values = false;
     const files = uniq_values([file].concat(...lists)).filter((x) => x);
 
-    files
-        .forEach((file) => {
-            if (file.indexOf('doc/') == 0) {
-                parents.doc.push(file);
-                has_values = true;
-            }
-            if (file.indexOf('layout/') == 0) {
-                parents.layout.push(file);
-                has_values = true;
-            }
-            if (file.indexOf('page/') == 0) {
-                parents.page.push(file);
-                has_values = true;
-            }
-        });
+    files.forEach((file) => {
+        if (file.indexOf('doc/') == 0) {
+            parents.doc.push(file);
+            has_values = true;
+        }
+        if (file.indexOf('layout/') == 0) {
+            parents.layout.push(file);
+            has_values = true;
+        }
+        if (file.indexOf('page/') == 0) {
+            parents.page.push(file);
+            has_values = true;
+        }
+    });
     if (!has_values) {
-        return { identifiers_of_file: parents, files };
+        return { identifiers_of_file: [], files };
     }
     if (!filled_array(parents.doc)) {
         parents.doc.push(undefined);

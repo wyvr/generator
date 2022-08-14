@@ -18,21 +18,13 @@ describe('utils/dependency/get_identifiers_of_file', () => {
     it('undefined', async () => {
         deepStrictEqual(get_identifiers_of_file(), {
             files: [],
-            identifiers_of_file: {
-                doc: [],
-                layout: [],
-                page: [],
-            },
+            identifiers_of_file: [],
         });
     });
     it('no identifier found', async () => {
         deepStrictEqual(get_identifiers_of_file({}, 'test/Test.svelte'), {
             files: ['test/Test.svelte'],
-            identifiers_of_file: {
-                doc: [],
-                layout: [],
-                page: [],
-            },
+            identifiers_of_file: [],
         });
     });
     it('not used in identifier', async () => {
@@ -45,11 +37,7 @@ describe('utils/dependency/get_identifiers_of_file', () => {
             ),
             {
                 files: ['test/Test.svelte', 'test/Parent.svelte'],
-                identifiers_of_file: {
-                    doc: [],
-                    layout: [],
-                    page: [],
-                },
+                identifiers_of_file: [],
             }
         );
     });
@@ -126,7 +114,13 @@ describe('utils/dependency/get_identifiers_of_file', () => {
                 'test/Test.svelte'
             ),
             {
-                files: ['test/Test.svelte', 'test/Deep.svelte', 'doc/Doc.svelte', 'layout/Layout.svelte', 'page/Page.svelte'],
+                files: [
+                    'test/Test.svelte',
+                    'test/Deep.svelte',
+                    'doc/Doc.svelte',
+                    'layout/Layout.svelte',
+                    'page/Page.svelte',
+                ],
                 identifiers_of_file: [
                     {
                         doc: 'Doc.svelte',

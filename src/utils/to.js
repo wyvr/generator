@@ -122,23 +122,24 @@ export function to_identifier_name(...parts) {
     if (!filled_array(parts)) {
         return default_sign;
     }
-    const identifiers = parts
-        .map((part) => (!filled_string(part) ? 'default' : part))
-        .map((part) => {
-            const normalized_part = part.replace(/\.[^.]+$/, '').toLowerCase();
-            const index = normalized_part.indexOf(FOLDER_GEN_SERVER);
-            if (index < 0) {
-                return normalized_part;
-            }
-            return normalized_part.substring(index + FOLDER_GEN_SERVER.length).replace(/^\/(doc|layout|page)\//, '');
-        })
-        .map((part) => part.replace(/\//g, '_'));
+    const identifiers = parts.map(to_single_identifier_name);
     // empty or all default identifiers gets combined into one
     if (!filled_array(identifiers) || identifiers.filter((part) => part != default_sign).length == 0) {
         return default_sign;
     }
     const combined = identifiers.join('-');
     return combined;
+}
+export function to_single_identifier_name(part) {
+    const internal_part = !filled_string(part) ? 'default' : part;
+    let normalized_part = internal_part.replace(/\.[^.]+$/, '').toLowerCase();
+    const index = normalized_part.indexOf(FOLDER_GEN_SERVER);
+    if (index >= 0) {
+        normalized_part = normalized_part
+            .substring(index + FOLDER_GEN_SERVER.length);
+    }
+
+    return normalized_part.replace(/^\/?(doc|layout|page)\//, '').replace(/\/|-/g, '_');
 }
 /**
  * Combine identifiers into one object
@@ -148,7 +149,7 @@ export function to_identifier_name(...parts) {
 export function to_identifiers(...items) {
     const identifiers = {};
     items.forEach((obj) => {
-        if(!filled_object(obj)) {
+        if (!filled_object(obj)) {
             return;
         }
         Object.keys(obj).forEach((key) => {

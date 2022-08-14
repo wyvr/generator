@@ -61,6 +61,16 @@ describe('utils/to/to_identifier_name', () => {
             'doc-layout-page'
         );
     });
+    it('simple with dashes', () => {
+        deepStrictEqual(
+            to_identifier_name(
+                join(path, 'doc', 'Doc-A.svelte'),
+                join(path, 'layout', 'Layout-A.svelte'),
+                join(path, 'page', 'Page-A.svelte')
+            ),
+            'doc_a-layout_a-page_a'
+        );
+    });
     it('simple without doc', () => {
         deepStrictEqual(
             to_identifier_name(

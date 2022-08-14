@@ -23,7 +23,7 @@ import { get_identifiers_of_file } from '../utils/dependency.js';
 import { Event } from '../utils/event.js';
 import { copy, remove, to_index } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
-import { to_identifiers } from '../utils/to.js';
+import { to_identifiers, to_single_identifier_name } from '../utils/to.js';
 import { uniq_values } from '../utils/uniq.js';
 import { filled_array, filled_object, filled_string, in_array, is_null, match_interface } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
@@ -93,11 +93,13 @@ export async function regenerate_command(changed_files) {
             if (src.change || src.add) {
                 const identifier_list = [];
                 const dependent_files = [];
+                const main_files = [];
                 const files = [].concat(src.change || [], src.add || []).map((file) => {
-                    const { identifiers_of_file, files } = get_identifiers_of_file(
-                        dependencies_bottom,
-                        file.rel_path.replace(/^src\//, '')
-                    );
+                    const rel_path = file.rel_path.replace(/^src\//, '');
+                    if (rel_path.match(/^(?:doc|layout|page)\//)) {
+                        main_files.push(rel_path);
+                    }
+                    const { identifiers_of_file, files } = get_identifiers_of_file(dependencies_bottom, rel_path);
                     dependent_files.push(...files);
                     if (filled_array(identifiers_of_file)) {
                         identifier_list.push(...identifiers_of_file);
@@ -135,6 +137,38 @@ export async function regenerate_command(changed_files) {
                 Event.off('emit', config_name, config_id);
 
                 set_config_cache('dependencies.config', file_configs);
+
+
+                // when doc, layout or page has changed search directly in the routes reference
+                if (filled_array(main_files)) {
+                    const identifiers = Object.keys(identifier_files);
+                    main_files.forEach((file) => {
+                        if (file.match(/^doc\//)) {
+                            const regex = new RegExp('^' + to_single_identifier_name(file) + '[^-]+-[^-]+$');
+                            identifiers.forEach((identifier) => {
+                                if (identifier.match(regex)) {
+                                    identifier_list.push(identifier);
+                                }
+                            });
+                        }
+                        if (file.match(/^layout\//)) {
+                            const regex = new RegExp('^[^-]+-' + to_single_identifier_name(file) + '[^-]+$');
+                            identifiers.forEach((identifier) => {
+                                if (identifier.match(regex)) {
+                                    identifier_list.push(identifier);
+                                }
+                            });
+                        }
+                        if (file.match(/^page\//)) {
+                            const regex = new RegExp('^[^-]+-[^-]+-' + to_single_identifier_name(file)+'$');
+                            identifiers.forEach((identifier) => {
+                                if (identifier.match(regex)) {
+                                    identifier_list.push(identifier);
+                                }
+                            });
+                        }
+                    });
+                }
 
                 const data_files = []
                     .concat(
@@ -201,7 +235,7 @@ export async function regenerate_command(changed_files) {
             // @TODO reload the whole browser page
         }
 
-        Logger.debug('routes', routes);
+        Logger.info('routes', routes);
         if (filled_array(routes)) {
             const identifier_name = get_name(WorkerEmit.identifier);
             const identifier_id = Event.on('emit', identifier_name, (data) => {

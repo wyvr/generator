@@ -28,7 +28,10 @@ describe('utils/dependency/dependencies_from_content', () => {
         deepStrictEqual(dependencies_from_content(`var a = 0;`, './file.js'), { dependencies: undefined, i18n: {} });
     });
     it('npm dependencies', async () => {
-        deepStrictEqual(dependencies_from_content(`import a from 'axios';`, './file.js'), { dependencies: undefined, i18n: {} });
+        deepStrictEqual(dependencies_from_content(`import a from 'axios';`, './file.js'), {
+            dependencies: undefined,
+            i18n: {},
+        });
     });
     it('single dependencies', async () => {
         deepStrictEqual(dependencies_from_content(`import a from './test';`, './file.js'), {
@@ -77,5 +80,13 @@ describe('utils/dependency/dependencies_from_content', () => {
         const result = { dependencies: {}, i18n: {} };
         result.dependencies[file] = ['gen_src.svelte'];
         deepStrictEqual(dependencies_from_content(`import a from '@src/gen_src.svelte';`, file), result);
+    });
+    it('extract translations', async () => {
+        deepStrictEqual(dependencies_from_content(`__('test')`, './file.js'), {
+            dependencies: undefined,
+            i18n: {
+                './file.js': ['test'],
+            },
+        });
     });
 });

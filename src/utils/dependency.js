@@ -133,13 +133,12 @@ export function get_identifiers_of_file(reversed_tree, file) {
     }
     const lists = get_parents_of_file_recursive(reversed_tree, file);
     if (is_null(lists)) {
-        return { identifiers_of_file: parents, files: [] };
+        return { identifiers_of_file: parents, files: [file] };
     }
     let has_values = false;
-    const files = uniq_values([file].concat(...lists.filter((x) => x)));
+    const files = uniq_values([file].concat(...lists)).filter((x) => x);
 
     files
-        .filter((x) => x)
         .forEach((file) => {
             if (file.indexOf('doc/') == 0) {
                 parents.doc.push(file);

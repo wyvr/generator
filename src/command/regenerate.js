@@ -142,26 +142,21 @@ export async function regenerate_command(changed_files) {
                 if (filled_array(main_files)) {
                     const identifiers = Object.keys(identifier_files);
                     main_files.forEach((file) => {
-                        if (file.match(/^doc\//)) {
-                            const regex = new RegExp('^' + to_single_identifier_name(file) + '[^-]+-[^-]+$');
+                        if (file.match(/^(?:doc|layout|page)\//)) {
+                            const identifier_name = to_single_identifier_name(file);
+                            const wildcard = '[^-]+';
+                            const regexp = new RegExp(
+                                '^' +
+                                    (file.match(/^doc\//) ? identifier_name : wildcard) +
+                                    '-' +
+                                    (file.match(/^layout\//) ? identifier_name : wildcard) +
+                                    '-' +
+                                    (file.match(/^page\//) ? identifier_name : wildcard) +
+                                    '$'
+                            );
+
                             identifiers.forEach((identifier) => {
-                                if (identifier.match(regex)) {
-                                    identifier_list.push({ identifier });
-                                }
-                            });
-                        }
-                        if (file.match(/^layout\//)) {
-                            const regex = new RegExp('^[^-]+-' + to_single_identifier_name(file) + '[^-]+$');
-                            identifiers.forEach((identifier) => {
-                                if (identifier.match(regex)) {
-                                    identifier_list.push({ identifier });
-                                }
-                            });
-                        }
-                        if (file.match(/^page\//)) {
-                            const regex = new RegExp('^[^-]+-[^-]+-' + to_single_identifier_name(file) + '$');
-                            identifiers.forEach((identifier) => {
-                                if (identifier.match(regex)) {
+                                if (identifier.match(regexp)) {
                                     identifier_list.push({ identifier });
                                 }
                             });

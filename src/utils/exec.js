@@ -9,7 +9,16 @@ import { collect_files, exists } from './file.js';
 import { generate_page_code } from './generate.js';
 import { Logger } from './logger.js';
 import { to_relative_path } from './to.js';
-import { filled_object, filled_string, is_func, is_null, match_interface } from './validate.js';
+import {
+    filled_array,
+    filled_object,
+    filled_string,
+    in_array,
+    is_func,
+    is_null,
+    is_string,
+    match_interface,
+} from './validate.js';
 import { process_page_data } from './../worker_action/process_page_data.js';
 
 export async function build_cache() {
@@ -36,8 +45,8 @@ export async function build_cache() {
 }
 
 export async function load_exec(file) {
-    if(!exists(file)) {
-       return undefined; 
+    if (!exists(file)) {
+        return undefined;
     }
     let result;
     try {
@@ -51,12 +60,13 @@ export async function load_exec(file) {
     return result;
 }
 
-export function get_exec(url, exec_cache) {
+export function get_exec(url, method, exec_cache) {
     if (!filled_string(url) || !filled_object(exec_cache)) {
         return undefined;
     }
+    const normalized_method = is_string(method) ? method.trim().toLowerCase() : 'get';
     const exec_cache_key = Object.keys(exec_cache).find((key) => {
-        return url.match(new RegExp(key));
+        return url.match(new RegExp(key)) && in_array(exec_cache[key].methods, normalized_method);
     });
     if (!exec_cache_key) {
         return undefined;
@@ -65,6 +75,9 @@ export function get_exec(url, exec_cache) {
 }
 
 export async function run_exec(request, response, uid, exec) {
+    if (!match_interface(request, { url: true })) {
+        return undefined;
+    }
     const params_match = request.url.match(exec.match);
     if (!params_match) {
         Logger.error(uid, "can't extract params from url", request.url, exec);
@@ -119,8 +132,6 @@ export async function run_exec(request, response, uid, exec) {
 
     const rendered_result = await render_server_compiled_svelte(exec_result, page_data, exec.path);
 
-    
-
     if (rendered_result) {
         rendered_result.data = page_data;
     }
@@ -145,5 +156,17 @@ export function extract_exec_config(result, path) {
             return item;
         })
         .join('\\/')}$`;
-    return { url: result.url, path, rel_path: to_relative_path(path), params, match, mtime: stats.mtimeMs };
+    let methods = ['get', 'head', 'post', 'put', 'delete', 'connect', 'options', 'trace', 'patch'];
+    if (filled_array(result?._wyvr?.exec_methods)) {
+        methods = result?._wyvr?.exec_methods.filter((method) => in_array(methods, method));
+    }
+    return {
+        url: result.url,
+        path,
+        rel_path: to_relative_path(path),
+        params,
+        match,
+        mtime: stats.mtimeMs,
+        methods,
+    };
 }

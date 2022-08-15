@@ -11,7 +11,7 @@ describe('utils/exec/get_exec', () => {
     });
     it('matching exec', () => {
         deepStrictEqual(
-            get_exec('/huhu', {
+            get_exec('/huhu', 'GET', {
                 '^\\/huhu$': {
                     url: '/huhu',
                     path: './huhu.js',
@@ -19,6 +19,7 @@ describe('utils/exec/get_exec', () => {
                     params: [],
                     match: '^\\/huhu$',
                     mtime: 0.0,
+                    methods: ['get']
                 },
             }),
             {
@@ -28,12 +29,13 @@ describe('utils/exec/get_exec', () => {
                 params: [],
                 match: '^\\/huhu$',
                 mtime: 0.0,
+                methods: ['get']
             }
-        );
+            );
     });
     it('unmatching exec', () => {
         deepStrictEqual(
-            get_exec('/huhu1', {
+            get_exec('/huhu1', 'GET', {
                 '^\\/huhu$': {
                     url: '/huhu',
                     path: './huhu.js',
@@ -41,6 +43,23 @@ describe('utils/exec/get_exec', () => {
                     params: [],
                     match: '^\\/huhu$',
                     mtime: 0.0,
+                    methods: ['get']
+                },
+            }),
+            undefined
+        );
+    });
+    it('unmatching method', () => {
+        deepStrictEqual(
+            get_exec('/huhu', 'PATCH', {
+                '^\\/huhu$': {
+                    url: '/huhu',
+                    path: './huhu.js',
+                    rel_path: 'huhu.js',
+                    params: [],
+                    match: '^\\/huhu$',
+                    mtime: 0.0,
+                    methods: ['get']
                 },
             }),
             undefined

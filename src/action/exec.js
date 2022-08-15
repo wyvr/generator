@@ -14,7 +14,7 @@ export async function exec_request(req, res, uid, force_generating_of_resources)
     if (!exec_cache) {
         exec_cache = get_config_cache('exec.cache');
     }
-    const exec = get_exec(req.url, exec_cache);
+    const exec = get_exec(req.url, req.method, exec_cache);
     if (exec) {
         Logger.debug('exec', req.url, exec.url);
         const result = await run_exec(req, res, uid, exec);

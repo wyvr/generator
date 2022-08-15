@@ -19,6 +19,9 @@ export function server(host, port, on_request, on_end) {
     createServer((req, res) => {
         const start = process.hrtime.bigint();
         const uid = uniq_id();
+        if (Env.is_dev()) {
+            res.setHeader('Wyvr-Uid', uid);
+        }
         if (is_func(on_request)) {
             on_request(req, res, uid, start);
         }

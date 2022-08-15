@@ -17,7 +17,7 @@ export async function build_cache() {
     const cache = {};
     const executed_result = await Promise.all(
         files.map(async (file) => {
-            Logger.info(file);
+            Logger.debug(file);
             // ignore files with a starting underscore
             if (file.split('/').pop().match(/^_/)) {
                 return undefined;
@@ -36,6 +36,9 @@ export async function build_cache() {
 }
 
 export async function load_exec(file) {
+    if(!exists(file)) {
+       return undefined; 
+    }
     let result;
     try {
         result = await import(file + '?' + Date.now());

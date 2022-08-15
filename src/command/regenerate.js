@@ -138,7 +138,6 @@ export async function regenerate_command(changed_files) {
 
                 set_config_cache('dependencies.config', file_configs);
 
-
                 // when doc, layout or page has changed search directly in the routes reference
                 if (filled_array(main_files)) {
                     const identifiers = Object.keys(identifier_files);
@@ -147,7 +146,7 @@ export async function regenerate_command(changed_files) {
                             const regex = new RegExp('^' + to_single_identifier_name(file) + '[^-]+-[^-]+$');
                             identifiers.forEach((identifier) => {
                                 if (identifier.match(regex)) {
-                                    identifier_list.push(identifier);
+                                    identifier_list.push({ identifier });
                                 }
                             });
                         }
@@ -155,29 +154,30 @@ export async function regenerate_command(changed_files) {
                             const regex = new RegExp('^[^-]+-' + to_single_identifier_name(file) + '[^-]+$');
                             identifiers.forEach((identifier) => {
                                 if (identifier.match(regex)) {
-                                    identifier_list.push(identifier);
+                                    identifier_list.push({ identifier });
                                 }
                             });
                         }
                         if (file.match(/^page\//)) {
-                            const regex = new RegExp('^[^-]+-[^-]+-' + to_single_identifier_name(file)+'$');
+                            const regex = new RegExp('^[^-]+-[^-]+-' + to_single_identifier_name(file) + '$');
                             identifiers.forEach((identifier) => {
                                 if (identifier.match(regex)) {
-                                    identifier_list.push(identifier);
+                                    identifier_list.push({ identifier });
                                 }
                             });
                         }
                     });
                 }
-
+                // get 2 dimensional array of affected urls
+                const identifier_files_list = uniq_values(identifier_list).map((identifier) => {
+                    identifiers[identifier.identifier] = identifier;
+                    return identifier_files[identifier.identifier];
+                });
+                // convert the urls to data json paths
                 const data_files = []
-                    .concat(
-                        ...uniq_values(identifier_list).map((identifier) => {
-                            identifiers[identifier.identifier] = identifier;
-                            return identifier_files[identifier.identifier];
-                        })
-                    )
+                    .concat(...identifier_files_list)
                     .map((url) => Cwd.get(FOLDER_GEN_DATA, to_index(url, 'json')));
+                // add the json paths to be executed as routes
                 routes.push(...data_files);
             }
         }

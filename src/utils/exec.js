@@ -3,13 +3,13 @@ import { FOLDER_GEN_EXEC } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { compile_server_svelte } from './compile.js';
 import { render_server_compiled_svelte } from './compile_svelte.js';
-import { get_config_cache, set_config_cache } from './config_cache.js';
+import { set_config_cache } from './config_cache.js';
 import { get_error_message } from './error.js';
 import { collect_files, exists } from './file.js';
 import { generate_page_code } from './generate.js';
 import { Logger } from './logger.js';
 import { to_relative_path } from './to.js';
-import { filled_string, is_func, is_null, match_interface } from './validate.js';
+import { filled_object, filled_string, is_func, is_null, match_interface } from './validate.js';
 import { process_page_data } from './../worker_action/process_page_data.js';
 
 export async function build_cache() {
@@ -48,21 +48,17 @@ export async function load_exec(file) {
     return result;
 }
 
-let exec_cache;
-export function get_exec(url) {
-    if (!filled_string(url)) {
+export function get_exec(url, exec_cache) {
+    if (!filled_string(url) || !filled_object(exec_cache)) {
         return undefined;
     }
-    if (!exec_cache) {
-        exec_cache = get_config_cache('exec.cache');
-    }
-    const found_match = Object.keys(exec_cache).find((key) => {
+    const exec_cache_key = Object.keys(exec_cache).find((key) => {
         return url.match(new RegExp(key));
     });
-    if (!found_match) {
+    if (!exec_cache_key) {
         return undefined;
     }
-    return exec_cache[found_match];
+    return exec_cache[exec_cache_key];
 }
 
 export async function run_exec(request, response, uid, exec) {

@@ -1,5 +1,6 @@
 import { join } from 'path';
 import { FOLDER_CSS, FOLDER_GEN_JS, FOLDER_JS } from '../constants/folder.js';
+import { get_config_cache } from '../utils/config_cache.js';
 import { get_exec, run_exec } from '../utils/exec.js';
 import { copy, exists, write } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
@@ -8,8 +9,12 @@ import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { scripts } from './script.js';
 
+let exec_cache;
 export async function exec_request(req, res, uid, force_generating_of_resources) {
-    const exec = get_exec(req.url);
+    if (!exec_cache) {
+        exec_cache = get_config_cache('exec.cache');
+    }
+    const exec = get_exec(req.url, exec_cache);
     if (exec) {
         Logger.debug('exec', req.url, exec.url);
         const result = await run_exec(req, res, uid, exec);

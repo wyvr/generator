@@ -149,46 +149,4 @@ export function inject_worker_message_errors(messages) {
         }
         return message;
     });
-
-    //display svelte errors with better output
-    // if (messages.length > 0 && data.messages[0] === '[svelte]') {
-    //     data.messages = data.messages.map((message, index) => {
-    //         if (index == 0 && typeof message == 'string') {
-    //             return Logger.color.dim(message);
-    //         }
-    //         if (message == null) {
-    //             return message;
-    //         }
-    //         // ssr errors
-    //         if (
-    //             typeof message == 'object' &&
-    //             message.code == 'parse-error' &&
-    //             message.frame &&
-    //             message.start &&
-    //             message.name
-    //         ) {
-    //             return `\n${message.name} ${Logger.color.dim('Line:')}${
-    //                 message.start.line
-    //             }${Logger.color.dim(' Col:')}${message.start.column}\n${message.frame}`;
-    //         }
-    //         // rollup errors
-    //         if (
-    //             typeof message == 'object' &&
-    //             message.code == 'PARSE_ERROR' &&
-    //             message.frame &&
-    //             message.loc
-    //         ) {
-    //             return `\n${message.code} ${Logger.color.dim('in')} ${
-    //                 message.loc.file
-    //             }\n${Logger.color.dim('Line:')}${message.loc.line}${Logger.color.dim(' Col:')}${
-    //                 message.loc.column
-    //             }\n${message.frame}`;
-    //         }
-    //         // nodejs error
-    //         if (typeof message == 'object' && message.error) {
-    //             return Error.get(message.error, message.filename);
-    //         }
-    //         return message;
-    //     });
-    // }
 }

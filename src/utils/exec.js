@@ -64,7 +64,7 @@ export function get_exec(url, method, exec_cache) {
     if (!filled_string(url) || !filled_object(exec_cache)) {
         return undefined;
     }
-    const normalized_method = is_string(method) ? method.trim().toLowerCase() : 'get';
+    const normalized_method = is_string(method) ? method.trim().toLowerCase() : '';
     const exec_cache_key = Object.keys(exec_cache).find((key) => {
         return url.match(new RegExp(key)) && in_array(exec_cache[key].methods, normalized_method);
     });
@@ -95,13 +95,15 @@ export async function run_exec(request, response, uid, exec) {
         return undefined;
     }
 
+    const error_message = (key) => `error in ${key} function`;
+
     // execute load function when set to get data
     let data = {};
     if (is_func(code.onExec)) {
         try {
             data = await code.onExec(request, response, params);
         } catch (e) {
-            Logger.error('[exec]', 'onExec', get_error_message(e, exec.path, 'exec'));
+            Logger.error('[exec]', error_message('onExec'), get_error_message(e, exec.path, 'exec'));
         }
     }
 
@@ -111,11 +113,11 @@ export async function run_exec(request, response, uid, exec) {
             if (key == 'onExec') {
                 return undefined;
             }
-            if (typeof code[key] == 'function') {
+            if (is_func(code[key])) {
                 try {
                     data[key] = await code[key](request, response, params, data);
                 } catch (e) {
-                    Logger.error('[exec]', key, get_error_message(e, exec.path, key));
+                    Logger.error('[exec]', error_message(key), get_error_message(e, exec.path, 'exec'));
                 }
                 return null;
             }

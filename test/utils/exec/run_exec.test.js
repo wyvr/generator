@@ -32,7 +32,7 @@ describe('utils/exec/run_exec', () => {
     it('not matching', async () => {
         Cwd.set(join(dir, 'empty'));
         deepStrictEqual(
-            await run_exec({ url: '/huhu', method: 'get' }, {}, '0000', {
+            await run_exec({ url: '/huhu', method: 'GET' }, {}, '0000', {
                 match: '^\\/test$',
                 methods: ['get'],
                 mtime: 0,
@@ -46,24 +46,55 @@ describe('utils/exec/run_exec', () => {
         deepStrictEqual(log, [
             [
                 '✖',
-                `0000 can't extract params from url /huhu {"match":"^\\\\/test$","methods":["get"],"mtime":0,"params":[],"path":"${join(dir,'run/test.js')}","rel_path":"${join(dir,'run/test.js')}","url":"/test"}`,
+                `0000 can't extract params from url /huhu {"match":"^\\\\/test$","methods":["get"],"mtime":0,"params":[],"path":"${join(
+                    dir,
+                    'run/test.js'
+                )}","rel_path":"${join(dir, 'run/test.js')}","url":"/test"}`,
             ],
         ]);
     });
     it('matching', async () => {
-        Cwd.set(join(dir, 'empty'));
-        deepStrictEqual(
-            await run_exec({ url: '/test', method: 'get' }, {}, '0000', {
-                match: '^\\/test$',
-                methods: ['get'],
-                mtime: 0,
-                params: [],
-                path: join(dir, 'run/test.js'),
-                rel_path: join(dir, 'run/test.js'),
-                url: '/test',
-            }),
-            undefined
-        );
+        Cwd.set(join(dir, 'run'));
+        const result = await run_exec({ url: '/test/10', method: 'GET' }, {}, '0000', {
+            match: '^\\/test/([^\\]]*)$',
+            methods: ['get'],
+            mtime: 0,
+            params: ['id'],
+            path: join(dir, 'run/test.js'),
+            rel_path: join(dir, 'run/test.js'),
+            url: '/test',
+        });
+        const html = result?.result?.html;
+        deepStrictEqual(html, 'dyn content 10');
         deepStrictEqual(log, []);
+    });
+    it('matching but not exstiting', async () => {
+        Cwd.set(join(dir, 'run'));
+        const result = await run_exec({ url: '/test/10', method: 'GET' }, {}, '0000', {
+            match: '^\\/test/([^\\]]*)$',
+            methods: ['get'],
+            mtime: 0,
+            params: ['id'],
+            path: join(dir, 'run/test1.js'),
+            rel_path: join(dir, 'run/test1.js'),
+            url: '/test',
+        });
+        deepStrictEqual(result, undefined);
+        deepStrictEqual(log, []);
+    });
+    it('error in onExec and function property', async () => {
+        Cwd.set(join(dir, 'run'));
+        const result = await run_exec({ url: '/test/10', method: 'GET' }, {}, '0000', {
+            match: '^\\/test/([^\\]]*)$',
+            methods: ['get'],
+            mtime: 0,
+            params: ['id'],
+            path: join(dir, 'run/errors.js'),
+            rel_path: join(dir, 'run/errors.js'),
+            url: '/test',
+        });
+        const html = result?.result?.html;
+        deepStrictEqual(html, 'dyn content 10');
+        deepStrictEqual(log, [['✖', '[exec] error in onExec function @exec\n[Error] huhu\nsource errors.js'], ['✖', '[exec] error in title function @exec\n[Error] hihi\nsource errors.js']]);
     });
 });

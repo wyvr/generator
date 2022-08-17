@@ -5,9 +5,12 @@ export default {
     },
     url: '/test',
     onExec: async (req, res, params) => {
-        return { from_exec: true };
+        throw new Error('huhu');
     },
     content: (req, res, params, data) => {
         return 'dyn content ' + params.id;
     },
+    title: ()=> {
+        throw new Error('hihi');
+    }
 };

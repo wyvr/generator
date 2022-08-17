@@ -7,7 +7,10 @@ describe('utils/exec/get_exec', () => {
         deepStrictEqual(get_exec(), undefined);
     });
     it('undefined exec_cache', () => {
-        deepStrictEqual(get_exec('/huhu'), undefined);
+        deepStrictEqual(get_exec('/huhu', 'get'), undefined);
+    });
+    it('invalid method', () => {
+        deepStrictEqual(get_exec('/huhu', 1, { a: true }), undefined);
     });
     it('matching exec', () => {
         deepStrictEqual(
@@ -19,7 +22,7 @@ describe('utils/exec/get_exec', () => {
                     params: [],
                     match: '^\\/huhu$',
                     mtime: 0.0,
-                    methods: ['get']
+                    methods: ['get'],
                 },
             }),
             {
@@ -29,9 +32,33 @@ describe('utils/exec/get_exec', () => {
                 params: [],
                 match: '^\\/huhu$',
                 mtime: 0.0,
-                methods: ['get']
+                methods: ['get'],
             }
-            );
+        );
+    });
+    it('wrong formatted method', () => {
+        deepStrictEqual(
+            get_exec('/huhu', ' PoST    ', {
+                '^\\/huhu$': {
+                    url: '/huhu',
+                    path: './huhu.js',
+                    rel_path: 'huhu.js',
+                    params: [],
+                    match: '^\\/huhu$',
+                    mtime: 0.0,
+                    methods: ['post'],
+                },
+            }),
+            {
+                match: '^\\/huhu$',
+                methods: ['post'],
+                mtime: 0,
+                params: [],
+                path: './huhu.js',
+                rel_path: 'huhu.js',
+                url: '/huhu',
+            }
+        );
     });
     it('unmatching exec', () => {
         deepStrictEqual(
@@ -43,7 +70,7 @@ describe('utils/exec/get_exec', () => {
                     params: [],
                     match: '^\\/huhu$',
                     mtime: 0.0,
-                    methods: ['get']
+                    methods: ['get'],
                 },
             }),
             undefined
@@ -59,7 +86,7 @@ describe('utils/exec/get_exec', () => {
                     params: [],
                     match: '^\\/huhu$',
                     mtime: 0.0,
-                    methods: ['get']
+                    methods: ['get'],
                 },
             }),
             undefined

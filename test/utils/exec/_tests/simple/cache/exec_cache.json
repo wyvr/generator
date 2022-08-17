@@ -1,0 +1,1 @@
+{"^\\/a\\/([^\\]]*)$":{"url":"/a/[id]","path":"/home/p/wyvr/generator/test/utils/exec/_tests/simple/gen/exec/a.js","rel_path":"a.js","params":["id"],"match":"^\\/a\\/([^\\]]*)$","mtime":1660628232649.2366,"methods":["get","head","post","put","delete","connect","options","trace","patch"]}}

@@ -2,6 +2,7 @@ import { readFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import process from 'process';
+import { is_string } from '../utils/validate.js';
 
 export function extract_cli_config(argv) {
     const default_config = {
@@ -39,7 +40,7 @@ export function extract_cli_config(argv) {
                 }
                 // convert numbers
                 let value = argument[1];
-                if (typeof value == 'string') {
+                if (is_string(value)) {
                     value = parseFloat(argument[1]);
                     if (isNaN(value)) {
                         value = argument[1].replace(/^['"]/, '').replace(/['"]$/, '');

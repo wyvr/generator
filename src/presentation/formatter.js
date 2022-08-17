@@ -1,10 +1,11 @@
 import kleur from 'kleur';
+import { is_number } from '../utils/validate.js';
 
 export function semver(version) {
     if (version == undefined) {
         return '';
     }
-    if (typeof version == 'number') {
+    if (is_number(version)) {
         version = version.toString();
     }
     if (version.indexOf('.') > -1) {

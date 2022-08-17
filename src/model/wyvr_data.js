@@ -88,7 +88,7 @@ export function WyvrData(data, url, name, mtime_default) {
  * @returns
  */
 function merge_property(prop_value, default_value) {
-    if (typeof prop_value == 'string') {
+    if (is_string( prop_value)) {
         prop_value = [prop_value];
     }
     return [].concat(prop_value, default_value).filter((x, index, arr) => arr.indexOf(x) == index);

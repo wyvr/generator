@@ -29,7 +29,7 @@ describe('utils/media/get_config', () => {
             })
         );
     });
-    it('wrong format', async () => {
+    it('correct format', async () => {
         deepStrictEqual(
             await get_config('"src":"/assets/favicon.png"'),
             new MediaModel({
@@ -37,6 +37,17 @@ describe('utils/media/get_config', () => {
                 src: 'assets/favicon.png',
                 hash: 'eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6InBuZyIsInF1YWxpdHkiOjYwfQ==',
                 result: '/media/eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6InBuZyIsInF1YWxpdHkiOjYwfQ==/assets/favicon.png',
+            })
+        );
+    });
+    it('correct format external domain', async () => {
+        deepStrictEqual(
+            await get_config('"src":"https://wyvr.dev/favicon.png"'),
+            new MediaModel({
+                format: 'png',
+                src: 'https://wyvr.dev/favicon.png',
+                hash: 'eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6InBuZyIsInF1YWxpdHkiOjYwfQ==',
+                result: '/media/_d/d3l2ci5kZXY=/eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6InBuZyIsInF1YWxpdHkiOjYwfQ==/favicon.png',
             })
         );
     });

@@ -10,6 +10,7 @@ import { MediaModel } from '../model/media.js';
 import { Logger } from './logger.js';
 import { get_error_message } from './error.js';
 import { MediaModelMode, MediaModelOutput } from '../struc/media.js';
+import { clone } from './json.js';
 
 export async function process(media) {
     if (!match_interface(media, { result: true })) {
@@ -95,7 +96,7 @@ export function config_from_url(url) {
         return undefined;
     }
 
-    let result = new MediaModel({});
+    let result = clone(new MediaModel({}));
     // check for domain matches
     if (matches[1] == '_d') {
         const domain_matches = matches[2].match(/^([^/]+)\/([^/]+)\/(.*)/);
@@ -107,7 +108,7 @@ export function config_from_url(url) {
             result = JSON.parse(config_string);
             result.format = correct_format(result.format, url);
         } catch (e) {
-            Logger.error(Error.get(e, domain_matches[3], 'media on demand'));
+            Logger.error(get_error_message(e, domain_matches[3], 'media on demand'));
         }
         result.domain = Buffer.from(domain_matches[1], 'base64').toString('ascii');
         result.src = `https://${result.domain}/${domain_matches[3]}`;
@@ -122,7 +123,7 @@ export function config_from_url(url) {
         result = JSON.parse(config_string);
         result.format = correct_format(result.format, url);
     } catch (e) {
-        Logger.error(Error.get(e, matches[2], 'media on demand'));
+        Logger.error(get_error_message(e, matches[2], 'media on demand'));
     }
     result.src = matches[2];
     result.result = url;

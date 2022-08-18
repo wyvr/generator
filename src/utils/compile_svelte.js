@@ -167,7 +167,7 @@ export async function render_server_compiled_svelte(exec_result, data, file) {
     // transform props to allow loading them from external file
     register_prop(file);
     // set the correct translations for the page
-    register_i18n(get_language(data?._wyvr.language), file);
+    register_i18n(get_language(data?._wyvr?.language), file);
 
     // add registering onServer
     global.onServer = async (callback) => {

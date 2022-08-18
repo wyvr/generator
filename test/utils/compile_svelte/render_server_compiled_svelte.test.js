@@ -5,8 +5,6 @@ import { Cwd } from '../../../src/vars/cwd.js';
 import { join } from 'path';
 import { to_plain } from '../../../src/utils/to.js';
 import Sinon from 'sinon';
-import { Logger } from '../../../src/utils/logger.js';
-import { read } from '../../../src/utils/file.js';
 
 describe('utils/compile_svelte/render_server_compiled_svelte', () => {
     let log = [];
@@ -15,8 +13,8 @@ describe('utils/compile_svelte/render_server_compiled_svelte', () => {
     const path = join(process.cwd(), 'test', 'utils', 'compile_svelte', '_tests');
     before(() => {
         Cwd.set(path);
-        Sinon.stub(Logger, 'output');
-        Logger.output.callsFake((...msg) => {
+        Sinon.stub(console, 'error');
+        console.error.callsFake((...msg) => {
             log.push(msg.map(to_plain));
         });
         mock_send = process.send;
@@ -30,20 +28,58 @@ describe('utils/compile_svelte/render_server_compiled_svelte', () => {
     });
     after(() => {
         Cwd.set(undefined);
-        Logger.output.restore();
+        console.error.restore();
         process.send = mock_send;
     });
 
     it('undefined', async () => {
         deepStrictEqual(await render_server_compiled_svelte(), undefined);
-        deepStrictEqual(log, [])
+        deepStrictEqual(log, []);
+    });
+    it('correct interface but no data', async () => {
+        deepStrictEqual(
+            await render_server_compiled_svelte({ compiled: true, component: true, result: true }),
+            undefined
+        );
+        deepStrictEqual(log, []);
     });
     it('correct interface but no file', async () => {
-        deepStrictEqual(await render_server_compiled_svelte({ compiled: true, component: true, result: true }), undefined);
-        deepStrictEqual(log, [])
+        deepStrictEqual(
+            await render_server_compiled_svelte({ compiled: true, component: true, result: true }, {}),
+            undefined
+        );
+        deepStrictEqual(log, []);
     });
     it('correct interface and file', async () => {
-        deepStrictEqual(await render_server_compiled_svelte({ compiled: true, component: true, result: true }, 'file'), undefined);
-        deepStrictEqual(log, [])
+        const result = await render_server_compiled_svelte(
+            {
+                compiled: true,
+                component: { render: async () => ({ html: `<!-- HTML_TAG_START -->huhu ${await onServer(()=> 'value')} ${await onServer()}<!-- HTML_TAG_END -->` }) },
+                result: true,
+            },
+            {},
+            'file'
+        );
+        deepStrictEqual(result?.result?.html, 'huhu value undefined');
+        deepStrictEqual(log, []);
+    });
+    it('correct interface and file', async () => {
+        deepStrictEqual(
+            await render_server_compiled_svelte(
+                {
+                    compiled: true,
+                    component: {
+                        render: () => {
+                            throw new Error('huhu');
+                        },
+                    },
+                    result: true,
+                },
+                {},
+                'file'
+            ),
+            undefined
+        );
+        deepStrictEqual(log, [['✖', '@svelte server render\n[Error] huhu\nsource file']]);
     });
 });

@@ -22,7 +22,6 @@ export const app_command = async (config) => {
 
     await pre_initial_build(build_id, config_data);
 
-
     // Initialize Plugins
     const plugin_files = await Plugin.load(FOLDER_GEN_PLUGINS);
     const plugins = await Plugin.generate(plugin_files);
@@ -32,5 +31,6 @@ export const app_command = async (config) => {
 
     app_server('localhost', port);
 
-    return build_id;
+    // keep command open, otherwise the workers will get killed
+    return new Promise(() => {});
 };

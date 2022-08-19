@@ -27,7 +27,9 @@ export async function exec_request(req, res, uid, force_generating_of_resources)
         }
         const js_path = join(ReleasePath.get(), FOLDER_JS, `${result.data._wyvr.identifier}.js`);
         if (result?.data?._wyvr?.identifier_data && (!exists(js_path) || force_generating_of_resources)) {
-            const identifiers = [result?.data?._wyvr?.identifier_data];
+            // script only accepts an object
+            const identifiers = {};
+            identifiers[result.data._wyvr.identifier_data.identifier] = result?.data._wyvr.identifier_data;
             // save the file to gen
             await scripts(identifiers);
             copy(Cwd.get(FOLDER_GEN_JS, `${result.data._wyvr.identifier}.js`), js_path);

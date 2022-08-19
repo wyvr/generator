@@ -36,7 +36,7 @@ export async function process(media) {
         options.height = Math.ceil(media.height);
     }
     // add white background when empty space can be added and format is not transparent able
-    if (in_array(['jpg', 'jpeg'], media.format) && media.mode != MediaModelMode.cover) {
+    if (in_array(['jpg', 'jpe', 'jpeg'], media.format) && media.mode != MediaModelMode.cover) {
         options.background = { r: 255, g: 255, b: 255 };
     }
     Logger.debug(media.src, JSON.stringify(options));
@@ -48,41 +48,40 @@ export async function process(media) {
         return undefined;
     }
     if (media.output != MediaModelOutput.path) {
-        Logger.warning('media', `${media.src} output "${media.output}" is not implemented at the moment`);
+        Logger.warning(
+            'media',
+            `${media.src} output "${media.output}" is not implemented at the moment, falling back to path`
+        );
     }
     let output_buffer;
-    try {
-        switch (media.format) {
-            case 'jpg':
-            case 'jpeg':
-                output_buffer = await modified_image.jpeg({ quality: media.quality }).toBuffer();
-                break;
-            case 'avif':
-                output_buffer = await modified_image.avif({ quality: media.quality }).toBuffer();
-                break;
-            case 'heif':
-                output_buffer = await modified_image.heif({ quality: media.quality }).toBuffer();
-                break;
-            case 'webp':
-                output_buffer = await modified_image.webp().toBuffer();
-                break;
-            case 'png':
-                output_buffer = await modified_image.png().toBuffer();
-                break;
-            case 'gif':
-                output_buffer = await modified_image.png().toBuffer();
-                break;
-        }
-        if (!output_buffer) {
-            Logger.error(get_error_message({ message: 'no buffer available' }, media.src, 'sharp'));
-            return undefined;
-        }
-        // output_buffer is arraybuffer and has to be converter
-        write(output, Buffer.from(output_buffer));
-    } catch (e) {
-        Logger.error(get_error_message(e, media.src, 'sharp'));
+    switch (media.format) {
+        case 'jpg':
+        case 'jpe':
+        case 'jpeg':
+            output_buffer = await modified_image.jpeg({ quality: media.quality }).toBuffer();
+            break;
+        case 'avif':
+            output_buffer = await modified_image.avif({ quality: media.quality }).toBuffer();
+            break;
+        case 'heif':
+            output_buffer = await modified_image.heif({ quality: media.quality }).toBuffer();
+            break;
+        case 'webp':
+            output_buffer = await modified_image.webp().toBuffer();
+            break;
+        case 'png':
+            output_buffer = await modified_image.png().toBuffer();
+            break;
+        case 'gif':
+            output_buffer = await modified_image.png().toBuffer();
+            break;
+    }
+    if (!output_buffer) {
+        Logger.error(get_error_message({ message: 'no buffer available' }, media.src, 'sharp'));
         return undefined;
     }
+    // output_buffer is arraybuffer and has to be converter
+    write(output, Buffer.from(output_buffer));
 
     return undefined;
 }
@@ -178,7 +177,7 @@ export async function get_config(content) {
 }
 
 export function get_config_from_content(content) {
-    if(!filled_string(content)) {
+    if (!filled_string(content)) {
         return undefined;
     }
     const exec_code = `(() => {

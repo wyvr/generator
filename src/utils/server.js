@@ -106,9 +106,19 @@ export function static_server(req, res, uid, on_end) {
 
 export function app_server(host, port) {
     server(host, port, undefined, async (req, res, uid) => {
+        // check for media files
+        const media_config = config_from_url(req.url);
+        if (media_config && !media_config.result_exists) {
+            // generate media on demand
+            await media([media_config]);
+        }
         await static_server(req, res, uid, async (err) => {
             if (err) {
-                return await exec_request(req, res, uid, false);
+                const exec_result = await exec_request(req, res, uid, false);
+                if (exec_result) {
+                    return;
+                }
+                return false;
             }
             return true;
         });

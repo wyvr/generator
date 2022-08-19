@@ -26,50 +26,45 @@ export async function prepare_code_to_compile(content, file, type) {
     if (type === 'server') {
         content = fix_reserved_tag_names(content);
     }
-    try {
-        const replacer = (_, imported, path) => {
-            if (is_path(path)) {
-                // correct the path
-                path = replace_src_in_path(path, folder).replace(new RegExp(FOLDER_GEN_SRC, 'g'), folder);
-                // transform to js from svelte
-                const ext = extname(path);
-                if (type === 'server' && ext == '.svelte') {
-                    path = to_extension(path, 'js');
-                }
-                // force file ending when nothing is specified
-                if (!ext) {
-                    const check_ext = ['.js', '.mjs', '.ts'];
-                    const dir = dirname(file);
-                    const new_ext = check_ext.find((search_ext) => exists(resolve(dir, `${path}${search_ext}`)));
-                    if (!new_ext) {
-                        Logger.warning(
-                            get_error_message(
-                                new Error(
-                                    `can't find import ${path} with the extensions ${check_ext.join(',')} in ${file}`
-                                ),
-                                file,
-                                scope
-                            )
-                        );
-                    }
-                    path = `${path}${new_ext || ''}`;
-                }
-                path += cache_breaker;
+    const replacer = (_, imported, path) => {
+        if (is_path(path)) {
+            // correct the path
+            path = replace_src_in_path(path, folder).replace(new RegExp(FOLDER_GEN_SRC, 'g'), folder);
+            // transform to js from svelte
+            const ext = extname(path);
+            if (type === 'server' && ext == '.svelte') {
+                path = to_extension(path, 'js');
             }
-
-            return `import ${imported} from '${path}'`;
-        };
-        let modified_content = content.replace(/import (.*?) from ['"]([^'"]+)['"]/g, replacer);
-        // replace names of components because some can not used, which are default html tags
-        if (type === 'server') {
-            modified_content = fix_reserved_tag_names(modified_content);
+            // force file ending when nothing is specified
+            if (!ext) {
+                const check_ext = ['.js', '.mjs', '.ts'];
+                const dir = dirname(file);
+                const new_ext = check_ext.find((search_ext) => exists(resolve(dir, `${path}${search_ext}`)));
+                if (!new_ext) {
+                    Logger.warning(
+                        get_error_message(
+                            new Error(
+                                `can't find import ${path} with the extensions ${check_ext.join(',')} in ${file}`
+                            ),
+                            file,
+                            scope
+                        )
+                    );
+                }
+                path = `${path}${new_ext || ''}`;
+            }
+            path += cache_breaker;
         }
 
-        return await inject(replace_src_path(modified_content, folder, extname(file)), file);
-    } catch (e) {
-        Logger.error(get_error_message(e, file, scope), e.stack);
+        return `import ${imported} from '${path}'`;
+    };
+    let modified_content = content.replace(/import (.*?) from ['"]([^'"]+)['"]/g, replacer);
+    // replace names of components because some can not used, which are default html tags
+    if (type === 'server') {
+        modified_content = fix_reserved_tag_names(modified_content);
     }
-    return undefined;
+
+    return await inject(replace_src_path(modified_content, folder, extname(file)), file);
 }
 
 export async function compile_svelte_from_code(content, file, type) {

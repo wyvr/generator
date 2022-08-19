@@ -9,45 +9,50 @@ import { get_config_cache } from './config_cache.js';
 
 let watcher;
 let working = false;
+let debouncer;
+let changed_files = {};
+let pkgs;
 
 export async function package_watcher(packages) {
     if (!filled_array(packages)) {
         Logger.error('missing packages in package_watcher');
         return;
     }
+    pkgs = packages;
     return new Promise(() => {
-        let debouncer;
         const watch_folder = packages.map((pkg) => pkg.path);
         watch_folder.push(Cwd.get('wyvr.js'));
-        let changed_files = {};
 
         watcher = watch(watch_folder, {
             ignoreInitial: true,
-        }).on('all', (event, path) => {
-            if (ignore_watched_file(event, path)) {
-                return;
-            }
+        }).on('all', watcher_event);
 
-            if (!changed_files[event]) {
-                changed_files[event] = [];
-            }
-            changed_files[event] = uniq_values([path, ...changed_files[event]]);
-
-            if (working) {
-                return;
-            }
-
-            clearTimeout(debouncer);
-            debouncer = setTimeout(async () => {
-                working = true;
-                await process_changed_files(changed_files, packages);
-                changed_files = {};
-                set_waiting();
-            }, 250);
-        });
         Logger.success('watching', packages.length, 'packages');
         set_waiting();
     });
+}
+
+export function watcher_event(event, path) {
+    if (ignore_watched_file(event, path)) {
+        return;
+    }
+
+    if (!changed_files[event]) {
+        changed_files[event] = [];
+    }
+    changed_files[event] = uniq_values([path, ...changed_files[event]]);
+
+    if (is_working()) {
+        return;
+    }
+
+    clearTimeout(debouncer);
+    debouncer = setTimeout(async () => {
+        working = true;
+        await process_changed_files(changed_files, pkgs);
+        changed_files = {};
+        set_waiting();
+    }, 250);
 }
 
 export async function process_changed_files(changed_files, packages) {
@@ -63,8 +68,6 @@ export async function process_changed_files(changed_files, packages) {
             if (pkg) {
                 pkg_path = pkg.path;
             }
-
-            // @TODO check if the file from this package is used
 
             const rel_path = path.replace(pkg_path + '/', '');
 
@@ -106,6 +109,7 @@ export async function process_changed_files(changed_files, packages) {
 
 export function ignore_watched_file(event, path) {
     return (
+        !path ||
         path.indexOf('package.json') > -1 ||
         path.indexOf('package-lock.json') > -1 ||
         path.indexOf('/node_modules') > -1 ||
@@ -116,23 +120,30 @@ export function ignore_watched_file(event, path) {
 }
 
 export async function unwatch() {
+    pkgs = undefined;
     return new Promise((resolve, reject) => {
         if (watcher) {
             const save_guard = setTimeout(() => {
-                reject();
-            });
+                /* c8 ignore next */
+                reject(false);
+            }, 1000);
             watcher.close().then(() => {
                 clearTimeout(save_guard);
-                resolve();
+                resolve(true);
             });
             return;
         }
-        resolve();
+        /* c8 ignore next */
+        resolve(true);
     });
 }
 
-function set_waiting() {
+export function set_waiting() {
     Logger.output(undefined, undefined, Logger.color.dim('...'));
     Logger.block('waiting for changes');
     working = false;
+}
+
+export function is_working() {
+    return !!working;
 }

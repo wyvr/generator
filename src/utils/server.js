@@ -8,7 +8,7 @@ import { Cwd } from '../vars/cwd.js';
 import { get_error_message } from './error.js';
 import { nano_to_milli } from './convert.js';
 import { Env } from '../vars/env.js';
-import { exec_request } from '../action/exec.js';
+import { exec_request, fallback_exec_request } from '../action/exec.js';
 import { config_from_url } from './media.js';
 import { media } from '../action/media.js';
 
@@ -65,8 +65,8 @@ export function return_not_found(req, res, uid, message, status, start) {
         Logger.color.dim(status),
         ...get_base_log_infos(start, uid)
     );
-    res.writeHead(status, { 'Content-Type': 'text/html' });
-    res.end(message);
+    send_head(res, status, 'text/html');
+    send_content(res, message);
     return;
 }
 export function get_base_log_infos(start, uid) {
@@ -77,6 +77,25 @@ export function get_base_log_infos(start, uid) {
         Logger.color.dim(date.toLocaleDateString()),
         Logger.color.dim(uid),
     ];
+}
+
+export function send_head(res, status, content_type) {
+    if (!res.headersSent) {
+        const headers = {};
+        if (content_type) {
+            headers['Content-Type'] = content_type;
+        }
+        res.writeHead(status, headers);
+        return true;
+    }
+    return false;
+}
+export function send_content(res, content) {
+    if (!res.writableEnded) {
+        res.end(content);
+        return true;
+    }
+    return false;
 }
 
 let static_server_instance;
@@ -105,6 +124,15 @@ export function static_server(req, res, uid, on_end) {
 }
 
 export function app_server(host, port) {
+    generate_server(host, port, false, undefined);
+}
+
+export function watch_server(host, port, wsport, fallback) {
+    generate_server(host, port, true, fallback);
+    websocket_server(wsport);
+}
+
+async function generate_server(host, port, force_generating_of_resources, fallback) {
     server(host, port, undefined, async (req, res, uid) => {
         // check for media files
         const media_config = config_from_url(req.url);
@@ -114,9 +142,19 @@ export function app_server(host, port) {
         }
         await static_server(req, res, uid, async (err) => {
             if (err) {
-                const exec_result = await exec_request(req, res, uid, false);
+                const exec_result = await exec_request(req, res, uid, force_generating_of_resources);
                 if (exec_result) {
                     return;
+                }
+                if (!res.writableEnded) {
+                    if (is_func(fallback)) {
+                        await fallback(req, res, uid, err);
+                        return false;
+                    }
+                    const fallback_result = await fallback_exec_request(req, res, uid);
+                    if (fallback_result) {
+                        return;
+                    }
                 }
                 return false;
             }
@@ -125,30 +163,6 @@ export function app_server(host, port) {
     });
 }
 
-export function watch_server(host, port, wsport, fallback) {
-    server(host, port, undefined, async (req, res, uid) => {
-        // check for media files
-        const media_config = config_from_url(req.url);
-        if (media_config && !media_config.result_exists) {
-            // generate media on demand
-            await media([media_config]);
-        }
-        await static_server(req, res, uid, async (err) => {
-            if (err) {
-                const exec_result = await exec_request(req, res, uid, true);
-                if (exec_result) {
-                    return;
-                }
-                if (!res.writableEnded && is_func(fallback)) {
-                    await fallback(req, res, uid, err);
-                }
-                return false;
-            }
-            return true;
-        });
-    });
-    websocket_server(wsport);
-}
 export function websocket_server(port) {
     const server = new WebSocketServer({ port });
     const watchers = {};

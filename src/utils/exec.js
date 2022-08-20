@@ -28,7 +28,8 @@ export async function build_cache() {
         files.map(async (file) => {
             Logger.debug(file);
             // ignore files with a starting underscore
-            if (file.split('/').pop().match(/^_/)) {
+            const last = file.split('/').pop();
+            if (last.match(/^_/)) {
                 return undefined;
             }
             const result = await load_exec(file);
@@ -105,6 +106,11 @@ export async function run_exec(request, response, uid, exec) {
         } catch (e) {
             Logger.error('[exec]', error_message('onExec'), get_error_message(e, exec.path, 'exec'));
         }
+    }
+    // when onExec does not return a correct object force one
+    if(is_null(data)) {
+        Logger.warning('[exec]', `onExec in ${exec.path} should return a object`);
+        data = {};
     }
 
     // replace function properties

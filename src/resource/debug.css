@@ -7,6 +7,7 @@
     --wyvr-debug-outline: rgba(255, 55, 0, 0.75);
     --wyvr-debug-outline-active: #f30;
     --wyvr-debug-error: #800;
+    --wyvr-debug-font-size: 14px;
 }
 
 .wyvr_debug_toolbar,
@@ -91,6 +92,8 @@
     bottom: 0;
     border-top-left-radius: 10px;
     right: 0;
+    font-size: var(--wyvr-debug-font-size);
+    font-family: monospace;
 }
 .wyvr_debug_toolbar:after {
     content: '';
@@ -157,6 +160,8 @@
     line-height: 2em;
     display: block;
     white-space: nowrap;
+    font-family: none;
+    border-radius: 2px;
 }
 .wyvr_debug_toolbar button:disabled {
     opacity: 0.5;
@@ -181,6 +186,8 @@
     content: attr(title);
     padding-left: 10px;
     opacity: 0.75;
+    font-size: var(--wyvr-debug-font-size);
+    font-family: monospace;
 }
 .wyvr_debug_toolbar button:hover::after {
     opacity: 1;
@@ -267,6 +274,8 @@
     position: sticky;
     bottom: 40px;
     z-index: 90000;
+    font-size: var(--wyvr-debug-font-size);
+    font-family: monospace;
 }
 #wyvr_error_target:empty {
     display: none;
@@ -275,7 +284,6 @@
     margin: 0;
     padding: 0;
     list-style: none;
-    font-family: monospace;
     overflow-y: auto;
     max-height: 90vh;
 }

@@ -1,3 +1,4 @@
+import { join } from 'path';
 import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerEmit } from '../struc/worker_emit.js';
 import { clone } from '../utils/json.js';
@@ -23,6 +24,9 @@ export async function route(files) {
         const mtime = global.cache.mtime ? global.cache.mtime[route.rel_path] : undefined;
         const processed_pages = wyvr_pages.map((wyvr_page) => {
             const page = process_page_data(wyvr_page, mtime);
+            // route is required to identify the correct route when rebuilding
+            page._wyvr.route = join(route.pkg.path, route.rel_path);
+            page._wyvr.pkg = route.pkg.name;
             if (page._wyvr.collection) {
                 collections.push(...page._wyvr.collection);
             }

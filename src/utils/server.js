@@ -14,6 +14,7 @@ import { media } from '../action/media.js';
 import { Event } from './event.js';
 import { stringify } from './json.js';
 import { LogType } from '../struc/log.js';
+import { watcher_event } from './watcher.js';
 
 export function server(host, port, on_request, on_end) {
     if (!filled_string(host) || !is_number(port)) {
@@ -189,7 +190,7 @@ export function websocket_server(port) {
     }
     let avoid_reload = false;
     Event.on('client', 'reload', (data) => {
-        if(!avoid_reload) {
+        if (!avoid_reload) {
             send_all_watchers({ action: 'reload', data });
         }
         avoid_reload = false;
@@ -209,7 +210,7 @@ export function websocket_server(port) {
             watchers[ws.id] = null;
             Logger.debug('websocket close', id);
         });
-        ws.on('message', (message) => {
+        ws.on('message', async (message) => {
             let data = null;
             if (message) {
                 try {
@@ -219,23 +220,16 @@ export function websocket_server(port) {
                 }
             }
             Logger.info('ws data', data);
-            // if (data.action) {
-            //     switch (data.action) {
-            //         case 'path':
-            //             if (data.path) {
-            //                 if (this.get_watched_files().indexOf(data.path) == -1) {
-            //                     this.watchers[ws.id] = data.path;
-            //                 }
-            //             }
-            //             break;
-            //         case 'reload':
-            //             if (data.path) {
-            //                 Logger.block('rebuild', data.path);
-            //                 this.rebuild();
-            //             }
-            //             break;
-            //     }
-            // }
+            if (data.action) {
+                switch (data.action) {
+                    case 'rebuild':
+                        if (data.data) {
+                            Logger.block('rebuild', data.data);
+                            watcher_event('change', data.data);
+                        }
+                        break;
+                }
+            }
         });
         // if (!watchers[ws.id]) {
         //     this.send(ws.id, { action: 'available' });

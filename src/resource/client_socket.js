@@ -6,7 +6,10 @@
         if (window.on) {
             clearInterval(check_on);
             on('wyvr_debug_rebuild', () => {
-                send({ action: 'reload', path: location.pathname });
+                wyvr_debug_inspect_data().then(() => {
+                    send({ action: 'rebuild', data: window.data._wyvr.route });
+                    add_to_history();
+                });
             });
         }
     }, 1000);
@@ -52,8 +55,10 @@
                         const path = get_path();
                         send({ action: 'path', path });
                         if (!in_history(path) || window.wyvr_generate_page) {
-                            send({ action: 'reload', path });
-                            add_to_history();
+                            wyvr_debug_inspect_data().then(() => {
+                                send({ action: 'rebuild', data: window.data._wyvr.route });
+                                add_to_history();
+                            });
                         }
                         break;
                     }
@@ -109,7 +114,10 @@
                     .replace(/</g, '&lt;')
                     .replace(/>/g, '&gt;')
                     .replace(/\n/g, '<br>')
-                    .replace(/\\n/g, '<br>')}<button onclick="wyvr_close_error(this)" data-id="${index}" title="close"></button></li>`;
+                    .replace(
+                        /\\n/g,
+                        '<br>'
+                    )}<button onclick="wyvr_close_error(this)" data-id="${index}" title="close"></button></li>`;
             }),
             '</ul>',
         ];

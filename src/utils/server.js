@@ -11,6 +11,9 @@ import { Env } from '../vars/env.js';
 import { exec_request, fallback_exec_request } from '../action/exec.js';
 import { config_from_url } from './media.js';
 import { media } from '../action/media.js';
+import { Event } from './event.js';
+import { stringify } from './json.js';
+import { LogType } from '../struc/log.js';
 
 export function server(host, port, on_request, on_end) {
     if (!filled_string(host) || !is_number(port)) {
@@ -124,15 +127,24 @@ export function static_server(req, res, uid, on_end) {
 }
 
 export function app_server(host, port) {
-    generate_server(host, port, false, undefined);
+    generate_server(host, port, false, undefined, undefined);
 }
 
 export function watch_server(host, port, wsport, fallback) {
-    generate_server(host, port, true, fallback);
+    Logger.emit = true;
+    generate_server(
+        host,
+        port,
+        true,
+        () => {
+            Logger.info('onEnd');
+        },
+        fallback
+    );
     websocket_server(wsport);
 }
 
-async function generate_server(host, port, force_generating_of_resources, fallback) {
+async function generate_server(host, port, force_generating_of_resources, onEnd, fallback) {
     server(host, port, undefined, async (req, res, uid) => {
         // check for media files
         const media_config = config_from_url(req.url);
@@ -167,10 +179,30 @@ export function websocket_server(port) {
     const server = new WebSocketServer({ port });
     const watchers = {};
 
+    function send_all_watchers(data) {
+        Object.keys(watchers).forEach((key) => {
+            if (watchers[key]) {
+                Logger.debug('ws send', key, data);
+                watchers[key].send(stringify(data));
+            }
+        });
+    }
+    let avoid_reload = false;
+    Event.on('client', 'reload', (data) => {
+        if(!avoid_reload) {
+            send_all_watchers({ action: 'reload', data });
+        }
+        avoid_reload = false;
+    });
+    Event.on('logger', LogType.error, (data) => {
+        send_all_watchers({ action: 'error', data });
+        avoid_reload = true;
+    });
+
     server.on('connection', (ws) => {
         const id = uniq_id();
         ws.id = id;
-        watchers[id] = undefined;
+        watchers[id] = ws;
         Logger.debug('websocket connect', id);
 
         ws.on('close', () => {

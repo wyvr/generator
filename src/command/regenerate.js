@@ -39,6 +39,9 @@ export async function regenerate_command(changed_files) {
     if (!filled_array(fragments)) {
         return;
     }
+
+    let reload_page = false;
+
     Logger.info('changed_files', changed_files);
     Logger.info('fragments', fragments);
     const packages = Config.get('packages');
@@ -50,12 +53,11 @@ export async function regenerate_command(changed_files) {
         if (in_array(fragments, FOLDER_ASSETS)) {
             const assets = frag_files.assets;
             // copy modified and added files into the release and gen folder
-            if (assets.change || assets.add) {
-                const mod_assets = []
-                    .concat(assets.change || [], assets.add || [])
-                    .map((file) => ({ src: file.path, target: './' + file.rel_path }));
-                copy_files(mod_assets, ReleasePath.get());
-                copy_files(mod_assets, gen_folder);
+            const modified_assets = [].concat(assets.change || [], assets.add || []);
+            if (modified_assets.length > 0) {
+                const copy_assets = modified_assets.map((file) => ({ src: file.path, target: './' + file.rel_path }));
+                copy_files(copy_assets, ReleasePath.get());
+                copy_files(copy_assets, gen_folder);
             }
             if (assets.unlink) {
                 assets.unlink.forEach((file) => {
@@ -64,6 +66,7 @@ export async function regenerate_command(changed_files) {
                 });
             }
             // @TODO reload resource in browser
+            reload(modified_assets.map((file) => file?.rel_path).filter((x) => x));
         }
 
         // regenerate i18n
@@ -71,16 +74,19 @@ export async function regenerate_command(changed_files) {
             await i18n(packages);
             copy_folder(Cwd.get(FOLDER_GEN), [FOLDER_I18N], ReleasePath.get());
             // @TODO reload the whole browser page
+            reload_page = true;
         }
 
         // copy exec
         if (in_array(fragments, FOLDER_EXEC)) {
             const exec = frag_files.exec;
-            if (exec.change || exec.add) {
+            const modified_exec = [].concat(exec.change || [], exec.add || []);
+            if (modified_exec.length > 0) {
                 [].concat(exec.change || [], exec.add || []).map((file) => {
                     copy(file.path, Cwd.get(FOLDER_GEN, file.rel_path));
                 });
                 // @TODO reload the whole browser page
+                reload_page = true;
             }
         }
         const identifiers = {};
@@ -228,6 +234,7 @@ export async function regenerate_command(changed_files) {
                 Event.off('emit', routes_name, routes_id);
             }
             // @TODO reload the whole browser page
+            reload_page = true;
         }
 
         Logger.info('routes', routes);
@@ -242,11 +249,13 @@ export async function regenerate_command(changed_files) {
             });
             await WorkerController.process_in_workers(WorkerAction.build, routes, 100);
             Event.off('emit', identifier_name, identifier_id);
+            reload_page = true;
         }
         Logger.debug('identifiers', identifiers);
         if (filled_object(identifiers)) {
             const data = Object.keys(identifiers).map((key) => identifiers[key]);
             await WorkerController.process_in_workers(WorkerAction.scripts, data, 1);
+            reload_page = true;
         }
 
         // update the identifiers cache
@@ -254,6 +263,12 @@ export async function regenerate_command(changed_files) {
         set_config_cache('identifiers', merged_identifiers);
 
         copy_folder(Cwd.get(FOLDER_GEN), [FOLDER_ASSETS, FOLDER_CSS, FOLDER_JS, FOLDER_I18N], ReleasePath.get());
+
+        // @TODO reload the whole browser page
+        if (reload_page) {
+            Logger.info('force reloading');
+            reload();
+        }
     });
 
     return;
@@ -277,6 +292,13 @@ export function split_changed_files_by_fragment(changed_files) {
         });
     });
     return result;
+}
+
+export function reload(files) {
+    if (!filled_array(files)) {
+        files = '*';
+    }
+    Event.emit('client', 'reload', files);
 }
 
 // function find_package_of_file(file) {

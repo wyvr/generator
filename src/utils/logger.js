@@ -17,6 +17,7 @@ import { Spinner } from './spinner.js';
 import { IsWorker } from '../vars/is_worker.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { to_plain } from './to.js';
+import { Event } from './event.js';
 
 export class Logger {
     /**
@@ -45,6 +46,9 @@ export class Logger {
 
     /* eslint-disable */
     static output(type, color_fn, char, ...messages) {
+        if (this.emit) {
+            Event.emit('logger', type, { char, message: messages.map(to_plain) });
+        }
         if (this.disable) {
             return;
         }
@@ -209,4 +213,5 @@ Logger.color = kleur;
 Logger.remove_color = false;
 Logger.disable = false;
 Logger.inset = false;
+Logger.emit = false;
 Logger.report_content = [];

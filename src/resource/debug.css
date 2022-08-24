@@ -6,6 +6,7 @@
     --wyvr-debug-text-shadow: #000;
     --wyvr-debug-outline: rgba(255, 55, 0, 0.75);
     --wyvr-debug-outline-active: #f30;
+    --wyvr-debug-error: #800;
 }
 
 .wyvr_debug_toolbar,
@@ -262,33 +263,44 @@
     transition: opacity 2s linear;
     pointer-events: none;
 }
+#wyvr_error_target {
+    position: sticky;
+    bottom: 0;
+    z-index: 90000;
+}
+#wyvr_error_target:empty {
+    display: none;
+}
 .wyvr_error_list {
     margin: 0;
     padding: 0;
     list-style: none;
     font-family: monospace;
-    max-height: 90vh;
     overflow-y: auto;
-    position: fixed;
-    top: 1em;
-    right: 1em;
-    left: 1em;
-    bottom: 1em;
-    z-index: 90000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 .wyvr_error_list li {
     margin: 0 10px 10px;
-    padding: 1em;
+    padding: 1em 4em 1em 1em;
     list-style: none;
-    background-color: #600;
-    border: 2px solid #fff;
+    background: var(--wyvr-debug-error);
     color: #fff;
-    white-space: pre;
     overflow-x: auto;
-    max-width: 100%;
     line-height: 1.2em;
-    box-shadow: 0 5px 10px #000;
+    border-radius: 10px;
+    position: relative;
+}
+.wyvr_error_list li button {
+    border: 0;
+    border-radius: 50%;
+    width: 2em;
+    height: 2em;
+    right: 1em;
+    top: 1em;
+    color: var(--wyvr-debug-error);
+    background-color: #fff;
+    cursor: pointer;
+    position: absolute;
+}
+.wyvr_error_list li button:after {
+    content: '⨯';
 }

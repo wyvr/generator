@@ -42,7 +42,6 @@
         if (!connected) {
             socket = new WebSocket('ws://' + location.hostname + ':{port}');
             socket.onmessage = function (event) {
-                console.log(event);
                 check_state();
                 let data = event.data;
                 try {
@@ -63,7 +62,6 @@
                         break;
                     }
                     case 'reload':
-                        console.log(data);
                         reload(data.data);
                         break;
                     case 'warning': {

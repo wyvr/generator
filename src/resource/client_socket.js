@@ -95,6 +95,7 @@
         const content = document.getElementById('wyvr_error_target');
 
         if (!content) {
+            setTimeout(wyvr_update_errors, 1000);
             return false;
         }
         const html = [

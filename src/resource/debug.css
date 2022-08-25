@@ -300,11 +300,11 @@
 }
 .wyvr_error_list li button {
     border: 0;
-    border-radius: 50%;
+    border-radius: 10px;
     width: 2em;
     height: 2em;
-    right: 1em;
-    top: 1em;
+    right: 0;
+    top: 0;
     color: var(--wyvr-debug-error);
     background-color: #fff;
     cursor: pointer;

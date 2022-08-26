@@ -8,6 +8,7 @@ import { exists, read, to_extension, write } from '../utils/file.js';
 import { get_file_time_hash } from '../utils/hash.js';
 import { stringify } from '../utils/json.js';
 import { Logger } from '../utils/logger.js';
+import { write_identifier_structure } from '../utils/structure.js';
 import { to_dirname } from '../utils/to.js';
 import { filled_array, in_array } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
@@ -22,8 +23,13 @@ export async function scripts(identifiers) {
         return;
     }
     const file_config = get_config_cache('dependencies.config');
+    const tree = get_config_cache('dependencies.top');
+    let package_tree;
+    if(Env.is_dev()) {
+        package_tree = get_config_cache('package_tree');
+
+    }
     for (const identifier of identifiers) {
-        const tree = get_config_cache('dependencies.top');
         const dependencies = [].concat(
             ...['doc', 'layout', 'page'].map((type) => {
                 return get_hydrate_dependencies(
@@ -33,6 +39,10 @@ export async function scripts(identifiers) {
                 );
             })
         );
+        if(Env.is_dev()) {
+            write_identifier_structure(identifier, tree, file_config, package_tree);
+        }
+
         const has = { instant: false };
         // build file content
         const content = (

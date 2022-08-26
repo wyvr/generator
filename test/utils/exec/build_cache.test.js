@@ -25,8 +25,8 @@ describe('utils/exec/build_cache', () => {
         Cwd.set(undefined);
         sandbox.restore();
         collect_files(dir, 'json').forEach((file) => {
-            if (file.match(/exec_cache.json$/)) {
-                remove(join(dir, file));
+            if (file.match(/exec_cache\.json$/)) {
+                remove(file);
             }
         });
     });

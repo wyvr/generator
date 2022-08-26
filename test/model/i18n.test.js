@@ -70,6 +70,16 @@ describe('model/i18n', () => {
                 'Test huhu 2.3 {"key":"value"} null'
             );
         });
+        it('replace plural', () => {
+            const i18n = new I18N({
+                test: {
+                    _: 'all',
+                    1: 'one',
+                },
+            });
+            deepStrictEqual(i18n.tr('test', { count: 1 }), 'one');
+            deepStrictEqual(i18n.tr('test', { count: 2 }), 'all');
+        });
     });
     describe('plural', () => {
         it('plural no object', () => {

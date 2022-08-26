@@ -19,7 +19,7 @@ export class I18N {
         return tr;
     }
     replace(value, options) {
-        if (!filled_string(value)) {
+        if (is_null(value)) {
             return undefined;
         }
         let result = this.plural(value, options);

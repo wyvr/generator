@@ -1,5 +1,6 @@
+import { readlinkSync } from 'fs';
 import { FOLDER_PUBLISH } from '../constants/folder.js';
-import { remove, symlink } from '../utils/file.js';
+import { exists, remove, symlink } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
 import { Cwd } from '../vars/cwd.js';
@@ -18,7 +19,6 @@ export async function publish() {
         const caller = await Plugin.process(name, build_id, release_path);
         await caller(async () => {
             const pub = Cwd.get(FOLDER_PUBLISH);
-            remove(pub);
             symlink(release_path, pub);
         });
 

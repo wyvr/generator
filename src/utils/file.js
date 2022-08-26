@@ -339,8 +339,9 @@ export function symlink(from, to) {
                     Logger.error('symlink', from, to, 'to is a regular file no symlink');
                     return false;
                 }
-                remove(to);
             }
+            // force removing the to
+            rmSync(to, { recursive: true, force: true });
             symlinkSync(from, to);
         } catch (e) {
             Logger.error('symlink', from, to, e);

@@ -49,7 +49,7 @@ describe('utils/compile_svelte/prepare_code_to_compile', () => {
                 'file',
                 'server'
             ),
-            "<script>import Header from '/home/p/wyvr/generator/test/utils/compile_svelte/_tests/gen/server/component/Header.js';</script> <Header />"
+            `<script>import Header from '${process.cwd()}/test/utils/compile_svelte/_tests/gen/server/component/Header.js';</script> <Header />`
         );
     });
     it('import dev', async () => {
@@ -61,7 +61,11 @@ describe('utils/compile_svelte/prepare_code_to_compile', () => {
         );
         Env.value = undefined;
         strictEqual(
-            result.indexOf("<script>import Header from '/home/p/wyvr/generator/test/utils/compile_svelte/_tests/gen/server/component/Header.js?") > -1, true, 'Doesnt contain cache breaker'
+            result.indexOf(
+                `<script>import Header from '${process.cwd()}/test/utils/compile_svelte/_tests/gen/server/component/Header.js?`
+            ) > -1,
+            true,
+            "Doesn't contain cache breaker"
         );
     });
 });

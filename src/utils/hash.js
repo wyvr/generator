@@ -3,6 +3,7 @@ import { createHash as cryptoCreateHash } from 'crypto';
 import { exists, read } from './file.js';
 import { to_relative_path } from './to.js';
 import { extname } from 'path';
+import { statSync } from 'fs';
 
 export function css_hash(data) {
     if (!match_interface(data, { hash: true, css: true, name: true, filename: true })) {
@@ -28,7 +29,7 @@ export function get_files_hashes(files) {
             return;
         }
         const rel_path = to_relative_path(file);
-        const hash = create_hash(read(file));
+        const hash = get_file_hash(file);
         const ext = extname(file);
         result[rel_path] = {
             hash,
@@ -37,4 +38,17 @@ export function get_files_hashes(files) {
         };
     });
     return result;
+}
+export function get_file_hash(file) {
+    if (!exists(file)) {
+        return undefined;
+    }
+    return create_hash(read(file));
+}
+export function get_file_time_hash(file) {
+    if (!exists(file)) {
+        return undefined;
+    }
+    const stats = statSync(file);
+    return (stats.mtimeMs+'').replace('.', '');
 }

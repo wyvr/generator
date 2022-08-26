@@ -5,6 +5,7 @@ import { build } from '../utils/build.js';
 import { get_config_cache } from '../utils/config_cache.js';
 import { get_hydrate_dependencies } from '../utils/dependency.js';
 import { exists, read, to_extension, write } from '../utils/file.js';
+import { get_file_time_hash } from '../utils/hash.js';
 import { stringify } from '../utils/json.js';
 import { Logger } from '../utils/logger.js';
 import { to_dirname } from '../utils/to.js';
@@ -20,8 +21,6 @@ export async function scripts(identifiers) {
     if (!filled_array(identifiers)) {
         return;
     }
-    const cache_breaker = Env.is_dev() ? `?${Date.now()}` : '';
-
     const file_config = get_config_cache('dependencies.config');
     for (const identifier of identifiers) {
         const tree = get_config_cache('dependencies.top');
@@ -41,6 +40,8 @@ export async function scripts(identifiers) {
                 dependencies.map(async (file) => {
                     const target = `const ${file.name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');`;
                     const import_path = Cwd.get(FOLDER_GEN_CLIENT, file.path);
+                    const cache_breaker = Env.is_dev() ? `?${get_file_time_hash(import_path)}` : '';
+                    
                     const instant_code = `
                 import ${file.name} from '${import_path}${cache_breaker}';
                 ${target}

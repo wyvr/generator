@@ -1,6 +1,5 @@
-import { readlinkSync } from 'fs';
 import { FOLDER_PUBLISH } from '../constants/folder.js';
-import { exists, remove, symlink } from '../utils/file.js';
+import { symlink } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
 import { Cwd } from '../vars/cwd.js';

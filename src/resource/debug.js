@@ -113,32 +113,43 @@ wyvr_debug_event('wyvr_debug_outline', () => {
 
                         let struc = null;
                         let pkg = null;
+                        let cnfg = null;
                         if (structure) {
                             const search = (node, name) => {
                                 if (!node || typeof node != 'object') {
                                     return [];
                                 }
-                                let result = [];
-                                if (Array.isArray(node)) {
-                                    return node.map((entry) => search(entry, name));
+                                if (node.file == name) {
+                                    return [node];
                                 }
-                                Object.keys(node).forEach((key) => {
-                                    if (key == 'file') {
-                                        if (node[key] == name) {
-                                            result.push(node);
-                                        }
-                                        return;
-                                    }
-                                    result = [].concat(result, search(node[key], name));
-                                });
-                                return result.flat();
+                                if (Array.isArray(node.components) && node.components.length > 0) {
+                                    return node.components
+                                        .map((entry) => search(entry, name))
+                                        .filter((x) => x)
+                                        .flat();
+                                }
+                                return [];
                             };
-                            const search_result = search(structure, path.replace('@src/', ''));
+                            const search_result = [].concat(
+                                // search(structure.doc, path.replace('@src/', '')),
+                                // search(structure.layout, path.replace('@src/', '')),
+                                search(structure.page, path.replace(/^@[src]{3}\//, ''))
+                            );
                             if (search_result.length > 0) {
                                 struc = search_result[0];
                                 if (struc) {
                                     if (struc.pkg) {
-                                        pkg = `${struc.pkg.name} <code>${struc.pkg.path}</code>`;
+                                        pkg = `<b>${struc.pkg.name}</b> <code>${struc.pkg.path}</code>`;
+                                    }
+                                    if (struc.config) {
+                                        cnfg = Object.keys(struc.config)
+                                            .map(
+                                                (key) =>
+                                                    `<var>${key}</var>: <code>${JSON.stringify(
+                                                        struc.config[key]
+                                                    )}</code>`
+                                            )
+                                            .join('<br>');
                                     }
                                 }
                             }
@@ -150,14 +161,12 @@ wyvr_debug_event('wyvr_debug_outline', () => {
                             <span title="Source">🔍️</span>
                             <code>${path}</code>
                         </div>
-                        <div>
-                            <span title="Props">⭐</span>
-                            ${props_content ? props_content : '<em>no props set</em>'}
-                        </div>
+                        ${props_content ? `<div><span title="Props">⭐</span>${props_content}</div>` : ''}
                         <div>
                             <span title="Package">📦️</span>
                             ${pkg ? pkg : '<em>no package found</em>'}
                         </div>
+                        ${cnfg ? `<div><span title="Config">🛠</span>${cnfg}</div>` : ''}
                     `;
                     });
                 }

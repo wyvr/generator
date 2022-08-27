@@ -52,13 +52,13 @@
             return;
         }
         // append shortcodes when available
-        const shortcode_path = '{shortcode_path}';
-        if (shortcode_path) {
-            const shortcodes = await wyvr_fetch(shortcode_path + '.json');
-            if (shortcodes) {
-                window.structure.shortcodes = shortcodes;
-            }
-        }
+        // const shortcode_path = '{shortcode_path}';
+        // if (shortcode_path) {
+        //     const shortcodes = await wyvr_fetch(shortcode_path + '.json');
+        //     if (shortcodes) {
+        //         window.structure.shortcodes = shortcodes;
+        //     }
+        // }
         console.log(window.structure);
         console.info('now available inside "structure"');
         console.groupEnd();

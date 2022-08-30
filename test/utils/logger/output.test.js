@@ -3,6 +3,7 @@ import cluster from 'cluster';
 import { describe, it } from 'mocha';
 import Sinon from 'sinon';
 import { LogType } from '../../../src/struc/log.js';
+import { Event } from '../../../src/utils/event.js';
 import { Logger } from '../../../src/utils/logger.js';
 import { IsWorker } from '../../../src/vars/is_worker.js';
 
@@ -84,6 +85,22 @@ describe('utils/logger/output', () => {
         Logger.disable = true;
         Logger.pre = Logger.color.green('pre');
         Logger.output(undefined, Logger.color.yellow, Logger.color.red('#'), Logger.color.blue('a'));
+        Logger.disable = false;
+        Logger.pre = '';
+        deepStrictEqual(result, []);
+    });
+    it('emit & disable', (done) => {
+        Logger.disable = true;
+        Logger.emit = true;
+        let emitted = [];
+        Event.once('logger', 'undefined', (data) => {
+            emitted.push(data);
+            deepStrictEqual(emitted, [{ char: '#', message: ['a'] }]);
+            done();
+        });
+        Logger.pre = Logger.color.green('pre');
+        Logger.output(undefined, Logger.color.yellow, Logger.color.red('#'), Logger.color.blue('a'));
+        Logger.emit = false;
         Logger.disable = false;
         Logger.pre = '';
         deepStrictEqual(result, []);

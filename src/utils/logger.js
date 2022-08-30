@@ -47,7 +47,7 @@ export class Logger {
     /* eslint-disable */
     static output(type, color_fn, char, ...messages) {
         if (this.emit) {
-            Event.emit('logger', type, { char, message: messages.map(to_plain) });
+            Event.emit('logger', type, { char: to_plain(char), message: messages.map(to_plain) });
         }
         if (this.disable) {
             return;

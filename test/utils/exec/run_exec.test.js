@@ -68,6 +68,28 @@ describe('utils/exec/run_exec', () => {
         deepStrictEqual(html, 'dyn content 10');
         deepStrictEqual(log, []);
     });
+    it('onExec does not return a object', async () => {
+        Cwd.set(join(dir, 'run'));
+        const result = await run_exec({ url: '/test/10', method: 'GET' }, {}, '0000', {
+            match: '^\\/test/([^\\]]*)$',
+            methods: ['get'],
+            mtime: 0,
+            params: ['id'],
+            path: join(dir, 'run/check_on_exec.js'),
+            rel_path: join(dir, 'run/check_on_exec.js'),
+            url: '/test',
+        });
+        const html = result?.result?.html;
+        deepStrictEqual(html, 'dyn content 10');
+        deepStrictEqual(log, [
+            [
+                '⚠',
+                '[exec] onExec in ' +
+                    process.cwd() +
+                    '/test/utils/exec/_tests/run/check_on_exec.js should return a object',
+            ],
+        ]);
+    });
     it('matching but not exstiting', async () => {
         Cwd.set(join(dir, 'run'));
         const result = await run_exec({ url: '/test/10', method: 'GET' }, {}, '0000', {
@@ -95,6 +117,9 @@ describe('utils/exec/run_exec', () => {
         });
         const html = result?.result?.html;
         deepStrictEqual(html, 'dyn content 10');
-        deepStrictEqual(log, [['✖', '[exec] error in onExec function @exec\n[Error] huhu\nsource errors.js'], ['✖', '[exec] error in title function @exec\n[Error] hihi\nsource errors.js']]);
+        deepStrictEqual(log, [
+            ['✖', '[exec] error in onExec function @exec\n[Error] huhu\nsource errors.js'],
+            ['✖', '[exec] error in title function @exec\n[Error] hihi\nsource errors.js'],
+        ]);
     });
 });

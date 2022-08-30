@@ -36,7 +36,7 @@ export function watcher_event(event, path) {
     if (ignore_watched_file(event, path)) {
         return;
     }
-
+    /* c8 ignore start */
     if (!changed_files[event]) {
         changed_files[event] = [];
     }
@@ -53,8 +53,10 @@ export function watcher_event(event, path) {
         changed_files = {};
         set_waiting();
     }, 250);
+    /* c8 ignore stop */
 }
 
+/* c8 ignore start */
 export async function process_changed_files(changed_files, packages) {
     const events = Object.keys(changed_files);
     const package_tree = get_config_cache('package_tree');
@@ -106,7 +108,7 @@ export async function process_changed_files(changed_files, packages) {
 
     await regenerate_command(changed_files);
 }
-
+/* c8 ignore stop */
 export function ignore_watched_file(event, path) {
     return (
         !path ||

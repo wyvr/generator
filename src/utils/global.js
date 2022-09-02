@@ -6,7 +6,6 @@ import { filled_string, is_func, is_null } from './validate.js';
 import { FOLDER_GEN_PROP, FOLDER_STORAGE } from '../constants/folder.js';
 import { create_hash } from './hash.js';
 import { write } from './file.js';
-import { join } from 'path';
 import { stringify } from './json.js';
 import { Cwd } from '../vars/cwd.js';
 
@@ -70,7 +69,9 @@ export function register_prop(file) {
         const converted = stringify(value);
         if (converted.length > 1000) {
             const hash = create_hash(converted);
-            write(join(Cwd.get(), FOLDER_GEN_PROP, `${prop}_${hash}.json`), converted);
+            const path = Cwd.get(FOLDER_GEN_PROP, `${prop}_${hash}.json`);
+            Logger.debug('extract prop', prop, 'from', file, 'to', path);
+            write(path, converted);
             return `|${prop}|:|@(/prop/${prop}_${hash}.json)|`;
         }
         return `|${prop}|:${converted.replace(/\|/g, '§|§').replace(/"/g, '|')}`;

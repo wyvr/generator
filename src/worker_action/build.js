@@ -20,6 +20,7 @@ import { to_dirname, to_relative_path } from '../utils/to.js';
 import { Env } from '../vars/env.js';
 import { Config } from '../utils/config.js';
 import { add_debug_code } from '../utils/debug.js';
+import { replace_shortcode } from '../utils/shortcode.js';
 
 export async function build(files) {
     if (!filled_array(files)) {
@@ -57,8 +58,20 @@ export async function build(files) {
         const rendered_result = await render_server_compiled_svelte(exec_result, data, file);
         const path = join(release_path, to_index(data.url, data._wyvr.extension));
         if (rendered_result?.result) {
+            // replace shortcodes
+            const shortcode_result = await replace_shortcode(rendered_result.result.html, data, file);
+            if (shortcode_result.identifier && shortcode_result.shortcode_imports) {
+                const shortcode_emit = {
+                    type: WorkerEmit.identifier,
+                    identifier: shortcode_result.identifier,
+                    imports: shortcode_result.shortcode_imports,
+                };
+
+                send_action(WorkerAction.emit, shortcode_emit);
+            }
+
             // extract media files
-            const media_result = await replace_media(rendered_result.result.html);
+            const media_result = await replace_media(shortcode_result.html);
             if (media_result.has_media) {
                 has_media = true;
                 Object.keys(media_result.media).forEach((key) => {

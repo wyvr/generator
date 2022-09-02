@@ -1,9 +1,11 @@
-import { FOLDER_GEN_SRC } from '../constants/folder.js';
+import { join } from 'path';
+import { FOLDER_CSS, FOLDER_GEN_SRC } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
+import { ReleasePath } from '../vars/release_path.js';
 import { compile_server_svelte } from './compile.js';
 import { render_server_compiled_svelte } from './compile_svelte.js';
-import { to_extension } from './file.js';
+import { exists, to_extension, write } from './file.js';
 import { create_hash } from './hash.js';
 import { Logger } from './logger.js';
 
@@ -86,15 +88,27 @@ export async function replace_shortcode(html, data, file) {
         const identifier = create_hash(keys.join('|'));
         const cache_breaker = Env.is_dev() ? `?${Date.now()}` : '';
         const shortcode_content = `<script>${keys
-            .map((key) => `import ${key} from '${to_extension( shortcode_imports[key], 'js')}${cache_breaker}';`)
+            .map((key) => `import ${key} from '${to_extension(shortcode_imports[key], 'js')}${cache_breaker}';`)
             .join('\n')}</script>${replaced_content}`;
         const exec_result = await compile_server_svelte(shortcode_content, file);
 
         const rendered_result = await render_server_compiled_svelte(exec_result, data, file);
 
+        // write css
+        if (rendered_result?.result?.css?.code) {
+            const css_file_path = join(ReleasePath.get(), FOLDER_CSS, `${identifier}.css`);
+            write(css_file_path, rendered_result.result.css.code);
+        }
+
         if (rendered_result?.result?.html) {
-            // inject shortcode file
-            const html = rendered_result.result.html.replace(/<\/body>/, `<script defer src="/js/${identifier}.js"></script></body>`);
+            // inject shortcode files
+            const html = rendered_result.result.html.replace(
+                /<\/body>/,
+                `<script defer src="/js/${identifier}.js"></script></body>`
+            ).replace(
+                /<\/head>/,
+                `<link rel="preload" href="/css/${identifier}.css" as="style" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="/css/${identifier}.css"></noscript></head>`
+            );
             return { html, shortcode_imports, identifier };
         }
     }

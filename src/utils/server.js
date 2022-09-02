@@ -15,6 +15,7 @@ import { Event } from './event.js';
 import { stringify } from './json.js';
 import { LogType } from '../struc/log.js';
 import { watcher_event } from './watcher.js';
+import { WatcherPaths } from '../vars/watcher_paths.js';
 
 export function server(host, port, on_request, on_end) {
     if (!filled_string(host) || !is_number(port)) {
@@ -207,6 +208,7 @@ export function websocket_server(port) {
         Logger.debug('websocket connect', id);
 
         ws.on('close', () => {
+            WatcherPaths.set_path(id, undefined);
             watchers[ws.id] = null;
             Logger.debug('websocket close', id);
         });
@@ -222,17 +224,20 @@ export function websocket_server(port) {
             Logger.info('ws data', data);
             if (data.action) {
                 switch (data.action) {
-                    case 'rebuild':
+                    case 'path': {
+                        WatcherPaths.set_path(id, data.data);
+                        break;
+                    }
+                    case 'rebuild': {
                         if (data.data) {
                             Logger.block('rebuild', data.data);
                             watcher_event('change', data.data);
                         }
                         break;
+                    }
                 }
             }
         });
-        // if (!watchers[ws.id]) {
-        //     this.send(ws.id, { action: 'available' });
-        // }
+        ws.send(stringify({ action: 'available' }));
     });
 }

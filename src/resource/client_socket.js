@@ -52,7 +52,7 @@
                 switch (data.action) {
                     case 'available': {
                         const path = get_path();
-                        send({ action: 'path', path });
+                        send({ action: 'path', data: path });
                         if (!in_history(path) || window.wyvr_generate_page) {
                             wyvr_debug_inspect_data().then(() => {
                                 send({ action: 'rebuild', data: window.data._wyvr.route });

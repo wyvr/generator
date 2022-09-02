@@ -28,6 +28,7 @@ import { uniq_values } from '../utils/uniq.js';
 import { filled_array, filled_object, filled_string, in_array, is_null, match_interface } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
+import { WatcherPaths } from '../vars/watcher_paths.js';
 import { WorkerController } from '../worker/controller.js';
 
 /**
@@ -235,6 +236,16 @@ export async function regenerate_command(changed_files) {
             }
             // @TODO reload the whole browser page
             reload_page = true;
+        }
+
+        // allways add the watching routes to the new generated routes
+        const watcher_paths = WatcherPaths.get();
+        if (watcher_paths) {
+            const watcher_routes = Object.values(watcher_paths)
+                .filter((x) => x)
+                .map((path) => Cwd.get(FOLDER_GEN_DATA, to_index(path, 'json')));
+            Logger.debug('watcher routes', watcher_routes);
+            routes = uniq_values([].concat(routes, watcher_routes));
         }
 
         Logger.info('routes', routes);

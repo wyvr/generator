@@ -23,6 +23,10 @@ send_status(WorkerStatus.exists);
 process.on('message', async (msg) => {
     await process_message(msg);
 });
+// catch when master exited and kill the worker
+process.on('exit', function () {
+    process.exit();
+});
 
 global.cache = {};
 

@@ -5,7 +5,7 @@ import { Env } from '../vars/env.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { compile_server_svelte } from './compile.js';
 import { render_server_compiled_svelte } from './compile_svelte.js';
-import { exists, to_extension, write } from './file.js';
+import { to_extension, write } from './file.js';
 import { create_hash } from './hash.js';
 import { Logger } from './logger.js';
 

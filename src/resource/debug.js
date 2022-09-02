@@ -1,13 +1,19 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-console */
-// toolbar
-const icon =
-    "data:image/svg+xml,%3Csvg width='839' height='293' viewBox='0 0 839 293' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cg clip-path='url(%23clip0)'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M838.932 2.05496e-05L749.198 176.524L618.098 176.524L558.322 292.63L389.516 292.63L354.069 223.309L318.639 292.511L148.862 292.643L-1.27918e-05 2.67029e-05L197.478 1.80709e-05L233.085 70.5426L268.692 1.4958e-05L438.514 3.80524e-05L489.297 101.073L653.876 2.86387e-05L838.932 2.05496e-05ZM416.212 28.2621L349.76 169.71L301.351 264.262L171.797 264.363L237.458 124.597L286.085 28.2621L416.212 28.2621ZM424.276 34.6138L474.766 135.103L405.722 262.246L359.657 172.16L424.276 34.6138ZM655.091 32.4201L485.273 136.71L415.949 264.368L541.085 264.368L598.656 152.546L655.091 32.4201ZM668.093 28.2621L792.861 28.2621L731.861 148.262L611.717 148.262L668.093 28.2621ZM180.085 28.2621L227.519 122.236L163.358 258.807L46.0848 28.2621L180.085 28.2621Z' fill='%235E7ED0'/%3E%3C/g%3E%3Cdefs%3E%3CclipPath id='clip0'%3E%3Crect width='839' height='293' fill='white'/%3E%3C/clipPath%3E%3C/defs%3E%3C/svg%3E";
-const toolbar = document.createElement('div');
-toolbar.setAttribute('class', 'wyvr_debug_toolbar');
-toolbar.innerHTML = `
-<span><img width="48" height="17" src="${icon}" alt="wyvr Debug toolbar"/></span>
-<nav>
+if (!window.wyvr_debug_initialized) {
+    window.wyvr_debug_initialized = true;
+    wyvr_debug_initialize();
+}
+function wyvr_debug_initialize() {
+    // toolbar
+    const icon =
+        "data:image/svg+xml,%3Csvg width='839' height='293' viewBox='0 0 839 293' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cg clip-path='url(%23clip0)'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M838.932 2.05496e-05L749.198 176.524L618.098 176.524L558.322 292.63L389.516 292.63L354.069 223.309L318.639 292.511L148.862 292.643L-1.27918e-05 2.67029e-05L197.478 1.80709e-05L233.085 70.5426L268.692 1.4958e-05L438.514 3.80524e-05L489.297 101.073L653.876 2.86387e-05L838.932 2.05496e-05ZM416.212 28.2621L349.76 169.71L301.351 264.262L171.797 264.363L237.458 124.597L286.085 28.2621L416.212 28.2621ZM424.276 34.6138L474.766 135.103L405.722 262.246L359.657 172.16L424.276 34.6138ZM655.091 32.4201L485.273 136.71L415.949 264.368L541.085 264.368L598.656 152.546L655.091 32.4201ZM668.093 28.2621L792.861 28.2621L731.861 148.262L611.717 148.262L668.093 28.2621ZM180.085 28.2621L227.519 122.236L163.358 258.807L46.0848 28.2621L180.085 28.2621Z' fill='%235E7ED0'/%3E%3C/g%3E%3Cdefs%3E%3CclipPath id='clip0'%3E%3Crect width='839' height='293' fill='white'/%3E%3C/clipPath%3E%3C/defs%3E%3C/svg%3E";
+    const toolbar = document.createElement('div');
+    toolbar.setAttribute('id', 'wyvr_debug_toolbar');
+    toolbar.setAttribute('class', 'wyvr_debug_toolbar');
+    toolbar.innerHTML = `
+    <span><img width="48" height="17" src="${icon}" alt="wyvr Debug toolbar"/></span>
+    <nav>
     <button id="wyvr_debug_rebuild" title="Rebuild">♻️</button>
     <button id="wyvr_debug_outline" title="Outline hydrated elements">🔍</button>
     <button id="wyvr_debug_ct.css" title="ct.css">🧠</button>
@@ -20,30 +26,30 @@ toolbar.innerHTML = `
     <button id="wyvr_debug_clear_storage" title="Clear Storage">🗑️</button>
 </nav>
 `;
-document.body.appendChild(toolbar);
-// styles
-const wyvr_debug_css = document.createElement('link');
-wyvr_debug_css.setAttribute('rel', 'stylesheet');
-wyvr_debug_css.setAttribute('href', '/debug.css');
-document.head.appendChild(wyvr_debug_css);
+    document.body.appendChild(toolbar);
+    // styles
+    const wyvr_debug_css = document.createElement('link');
+    wyvr_debug_css.setAttribute('rel', 'stylesheet');
+    wyvr_debug_css.setAttribute('href', '/debug.css');
+    document.head.appendChild(wyvr_debug_css);
 
-// error container
-const error_target = document.getElementById('wyvr_error_target');
-if (!error_target) {
-    const error_list = document.createElement('div');
-    error_list.setAttribute('id', 'wyvr_error_target');
-    document.body.appendChild(error_list);
+    // error container
+    const error_target = document.getElementById('wyvr_error_target');
+    if (!error_target) {
+        const error_list = document.createElement('div');
+        error_list.setAttribute('id', 'wyvr_error_target');
+        document.body.appendChild(error_list);
+    }
+
+    // floating window
+    const wyvr_floating_window = document.createElement('div');
+    wyvr_floating_window.setAttribute('class', 'wyvr_floating_window');
+    document.body.appendChild(wyvr_floating_window);
+    window.wyvr_close_floating_window = () => {
+        wyvr_floating_window.innerHTML = '';
+        wyvr_debug_outline_last_element = null;
+    };
 }
-
-// floating window
-const wyvr_floating_window = document.createElement('div');
-wyvr_floating_window.setAttribute('class', 'wyvr_floating_window');
-document.body.appendChild(wyvr_floating_window);
-window.wyvr_close_floating_window = () => {
-    wyvr_floating_window.innerHTML = '';
-    wyvr_debug_outline_last_element = null;
-};
-
 function wyvr_debug_event(id, callback, immediately) {
     const element = document.getElementById(id);
     if (element && callback && typeof callback == 'function') {
@@ -104,8 +110,8 @@ wyvr_debug_event('wyvr_debug_outline', () => {
                             .map((key) => {
                                 return `
                             <details>
-                                <summary><code>${key}</code></summary>
-                                <pre>${JSON.stringify(props[key], null, 4)}</pre>
+                            <summary><code>${key}</code></summary>
+                            <pre>${JSON.stringify(props[key], null, 4)}</pre>
                             </details>
                             `;
                             })
@@ -156,18 +162,18 @@ wyvr_debug_event('wyvr_debug_outline', () => {
                         }
 
                         wyvr_floating_window.innerHTML = `
-                        <button title="close" onclick="wyvr_close_floating_window()">&times;</button>
-                        <div>
-                            <span title="Source">🔍️</span>
-                            <code>${path}</code>
-                        </div>
-                        ${props_content ? `<div><span title="Props">⭐</span>${props_content}</div>` : ''}
-                        <div>
-                            <span title="Package">📦️</span>
-                            ${pkg ? pkg : '<em>no package found</em>'}
-                        </div>
-                        ${cnfg ? `<div><span title="Config">🛠</span>${cnfg}</div>` : ''}
-                    `;
+                                    <button title="close" onclick="wyvr_close_floating_window()">&times;</button>
+                                    <div>
+                                    <span title="Source">🔍️</span>
+                                    <code>${path}</code>
+                                    </div>
+                                    ${props_content ? `<div><span title="Props">⭐</span>${props_content}</div>` : ''}
+                                    <div>
+                                    <span title="Package">📦️</span>
+                                    ${pkg ? pkg : '<em>no package found</em>'}
+                                    </div>
+                                    ${cnfg ? `<div><span title="Config">🛠</span>${cnfg}</div>` : ''}
+                                    `;
                     });
                 }
 

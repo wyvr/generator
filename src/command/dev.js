@@ -13,7 +13,6 @@ import { Env } from '../vars/env.js';
 import { UniqId } from '../vars/uniq_id.js';
 import { Config } from '../utils/config.js';
 import { get_ports } from '../action/port.js';
-import { quick_actions } from '../cli/interactive.js';
 
 export async function dev_command(config) {
     // dev command has forced dev state, when nothing is defined
@@ -25,8 +24,6 @@ export async function dev_command(config) {
     const { port, wsport } = await get_ports(config);
     Config.set('port', port);
     Config.set('wsport', wsport);
-
-    quick_actions();
 
     const build_id = UniqId.load();
     UniqId.set(build_id || UniqId.get());

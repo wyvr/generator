@@ -94,6 +94,10 @@ export async function regenerate_command(changed_files) {
         let routes = [];
 
         if (in_array(fragments, FOLDER_SRC)) {
+            const identifiers = get_config_cache('identifiers');
+            const shortcode_identifiers = Object.values(identifiers).filter((identifier) => {
+                return identifier.imports;
+            });
             const identifier_files = get_config_cache('identifier.files');
             const dependencies_bottom = get_config_cache('dependencies.bottom');
             const src = frag_files.src;
@@ -122,6 +126,16 @@ export async function regenerate_command(changed_files) {
                         dependent_files.filter((x) => x).map((path) => Cwd.get(FOLDER_GEN_SRC, path))
                     )
                 );
+
+                // detect shortcode dependencies
+                const used_shortcode_identifiers = shortcode_identifiers.filter((identifier) => {
+                    let contains = false;
+                    Object.values(identifier.imports).find((entry) => {
+                        contains = in_array(combined_files, entry);
+                        return contains;
+                    });
+                    return contains;
+                });
 
                 const config_name = get_name(WorkerEmit.wyvr_config);
                 const file_configs = get_config_cache('dependencies.config', {});

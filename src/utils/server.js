@@ -59,24 +59,38 @@ export function log_start(req, uid) {
     );
     return process.hrtime.bigint();
 }
-export function log_end(req, uid, start) {
-    Logger.success(req.method, Logger.color.bold(req.url), ...get_base_log_infos(start, uid));
+export function log_end(req, res, uid, start) {
+    const type = (res.statusCode + '')[0]; // first digit inticates the type
+    const message = [
+        req.method,
+        req.url,
+        ...get_base_log_infos(res.statusMessage, res.statusCode, start, uid),
+    ];
+    switch (type) {
+        case '1':
+            Logger.info(...message);
+            return;
+        case '2':
+            Logger.success(...message);
+            return;
+        case '3':
+            Logger.warning(...message);
+            return;
+        default:
+            Logger.error(...message);
+            return;
+    }
 }
 export function return_not_found(req, res, uid, message, status, start) {
-    Logger.error(
-        req.method,
-        Logger.color.bold(req.url),
-        message,
-        Logger.color.dim(status),
-        ...get_base_log_infos(start, uid)
-    );
+    Logger.error(req.method, req.url, ...get_base_log_infos(message, status, start, uid));
     send_head(res, status, 'text/html');
     send_content(res, message);
     return;
 }
-export function get_base_log_infos(start, uid) {
+export function get_base_log_infos(message, status, start, uid) {
     const date = new Date();
     return [
+        `${status}${Logger.color.dim(`(${message})`)}`,
         nano_to_milli(process.hrtime.bigint() - start) + Logger.color.dim('ms'),
         date.toLocaleTimeString(),
         Logger.color.dim(date.toLocaleDateString()),
@@ -123,7 +137,7 @@ export function static_server(req, res, uid, on_end) {
             }
         }
         if (res.writableEnded) {
-            log_end(req, uid, start);
+            log_end(req, res, uid, start);
         }
     });
 }

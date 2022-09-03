@@ -21,9 +21,9 @@ import { Config } from '../utils/config.js';
 import { get_config_cache, set_config_cache } from '../utils/config_cache.js';
 import { get_identifiers_of_file } from '../utils/dependency.js';
 import { Event } from '../utils/event.js';
-import { copy, remove, to_index } from '../utils/file.js';
+import { copy, remove, to_extension, to_index } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
-import { to_identifiers, to_single_identifier_name } from '../utils/to.js';
+import { to_identifiers, to_relative_path, to_single_identifier_name } from '../utils/to.js';
 import { uniq_values } from '../utils/uniq.js';
 import { filled_array, filled_object, filled_string, in_array, is_null, match_interface } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
@@ -136,6 +136,17 @@ export async function regenerate_command(changed_files) {
                     });
                     return contains;
                 });
+                if (filled_array(used_shortcode_identifiers)) {
+                    // delete the possible shortcode dependencies otherwise these will no be regenerated
+                    used_shortcode_identifiers.forEach((identifier) => {
+                        Object.values(identifier.imports).forEach((file) => {
+                            const component = Cwd.get(FOLDER_GEN, 'js', to_extension(to_relative_path(file), 'js'));
+                            remove(component);
+                            const component_map = to_extension(component, 'js.map');
+                            remove(component_map);
+                        });
+                    });
+                }
 
                 const config_name = get_name(WorkerEmit.wyvr_config);
                 const file_configs = get_config_cache('dependencies.config', {});

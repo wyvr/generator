@@ -67,6 +67,12 @@ export async function build(files) {
                     imports: shortcode_result.shortcode_imports,
                 };
 
+                if (shortcode_result.media_query_files) {
+                    Object.keys(shortcode_result.media_query_files).forEach((key) => {
+                        media_query_files[key] = shortcode_result.media_query_files[key];
+                    });
+                }
+
                 send_action(WorkerAction.emit, shortcode_emit);
             }
 

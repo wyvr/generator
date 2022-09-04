@@ -1,16 +1,18 @@
-import { join } from 'path';
-import { FOLDER_CSS, FOLDER_GEN_SRC } from '../constants/folder.js';
+import { join, sep } from 'path';
+import { FOLDER_CSS, FOLDER_GEN_CSS, FOLDER_GEN_SRC } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
-import { ReleasePath } from '../vars/release_path.js';
 import { compile_server_svelte } from './compile.js';
 import { render_server_compiled_svelte } from './compile_svelte.js';
+import { split_css_into_media_query_files } from './css.js';
 import { to_extension, write } from './file.js';
 import { create_hash } from './hash.js';
 import { Logger } from './logger.js';
+import { to_relative_path } from './to.js';
 
 export async function replace_shortcode(html, data, file) {
     let shortcode_imports;
+    const media_query_files = {};
     const src_path = Cwd.get(FOLDER_GEN_SRC);
     const replaced_content = html.replace(/\(\(([\s\S]*?)\)\)/g, (_, inner) => {
         const match = inner.match(/([^ ]*)([\s\S]*)/);
@@ -96,8 +98,13 @@ export async function replace_shortcode(html, data, file) {
 
         // write css
         if (rendered_result?.result?.css?.code) {
-            const css_file_path = join(ReleasePath.get(), FOLDER_CSS, `${identifier}.css`);
+            const css_file_path = Cwd.get(FOLDER_GEN_CSS, `${identifier}.css`);
             write(css_file_path, rendered_result.result.css.code);
+            // file must exists before it can be splitted
+            const mqf = split_css_into_media_query_files(rendered_result.result.css.code, css_file_path);
+            if (mqf) {
+                media_query_files[sep + join(FOLDER_CSS, to_relative_path(css_file_path))] = mqf;
+            }
         }
 
         if (rendered_result?.result?.html) {
@@ -109,8 +116,8 @@ export async function replace_shortcode(html, data, file) {
                 /<\/head>/,
                 `<link rel="preload" href="/css/${identifier}.css" as="style" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="/css/${identifier}.css"></noscript></head>`
             );
-            return { html, shortcode_imports, identifier };
+            return { html, shortcode_imports, identifier, media_query_files };
         }
     }
-    return { html: replaced_content, shortcode_imports: undefined, identifier: undefined };
+    return { html: replaced_content, shortcode_imports: undefined, identifier: undefined, media_query_files: undefined };
 }

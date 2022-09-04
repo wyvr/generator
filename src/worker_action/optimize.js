@@ -28,11 +28,11 @@ export async function optimize(files) {
         let content = read(file);
         // replace media query files
         const media_query_links = [];
-        media_query_files_keys.forEach((file) => {
-            if (content.indexOf(file) > -1) {
-                Object.keys(global.cache.media_query_files[file]).forEach((media) =>
+        media_query_files_keys.forEach((media_query_file) => {
+            if (content.indexOf(media_query_file) > -1) {
+                Object.keys(global.cache.media_query_files[media_query_file]).forEach((media) =>
                     media_query_links.push(
-                        `<link href="${global.cache.media_query_files[file][media]}" rel="stylesheet" media="${media}">`
+                        `<link href="${global.cache.media_query_files[media_query_file][media]}" rel="stylesheet" media="${media}">`
                     )
                 );
             }

@@ -7,9 +7,11 @@ import { Cwd } from '../vars/cwd.js';
 import { get_error_message } from './error.js';
 import { collect_files } from './file.js';
 import { Logger } from './logger.js';
-import { filled_array, filled_string, in_array, is_func, is_null, is_object } from './validate.js';
+import { filled_array, filled_string, in_array, is_func, is_null, is_object, match_interface } from './validate.js';
 import { nano_to_milli } from './convert.js';
 import { search_segment } from './segment.js';
+import { ReleasePath } from '../vars/release_path.js';
+import { Env } from '../vars/env.js';
 // import { Logger } from '@lib/logger';
 // import { join } from 'path';
 // import { Error } from '@lib/error';
@@ -74,10 +76,14 @@ export class Plugin {
     }
 
     static async before(name, ...args) {
-        return await (await this.execute(name, 'before'))(...args);
+        return await (
+            await this.execute(name, 'before')
+        )(...args);
     }
     static async after(name, ...args) {
-        return await (await this.execute(name, 'after'))(...args);
+        return await (
+            await this.execute(name, 'after')
+        )(...args);
     }
 
     /**
@@ -114,13 +120,22 @@ export class Plugin {
             let result = {
                 err: undefined,
                 args,
+                config: {
+                    cwd: Cwd.get(),
+                    release_path: ReleasePath.get(),
+                    env: Env.name(),
+                },
             };
             for (let i = 0, len = plugins.length; i < len; i++) {
                 const start = hrtime.bigint();
                 try {
                     const partial_result = await plugins[i].fn(result);
-                    if (is_object(partial_result)) {
+                    if (match_interface(partial_result, { args: true, config: true })) {
                         result = partial_result;
+                    } else {
+                        if (filled_array(partial_result.args)) {
+                            result.args = partial_result.args;
+                        }
                     }
                 } catch (e) {
                     Logger.error(
@@ -141,11 +156,11 @@ export class Plugin {
             const out = {
                 error: undefined,
                 args,
-                result: undefined
-            }
-            if(!is_func(original_function)) {
-               out.error = 'missing plugin function'; 
-               return out;
+                result: undefined,
+            };
+            if (!is_func(original_function)) {
+                out.error = 'missing plugin function';
+                return out;
             }
             await Plugin.before(name, ...args);
 

@@ -5,6 +5,7 @@ import { get_ports } from '../action/port.js';
 import { present } from '../action/present.js';
 import { FOLDER_GEN_PLUGINS } from '../constants/folder.js';
 import { Config } from '../utils/config.js';
+import { set_config_cache } from '../utils/config_cache.js';
 import { Plugin } from '../utils/plugin.js';
 import { app_server } from '../utils/server.js';
 import { UniqId } from '../vars/uniq_id.js';
@@ -27,6 +28,7 @@ export const app_command = async (config) => {
     const plugins = await Plugin.generate(plugin_files);
     if (plugins) {
         Plugin.cache = plugins;
+        set_config_cache('plugins', plugins);
     }
 
     app_server('localhost', port);

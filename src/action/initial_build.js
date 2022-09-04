@@ -66,18 +66,20 @@ export async function intial_build(build_id, config) {
 
     const { available_packages } = await pre_initial_build(build_id, config_data);
 
-    // Initialize Plugins
-    const plugin_files = await Plugin.load(FOLDER_GEN_PLUGINS);
-    const plugins = await Plugin.generate(plugin_files);
-    if (plugins) {
-        Plugin.cache = plugins;
-    }
-
     // Copy static files from packages
     // Copy files from packages and override in the package order
     // Copy configured asset files
     // Build Tree of files and packages
     const { package_tree, mtime } = await copy(available_packages);
+
+    // Initialize Plugins
+    const plugin_files = await Plugin.load(FOLDER_GEN_PLUGINS);
+    const plugins = await Plugin.generate(plugin_files);
+    if (plugins) {
+        Plugin.cache = plugins;
+        set_config_cache('plugins', plugins);
+    }
+
 
     // Create Translations/I18N
     await i18n(available_packages);

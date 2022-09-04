@@ -25,8 +25,8 @@ describe('utils/plugin/before', () => {
             a: {
                 before: [
                     {
-                        fn: ({ error, args }) => {
-                            return { error, args: args.map((i) => i + 1) };
+                        fn: ({ error, args, config }) => {
+                            return { error, args: args.map((i) => i + 1), config };
                         },
                         source: 'first',
                     },

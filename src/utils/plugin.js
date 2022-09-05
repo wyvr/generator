@@ -7,16 +7,11 @@ import { Cwd } from '../vars/cwd.js';
 import { get_error_message } from './error.js';
 import { collect_files } from './file.js';
 import { Logger } from './logger.js';
-import { filled_array, filled_string, in_array, is_func, is_null, is_object, match_interface } from './validate.js';
+import { filled_array, filled_string, in_array, is_func, is_null, match_interface } from './validate.js';
 import { nano_to_milli } from './convert.js';
 import { search_segment } from './segment.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { Env } from '../vars/env.js';
-// import { Logger } from '@lib/logger';
-// import { join } from 'path';
-// import { Error } from '@lib/error';
-// import { hrtime_to_ms } from '@lib/converter/time';
-// import { Cwd } from '@lib/vars/cwd';
 
 export class Plugin {
     static async load(folder) {

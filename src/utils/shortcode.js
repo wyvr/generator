@@ -1,3 +1,4 @@
+import { join } from 'path';
 import { FOLDER_GEN_CSS, FOLDER_GEN_SRC } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
@@ -7,81 +8,55 @@ import { write_css_file } from './css.js';
 import { to_extension } from './file.js';
 import { create_hash } from './hash.js';
 import { Logger } from './logger.js';
+import { filled_object, filled_string, is_null, match_interface } from './validate.js';
 
 export async function replace_shortcode(html, data, file) {
+    if (!filled_string(html) || !filled_string(file)) {
+        return undefined;
+    }
     let shortcode_imports;
     let media_query_files = {};
-    const src_path = Cwd.get(FOLDER_GEN_SRC);
     const replaced_content = html.replace(/\(\(([\s\S]*?)\)\)/g, (_, inner) => {
-        const match = inner.match(/([^ ]*)([\s\S]*)/);
-        let name, path, value;
+        const shortcode_parts = inner.match(/([^ ]*)([\s\S]*)/);
 
-        if (match) {
-            value = match[1];
-        } else {
-            // ignore when something went wrong
+        /* c8 ignore start */
+        if (!shortcode_parts) {
+            // ignore found shortcode when something went wrong or it doesn't match
             if (Env.is_dev()) {
-                Logger.warning('shortcode can not be replaced in', file, match);
+                Logger.warning('shortcode can not be replaced in', file, shortcode_parts);
             }
-            return match;
+            return shortcode_parts;
         }
+        /* c8 ignore end */
 
-        // check wheter the path was given or the name
-        if (value.indexOf('/') > -1) {
-            name = value.replace(/\//g, '_');
-            path = `${src_path}/${value}.svelte`;
-        } else {
-            name = value;
-            path = `${src_path}/${value.replace(/_/g, '/')}.svelte`;
+        const shortcode = get_shortcode_data(shortcode_parts[1], shortcode_parts[2], file);
+
+        /* c8 ignore start */
+        if (!match_interface(shortcode, { tag: true, path: true })) {
+            // ignore shortcode when something went wrong
+            if (Env.is_dev()) {
+                Logger.warning('shortcode can not be replaced in', file, shortcode_parts, 'because there was an error');
+            }
+            return shortcode_parts;
         }
-        name = name.replace(/_(.)/g, (m, $1) => $1.toUpperCase()).replace(/^(.)/g, (m, $1) => $1.toUpperCase());
+        /* c8 ignore end */
+
         if (!shortcode_imports) {
             shortcode_imports = {};
         }
-        shortcode_imports[name] = path;
-        const data = match[2];
-        const props = {};
-        const data_length = data.length;
-        let parentese = 0;
-        let prop_name = '';
-        let prop_value = '';
-        for (let i = 0; i < data_length; i++) {
-            const char = data[i];
-            if (char == '{') {
-                parentese++;
-                if (parentese == 1) {
-                    continue;
-                }
-            }
-            if (char == '}') {
-                parentese--;
-                if (parentese == 0) {
-                    try {
-                        const prop_exec = `JSON.stringify(${prop_value})`;
-                        prop_value = eval(prop_exec);
-                    } catch (e) {
-                        Logger.debug('shortcode props can not be converted in', file, 'for', prop_name.trim());
-                    }
-                    props[prop_name.trim()] = prop_value.replace(/\n\s*/gm, ''); //.replace(/"/g, '&quot;');
-                    prop_name = '';
-                    prop_value = '';
-                    continue;
-                }
-            }
-            if (char != '=' && parentese == 0) {
-                prop_name += char;
-            }
-            if (parentese > 0) {
-                prop_value += char;
-            }
+        shortcode_imports[shortcode.tag] = shortcode.path;
+
+        if (is_null(shortcode.props)) {
+            return `<${shortcode.tag} />`;
         }
-        const props_component = Object.keys(props)
+        // build the properties for the shortcode
+        const props_component = Object.keys(shortcode.props)
             .map((key) => {
-                return `${key}={${props[key]}}`;
+                return `${key}={${shortcode.props[key]}}`;
             })
             .join(' ');
 
-        return `<${name} ${props_component} />`;
+        return `<${shortcode.tag} ${props_component} />`;
     });
     if (shortcode_imports) {
         const keys = Object.keys(shortcode_imports);
@@ -117,4 +92,74 @@ export async function replace_shortcode(html, data, file) {
         identifier: undefined,
         media_query_files: undefined,
     };
+}
+
+export function get_shortcode_data(name, props_value, file) {
+    if (!filled_string(name) || !filled_string(file)) {
+        return undefined;
+    }
+    const src_path = Cwd.get(FOLDER_GEN_SRC);
+
+    let tag, path;
+
+    // check wheter the path was given or the name
+    if (name.indexOf('/') > -1) {
+        // path was given
+        tag = name.replace(/\//g, '_');
+        path = join(src_path, to_extension(name, 'svelte'));
+    } else {
+        // name was given
+        tag = name;
+        path = join(src_path, to_extension(name.replace(/_/g, '/'), 'svelte'));
+    }
+    tag = tag.replace(/_(.)/g, (_, $1) => $1.toUpperCase()).replace(/^(.)/g, (m, $1) => $1.toUpperCase());
+
+    const props = parse_props(props_value, file);
+
+    return { tag, path, props };
+}
+
+export function parse_props(prop_content, file) {
+    if (!filled_string(prop_content) || !filled_string(file)) {
+        return undefined;
+    }
+    const props = {};
+    const data_length = prop_content.length;
+    let parentese = 0;
+    let prop_name = '';
+    let prop_value = '';
+    for (let i = 0; i < data_length; i++) {
+        const char = prop_content[i];
+        if (char == '{') {
+            parentese++;
+            if (parentese == 1) {
+                continue;
+            }
+        }
+        if (char == '}') {
+            parentese--;
+            if (parentese == 0) {
+                try {
+                    const prop_exec = `JSON.stringify(${prop_value})`;
+                    prop_value = eval(prop_exec);
+                    props[prop_name.trim()] = prop_value.replace(/\n\s*/gm, ''); //.replace(/"/g, '&quot;');
+                } catch (e) {
+                    Logger.warning('shortcode', `shortcode prop "${prop_name}" can not be converted in ${file}`);
+                }
+                prop_name = '';
+                prop_value = '';
+                continue;
+            }
+        }
+        if (char != '=' && parentese == 0) {
+            prop_name += char;
+        }
+        if (parentese > 0) {
+            prop_value += char;
+        }
+    }
+    if (!filled_object(props)) {
+        return undefined;
+    }
+    return props;
 }

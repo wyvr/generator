@@ -59,31 +59,33 @@ export async function build(files) {
         if (rendered_result?.result) {
             // replace shortcodes
             const shortcode_result = await replace_shortcode(rendered_result.result.html, data, file);
-            if (shortcode_result.identifier && shortcode_result.shortcode_imports) {
-                const shortcode_emit = {
-                    type: WorkerEmit.identifier,
-                    identifier: shortcode_result.identifier,
-                    imports: shortcode_result.shortcode_imports,
-                };
+            if (shortcode_result) {
+                if (shortcode_result.identifier && shortcode_result.shortcode_imports) {
+                    const shortcode_emit = {
+                        type: WorkerEmit.identifier,
+                        identifier: shortcode_result.identifier,
+                        imports: shortcode_result.shortcode_imports,
+                    };
 
-                if (shortcode_result.media_query_files) {
-                    Object.keys(shortcode_result.media_query_files).forEach((key) => {
-                        media_query_files[key] = shortcode_result.media_query_files[key];
-                    });
+                    if (shortcode_result.media_query_files) {
+                        Object.keys(shortcode_result.media_query_files).forEach((key) => {
+                            media_query_files[key] = shortcode_result.media_query_files[key];
+                        });
+                    }
+
+                    send_action(WorkerAction.emit, shortcode_emit);
                 }
 
-                send_action(WorkerAction.emit, shortcode_emit);
+                // extract media files
+                const media_result = await replace_media(shortcode_result.html);
+                if (media_result.has_media) {
+                    has_media = true;
+                    Object.keys(media_result.media).forEach((key) => {
+                        media_files[key] = media_result.media[key];
+                    });
+                }
+                content = media_result.content;
             }
-
-            // extract media files
-            const media_result = await replace_media(shortcode_result.html);
-            if (media_result.has_media) {
-                has_media = true;
-                Object.keys(media_result.media).forEach((key) => {
-                    media_files[key] = media_result.media[key];
-                });
-            }
-            content = media_result.content;
 
             // inject translations
             if (data._wyvr.language) {
@@ -105,7 +107,11 @@ export async function build(files) {
             if (filled_string(identifier) && search_segment(rendered_result.result, 'css.code')) {
                 const css_file_path = Cwd.get(FOLDER_GEN_CSS, `${identifier}.css`);
                 if (!exists(css_file_path)) {
-                    media_query_files = write_css_file(css_file_path, rendered_result.result.css.code, media_query_files);
+                    media_query_files = write_css_file(
+                        css_file_path,
+                        rendered_result.result.css.code,
+                        media_query_files
+                    );
                 }
             }
         }

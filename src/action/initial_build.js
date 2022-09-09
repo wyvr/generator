@@ -27,6 +27,7 @@ import { copy_static_generated } from './copy_static_generated.js';
 import { copy } from './copy.js';
 import { set_config_cache } from '../utils/config_cache.js';
 import { build_cache } from '../utils/exec.js';
+import { wyvr_internal } from './wyvr_internal.js';
 
 export async function pre_initial_build(build_id, config_data) {
     // set release folder
@@ -117,6 +118,9 @@ export async function intial_build(build_id, config) {
 
     // Copy static and generated files into release
     await copy_static_generated();
+    
+    // Copy wyvr internal files into release in dev mode
+    await wyvr_internal();
 
     await build_cache();
 

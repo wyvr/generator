@@ -10,7 +10,7 @@ import { Logger } from './logger.js';
 import { uniq_id } from './uniq.js';
 import { filled_string } from './validate.js';
 
-export async function build(content, file) {
+export async function build(content, file, format = 'iife') {
     if (!filled_string(content) || !filled_string(content)) {
         return { code: undefined, sourcemap: undefined };
     }
@@ -24,7 +24,7 @@ export async function build(content, file) {
             allowOverwrite: true,
             sourcemap: true,
             minify: Env.is_prod(),
-            format: 'iife',
+            format,
             bundle: true,
             platform: 'browser',
             treeShaking: true,

@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 /* eslint-disable no-unused-vars */
-const wyvr_props = (el) => {
+window.wyvr_props = (el) => {
     /* eslint-ensable no-unused-vars */
     return new Promise((resolve) => {
         let props = {};

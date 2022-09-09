@@ -14,39 +14,47 @@ export async function collect_packages(package_json) {
     const new_base_config = Config.merge(Config.get(), root_config);
     Config.replace(new_base_config);
 
-    const packages = Config.get('packages');
+    let packages = Config.get('packages');
     const disabled_packages = [];
     const available_packages = [];
 
-    // iterate over packages
-    if (filled_array(packages)) {
-        let packages_config = {};
+    const boilerplate = {
+        name: 'wyvr',
+        path: Cwd.get('node_modules', '@wyvr', 'generator', 'src', 'boilerplate'),
+    };
 
-        await Promise.all(
-            packages.map(async (pkg, index) => {
-                // process the package
-                const proc_pkg = await process_package(pkg, index, package_json);
-
-                // check if the package is outside the node_modules folder
-                if (proc_pkg && exists(proc_pkg.pkg.path)) {
-                    // merge the config
-                    if (proc_pkg.config) {
-                        packages_config = Config.merge(packages_config, proc_pkg.config);
-                    }
-                    available_packages.push(proc_pkg.pkg);
-                    return index;
-                }
-                disabled_packages.push(proc_pkg.pkg);
-                return index;
-            })
-        );
-        // update config, but keep the main config values
-        const merged_config = Config.merge(packages_config, new_base_config);
-        // update the packages in the config
-        merged_config.packages = available_packages;
-
-        Config.replace(merged_config);
+    if (!filled_array(packages)) {
+        packages = [];
     }
+    packages.unshift(boilerplate);
+
+    // iterate over packages
+    let packages_config = {};
+
+    await Promise.all(
+        packages.map(async (pkg, index) => {
+            // process the package
+            const proc_pkg = await process_package(pkg, index, package_json);
+
+            // check if the package is outside the node_modules folder
+            if (proc_pkg && exists(proc_pkg.pkg.path)) {
+                // merge the config
+                if (proc_pkg.config) {
+                    packages_config = Config.merge(packages_config, proc_pkg.config);
+                }
+                available_packages.push(proc_pkg.pkg);
+                return index;
+            }
+            disabled_packages.push(proc_pkg.pkg);
+            return index;
+        })
+    );
+    // update config, but keep the main config values
+    const merged_config = Config.merge(packages_config, new_base_config);
+    // update the packages in the config
+    merged_config.packages = available_packages;
+
+    Config.replace(merged_config);
 
     return { available_packages, disabled_packages };
 }

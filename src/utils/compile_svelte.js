@@ -67,22 +67,26 @@ export async function prepare_code_to_compile(content, file, type) {
     return await inject(replace_src_path(modified_content, folder, extname(file)), file);
 }
 
-export async function compile_svelte_from_code(content, file, type) {
+export async function compile_svelte_from_code(content, file, type, include_css = false) {
     if (!in_array(['client', 'server'], type) || !filled_string(content) || !filled_string(file)) {
         return undefined;
     }
     let result;
     const scope = `svelte ${type} compile`;
+    const options = {
+        dev: Env.is_dev(),
+        generate: type_value(type, 'dom', 'ssr'),
+        format: 'esm',
+        immutable: true,
+        hydratable: true,
+        cssHash: css_hash,
+    };
+    if (include_css) {
+        options.css = true;
+    }
     try {
         // compile svelte
-        const compiled = await compile(content, {
-            dev: Env.is_dev(),
-            generate: type_value(type, 'dom', 'ssr'),
-            format: 'esm',
-            immutable: true,
-            hydratable: true,
-            cssHash: css_hash,
-        });
+        const compiled = await compile(content, options);
         result = compiled;
     } catch (e) {
         Logger.error(get_error_message(e, file, scope), e.stack);

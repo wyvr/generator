@@ -124,7 +124,7 @@ export async function scripts(identifiers) {
         scripts.push(read(join(resouce_dir, 'portal.js')));
         scripts.push(read(join(resouce_dir, 'i18n.js')).replace(/\[lib\]/g, lib_dir));
         if (Env.is_dev()) {
-            scripts.push(read(join(resouce_dir, 'debug.js')));
+            scripts.push(read(join(resouce_dir, 'devtools.js')));
         }
 
         /**/

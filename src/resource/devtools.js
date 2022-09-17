@@ -2,10 +2,10 @@
 /* eslint-disable no-console */
 if (!window.wyvr_debug_initialized) {
     window.wyvr_debug_initialized = true;
-    wyvr_debug_initialize();
+    wyvr_devtools_initialize();
 }
-async function wyvr_debug_initialize() {
-    const modules_list = await wyvr_fetch('/wyvr/debug/modules.json');
+async function wyvr_devtools_initialize() {
+    const modules_list = await wyvr_fetch('/devtools/modules.json');
     if (!Array.isArray(modules_list)) {
         console.error('could not load debug modules');
         return;
@@ -33,14 +33,14 @@ async function wyvr_debug_initialize() {
             return a.order < b.order;
         });
 
-    console.log(modules);
+    console.log('loaded modules', modules);
     if (modules.length == 0) {
         return;
     }
     // styles
     const wyvr_debug_css = document.createElement('link');
     wyvr_debug_css.setAttribute('rel', 'stylesheet');
-    wyvr_debug_css.setAttribute('href', '/wyvr/debug/debug.css');
+    wyvr_debug_css.setAttribute('href', '/devtools/style.css');
     document.head.appendChild(wyvr_debug_css);
 
     // toolbar
@@ -63,12 +63,9 @@ async function wyvr_debug_initialize() {
     `;
     /*
     <button id="wyvr_debug_rebuild" title="Rebuild">♻️</button>
-        <button id="wyvr_debug_outline" title="Outline hydrated elements">🔍</button>
-        
         <button id="wyvr_debug_inspect" title="Inspect data">✏️</button>
         <button id="wyvr_debug_inspect_global" title="Inspect global data">🌐</button>
         <button id="wyvr_debug_inspect_structure" title="Inspect structure">🏗</button>
-        <button id="wyvr_debug_show_breakpoints" title="Show media breakpoints">📱</button>
         <button id="wyvr_debug_measure_cwv" title="Measure CWV">📈</button>
         <button id="wyvr_debug_clear_storage" title="Clear Storage">🗑️</button>
     */
@@ -87,29 +84,6 @@ async function wyvr_debug_initialize() {
             module.onMount(button, module);
         }
     });
-
-    //     // styles
-    //     const wyvr_debug_css = document.createElement('link');
-    //     wyvr_debug_css.setAttribute('rel', 'stylesheet');
-    //     wyvr_debug_css.setAttribute('href', '/debug.css');
-    //     document.head.appendChild(wyvr_debug_css);
-
-    //     // error container
-    //     const error_target = document.getElementById('wyvr_error_target');
-    //     if (!error_target) {
-    //         const error_list = document.createElement('div');
-    //         error_list.setAttribute('id', 'wyvr_error_target');
-    //         document.body.appendChild(error_list);
-    //     }
-
-    //     // floating window
-    //     const wyvr_floating_window = document.createElement('div');
-    //     wyvr_floating_window.setAttribute('class', 'wyvr_floating_window');
-    //     document.body.appendChild(wyvr_floating_window);
-    //     window.wyvr_close_floating_window = () => {
-    //         wyvr_floating_window.innerHTML = '';
-    //         wyvr_debug_outline_last_element = null;
-    //     };
 }
 function wyvr_debug_event(id, callback, immediately) {
     const element = document.getElementById(id);
@@ -123,12 +97,12 @@ function wyvr_debug_event(id, callback, immediately) {
     }
 }
 
-window.wyvr_debug_message = (message) => {
+function wyvr_message(message) {
     const element = document.createElement('div');
-    element.setAttribute('class', 'wyvr_debug_message');
+    element.setAttribute('class', 'wyvr_message');
     element.innerText = message;
     document.body.appendChild(element);
-
+    
     setTimeout(() => {
         element.style.opacity = 0;
     }, 1000);
@@ -136,11 +110,12 @@ window.wyvr_debug_message = (message) => {
         element.remove();
     }, 3000);
 }
+window.wyvr_message = wyvr_message;
 
 // events
 wyvr_debug_event('wyvr_debug_rebuild', () => {
     trigger('wyvr_debug_rebuild');
-    wyvr_debug_message('triggered rebuild');
+    wyvr_message('triggered rebuild');
 });
 
 window.addEventListener('keydown', function (e) {
@@ -149,96 +124,28 @@ window.addEventListener('keydown', function (e) {
     }
 });
 
-wyvr_debug_event('wyvr_debug_ct.css', () => {
-    const tag = document.querySelector('link.ct');
-    if (tag) {
-        tag.remove();
-        wyvr_debug_message('removed ct.css');
-        return;
-    }
-    const ct = document.createElement('link');
-    ct.rel = 'stylesheet';
-    ct.href = 'https://csswizardry.com/ct/ct.css';
-    ct.classList.add('ct');
-    document.head.appendChild(ct);
-    wyvr_debug_message('added ct.css');
-});
+
 wyvr_debug_event('wyvr_debug_inspect', () => {
-    wyvr_debug_inspect_data();
-    wyvr_debug_message('open the console to inspect data');
+    wyvr_devtools_inspect_data();
+    wyvr_message('open the console to inspect data');
 });
 wyvr_debug_event('wyvr_debug_inspect_global', () => {
     wyvr_debug_inspect_global_data();
-    wyvr_debug_message('open the console to inspect global data');
+    wyvr_message('open the console to inspect global data');
 });
-wyvr_debug_event('wyvr_debug_inspect_structure', () => {
-    wyvr_debug_inspect_structure_data();
-    wyvr_debug_message('open the console to inspect structure');
-});
-wyvr_debug_event('wyvr_debug_show_breakpoints', () => {
-    const html = document.querySelector('html');
-    if (html.classList.contains('wyvr_debug_show_breakpoints')) {
-        wyvr_debug_message('hide breakpoints');
-        html.classList.remove('wyvr_debug_show_breakpoints');
-        return;
-    } else {
-        html.classList.add('wyvr_debug_show_breakpoints');
-    }
-    let width_breakpoints = [];
-    let height_breakpoints = [];
-    const media = [];
-    Array.from(document.styleSheets).forEach((ss) => {
-        Array.from(ss.rules).forEach((rule) => {
-            media.push(rule.media);
-        });
-    });
-    media
-        .filter((x) => x)
-        .forEach((media) => {
-            Array.from(media).forEach((media_item) => {
-                let match = media_item.match(/\(?(?:min|max)-width:\s*(\d*)px\)?/);
-                if (match) {
-                    width_breakpoints.push(parseFloat(match[1]));
-                    return;
-                }
-                // match = media_item.match(/\(?(?:min|max)-height:\s*(\d*)px\)?/);
-                // if (match) {
-                //     height_breakpoints.push(parseFloat(match[1]));
-                //     return;
-                // }
-            });
-        });
-    width_breakpoints = width_breakpoints.filter((item, index) => width_breakpoints.indexOf(item) == index);
-    height_breakpoints = height_breakpoints.filter((item, index) => height_breakpoints.indexOf(item) == index);
-
-    const colors = [
-        '#F72585',
-        '#B5179E',
-        '#7209B7',
-        '#560BAD',
-        '#480CA8',
-        '#3A0CA3',
-        '#3A0CA3',
-        '#4361EE',
-        '#4895EF',
-        '#4CC9F0',
-    ];
-    const breakpoints = width_breakpoints.sort().reverse();
-    html.style = `--wyvr_debug_show_breakpoints-lines: ${width_breakpoints
-        .map((a, index) => `linear-gradient(to right, ${colors[index]} 1px, transparent 1px, transparent)`)
-        .join(',')}; --wyvr_debug_show_breakpoints-positions: ${breakpoints.map((width) => `${width}px 0`).join(',')};`;
-    wyvr_debug_message('show breakpoints @ ' + breakpoints.map((width) => `${width}px`).join(', '));
-    console.log('breakpoints', breakpoints);
+wyvr_debug_event('wyvr_debug_inspect_structure', async () => {
+    await wyvr_devtools_inspect_structure_data();
+    wyvr_message('open the console to inspect structure');
 });
 wyvr_debug_event('wyvr_debug_measure_cwv', () => {
-    wyvr_debug_message('reloading to measure CWV');
+    wyvr_message('reloading to measure CWV');
     const url = location.origin + location.pathname;
     location = location.search.indexOf('wyvr_debug_measure_cwv') > -1 ? url : `${url}?wyvr_debug_measure_cwv`;
 });
 wyvr_debug_event('wyvr_debug_clear_storage', () => {
     sessionStorage.clear();
     localStorage.clear();
-    wyvr_debug_message('storage cleared');
+    wyvr_message('storage cleared');
 });
 
 if (window.location.search.indexOf('wyvr_debug_measure_cwv') > -1) {

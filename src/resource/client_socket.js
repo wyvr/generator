@@ -6,7 +6,7 @@
         if (window.on) {
             clearInterval(check_on);
             on('wyvr_debug_rebuild', () => {
-                wyvr_debug_inspect_data().then(() => {
+                wyvr_devtools_inspect_data().then(() => {
                     send({ action: 'rebuild', data: window.data._wyvr.route });
                     add_to_history();
                 });
@@ -54,7 +54,7 @@
                         const path = get_path();
                         send({ action: 'path', data: path });
                         if (!in_history(path) || window.wyvr_generate_page) {
-                            wyvr_debug_inspect_data().then(() => {
+                            wyvr_devtools_inspect_data().then(() => {
                                 send({ action: 'rebuild', data: window.data._wyvr.route });
                                 add_to_history();
                             });

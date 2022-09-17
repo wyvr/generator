@@ -5,7 +5,7 @@ import { read, to_extension, write_json } from './file.js';
 import { to_dirname } from './to.js';
 import { filled_string } from './validate.js';
 
-export function add_debug_code(html, path, data) {
+export function add_devtools_code(html, path, data) {
     if (!filled_string(html) || !filled_string(path)) {
         return '';
     }
@@ -16,7 +16,7 @@ export function add_debug_code(html, path, data) {
     // add debug data
     const data_path = to_extension(path, 'json');
     write_json(data_path, data);
-    const debug_code_content = read(join(to_dirname(import.meta.url), '..', 'resource', 'debug_code.html'));
+    const debug_code_content = read(join(to_dirname(import.meta.url), '..', 'resource', 'devtools_code.html'));
     return html.replace(
         /<\/body>/,
         debug_code_content

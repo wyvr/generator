@@ -19,7 +19,7 @@ import { write_css_file } from '../utils/css.js';
 import { to_dirname } from '../utils/to.js';
 import { Env } from '../vars/env.js';
 import { Config } from '../utils/config.js';
-import { add_debug_code } from '../utils/debug.js';
+import { add_devtools_code } from '../utils/devtools.js';
 import { replace_shortcode } from '../utils/shortcode.js';
 
 export async function build(files) {
@@ -101,7 +101,7 @@ export async function build(files) {
             }
 
             // write the html code
-            write(path, add_debug_code(content, path, data));
+            write(path, add_devtools_code(content, path, data));
 
             // write css
             if (filled_string(identifier) && search_segment(rendered_result.result, 'css.code')) {

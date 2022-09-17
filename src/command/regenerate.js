@@ -14,7 +14,7 @@ import {
     FOLDER_JS,
     FOLDER_ROUTES,
     FOLDER_SRC,
-    FOLDER_WYVR,
+    FOLDER_DEVTOOLS,
 } from '../constants/folder.js';
 import { Route } from '../model/route.js';
 import { WorkerAction } from '../struc/worker_action.js';
@@ -211,18 +211,18 @@ export async function regenerate_command(changed_files) {
             }
         }
 
-        if (in_array(fragments, FOLDER_WYVR)) {
-            const wyvr = frag_files.wyvr;
-            if (wyvr.unlink) {
-                wyvr.unlink.forEach((file) => {
+        if (in_array(fragments, FOLDER_DEVTOOLS)) {
+            const devtools = frag_files.devtools;
+            if (devtools.unlink) {
+                devtools.unlink.forEach((file) => {
                     const gen_target = Cwd.get(FOLDER_GEN, file.rel_path);
                     remove(gen_target);
                     const release_target = join(ReleasePath.get(), file.rel_path);
                     remove(release_target);
                 });
             }
-            if (wyvr.change || wyvr.add) {
-                [].concat(wyvr.change || [], wyvr.add || []).map((file) => {
+            if (devtools.change || devtools.add) {
+                [].concat(devtools.change || [], devtools.add || []).map((file) => {
                     const target = Cwd.get(FOLDER_GEN, file.rel_path);
                     copy(file.path, target);
                     return target;

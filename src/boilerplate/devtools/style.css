@@ -1,0 +1,325 @@
+:root {
+    --wyvr-debug-primary: #6d8ddf;
+    --wyvr-debug-disabled: #999;
+    --wyvr-debug-bg: rgba(0, 0, 0, 0.75);
+    --wyvr-debug-text: #fff;
+    --wyvr-debug-text-shadow: #000;
+    --wyvr-debug-error: #800;
+    --wyvr-debug-font-size: 14px;
+}
+
+.wyvr_debug_toolbar,
+.wyvr_floating_window {
+    background: rgba(0, 0, 0, 0.75);
+    z-index: 100001;
+}
+.wyvr_debug_toolbar {
+    position: fixed;
+    bottom: 0;
+    border-top-left-radius: 10px;
+    right: 0;
+    font-size: var(--wyvr-debug-font-size);
+    font-family: monospace;
+}
+.wyvr_debug_toolbar:after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: transparent;
+    top: -2px;
+    left: -2px;
+    border-radius: 50%;
+    transition: background 0.2s ease-out, border 0.2s ease-out;
+    pointer-events: none;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+.wyvr_debug_toolbar.connected:after {
+    background: var(--wyvr-debug-primary);
+}
+.wyvr_debug_toolbar.disconnected:after {
+    border: 2px solid var(--wyvr-debug-disabled);
+}
+
+.wyvr_debug_toolbar nav:before {
+    content: 'disconnected';
+    color: var(--wyvr-debug-disabled);
+    display: block;
+    font-size: 12px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+.wyvr_debug_toolbar.connected nav:before {
+    content: 'connected to dev server';
+    color: var(--wyvr-debug-primary);
+}
+
+.wyvr_debug_toolbar > span {
+    display: block;
+    padding: 10px;
+}
+.wyvr_debug_toolbar > span > img {
+    display: block;
+}
+.wyvr_debug_toolbar > nav {
+    display: none;
+    padding-bottom: 20px;
+    overflow-y: auto;
+    max-height: 80vh;
+}
+.wyvr_debug_toolbar:hover > nav {
+    display: block;
+}
+.wyvr_debug_toolbar_button {
+    background: transparent;
+    border: none;
+    color: var(--wyvr-debug-text);
+    text-shadow: 0 0 10px var(--wyvr-debug-text-shadow);
+    padding: 5px 10px 5px 36px;
+    width: auto;
+    line-height: 1.4em;
+    display: block;
+    white-space: nowrap;
+    font-family: monospace;
+    border-radius: 2px;
+    position: relative;
+    text-align: left;
+    width: 100%;
+    cursor: pointer;
+}
+.wyvr_debug_toolbar_icon {
+    font-family: none;
+    font-size: 16px;
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+.wyvr_debug_toolbar_name {
+    display: block;
+}
+.wyvr_debug_toolbar_description {
+    display: block;
+    font-size: 10px;
+    opacity: 0.75;
+    width: 250px;
+    max-width: 80vw;
+    white-space: normal;
+    line-height: 1.2em;
+}
+.wyvr_debug_toolbar button:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+.wyvr_debug_toolbar button:hover,
+.wyvr_debug_toolbar button:active {
+    background: var(--wyvr-debug-primary);
+    color: var(--wyvr-debug-text);
+}
+
+.wyvr_debug_toolbar nav > a,
+.wyvr_debug_toolbar nav > span {
+    display: inline-block;
+    font-size: 12px;
+    margin-left: 3.2em;
+    position: relative;
+    top: -0.5em;
+}
+.wyvr_message {
+    position: fixed;
+    bottom: 5px;
+    left: 50%;
+    max-width: min(80vw, 300px);
+    transform: translateX(-50%);
+    background: var(--wyvr-debug-primary);
+    color: var(--wyvr-debug-text);
+    text-shadow: 0 0 10px var(--wyvr-debug-text-shadow);
+    padding: 10px 20px;
+    border-radius: 5px;
+    box-shadow: 0 5px 10px var(--wyvr-debug-bg);
+    transition: opacity 2s linear;
+    pointer-events: none;
+}
+/* .wyvr_floating_window {
+    display: none;
+    position: fixed;
+    top: 1em;
+    left: 1em;
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: 10px;
+    padding: 10px;
+    color: var(--wyvr-debug-text);
+    text-shadow: 0 0 10px var(--wyvr-debug-text-shadow);
+    overflow: auto;
+}
+.wyvr_floating_window > button[title='close'] {
+    background: none;
+    border: none;
+    color: var(--wyvr-debug-text);
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-size: 16px;
+    padding: 5px;
+    cursor: pointer;
+} */
+/* .wyvr_debug_outline .wyvr_floating_window {
+    display: block;
+}
+.wyvr_debug_outline .wyvr_floating_window:empty {
+    display: none;
+}
+.wyvr_floating_window > div {
+    padding-bottom: 10px;
+}
+.wyvr_floating_window > div + div {
+    padding-top: 10px;
+}
+.wyvr_floating_window > div > span[title] {
+    display: block;
+    color: var(--wyvr-debug-primary);
+    padding-bottom: 5px;
+}
+.wyvr_floating_window > div > span[title]:after {
+    content: attr(title);
+    margin-left: 10px;
+}
+.wyvr_floating_window > div em {
+    opacity: 0.75;
+}
+.wyvr_floating_window code {
+    color: var(--wyvr-debug-text);
+    text-shadow: none;
+    background: var(--wyvr-debug-primary);
+    border-radius: 2px;
+    margin-top: -3px;
+    white-space: nowrap;
+}
+.wyvr_floating_window pre {
+    color: var(--wyvr-debug-text-shadow);
+    background: var(--wyvr-debug-text);
+    text-shadow: none;
+    margin: 0 0 0 20px;
+    padding: 5px;
+    overflow: auto;
+    max-height: 500px;
+}
+.wyvr_floating_window details > div {
+    padding-left: 10px;
+}
+.wyvr_floating_window > details > div {
+    padding-top: 5px;
+} */
+
+/* .wyvr_debug_toolbar #wyvr_debug_rebuild {
+    opacity: 0.5;
+    filter: grayscale(1);
+    pointer-events: none;
+} */
+/* .wyvr_debug_toolbar.connected #wyvr_debug_rebuild {
+    opacity: 1;
+    filter: none;
+    pointer-events: all;
+} */
+
+/* outline wyvr components */
+/* .wyvr_debug_outline:before {
+    content: 'Outlining hydrated elements';
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 100000;
+    opacity: 0.3;
+}
+.wyvr_debug_outline [data-hydrate] {
+    outline: 2px solid var(--wyvr-debug-outline);
+    min-width: 10px;
+    min-height: 10px;
+    position: relative;
+}
+.wyvr_debug_outline span[data-hydrate] {
+    display: inline-block;
+}
+.wyvr_debug_outline [data-hydrate]:hover {
+    outline: 2px solid var(--wyvr-debug-outline-active);
+}
+.wyvr_debug_outline [data-hydrate]:hover:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    pointer-events: none;
+    background: var(--wyvr-debug-outline);
+    opacity: 0.1;
+    z-index: 100000;
+}
+.wyvr_debug_outline:before,
+.wyvr_debug_outline [data-hydrate]:hover:after {
+    background: var(--wyvr-debug-outline-active);
+    color: var(--wyvr-debug-text);
+    padding: 3px;
+    font-size: 12px;
+    font-family: monospace;
+}
+.wyvr_debug_show_breakpoints:after {
+    content: '';
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 10000;
+    pointer-events: none;
+    background-image: var(--wyvr_debug_show_breakpoints-lines);
+    background-position: var(--wyvr_debug_show_breakpoints-positions);
+    background-repeat: no-repeat;
+}
+
+#wyvr_error_target {
+    position: sticky;
+    bottom: 40px;
+    z-index: 90000;
+    font-size: var(--wyvr-debug-font-size);
+    font-family: monospace;
+}
+#wyvr_error_target:empty {
+    display: none;
+}
+.wyvr_error_list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow-y: auto;
+    max-height: 90vh;
+}
+.wyvr_error_list li {
+    margin: 0 10px 10px;
+    padding: 1em 4em 1em 1em;
+    list-style: none;
+    background: var(--wyvr-debug-error);
+    color: #fff;
+    overflow-x: auto;
+    line-height: 1.2em;
+    border-radius: 10px;
+    position: relative;
+}
+.wyvr_error_list li button {
+    border: 0;
+    border-radius: 10px;
+    width: 2em;
+    height: 2em;
+    right: 0;
+    top: 0;
+    color: var(--wyvr-debug-error);
+    background-color: #fff;
+    cursor: pointer;
+    position: absolute;
+}
+.wyvr_error_list li button:after {
+    content: '⨯';
+} */

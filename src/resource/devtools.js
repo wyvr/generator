@@ -118,12 +118,6 @@ wyvr_debug_event('wyvr_debug_rebuild', () => {
     wyvr_message('triggered rebuild');
 });
 
-window.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') {
-        wyvr_close_floating_window();
-    }
-});
-
 
 wyvr_debug_event('wyvr_debug_inspect', () => {
     wyvr_devtools_inspect_data();

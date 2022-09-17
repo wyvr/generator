@@ -7,18 +7,19 @@
     let active_component;
     let data;
     let structure;
+    let show = true;
     onMount(() => {
         reset_data();
         hydrate_components = Array.from(document.querySelectorAll('[data-hydrate]'));
         hydrate_components.map((el) => {
-            el.addEventListener('mouseover', inspect);
+            el.addEventListener('click', inspect);
         });
         document.body.classList.add('wyvr_inspect_outline');
     });
     onDestroy(() => {
         document.body.classList.remove('wyvr_inspect_outline');
         hydrate_components.map((el) => {
-            el.removeEventListener('mouseover', inspect);
+            el.removeEventListener('click', inspect);
         });
     });
 
@@ -31,7 +32,11 @@
         if (target == active_component) {
             return;
         }
+        if (active_component) {
+            active_component.classList.remove('wyvr_inspect_active');
+        }
         active_component = target;
+        target.classList.add('wyvr_inspect_active');
 
         const active_data = {
             name: target.getAttribute('data-hydrate').split('_').pop(),
@@ -100,45 +105,64 @@
         }
         return [];
     }
+
+    function toggle() {
+        show = !show;
+    }
 </script>
+
+<svelte:window
+    on:keydown={(e) => {
+        if (e.key == 'Escape') {
+            show = false;
+        }
+    }}
+/>
 
 {#if active_component && data}
     <div class="sidebar">
         <div class="block">
-            <div class="headline"><span class="icon">🔍</span><span class="text">Component</span></div>
-            <table>
-                <WyvrInspectRow key={data.name} value={data.path} />
-            </table>
+            <button class="btn" on:click={toggle}
+                >{#if show}close{:else}open{/if} inspect</button
+            >
         </div>
-        <div class="block">
-            <div class="headline"><span class="icon">📦</span><span class="text">Package</span></div>
-            {#if data.pkg}
+        {#if show}
+            <div class="block">
+                <div class="headline"><span class="icon">🔍</span><span class="text">Component</span></div>
                 <table>
-                    <WyvrInspectRow key={data.pkg.name} value={data.pkg.path} />
+                    <WyvrInspectRow key={data.name} value={data.path} />
                 </table>
-            {:else}
-                <em>no package found</em>
+            </div>
+            <div class="block">
+                <div class="headline"><span class="icon">📦</span><span class="text">Package</span></div>
+                {#if data.pkg}
+                    <table>
+                        <WyvrInspectRow key={data.pkg.name} value={data.pkg.path} />
+                    </table>
+                {:else}
+                    <em>no package found</em>
+                {/if}
+            </div>
+            {#if data.props && data.props_keys}
+                <div class="block">
+                    <div class="headline"><span class="icon">🛠</span><span class="text">Props</span></div>
+                    <table>
+                        {#each data.props_keys as key}
+                            <WyvrInspectRow {key} value={data.props[key]} type={'json'} />
+                        {/each}
+                    </table>
+                </div>
             {/if}
-        </div>
-        {#if data.props && data.props_keys}
-            <div class="block">
-                <div class="headline"><span class="icon">🛠</span><span class="text">Props</span></div>
-                <table>
-                    {#each data.props_keys as key}
-                        <WyvrInspectRow {key} value={data.props[key]} type={'json'} />
-                    {/each}
-                </table>
-            </div>
-        {/if}
-        {#if data.config}
-            <div class="block">
-                <div class="headline"><span class="icon">⚙</span><span class="text">Config</span></div>
-                <table>
-                    {#each data.config_keys as key}
-                        <WyvrInspectRow {key} value={data.config[key]} type={'config'} />
-                    {/each}
-                </table>
-            </div>
+            {#if data.config}
+                <div class="block">
+                    <div class="headline"><span class="icon">⚙</span><span class="text">Config</span></div>
+                    <table>
+                        {#each data.config_keys as key}
+                            <WyvrInspectRow {key} value={data.config[key]} type={'config'} />
+                        {/each}
+                    </table>
+                </div>
+            {/if}
         {/if}
     </div>
 {/if}
@@ -181,6 +205,9 @@
     }
     :global(.wyvr_inspect_outline [data-hydrate]:hover) {
         outline: 2px solid var(--wyvr-inspect-outline-active);
+    }
+    :global(.wyvr_inspect_active) {
+        outline: 2px solid var(--wyvr-debug-primary) !important;
     }
     table {
         width: 100%;

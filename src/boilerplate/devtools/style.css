@@ -140,6 +140,7 @@
     box-shadow: 0 5px 10px var(--wyvr-debug-bg);
     transition: opacity 2s linear;
     pointer-events: none;
+    z-index: 100000;
 }
 /* .wyvr_floating_window {
     display: none;

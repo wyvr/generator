@@ -83,6 +83,9 @@ async function wyvr_devtools_initialize() {
         if (typeof module.onMount == 'function') {
             module.onMount(button, module);
         }
+        if(module.instant === true) {
+            button.dispatchEvent(new Event('click'));
+        }
     });
 }
 function wyvr_debug_event(id, callback, immediately) {

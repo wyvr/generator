@@ -14,8 +14,14 @@ async function wyvr_devtools_initialize() {
         await Promise.all(
             modules_list.map(async (path) => {
                 try {
-                    const module = await import(path);
-                    return module?.default;
+                    const imported_module = await import(path);
+                    const module = imported_module?.default;
+                    if(module) {
+                        if(!module.order) {
+                            module.order = 1000;
+                        }
+                    }
+                    return module;
                 } catch (e) {
                     console.error('can not load module ' + path, e);
                     return undefined;
@@ -30,7 +36,7 @@ async function wyvr_devtools_initialize() {
             return typeof module?.onInit != 'function' || module.onInit();
         })
         .sort((a, b) => {
-            return a.order < b.order;
+            return a.order - b.order;
         });
 
     console.log('loaded modules', modules);

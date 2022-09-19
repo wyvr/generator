@@ -15,7 +15,9 @@ import { Event } from './event.js';
 import { stringify } from './json.js';
 import { LogType } from '../struc/log.js';
 import { watcher_event } from './watcher.js';
+import { wait_for } from './wait.js';
 import { WatcherPaths } from '../vars/watcher_paths.js';
+import { exists } from './file.js';
 
 export function server(host, port, on_request, on_end) {
     if (!filled_string(host) || !is_number(port)) {
@@ -61,11 +63,7 @@ export function log_start(req, uid) {
 }
 export function log_end(req, res, uid, start) {
     const type = (res.statusCode + '')[0]; // first digit inticates the type
-    const message = [
-        req.method,
-        req.url,
-        ...get_base_log_infos(res.statusMessage, res.statusCode, start, uid),
-    ];
+    const message = [req.method, req.url, ...get_base_log_infos(res.statusMessage, res.statusCode, start, uid)];
     switch (type) {
         case '1':
             Logger.info(...message);
@@ -165,8 +163,15 @@ async function generate_server(host, port, force_generating_of_resources, onEnd,
         // check for media files
         const media_config = config_from_url(req.url);
         if (media_config && !media_config.result_exists) {
+            const start = process.hrtime.bigint();
             // generate media on demand
-            await media([media_config]);
+            await media([media_config], true);
+            // the file needs some time to be available after generation
+            const success = await wait_for(() => {
+                return exists(Cwd.get(media_config.result));
+            });
+            
+            Logger[success ? 'success' : 'error']('generate media', nano_to_milli(process.hrtime.bigint() - start), Logger.color.dim('ms'), Logger.color.dim(uid));
         }
         await static_server(req, res, uid, async (err) => {
             if (err) {

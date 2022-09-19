@@ -5,7 +5,7 @@
     const check_on = setInterval(() => {
         if (window.on) {
             clearInterval(check_on);
-            on('wyvr_debug_rebuild', () => {
+            on('wyvr_devtools_rebuild', () => {
                 wyvr_devtools_inspect_data().then(() => {
                     send({ action: 'rebuild', data: window.data._wyvr.route });
                     add_to_history();

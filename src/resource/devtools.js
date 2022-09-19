@@ -68,7 +68,6 @@ async function wyvr_devtools_initialize() {
             .join('')}</nav>
     `;
     /*
-    <button id="wyvr_debug_rebuild" title="Rebuild">♻️</button>
         <button id="wyvr_debug_inspect" title="Inspect data">✏️</button>
         <button id="wyvr_debug_inspect_global" title="Inspect global data">🌐</button>
         <button id="wyvr_debug_inspect_structure" title="Inspect structure">🏗</button>
@@ -89,7 +88,7 @@ async function wyvr_devtools_initialize() {
         if (typeof module.onMount == 'function') {
             module.onMount(button, module);
         }
-        if(module.instant === true) {
+        if (module.instant === true) {
             button.dispatchEvent(new Event('click'));
         }
     });
@@ -111,7 +110,7 @@ function wyvr_message(message) {
     element.setAttribute('class', 'wyvr_message');
     element.innerText = message;
     document.body.appendChild(element);
-    
+
     setTimeout(() => {
         element.style.opacity = 0;
     }, 1000);
@@ -122,12 +121,6 @@ function wyvr_message(message) {
 window.wyvr_message = wyvr_message;
 
 // events
-wyvr_debug_event('wyvr_debug_rebuild', () => {
-    trigger('wyvr_debug_rebuild');
-    wyvr_message('triggered rebuild');
-});
-
-
 wyvr_debug_event('wyvr_debug_inspect', () => {
     wyvr_devtools_inspect_data();
     wyvr_message('open the console to inspect data');

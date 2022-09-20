@@ -2,7 +2,7 @@ import { dirname } from 'path';
 import replaceAsync from 'string-replace-async';
 import { FOLDER_GEN, FOLDER_MEDIA } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
-import { create_dir, exists, is_file, read_buffer, to_extension, write } from './file.js';
+import { create_dir, exists, is_file, read_buffer, write } from './file.js';
 import { filled_object, filled_string, in_array, is_object, match_interface } from './validate.js';
 import axios from 'axios';
 import sharp from 'sharp';
@@ -158,7 +158,7 @@ export async function get_config(content) {
     // create config hash to group different images together
     const hash = get_config_hash(config);
     config.hash = hash;
-    let src = to_extension(config.src, config.format);
+    let src = config.src || '';
     let domain = null;
     if (src.indexOf('http') == 0) {
         const domain_match = src.match(/^https?:\/\/([^/]*?)\//);

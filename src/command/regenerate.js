@@ -94,8 +94,8 @@ export async function regenerate_command(changed_files) {
         let routes = [];
 
         if (in_array(fragments, FOLDER_SRC)) {
-            const identifiers = get_config_cache('identifiers');
-            const shortcode_identifiers = Object.values(identifiers).filter((identifier) => {
+            const all_identifiers = get_config_cache('identifiers');
+            const shortcode_identifiers = Object.values(all_identifiers).filter((identifier) => {
                 return identifier.imports;
             });
             const identifier_files = get_config_cache('identifier.files');
@@ -172,7 +172,7 @@ export async function regenerate_command(changed_files) {
 
                 // when doc, layout or page has changed search directly in the routes reference
                 if (filled_array(main_files)) {
-                    const identifiers = Object.keys(identifier_files);
+                    const identifier_keys = Object.keys(identifier_files);
                     main_files.forEach((file) => {
                         if (file.match(/^(?:doc|layout|page)\//)) {
                             const identifier_name = to_single_identifier_name(file);
@@ -187,7 +187,7 @@ export async function regenerate_command(changed_files) {
                                     '$'
                             );
 
-                            identifiers.forEach((identifier) => {
+                            identifier_keys.forEach((identifier) => {
                                 if (identifier.match(regexp)) {
                                     identifier_list.push({ identifier });
                                 }

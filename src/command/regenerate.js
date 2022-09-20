@@ -41,6 +41,7 @@ export async function regenerate_command(changed_files) {
         return;
     }
 
+    WorkerController.set_all_workers('force_media_query_files', true);
     let reload_page = false;
 
     Logger.info('changed_files', changed_files);
@@ -263,7 +264,7 @@ export async function regenerate_command(changed_files) {
             reload_page = true;
         }
 
-        // allways add the watching routes to the new generated routes
+        // always add the watching routes to the new generated routes
         const watcher_paths = WatcherPaths.get();
         if (watcher_paths) {
             const watcher_routes = Object.values(watcher_paths)

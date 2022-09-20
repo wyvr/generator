@@ -6,18 +6,26 @@ import { search_segment } from './segment.js';
 import { filled_object } from './validate.js';
 
 export function generate_page_code(data) {
-    if(!filled_object(data)) {
+    if (!filled_object(data)) {
         return undefined;
     }
     const cache_breaker = Env.is_dev() ? `?${Date.now()}` : '';
 
     const base_path = Cwd.get(FOLDER_GEN_SERVER);
-    const tmpl_files = search_segment(data, '_wyvr.template_files', {
-        doc: join(base_path, 'doc', 'Default.svelte'),
-        layout: join(base_path, 'layout', 'Default.svelte'),
-        page: join(base_path, 'page', 'Default.svelte'),
+    const fallback_tmpl_files = {
+        doc: join(base_path, 'doc', 'Default.js'),
+        layout: join(base_path, 'layout', 'Default.js'),
+        page: join(base_path, 'page', 'Default.js'),
+    };
+    let tmpl_files = search_segment(data, '_wyvr.template_files', fallback_tmpl_files);
+    if (!tmpl_files) {
+        tmpl_files = {};
+    }
+    ['doc', 'layout', 'page'].forEach((type) => {
+        if (!tmpl_files[type]) {
+            tmpl_files[type] = fallback_tmpl_files[type];
+        }
     });
-
     const code = `
 <script type="module">
     import Doc from '${tmpl_files.doc}${cache_breaker}';

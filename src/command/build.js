@@ -6,10 +6,6 @@ import { intial_build } from '../action/initial_build.js';
 import { optimize } from '../action/optimize.js';
 import { publish } from '../action/publish.js';
 import { sitemap } from '../action/sitemap.js';
-import { FOLDER_MEDIA } from '../constants/folder.js';
-import { symlink } from '../utils/file.js';
-import { Cwd } from '../vars/cwd.js';
-import { ReleasePath } from '../vars/release_path.js';
 import { UniqId } from '../vars/uniq_id.js';
 
 export async function build_command(config) {
@@ -25,9 +21,6 @@ export async function build_command(config) {
 
     // Optimize Pages
     await optimize(media_query_files, critical_result);
-
-    // Create Symlinks
-    symlink(Cwd.get(FOLDER_MEDIA), join(ReleasePath.get(), FOLDER_MEDIA));
 
     // Create sitemap
     await sitemap();

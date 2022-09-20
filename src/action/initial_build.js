@@ -2,10 +2,10 @@ import { cpus } from 'os';
 import { get_config_data } from './get_config_data.js';
 import { collect_packages } from './package.js';
 import { present } from './present.js';
-import { FOLDER_GEN_PLUGINS, FOLDER_RELEASES, FOLDER_STORAGE } from '../constants/folder.js';
+import { FOLDER_GEN_PLUGINS, FOLDER_MEDIA, FOLDER_RELEASES, FOLDER_STORAGE } from '../constants/folder.js';
 import { package_report } from '../presentation/package_report.js';
 import { Config } from '../utils/config.js';
-import { read_json } from '../utils/file.js';
+import { read_json, symlink } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
 import { Storage } from '../utils/storage.js';
@@ -27,6 +27,7 @@ import { copy_static_generated } from './copy_static_generated.js';
 import { copy } from './copy.js';
 import { set_config_cache } from '../utils/config_cache.js';
 import { build_cache } from '../utils/exec.js';
+import { join } from 'path';
 
 export async function pre_initial_build(build_id, config_data) {
     // set release folder
@@ -48,6 +49,9 @@ export async function pre_initial_build(build_id, config_data) {
     const worker_amount = WorkerController.get_worker_amount_from_ratio();
     Logger.present('worker', worker_amount, Logger.color.dim(`of ${cpus().length} threads`));
     WorkerController.create_workers(worker_amount);
+
+    // Create required symlinks
+    symlink(Cwd.get(FOLDER_MEDIA), join(ReleasePath.get(), FOLDER_MEDIA));
 
     return {
         package_json,

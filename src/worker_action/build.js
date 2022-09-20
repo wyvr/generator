@@ -106,7 +106,7 @@ export async function build(files) {
             // write css
             if (filled_string(identifier) && search_segment(rendered_result.result, 'css.code')) {
                 const css_file_path = Cwd.get(FOLDER_GEN_CSS, `${identifier}.css`);
-                if (!exists(css_file_path)) {
+                if (!exists(css_file_path) || global.cache.force_media_query_files) {
                     media_query_files = write_css_file(
                         css_file_path,
                         rendered_result.result.css.code,

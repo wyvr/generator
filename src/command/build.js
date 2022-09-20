@@ -1,4 +1,3 @@
-import { join } from 'path';
 import { check_env } from '../action/check_env.js';
 import { clear_releases } from '../action/clear_releases.js';
 import { critical } from '../action/critical.js';

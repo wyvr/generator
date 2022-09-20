@@ -18,6 +18,8 @@ import { watcher_event } from './watcher.js';
 import { wait_for } from './wait.js';
 import { WatcherPaths } from '../vars/watcher_paths.js';
 import { exists } from './file.js';
+import { WorkerController } from '../worker/controller.js';
+import { WorkerAction } from '../struc/worker_action.js';
 
 export function server(host, port, on_request, on_end) {
     if (!filled_string(host) || !is_number(port)) {
@@ -165,7 +167,7 @@ async function generate_server(host, port, force_generating_of_resources, onEnd,
         if (media_config && !media_config.result_exists) {
             const start = process.hrtime.bigint();
             // generate media on demand
-            await media([media_config], true);
+            await WorkerController.process_data(WorkerAction.media, [media_config]);
             // the file needs some time to be available after generation
             const success = await wait_for(() => {
                 return exists(Cwd.get(media_config.result));

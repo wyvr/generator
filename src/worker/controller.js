@@ -81,7 +81,7 @@ export class WorkerController {
             Logger.debug('process', worker.pid, 'exit', code);
         });
         worker.process.on('close', () => {
-            if(this.exiting) {
+            if (this.exiting) {
                 return;
             }
             Logger.warning('worker died PID', worker.pid);
@@ -216,8 +216,8 @@ export class WorkerController {
     /**
      * set global available key value in all workers
      * WARNING: can cause memory leak, when not cleared
-     * @param {string} key 
-     * @param {any} value 
+     * @param {string} key
+     * @param {any} value
      * @returns whether the value was sent to the workers or not
      */
     static set_all_workers(key, value) {
@@ -267,6 +267,32 @@ export class WorkerController {
             }
         }
         return false;
+    }
+
+    static async process_data(action, data) {
+        const name = get_name(action);
+        if (!name) {
+            Logger.error('unknown action', action);
+            return false;
+        }
+        const workers = this.get_workers_by_status(WorkerStatus.idle);
+        return new Promise((resolve) => {
+            // retry when no idle workers are available
+            if (workers.length == 0) {
+                setTimeout(() => {
+                    this.process_data(action, data).then(resolve);
+                }, 50);
+                return;
+            }
+            workers[0].status = WorkerStatus.busy;
+            this.send_action(workers[0], action, data);
+            const done_listener_id = Event.on('worker_status', WorkerStatus.done, (worker) => {
+                if (worker.pid == workers[0].pid) {
+                    Event.off('worker_status', WorkerStatus.done, done_listener_id);
+                    resolve(true);
+                }
+            });
+        });
     }
 
     static async process_in_workers(action, list, batch_size) {

@@ -51,6 +51,7 @@ export async function regenerate_command(changed_files) {
     const packages = Config.get('packages');
     Logger.info('packages', packages);
     const gen_folder = Cwd.get(FOLDER_GEN);
+    const all_identifiers = get_config_cache('identifiers');
 
     await measure_action('regenerate', async () => {
         // regenerate assets
@@ -97,7 +98,6 @@ export async function regenerate_command(changed_files) {
         let routes = [];
 
         if (in_array(fragments, FOLDER_SRC)) {
-            const all_identifiers = get_config_cache('identifiers');
             const shortcode_identifiers = Object.values(all_identifiers).filter((identifier) => {
                 return identifier.imports;
             });
@@ -312,13 +312,13 @@ export async function regenerate_command(changed_files) {
         }
         Logger.debug('identifiers', identifiers);
         if (filled_object(identifiers)) {
-            const data = Object.keys(identifiers).map((key) => identifiers[key]);
+            const data = Object.keys(identifiers).map((key) => all_identifiers[key]);
             await WorkerController.process_in_workers(WorkerAction.scripts, data, 1);
             reload_page = true;
         }
 
         // update the identifiers cache
-        const merged_identifiers = to_identifiers(get_config_cache('identifiers'), identifiers);
+        const merged_identifiers = to_identifiers(identifiers, all_identifiers);
         set_config_cache('identifiers', merged_identifiers);
 
         copy_folder(Cwd.get(FOLDER_GEN), [FOLDER_ASSETS, FOLDER_CSS, FOLDER_JS, FOLDER_I18N], ReleasePath.get());

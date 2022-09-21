@@ -13,11 +13,9 @@ import {
 import { extname, dirname, join } from 'path';
 import {stringify} from './json.js';
 import { is_string, filled_string, filled_array } from './validate.js';
-import { Cwd } from '../vars/cwd.js';
 import { WyvrFile } from '../model/wyvr_file.js';
 import { Env } from '../vars/env.js';
 import { Logger } from './logger.js';
-import { FOLDER_SRC } from '../constants/folder.js';
 
 /**
  * converts the given filename to the filename with the given extension
@@ -265,7 +263,7 @@ export function collect_files(dir, extension) {
  */
 export function collect_svelte_files(dir) {
     if (!filled_string(dir)) {
-        dir = Cwd.get(FOLDER_SRC);
+        return [];
     }
     const result = collect_files(dir, 'svelte').map((path) => WyvrFile(path));
     return result;

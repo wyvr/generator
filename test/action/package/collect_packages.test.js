@@ -11,6 +11,13 @@ describe('action/package/collect_packages', () => {
     const config = Config.get();
     const __dirname = to_dirname(import.meta.url);
 
+    const empty_disabled_packages = (cwd) => [
+        {
+            name: 'wyvr',
+            path: cwd + '/node_modules/@wyvr/generator/src/boilerplate',
+        },
+    ];
+
     afterEach(() => {
         Cwd.set(cwd);
         Config.replace(config);
@@ -18,19 +25,19 @@ describe('action/package/collect_packages', () => {
     it('empty', async () => {
         Cwd.set(join(__dirname, '_tests/empty'));
         const result = await collect_packages();
-        deepStrictEqual(result, { available_packages: [], disabled_packages: [] });
+        deepStrictEqual(result, { available_packages: [], disabled_packages: empty_disabled_packages(Cwd.get()) });
     });
     it('empty with package.json', async () => {
         Cwd.set(join(__dirname, '_tests/empty'));
         const result = await collect_packages({ dependencies: { nope: '0.0.0' } });
-        deepStrictEqual(result, { available_packages: [], disabled_packages: [] });
+        deepStrictEqual(result, { available_packages: [], disabled_packages: empty_disabled_packages(Cwd.get()) });
     });
     it('simple', async () => {
         Cwd.set(join(__dirname, '_tests/simple'));
         const result = await collect_packages();
         deepStrictEqual(result, {
             available_packages: [{ name: 'local', path: join(Cwd.get(), 'local') }],
-            disabled_packages: [],
+            disabled_packages: empty_disabled_packages(Cwd.get()),
         });
         deepStrictEqual(Config.get('test'), true);
     });
@@ -42,7 +49,7 @@ describe('action/package/collect_packages', () => {
                 { name: 'local', path: join(Cwd.get(), 'node_modules/local') },
                 { name: 'file2', path: join(Cwd.get(), 'node_modules/file') },
             ],
-            disabled_packages: [],
+            disabled_packages: empty_disabled_packages(Cwd.get()),
         });
     });
     it('symlinked without package.json', async () => {
@@ -50,7 +57,7 @@ describe('action/package/collect_packages', () => {
         const result = await collect_packages({});
         deepStrictEqual(result, {
             available_packages: [{ name: 'local', path: join(Cwd.get(), 'node_modules/local') }],
-            disabled_packages: [{ name: 'file2' }],
+            disabled_packages: [].concat([{ name: 'file2' }], empty_disabled_packages(Cwd.get())),
         });
     });
     it('disabled', async () => {
@@ -58,10 +65,10 @@ describe('action/package/collect_packages', () => {
         const result = await collect_packages();
         deepStrictEqual(result, {
             available_packages: [],
-            disabled_packages: [
+            disabled_packages: [].concat(empty_disabled_packages(Cwd.get()), [
                 { name: 'local', path: join(Cwd.get(), 'local') },
-                { name: '#1', path: join(Cwd.get(), 'path') },
-            ],
+                { name: '#2', path: join(Cwd.get(), 'path') },
+            ]),
         });
     });
     // it('missing package.json', async () => {

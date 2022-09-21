@@ -4,7 +4,7 @@ import { collect_svelte_files } from '../../../src/utils/file.js';
 import { WyvrFile } from '../../../src/model/wyvr_file.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 
-describe('utils/file/collect_files', () => {
+describe('utils/file/collect_svelte_files', () => {
     before(() => {
         Cwd.set(process.cwd());
     });

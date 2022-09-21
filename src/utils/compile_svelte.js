@@ -5,7 +5,7 @@ import { in_array, filled_string, is_func, is_null, is_path, match_interface } f
 import { exists, remove, to_extension, write } from './file.js';
 import { dirname, extname, resolve } from 'path';
 import { Env } from '../vars/env.js';
-import { css_hash, get_file_time_hash } from './hash.js';
+import { css_hash } from './hash.js';
 import { uniq_id } from './uniq.js';
 import { Cwd } from '../vars/cwd.js';
 import { FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC, FOLDER_GEN_TEMP } from '../constants/folder.js';
@@ -21,7 +21,7 @@ export async function prepare_code_to_compile(content, file, type) {
     }
     const folder = type_value(type, FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER);
     const scope = `svelte ${type} prepare`;
-    const cache_breaker = Env.is_dev() ? `?${get_file_time_hash(file)}` : '';
+    const cache_breaker = Env.is_dev() ? `?${Date.now()}` : '';
     // replace names of components because some can not used, which are default html tags
     if (type === 'server') {
         content = fix_reserved_tag_names(content);

@@ -26,6 +26,6 @@ describe('utils/hash/get_file_time_hash', () => {
     it('existing files', () => {
         const file_path = join(path, 'test.txt');
         const result = get_file_time_hash(file_path);
-        deepStrictEqual(result.length, 17);
+        deepStrictEqual(result.length, 15);
     });
 });

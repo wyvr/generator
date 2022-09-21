@@ -70,4 +70,7 @@ describe('utils/validate/match_interface', () => {
     it('mismatch interface', () => {
         strictEqual(match_interface({ a: 'required', b: 'required' }, { c: true }), false);
     });
+    it('undefined interface values', () => {
+        strictEqual(match_interface({ a: undefined, b: undefined }, { a: true }), true);
+    });
 });

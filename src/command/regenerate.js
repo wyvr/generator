@@ -43,6 +43,7 @@ export async function regenerate_command(changed_files) {
         return;
     }
 
+    WorkerController.set_all_workers('force_media_query_files', true);
     let reload_page = false;
 
     Logger.info('changed_files', changed_files);
@@ -96,8 +97,8 @@ export async function regenerate_command(changed_files) {
         let routes = [];
 
         if (in_array(fragments, FOLDER_SRC)) {
-            const identifiers = get_config_cache('identifiers');
-            const shortcode_identifiers = Object.values(identifiers).filter((identifier) => {
+            const all_identifiers = get_config_cache('identifiers');
+            const shortcode_identifiers = Object.values(all_identifiers).filter((identifier) => {
                 return identifier.imports;
             });
             const identifier_files = get_config_cache('identifier.files');
@@ -174,7 +175,7 @@ export async function regenerate_command(changed_files) {
 
                 // when doc, layout or page has changed search directly in the routes reference
                 if (filled_array(main_files)) {
-                    const identifiers = Object.keys(identifier_files);
+                    const identifier_keys = Object.keys(identifier_files);
                     main_files.forEach((file) => {
                         if (file.match(/^(?:doc|layout|page)\//)) {
                             const identifier_name = to_single_identifier_name(file);
@@ -189,7 +190,7 @@ export async function regenerate_command(changed_files) {
                                     '$'
                             );
 
-                            identifiers.forEach((identifier) => {
+                            identifier_keys.forEach((identifier) => {
                                 if (identifier.match(regexp)) {
                                     identifier_list.push({ identifier });
                                 }
@@ -285,7 +286,7 @@ export async function regenerate_command(changed_files) {
             reload_page = true;
         }
 
-        // allways add the watching routes to the new generated routes
+        // always add the watching routes to the new generated routes
         const watcher_paths = WatcherPaths.get();
         if (watcher_paths) {
             const watcher_routes = Object.values(watcher_paths)

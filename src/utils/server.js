@@ -9,8 +9,7 @@ import { get_error_message } from './error.js';
 import { nano_to_milli } from './convert.js';
 import { Env } from '../vars/env.js';
 import { exec_request, fallback_exec_request } from '../action/exec.js';
-import { config_from_url } from './media.js';
-import { media } from '../action/media.js';
+import { config_from_url, get_buffer } from './media.js';
 import { Event } from './event.js';
 import { stringify } from './json.js';
 import { LogType } from '../struc/log.js';
@@ -18,6 +17,8 @@ import { watcher_event } from './watcher.js';
 import { wait_for } from './wait.js';
 import { WatcherPaths } from '../vars/watcher_paths.js';
 import { exists } from './file.js';
+import { WorkerController } from '../worker/controller.js';
+import { WorkerAction } from '../struc/worker_action.js';
 
 export function server(host, port, on_request, on_end) {
     if (!filled_string(host) || !is_number(port)) {
@@ -163,15 +164,18 @@ async function generate_server(host, port, force_generating_of_resources, onEnd,
         // check for media files
         const media_config = config_from_url(req.url);
         if (media_config && !media_config.result_exists) {
-            const start = process.hrtime.bigint();
-            // generate media on demand
-            await media([media_config], true);
-            // the file needs some time to be available after generation
-            const success = await wait_for(() => {
-                return exists(Cwd.get(media_config.result));
-            });
-            
-            Logger[success ? 'success' : 'error']('generate media', nano_to_milli(process.hrtime.bigint() - start), Logger.color.dim('ms'), Logger.color.dim(uid));
+            const buffer = await get_buffer(media_config.src);
+            if (buffer) {
+                const start = process.hrtime.bigint();
+                // generate media on demand
+                await WorkerController.process_data(WorkerAction.media, [media_config]);
+                // the file needs some time to be available after generation
+                const success = await wait_for(() => {
+                    return exists(Cwd.get(media_config.result));
+                });
+                
+                Logger[success ? 'success' : 'error']('generate media', nano_to_milli(process.hrtime.bigint() - start), Logger.color.dim('ms'), Logger.color.dim(uid));
+            }
         }
         await static_server(req, res, uid, async (err) => {
             if (err) {

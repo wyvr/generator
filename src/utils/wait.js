@@ -19,3 +19,9 @@ export async function wait_for(check_fn, interval = 10, max = 10000) {
         }, interval);
     });
 }
+
+export async function wait(duration) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, duration);
+    });
+}

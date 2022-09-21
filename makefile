@@ -25,9 +25,11 @@ compile-watch: ## Start watcher and make dev builds
 		--exec '${WYVR_LINT}'
 
 test: ## Executes the tests
+	@chmod -rw test/utils/file/_tests/not_writeable.txt
 	@$(WYVR_TEST)
 
 test-watch: ## Watches changes in the tests
+	@chmod -rw test/utils/file/_tests/not_writeable.txt
 	@npx nodemon --watch src --watch test --ignore test/**/_tests/**/*.js -e js --exec "$(WYVR_LINT); $(WYVR_TEST)"
 
 init: ## Install and prepare setup

@@ -46,10 +46,10 @@ export async function regenerate_command(changed_files) {
     WorkerController.set_all_workers('force_media_query_files', true);
     let reload_page = false;
 
-    Logger.info('changed_files', changed_files);
-    Logger.info('fragments', fragments);
+    Logger.debug('changed_files', changed_files);
+    Logger.debug('fragments', fragments);
     const packages = Config.get('packages');
-    Logger.info('packages', packages);
+    Logger.debug('packages', packages);
     const gen_folder = Cwd.get(FOLDER_GEN);
     const all_identifiers = get_config_cache('identifiers');
 
@@ -296,7 +296,7 @@ export async function regenerate_command(changed_files) {
             routes = uniq_values([].concat(routes, watcher_routes));
         }
 
-        Logger.info('routes', routes);
+        Logger.debug('routes', routes);
         if (filled_array(routes)) {
             const identifier_name = get_name(WorkerEmit.identifier);
             const identifier_id = Event.on('emit', identifier_name, (data) => {

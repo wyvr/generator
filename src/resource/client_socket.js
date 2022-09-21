@@ -1,6 +1,7 @@
 /* eslint-disable no-undef*/
 /* eslint-disable no-console*/
 (function wyvr_server_communication() {
+    add_to_history();
     // build server connection
     const check_on = setInterval(() => {
         if (window.on) {
@@ -8,7 +9,6 @@
             on('wyvr_devtools_rebuild', () => {
                 wyvr_devtools_inspect_data().then(() => {
                     send({ action: 'rebuild', data: window.data._wyvr.route });
-                    add_to_history();
                 });
             });
         }

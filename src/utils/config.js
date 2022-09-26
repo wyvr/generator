@@ -3,7 +3,7 @@ import merge from 'deepmerge';
 import { join } from 'path';
 import { WyvrConfig } from '../model/wyvr_config.js';
 import { get_error_message } from './error.js';
-import { is_file } from './file.js';
+import { is_file, find_file } from './file.js';
 import { register_inject } from './global.js';
 import { Logger } from './logger.js';
 import { search_segment } from './segment.js';

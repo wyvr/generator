@@ -1,4 +1,7 @@
 /* eslint-disable no-undef */
+
+import { is_null } from "../utils/validate";
+
 /* eslint-disable no-console */
 if (!window.wyvr_debug_initialized) {
     window.wyvr_debug_initialized = true;
@@ -33,7 +36,11 @@ async function wyvr_devtools_initialize() {
             if (!module) {
                 return false;
             }
-            return typeof module?.onInit != 'function' || module.onInit();
+            const result =  typeof module?.onInit != 'function' || module.onInit();
+            if(is_null(result)) {
+                return true;
+            }
+            return result;
         })
         .sort((a, b) => {
             return a.order - b.order;

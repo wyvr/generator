@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 
-import { is_null } from "../utils/validate";
+import { is_null } from "../utils/validate.js";
 
 /* eslint-disable no-console */
 if (!window.wyvr_debug_initialized) {

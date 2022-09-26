@@ -70,7 +70,7 @@ function config() {
             if (!is_string(path)) {
                 return {};
             }
-            const filepath = join(path, 'wyvr.js');
+            let filepath = find_file(path, ['wyvr.js', 'wyvr.mjs', 'wyvr.cjs']);
             if (!is_file(filepath)) {
                 return {};
             }

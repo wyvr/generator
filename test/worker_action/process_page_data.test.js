@@ -61,6 +61,7 @@ describe('worker_action/process_page_data', () => {
                             visible: true,
                         },
                     ],
+                    persist: false,
                     priority: 0.5,
                     private: false,
                     static: false,

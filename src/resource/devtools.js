@@ -1,7 +1,4 @@
 /* eslint-disable no-undef */
-
-import { is_null } from "../utils/validate.js";
-
 /* eslint-disable no-console */
 if (!window.wyvr_debug_initialized) {
     window.wyvr_debug_initialized = true;
@@ -37,7 +34,7 @@ async function wyvr_devtools_initialize() {
                 return false;
             }
             const result =  typeof module?.onInit != 'function' || module.onInit();
-            if(is_null(result)) {
+            if(result === undefined) {
                 return true;
             }
             return result;

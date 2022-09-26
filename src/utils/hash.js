@@ -50,5 +50,5 @@ export function get_file_time_hash(file) {
         return undefined;
     }
     const stats = statSync(file);
-    return (stats.mtimeMs+'').replace('.', '');
+    return Math.round(stats.mtimeMs * 1000).toString();
 }

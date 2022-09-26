@@ -2,7 +2,7 @@ import { join } from 'path';
 import { FOLDER_CSS, FOLDER_GEN_EXEC, FOLDER_GEN_JS, FOLDER_JS } from '../constants/folder.js';
 import { get_config_cache } from '../utils/config_cache.js';
 import { extract_exec_config, get_exec, load_exec, run_exec } from '../utils/exec.js';
-import { copy, exists, write } from '../utils/file.js';
+import { copy, exists, write, to_index } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { send_content, send_head } from '../utils/server.js';
 import { filled_string } from '../utils/validate.js';
@@ -58,6 +58,13 @@ export async function process_exec_request(req, res, uid, exec, force_generating
     if (result?.result?.html && !res.writableEnded) {
         send_head(res, 200, 'text/html');
         send_content(res, result.result.html);
+        // persist the result
+        if(result?.data?._wyvr?.persist) {
+            const file = to_index(req.url, 'html');
+            const persisted_path = join(ReleasePath.get(),file);
+            write(persisted_path, result.result.html);
+            Logger.improve('persisted', file);
+        }
         return true;
     }
 }

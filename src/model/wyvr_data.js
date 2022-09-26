@@ -34,6 +34,7 @@ export function WyvrData(data, url, name, mtime_default) {
         change_frequence: 'monthly',
         priority: 0.5,
         static: false,
+        persist: false,
         mtime
     };
     // when no wyvr data is set use the default values
@@ -42,7 +43,7 @@ export function WyvrData(data, url, name, mtime_default) {
     }
 
     // add simple props
-    ['extension', 'language', 'private', 'change_frequence', 'priority', 'static', 'mtime'].forEach((key) => {
+    ['extension', 'language', 'private', 'change_frequence', 'priority', 'static', 'mtime', 'persist'].forEach((key) => {
         if (!is_null(data[key])) {
             wyvr_prop[key] = data[key];
         }

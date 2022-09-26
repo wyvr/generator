@@ -39,7 +39,6 @@ async function wyvr_devtools_initialize() {
             return a.order - b.order;
         });
 
-    console.log('loaded modules', modules);
     if (modules.length == 0) {
         return;
     }
@@ -67,13 +66,6 @@ async function wyvr_devtools_initialize() {
             )
             .join('')}</nav>
     `;
-    /*
-        <button id="wyvr_debug_inspect" title="Inspect data">✏️</button>
-        <button id="wyvr_debug_inspect_global" title="Inspect global data">🌐</button>
-        <button id="wyvr_debug_inspect_structure" title="Inspect structure">🏗</button>
-        <button id="wyvr_debug_measure_cwv" title="Measure CWV">📈</button>
-        <button id="wyvr_debug_clear_storage" title="Clear Storage">🗑️</button>
-    */
     document.body.appendChild(toolbar);
     // add click handler
     modules.map((module, index) => {
@@ -119,30 +111,6 @@ function wyvr_message(message) {
     }, 3000);
 }
 window.wyvr_message = wyvr_message;
-
-// events
-wyvr_debug_event('wyvr_debug_inspect', () => {
-    wyvr_devtools_inspect_data();
-    wyvr_message('open the console to inspect data');
-});
-wyvr_debug_event('wyvr_debug_inspect_global', () => {
-    wyvr_debug_inspect_global_data();
-    wyvr_message('open the console to inspect global data');
-});
-wyvr_debug_event('wyvr_debug_inspect_structure', async () => {
-    await wyvr_devtools_inspect_structure_data();
-    wyvr_message('open the console to inspect structure');
-});
-wyvr_debug_event('wyvr_debug_measure_cwv', () => {
-    wyvr_message('reloading to measure CWV');
-    const url = location.origin + location.pathname;
-    location = location.search.indexOf('wyvr_debug_measure_cwv') > -1 ? url : `${url}?wyvr_debug_measure_cwv`;
-});
-wyvr_debug_event('wyvr_debug_clear_storage', () => {
-    sessionStorage.clear();
-    localStorage.clear();
-    wyvr_message('storage cleared');
-});
 
 if (window.location.search.indexOf('wyvr_debug_measure_cwv') > -1) {
     try {

@@ -1,6 +1,5 @@
 //const wyvr_config = (await import('../wyvr.js')).default;
 import merge from 'deepmerge';
-import { join } from 'path';
 import { WyvrConfig } from '../model/wyvr_config.js';
 import { get_error_message } from './error.js';
 import { is_file, find_file } from './file.js';

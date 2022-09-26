@@ -34,7 +34,7 @@ describe('action/get_config_data/get_config_data', () => {
         deepStrictEqual(get_config_data(), {
             assets: [],
             build_id: undefined,
-            cron: [],
+            cron: {},
             cwd: __root,
             default_values: {},
             env: 'prod',
@@ -65,7 +65,7 @@ describe('action/get_config_data/get_config_data', () => {
             {
                 assets: [],
                 build_id: undefined,
-                cron: [],
+                cron: {},
                 cli: {
                     cwd: __root,
                     interpreter: '/bin/node',
@@ -94,7 +94,7 @@ describe('action/get_config_data/get_config_data', () => {
         deepStrictEqual(get_config_data(undefined, '012345'), {
             assets: [],
             build_id: '012345',
-            cron: [],
+            cron: {},
             cwd: __root,
             default_values: {},
             env: 'prod',
@@ -115,7 +115,7 @@ describe('action/get_config_data/get_config_data', () => {
             assets: [],
             build_id: '012345',
             cli: { flags: { dev: true } },
-            cron: [],
+            cron: {},
             cwd: __root,
             default_values: {},
             env: 'dev',
@@ -136,7 +136,7 @@ describe('action/get_config_data/get_config_data', () => {
             assets: [],
             build_id: '012345',
             cli: { flags: { dev: true, debug: true } },
-            cron: [],
+            cron: {},
             cwd: __root,
             default_values: {},
             env: 'debug',

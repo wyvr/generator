@@ -43,6 +43,8 @@ export async function pre_initial_build(build_id, config_data) {
     const { available_packages, disabled_packages } = await collect_packages(package_json);
     package_report(available_packages, disabled_packages);
 
+    await Storage.set('config', Config.get());
+
     // set worker ratio
     WorkerController.set_worker_ratio(Config.get('worker.ratio', 1));
 
@@ -85,7 +87,6 @@ export async function intial_build(build_id, config) {
         set_config_cache('plugins', plugins);
     }
 
-
     // Create Translations/I18N
     await i18n(available_packages);
 
@@ -122,7 +123,7 @@ export async function intial_build(build_id, config) {
 
     // Copy static and generated files into release
     await copy_static_generated();
-    
+
     // Copy wyvr internal files into release in dev mode
     await wyvr_internal();
 

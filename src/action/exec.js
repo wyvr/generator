@@ -10,17 +10,21 @@ import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { scripts } from './script.js';
 
-let exec_cache;
 export async function exec_request(req, res, uid, force_generating_of_resources) {
+    const exec = get_exec_request(req);
+    if (exec) {
+        Logger.debug('exec', req.url, exec.url);
+        return await send_process_exec_request(req, res, uid, exec, force_generating_of_resources);
+    }
+    return false;
+}
+
+let exec_cache;
+export function get_exec_request(req) {
     if (!exec_cache) {
         exec_cache = get_config_cache('exec.cache');
     }
-    const exec = get_exec(req.url, req.method, exec_cache);
-    if (exec) {
-        Logger.debug('exec', req.url, exec.url);
-        return await process_exec_request(req, res, uid, exec, force_generating_of_resources);
-    }
-    return false;
+    return get_exec(req.url, req.method, exec_cache);
 }
 
 let fallback_exec_cache;
@@ -34,7 +38,17 @@ export async function fallback_exec_request(req, res, uid) {
         fallback_exec_cache = extract_exec_config(result, fallback_file);
         fallback_exec_cache.match = '.*';
     }
-    return await process_exec_request(req, res, uid, fallback_exec_cache, false);
+    return await send_process_exec_request(req, res, uid, fallback_exec_cache, false);
+}
+
+export async function send_process_exec_request(req, res, uid, exec, force_generating_of_resources) {
+    const result = await process_exec_request(req, res, uid, exec, force_generating_of_resources);
+    if (result?.result?.html && !res.writableEnded) {
+        send_head(res, 200, 'text/html');
+        send_content(res, result.result.html);
+        return true;
+    }
+    return false;
 }
 
 export async function process_exec_request(req, res, uid, exec, force_generating_of_resources) {
@@ -55,16 +69,12 @@ export async function process_exec_request(req, res, uid, exec, force_generating
         await scripts(identifiers);
         copy(Cwd.get(FOLDER_GEN_JS, `${result.data._wyvr.identifier}.js`), js_path);
     }
-    if (result?.result?.html && !res.writableEnded) {
-        send_head(res, 200, 'text/html');
-        send_content(res, result.result.html);
-        // persist the result
-        if(result?.data?._wyvr?.persist) {
-            const file = to_index(req.url, 'html');
-            const persisted_path = join(ReleasePath.get(),file);
-            write(persisted_path, result.result.html);
-            Logger.improve('persisted', file);
-        }
-        return true;
+    // persist the result
+    if (result?.result?.html && result?.data?._wyvr?.persist) {
+        const file = to_index(req.url, 'html');
+        const persisted_path = join(ReleasePath.get(), file);
+        write(persisted_path, result.result.html);
+        Logger.improve('persisted', file);
     }
+    return result;
 }

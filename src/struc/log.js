@@ -25,7 +25,7 @@ export const LogIcon = {
     warning: '⚠',
     error: '✖',
     present: kleur.dim('›'),
-    improve: '♥',
+    improve: '…',
     report: '≡',
     block: '⬢',
     start: '┌',
@@ -41,7 +41,7 @@ export const LogColor = {
     improve: kleur.magenta,
     report: kleur.cyan,
     block: kleur.blue,
-    start: kleur.dim,
+    start: kleur.dim, 
 };
 export const LogFirstValueColor = {
     log: undefined,

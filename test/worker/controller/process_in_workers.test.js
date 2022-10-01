@@ -110,7 +110,7 @@ describe('worker/controller/process_in_workers', () => {
         strictEqual(exit_code, 0);
         deepStrictEqual(WorkerMock.data, []);
         deepStrictEqual(logger_messages, [
-            ['\x1B[35m♥\x1B[39m', '\x1B[35mno items to process, batch size \x1B[36m1000\x1B[39m\x1B[35m\x1B[39m'],
+            ['\x1B[35m…\x1B[39m', '\x1B[35mno items to process, batch size \x1B[36m1000\x1B[39m\x1B[35m\x1B[39m'],
         ]);
     });
     it('empty batch size', async () => {

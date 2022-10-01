@@ -37,6 +37,7 @@ export async function cron_command(config) {
         cronjobs.map(async (job, index) => {
             const path = Cwd.get(FOLDER_GEN_CRON, job.what);
             let result = true;
+            Logger.block('cron job', job.name);
             try {
                 result = (await import(path)).default(job.options);
             } catch (e) {

@@ -89,6 +89,7 @@ export async function run_exec(request, response, uid, exec) {
     exec.params.forEach((param, idx) => {
         params[param] = params_match[idx + 1];
     });
+    params.isExec = !request.isNotExec;
     // get the exec result
     const code = await load_exec(exec.path);
 
@@ -108,7 +109,7 @@ export async function run_exec(request, response, uid, exec) {
         }
     }
     // when onExec does not return a correct object force one
-    if(is_null(data)) {
+    if (is_null(data)) {
         Logger.warning('[exec]', `onExec in ${exec.path} should return a object`);
         data = {};
     }

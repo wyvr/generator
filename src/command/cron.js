@@ -5,7 +5,7 @@ import { present } from '../action/present.js';
 import { FOLDER_GEN_CRON, FOLDER_RELEASES } from '../constants/folder.js';
 import { package_report } from '../presentation/package_report.js';
 import { Config } from '../utils/config.js';
-import { filter_cronjobs, get_cron_helper } from '../utils/cron.js';
+import { filter_cronjobs } from '../utils/cron.js';
 import { get_error_message } from '../utils/error.js';
 import { read_json } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
@@ -28,16 +28,17 @@ export async function cron_command(config) {
     const { available_packages, disabled_packages } = await collect_packages(package_json);
     package_report(available_packages, disabled_packages);
 
-    const helpers = get_cron_helper();
-
     let cronjobs = filter_cronjobs(Config.get('cron'));
-
+    if (cronjobs.length == 0) {
+        Logger.warning('no cronjobs to run');
+        return '-';
+    }
     await Promise.all(
         cronjobs.map(async (job, index) => {
             const path = Cwd.get(FOLDER_GEN_CRON, job.what);
             let result = true;
             try {
-                result = (await import(path)).default(helpers, job.options);
+                result = (await import(path)).default(job.options);
             } catch (e) {
                 Logger.error(get_error_message(e, path, 'cron'));
                 cronjobs[index].failed = true;

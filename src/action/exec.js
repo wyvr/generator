@@ -7,6 +7,7 @@ import { Logger } from '../utils/logger.js';
 import { send_content, send_head } from '../utils/server.js';
 import { filled_string } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
+import { Env } from '../vars/env.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { scripts } from './script.js';
 
@@ -70,7 +71,7 @@ export async function process_exec_request(req, res, uid, exec, force_generating
         copy(Cwd.get(FOLDER_GEN_JS, `${result.data._wyvr.identifier}.js`), js_path);
     }
     // persist the result
-    if (result?.result?.html && result?.data?._wyvr?.persist) {
+    if (result?.result?.html && result?.data?._wyvr?.persist && Env.is_prod()) {
         const file = to_index(req.url, 'html');
         const persisted_path = join(ReleasePath.get(), file);
         write(persisted_path, result.result.html);

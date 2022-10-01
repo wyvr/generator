@@ -10,6 +10,7 @@ import { get_error_message } from '../utils/error.js';
 import { read_json } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { Cwd } from '../vars/cwd.js';
+import { Env } from '../vars/env.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { UniqId } from '../vars/uniq_id.js';
 
@@ -27,6 +28,10 @@ export async function cron_command(config) {
     const package_json = read_json('package.json');
     const { available_packages, disabled_packages } = await collect_packages(package_json);
     package_report(available_packages, disabled_packages);
+
+    if(Env.is_dev()) {
+        Logger.warning('in dev environment no exec results gets persisted');
+    }
 
     let cronjobs = filter_cronjobs(Config.get('cron'));
     if (cronjobs.length == 0) {

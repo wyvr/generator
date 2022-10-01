@@ -15,6 +15,7 @@ import {
     FOLDER_ROUTES,
     FOLDER_SRC,
     FOLDER_DEVTOOLS,
+    FOLDER_CRON,
 } from '../constants/folder.js';
 import { Route } from '../model/route.js';
 import { WorkerAction } from '../struc/worker_action.js';
@@ -213,23 +214,12 @@ export async function regenerate_command(changed_files) {
         }
 
         if (in_array(fragments, FOLDER_DEVTOOLS)) {
-            const devtools = frag_files.devtools;
-            if (devtools.unlink) {
-                devtools.unlink.forEach((file) => {
-                    const gen_target = Cwd.get(FOLDER_GEN, file.rel_path);
-                    remove(gen_target);
-                    const release_target = join(ReleasePath.get(), file.rel_path);
-                    remove(release_target);
-                });
-            }
-            if (devtools.change || devtools.add) {
-                [].concat(devtools.change || [], devtools.add || []).map((file) => {
-                    const target = Cwd.get(FOLDER_GEN, file.rel_path);
-                    copy(file.path, target);
-                    return target;
-                });
-            }
+            static_file_regeneration(frag_files.devtools);
             await build_wyvr_internal();
+        }
+
+        if (in_array(fragments, FOLDER_CRON)) {
+            static_file_regeneration(frag_files.cron);
         }
 
         // regenerate routes
@@ -358,6 +348,24 @@ export function reload(files) {
         files = '*';
     }
     Event.emit('client', 'reload', files);
+}
+
+function static_file_regeneration(fragment) {
+    if (fragment.unlink) {
+        fragment.unlink.forEach((file) => {
+            const gen_target = Cwd.get(FOLDER_GEN, file.rel_path);
+            remove(gen_target);
+            const release_target = join(ReleasePath.get(), file.rel_path);
+            remove(release_target);
+        });
+    }
+    if (fragment.change || fragment.add) {
+        [].concat(fragment.change || [], fragment.add || []).map((file) => {
+            const target = Cwd.get(FOLDER_GEN, file.rel_path);
+            copy(file.path, target);
+            return target;
+        });
+    }
 }
 
 // function find_package_of_file(file) {

@@ -28,7 +28,7 @@
         "intl": "1.2.5",
         "kleur": "4.1.5",
         "marked": "4.1.0",
-        "node-static": "0.7.11",
+        "node-static": "^0.7.11",
         "ora": "6.1.2",
         "postcss": "^8.4.16",
         "sass": "1.54.9",

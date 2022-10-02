@@ -14,7 +14,7 @@ export function add_devtools_code(html, path, data) {
         return html;
     }
     // add debug data
-    const data_path = to_extension(path, 'json');
+    const data_path = to_extension(path, 'wyvr.json');
     write_json(data_path, data);
     const debug_code_content = read(join(to_dirname(import.meta.url), '..', 'resource', 'devtools_code.html'));
     return html.replace(

@@ -1,5 +1,5 @@
 import { compile_server_svelte } from '../utils/compile.js';
-import { exists, read, read_json, to_index, write } from '../utils/file.js';
+import { exists, read_json, to_index, write } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { generate_page_code } from '../utils/generate.js';
 import { filled_array, filled_object, filled_string } from '../utils/validate.js';
@@ -13,14 +13,10 @@ import { replace_media } from '../utils/media.js';
 import { send_action } from '../worker/communication.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerEmit } from '../struc/worker_emit.js';
-import { stringify } from '../utils/json.js';
-import { get_language } from '../utils/i18n.js';
 import { write_css_file } from '../utils/css.js';
-import { to_dirname } from '../utils/to.js';
-import { Env } from '../vars/env.js';
-import { Config } from '../utils/config.js';
 import { add_devtools_code } from '../utils/devtools.js';
 import { replace_shortcode } from '../utils/shortcode.js';
+import { inject_client_socket, inject_translations } from '../utils/build.js';
 
 export async function build(files) {
     if (!filled_array(files)) {
@@ -31,13 +27,6 @@ export async function build(files) {
     let has_media = false;
     let media_query_files = {};
     const identifier_files = {};
-    const lib_dir = join(to_dirname(import.meta.url), '..');
-    let client_socket_content;
-    if (Env.is_dev() && Config.get('wsport')) {
-        client_socket_content = `<script id="wyvr_client_socket">${read(
-            join(lib_dir, 'resource', 'client_socket.js')
-        ).replace(/\{port\}/g, Config.get('wsport') + '')}</script></body>`;
-    }
 
     for (const file of files) {
         Logger.debug('build', file);
@@ -88,17 +77,8 @@ export async function build(files) {
             }
 
             // inject translations
-            if (data._wyvr.language) {
-                content = content.replace(
-                    /<\/body>/,
-                    `<script>window._translations = ${stringify(get_language(data._wyvr.language))};</script></body>`
-                );
-            }
-
             // inject websocket connection
-            if (client_socket_content) {
-                content = content.replace(/<\/body>/, client_socket_content);
-            }
+            content = inject_translations(inject_client_socket(content), data?._wyvr?.language);
 
             // write the html code
             write(path, add_devtools_code(content, path, data));

@@ -1,12 +1,17 @@
 import esbuild from 'esbuild';
 import sveltePlugin from 'esbuild-svelte';
+import { join } from 'path';
 import { FOLDER_CLIENT, FOLDER_GEN_TEMP } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
 import { insert_import } from './compile.js';
+import { Config } from './config.js';
 import { get_error_message } from './error.js';
 import { read, remove, write } from './file.js';
+import { get_language } from './i18n.js';
+import { stringify } from './json.js';
 import { Logger } from './logger.js';
+import { to_dirname } from './to.js';
 import { uniq_id } from './uniq.js';
 import { filled_string } from './validate.js';
 
@@ -54,4 +59,27 @@ export async function build(content, file, format = 'iife') {
 
     remove(tmp_sourcemap);
     return { code, sourcemap };
+}
+
+const lib_dir = join(to_dirname(import.meta.url), '..');
+
+export function inject_client_socket(content) {
+    const wsport = Config.get('wsport');
+    if (Env.is_prod() || !wsport) {
+        return content;
+    }
+    const script = read(join(lib_dir, 'resource', 'client_socket.js')).replace(/\{port\}/g, wsport + '');
+    const socket_script = `<script id="wyvr_client_socket">${script}</script></body>`;
+
+    return content.replace(/<\/body>/, socket_script);
+}
+
+export function inject_translations(content, language) {
+    if (!filled_string(language)) {
+        return content;
+    }
+    return content.replace(
+        /<\/body>/,
+        `<script>window._translations = ${stringify(get_language(language))};</script></body>`
+    );
 }

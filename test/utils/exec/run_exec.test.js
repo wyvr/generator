@@ -5,12 +5,14 @@ import Sinon from 'sinon';
 import { run_exec } from '../../../src/utils/exec.js';
 import { to_plain } from '../../../src/utils/to.js';
 import { Cwd } from '../../../src/vars/cwd.js';
+import { ReleasePath } from '../../../src/vars/release_path.js';
 
 describe('utils/exec/run_exec', () => {
     const dir = join(process.cwd(), 'test', 'utils', 'exec', '_tests');
     let sandbox;
     let log = [];
     before(() => {
+        ReleasePath.set(dir);
         sandbox = Sinon.createSandbox();
         sandbox.stub(console, 'error');
         console.error.callsFake((...args) => {
@@ -22,6 +24,7 @@ describe('utils/exec/run_exec', () => {
     });
     after(() => {
         Cwd.set(undefined);
+        ReleasePath.set(undefined);
         sandbox.restore();
     });
     it('undefined', async () => {

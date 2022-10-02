@@ -5,7 +5,7 @@ import { compile_server_svelte } from './compile.js';
 import { render_server_compiled_svelte } from './compile_svelte.js';
 import { set_config_cache } from './config_cache.js';
 import { get_error_message } from './error.js';
-import { collect_files, exists } from './file.js';
+import { collect_files, exists, to_index } from './file.js';
 import { generate_page_code } from './generate.js';
 import { Logger } from './logger.js';
 import { to_relative_path } from './to.js';
@@ -20,6 +20,10 @@ import {
     match_interface,
 } from './validate.js';
 import { process_page_data } from './../worker_action/process_page_data.js';
+import { inject_client_socket, inject_translations } from './build.js';
+import { add_devtools_code } from './devtools.js';
+import { join } from 'path';
+import { ReleasePath } from '../vars/release_path.js';
 
 export async function build_cache() {
     const files = collect_files(Cwd.get(FOLDER_GEN_EXEC));
@@ -133,7 +137,10 @@ export async function run_exec(request, response, uid, exec) {
         })
     );
 
+    data.url = request.url;
     const page_data = process_page_data(data, exec.mtime);
+    page_data._wyvr.is_exec = true;
+    page_data._wyvr.exec_pattern = exec.url;
 
     let content = generate_page_code(page_data);
 
@@ -144,6 +151,17 @@ export async function run_exec(request, response, uid, exec) {
     if (rendered_result) {
         rendered_result.data = page_data;
     }
+
+    // inject translations
+    // inject websocket connection
+    rendered_result.result.html = inject_translations(
+        inject_client_socket(rendered_result.result.html),
+        page_data?._wyvr?.language
+    );
+
+    // add the debug code
+    const path = join(ReleasePath.get(), to_index(page_data.url, page_data._wyvr?.extension));
+    rendered_result.result.html = add_devtools_code(rendered_result.result.html, path, page_data);
 
     return rendered_result;
 }

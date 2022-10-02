@@ -35,6 +35,8 @@ export function WyvrData(data, url, name, mtime_default) {
         priority: 0.5,
         static: false,
         persist: false,
+        is_exec: false,
+        exec_pattern: undefined,
         mtime
     };
     // when no wyvr data is set use the default values

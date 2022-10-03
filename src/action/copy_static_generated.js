@@ -1,4 +1,6 @@
+import { join } from 'path';
 import { FOLDER_ASSETS, FOLDER_CSS, FOLDER_GEN, FOLDER_I18N, FOLDER_JS, FOLDER_PROP } from '../constants/folder.js';
+import { exists, symlink } from '../utils/file.js';
 import { Plugin } from '../utils/plugin.js';
 import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
@@ -18,5 +20,10 @@ export async function copy_static_generated() {
                 ReleasePath.get()
             );
         });
+        // symlink special files like favicon.ico
+        const favicon_ico = join(ReleasePath.get(), FOLDER_ASSETS, 'favicon.ico');
+        if (exists(favicon_ico)) {
+            symlink(favicon_ico, join(ReleasePath.get(), 'favicon.ico'));
+        }
     });
 }

@@ -24,6 +24,7 @@ import { Config } from '../utils/config.js';
 import { get_config_cache, set_config_cache } from '../utils/config_cache.js';
 import { get_identifiers_of_file } from '../utils/dependency.js';
 import { Event } from '../utils/event.js';
+import { build_cache } from '../utils/exec.js';
 import { copy, remove, to_extension, to_index } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { to_identifiers, to_relative_path, to_single_identifier_name } from '../utils/to.js';
@@ -94,6 +95,7 @@ export async function regenerate_command(changed_files) {
                 // @TODO reload the whole browser page
                 reload_page = true;
             }
+            await build_cache();
         }
         const identifiers = {};
         let routes = [];

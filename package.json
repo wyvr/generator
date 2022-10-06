@@ -23,6 +23,7 @@
         "esbuild": "0.15.8",
         "esbuild-plugin-globals": "0.1.1",
         "esbuild-svelte": "0.7.1",
+        "formidable": "3",
         "front-matter": "4.0.2",
         "html-minifier": "4.0.0",
         "intl": "1.2.5",

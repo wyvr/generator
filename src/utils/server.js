@@ -1,4 +1,5 @@
 import { createServer } from 'http';
+import formidable from 'formidable';
 import { Logger } from './logger.js';
 import { filled_string, is_func, is_number } from './validate.js';
 import { uniq_id } from './uniq.js';
@@ -19,12 +20,13 @@ import { WatcherPaths } from '../vars/watcher_paths.js';
 import { exists } from './file.js';
 import { WorkerController } from '../worker/controller.js';
 import { WorkerAction } from '../struc/worker_action.js';
+import { tmpdir } from 'os';
 
 export function server(host, port, on_request, on_end) {
     if (!filled_string(host) || !is_number(port)) {
         Logger.warning('server could not be started because host or port is missing');
     }
-    createServer((req, res) => {
+    createServer(async (req, res) => {
         const start = process.hrtime.bigint();
         const uid = uniq_id();
         if (Env.is_dev()) {
@@ -33,13 +35,44 @@ export function server(host, port, on_request, on_end) {
         if (is_func(on_request)) {
             on_request(req, res, uid, start);
         }
-
-        req.addListener('end', async () => {
-            if (is_func(on_end)) {
-                return await on_end(req, res, uid, start);
-            }
-            return return_not_found(req, res, uid, 'Not found', 404, start);
-        }).resume();
+        const files = {};
+        const data = {};
+        const query = {};
+        // add query parameters to the request
+        const split_index = req.url.indexOf('?');
+        if (split_index > -1) {
+            const params = new URLSearchParams(req.url.substring(split_index + 1));
+            Array.from(params.keys()).forEach((key) => {
+                query[key] = params.get(key);
+            });
+        }
+        req.query = query;
+        // stop without parsing the body when not post, patch, put
+        if (['post', 'patch', 'put'].indexOf(req.method.toLowerCase()) === -1) {
+            req.data = data;
+            req.files = files;
+            final(on_end, req, res, uid, start);
+            return;
+        }
+        // allow sending files
+        const form = formidable({ keepExtensions: true, uploadDir: tmpdir(), allowEmptyFiles: true, minFileSize: 0 });
+        form.on('field', (name, value) => {
+            data[name] = value;
+        })
+            .on('file', (name, file) => {
+                if (file.size > 0 && file.originalFilename) {
+                    if (!files[name]) {
+                        files[name] = [];
+                    }
+                    files[name].push(file);
+                }
+            })
+            .on('end', async () => {
+                req.data = data;
+                req.files = files;
+                return await final(on_end, req, res, uid, start);
+            });
+        form.parse(req);
     }).listen(port, host, () => {
         const pre_text = 'server started at';
         const text = `http://${host}:${port}`;
@@ -49,6 +82,13 @@ export function server(host, port, on_request, on_end) {
         Logger.output(undefined, undefined, Logger.color.dim(filler));
         Logger.output(undefined, undefined, Logger.color.dim('...'));
     });
+}
+
+export async function final(on_end, req, res, uid, start) {
+    if (is_func(on_end)) {
+        return await on_end(req, res, uid, start);
+    }
+    return return_not_found(req, res, uid, 'Not found', 404, start);
 }
 
 export function log_start(req, uid) {
@@ -173,8 +213,13 @@ async function generate_server(host, port, force_generating_of_resources, onEnd,
                 const success = await wait_for(() => {
                     return exists(Cwd.get(media_config.result));
                 });
-                
-                Logger[success ? 'success' : 'error']('generate media', nano_to_milli(process.hrtime.bigint() - start), Logger.color.dim('ms'), Logger.color.dim(uid));
+
+                Logger[success ? 'success' : 'error'](
+                    'generate media',
+                    nano_to_milli(process.hrtime.bigint() - start),
+                    Logger.color.dim('ms'),
+                    Logger.color.dim(uid)
+                );
             }
         }
         await static_server(req, res, uid, async (err) => {

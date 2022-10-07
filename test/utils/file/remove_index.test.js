@@ -24,6 +24,9 @@ describe('utils/file/remove_index', () => {
     it('object', () => {
         strictEqual(remove_index({ a: true }), '');
     });
+    it('root file', () => {
+        strictEqual(remove_index('/index.html'), '/');
+    });
     it('single', () => {
         const folder = join(v4().split('-')[0]);
         const name = join(folder, 'index.html');

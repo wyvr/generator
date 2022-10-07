@@ -12,6 +12,7 @@ import { inject_worker_message_errors } from '../utils/error.js';
 import { Env } from '../vars/env.js';
 import { Queue } from '../model/queue.js';
 import { get_configure_data } from '../action/configure.js';
+import { sleep } from '../utils/sleep.js';
 
 export class WorkerController {
     static create_workers(amount, fork_fn) {
@@ -305,6 +306,8 @@ export class WorkerController {
             Logger.error('unknown action', action);
             return false;
         }
+        // wait some time that the events can catch up
+        await sleep(50);
         const amount = list.length;
         if (amount == 0) {
             Logger.improve('no items to process, batch size', Logger.color.cyan(batch_size.toString()));
@@ -338,9 +341,11 @@ export class WorkerController {
         let done = 0;
         return new Promise((resolve) => {
             const idle = this.get_workers_by_status(WorkerStatus.idle);
-            const listener_id = Event.on('worker_status', WorkerStatus.idle, () => {
+            const listener_id = Event.on('worker_status', WorkerStatus.idle, async () => {
                 if (this.tick(this.queue)) {
                     Event.off('worker_status', WorkerStatus.idle, listener_id);
+                    // wait some time that the events can catch up
+                    await sleep(50);
                     resolve(true);
                 }
             });

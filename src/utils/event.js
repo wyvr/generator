@@ -17,6 +17,11 @@ export class Event {
         return id;
     }
     static off(scope, name, index) {
+        setTimeout(() => {
+            this.off_instant(scope, name, index);
+        }, 50);
+    }
+    static off_instant(scope, name, index) {
         const _scope = this.get_scope(scope);
         const _name = to_string(name);
         if (this.exists(_scope, _name)) {
@@ -45,7 +50,7 @@ export class Event {
         const _name = to_string(name);
         const index = this.on(_scope, _name, (...props) => {
             fn(...props);
-            this.off(_scope, _name, index);
+            this.off_instant(_scope, _name, index, true);
         });
     }
 

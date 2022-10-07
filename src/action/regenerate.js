@@ -267,6 +267,7 @@ export async function regenerate(changed_files) {
                         routes.push(...data.routes);
                     }
                 });
+                
                 await WorkerController.process_in_workers(WorkerAction.route, routes_data, 10);
 
                 // remove listeners
@@ -274,7 +275,6 @@ export async function regenerate(changed_files) {
                 Event.off('emit', collection_name, collection_id);
                 Event.off('emit', routes_name, routes_id);
             }
-            // @TODO reload the whole browser page
             reload_page = true;
         }
 

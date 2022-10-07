@@ -19,7 +19,7 @@
             <Stylesheet src="/css/{data._wyvr.identifier}.css" />
         {/if}
     </head>
-    <body class="loading">
+    <body>
         <slot />
 
         {#if data._wyvr.identifier}
@@ -27,3 +27,9 @@
         {/if}
     </body>
 </html>
+
+<style>
+    body {
+        font: 16px/1.4em sans-serif;
+    }
+</style>

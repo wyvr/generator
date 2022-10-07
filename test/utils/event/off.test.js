@@ -11,8 +11,9 @@ describe('utils/event/off', () => {
         Event.off();
         deepStrictEqual(Event.listeners, {});
     });
-    it('off', () => {
+    it('off', (done) => {
         const id = Event.on();
+
         deepStrictEqual(Event.listeners, {
             _: {
                 undefined: [
@@ -24,10 +25,13 @@ describe('utils/event/off', () => {
             },
         });
         Event.off(undefined, undefined, id);
-        deepStrictEqual(Event.listeners, {
-            _: {
-                undefined: [],
-            },
-        });
+        setTimeout(() => {
+            deepStrictEqual(Event.listeners, {
+                _: {
+                    undefined: [],
+                },
+            });
+            done();
+        }, 100);
     });
 });

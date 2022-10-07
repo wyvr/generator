@@ -149,6 +149,10 @@ export async function scripts(identifiers) {
                 ${content.join('\n')}`,
                     identifier_file
                 );
+            } else {
+                if (Env.is_dev()) {
+                    result.code = read(join(resouce_dir, 'devtools.js'));
+                }
             }
             write(
                 identifier_file,

@@ -75,7 +75,10 @@ export async function execute_route(route) {
 
             return [markdown];
         }
-        case '.js': {
+        /* eslint-disable no-case-declarations */
+        case '.mjs':
+        case '.cjs':
+        case '.js':
             const uniq_path = `${route.path}?${new Date().getTime()}`;
             let route_module, result;
             try {
@@ -110,7 +113,8 @@ export async function execute_route(route) {
                 return undefined;
             }
             return result;
-        }
+        /* eslint-enable no-case-declarations */
+
         default: {
             Logger.warning('unknown file extension', extension, 'for route', route.rel_path);
             return undefined;

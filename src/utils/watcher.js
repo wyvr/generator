@@ -2,7 +2,6 @@ import { Cwd } from '../vars/cwd.js';
 import { Logger } from './logger.js';
 import { filled_array } from './validate.js';
 import { watch } from 'chokidar';
-import { restart } from '../cli/restart.js';
 import { uniq_values } from './uniq.js';
 import { regenerate_command } from '../command/regenerate.js';
 import { get_config_cache } from './config_cache.js';
@@ -12,6 +11,7 @@ let working = false;
 let debouncer;
 let changed_files = {};
 let pkgs;
+let restart_required = false;
 
 export async function package_watcher(packages) {
     if (!filled_array(packages)) {
@@ -61,7 +61,6 @@ export async function process_changed_files(changed_files, packages) {
     const events = Object.keys(changed_files);
     const package_tree = get_config_cache('package_tree');
 
-    let restart_required = false;
     const changed_config_files = [];
     events.forEach((event) => {
         changed_files[event] = changed_files[event].map((path) => {
@@ -97,14 +96,6 @@ export async function process_changed_files(changed_files, packages) {
             };
         });
     });
-
-    if (restart_required) {
-        Logger.warning('restart required because of the following file changes', changed_config_files.join(', '));
-        // needed otherwise wyvr instances get kept alive
-        await unwatch();
-        restart();
-        return;
-    }
 
     await regenerate_command(changed_files);
 }
@@ -142,6 +133,9 @@ export async function unwatch() {
 
 export function set_waiting() {
     Logger.output(undefined, undefined, Logger.color.dim('...'));
+    if (restart_required) {
+        Logger.warning('wyvr restart required because of config changes');
+    }
     Logger.block('waiting for changes');
     working = false;
 }

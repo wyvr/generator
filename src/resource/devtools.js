@@ -89,6 +89,7 @@ async function wyvr_devtools_initialize() {
         }
     });
 }
+// eslint-disable-next-line no-unused-vars
 function wyvr_debug_event(id, callback, immediately) {
     const element = document.getElementById(id);
     if (element && callback && typeof callback == 'function') {

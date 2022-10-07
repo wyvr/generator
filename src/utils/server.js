@@ -48,11 +48,10 @@ export function server(host, port, on_request, on_end) {
         }
         req.query = query;
         // stop without parsing the body when not post, patch, put
-        if (['post', 'patch', 'put'].indexOf(req.method.toLowerCase()) === -1) {
+        if (!is_data_method(req.method)) {
             req.data = data;
             req.files = files;
-            final(on_end, req, res, uid, start);
-            return;
+            return await final(on_end, req, res, uid, start);
         }
         // allow sending files
         const form = formidable({ keepExtensions: true, uploadDir: tmpdir(), allowEmptyFiles: true, minFileSize: 0 });
@@ -120,6 +119,9 @@ export function log_end(req, res, uid, start) {
             return;
     }
 }
+export function is_data_method(method) {
+    return ['post', 'patch', 'put'].indexOf(method.toLowerCase()) > -1;
+}
 export function return_not_found(req, res, uid, message, status, start) {
     Logger.error(req.method, req.url, ...get_base_log_infos(message, status, start, uid));
     send_head(res, status, 'text/html');
@@ -138,7 +140,7 @@ export function get_base_log_infos(message, status, start, uid) {
 }
 
 export function send_head(res, status, content_type) {
-    if (!res.headersSent) {
+    if (!res.headersSent && status) {
         const headers = {};
         if (content_type) {
             headers['Content-Type'] = content_type;
@@ -157,7 +159,7 @@ export function send_content(res, content) {
 }
 
 let static_server_instance;
-export function static_server(req, res, uid, on_end) {
+export async function static_server(req, res, uid, on_end) {
     const cache = Env.is_prod() ? 3600 : false;
     const start = log_start(req, uid);
 
@@ -167,18 +169,31 @@ export function static_server(req, res, uid, on_end) {
             serverInfo: `wyvr`,
         });
     }
-    static_server_instance.serve(req, res, async (err) => {
-        if (is_func(on_end)) {
-            await on_end(err, req, res, uid);
+    // static server is not able to handle other requests then get, avoid post, put, patch
+    if (!is_data_method(req.method)) {
+        static_server_instance.serve(req, res, async (err) => {
+            await static_server_final(err, req, res, uid, on_end, start);
+        });
+    } else {
+        await static_server_final({ message: 'not found', status: 404 }, req, res, uid, on_end, start);
 
-            if (!res.writableEnded) {
-                return return_not_found(req, res, uid, err.message, err.status, start);
-            }
-        }
         if (res.writableEnded) {
             log_end(req, res, uid, start);
         }
-    });
+    }
+}
+
+async function static_server_final(err, req, res, uid, on_end, start) {
+    if (is_func(on_end)) {
+        await on_end(err, req, res, uid);
+
+        if (!res.writableEnded) {
+            return return_not_found(req, res, uid, err.message, err.status, start);
+        }
+    }
+    if (res.writableEnded) {
+        log_end(req, res, uid, start);
+    }
 }
 
 export function app_server(host, port) {

@@ -48,4 +48,8 @@ describe('utils/file/to_index', () => {
         strictEqual(to_index('./test/.htaccess'), './test/.htaccess');
         strictEqual(to_index('foo/bar/.htaccess'), 'foo/bar/.htaccess');
     });
+    it('markdown index', () => {
+        strictEqual(to_index('index'), 'index.html');
+        strictEqual(to_index('page/index'), 'page/index.html');
+    });
 });

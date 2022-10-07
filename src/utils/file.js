@@ -73,6 +73,10 @@ export function to_index(filename, extension) {
         parts[parts.length - 1] = `index.${ext}`;
         return parts.join('/');
     }
+    if(last == 'index') {
+        parts[parts.length - 1] = `index.${ext}`;
+        return parts.join('/');
+    }
     if (last.indexOf('.') == -1) {
         parts.push(`index.${ext}`);
         return parts.join('/');

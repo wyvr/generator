@@ -107,7 +107,9 @@ export function get_hydrate_dependencies(tree, file_config_tree, file) {
     }
     if (!is_null(tree[file])) {
         tree[file].forEach((child) => {
-            result.push(...get_hydrate_dependencies(tree, file_config_tree, child));
+            if (child != file) {
+                result.push(...get_hydrate_dependencies(tree, file_config_tree, child));
+            }
         });
     }
     return result;

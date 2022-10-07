@@ -28,7 +28,8 @@ export async function dependencies() {
                     if (!is_array(dependencies[file])) {
                         dependencies[file] = [];
                     }
-                    dependencies[file].push(...deps[file]);
+                    const clean_deps = deps[file].filter((dep) => dep != file);
+                    dependencies[file].push(...clean_deps);
                 });
             }
         });

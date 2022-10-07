@@ -3,7 +3,7 @@ import { Logger } from './logger.js';
 import { filled_array } from './validate.js';
 import { watch } from 'chokidar';
 import { uniq_values } from './uniq.js';
-import { regenerate_command } from '../command/regenerate.js';
+import { regenerate } from '../action/regenerate.js';
 import { get_config_cache } from './config_cache.js';
 
 let watcher;
@@ -97,7 +97,7 @@ export async function process_changed_files(changed_files, packages) {
         });
     });
 
-    await regenerate_command(changed_files);
+    await regenerate(changed_files);
 }
 /* c8 ignore stop */
 export function ignore_watched_file(event, path) {

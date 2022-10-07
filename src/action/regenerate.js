@@ -1,8 +1,8 @@
 import { join } from 'path';
-import { copy_files, copy_folder } from '../action/copy.js';
-import { measure_action } from '../action/helper.js';
-import { i18n } from '../action/i18n.js';
-import { build_wyvr_internal } from '../action/wyvr_internal.js';
+import { copy_files, copy_folder } from './copy.js';
+import { measure_action } from './helper.js';
+import { i18n } from './i18n.js';
+import { build_wyvr_internal } from './wyvr_internal.js';
 import {
     FOLDER_ASSETS,
     FOLDER_CSS,
@@ -38,7 +38,7 @@ import { WorkerController } from '../worker/controller.js';
 /**
  * Regenerate the files and the result of the given changed files
  */
-export async function regenerate_command(changed_files) {
+export async function regenerate(changed_files) {
     const frag_files = split_changed_files_by_fragment(changed_files);
     const fragments = Object.keys(frag_files);
     if (!filled_array(fragments)) {

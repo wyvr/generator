@@ -13,6 +13,7 @@ import { Env } from '../vars/env.js';
 import { UniqId } from '../vars/uniq_id.js';
 import { Config } from '../utils/config.js';
 import { get_ports } from '../action/port.js';
+import { publish } from '../action/publish.js';
 
 export async function dev_command(config) {
     // dev command has forced dev state, when nothing is defined
@@ -44,6 +45,7 @@ export async function dev_command(config) {
         const result = await intial_build(build_id, config);
         packages = result.packages;
     }
+    await publish();
 
     watch_server('localhost', port, wsport);
 

@@ -175,7 +175,7 @@ export async function static_server(req, res, uid, on_end) {
             await static_server_final(err, req, res, uid, on_end, start);
         });
     } else {
-        await static_server_final({ message: 'not found', status: 404 }, req, res, uid, on_end, start);
+        await static_server_final({ message: 'Not found', status: 404 }, req, res, uid, on_end, start);
 
         if (res.writableEnded) {
             log_end(req, res, uid, start);

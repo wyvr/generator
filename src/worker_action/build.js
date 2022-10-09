@@ -30,9 +30,13 @@ export async function build(files) {
 
     for (const file of files) {
         Logger.debug('build', file);
-
-        const data = read_json(file);
-        const identifier = data._wyvr.identifier;
+            const raw_data = read_json(file);
+            const data = process_page_data(raw_data, raw_data?._wyvr?.mtime);
+            if (is_null(data)) {
+                Logger.warning('empty data in', file);
+                continue;
+            }
+            const identifier = data?._wyvr?.identifier || 'default';
         // add the current url to the used identifier
         if (!identifier_files[identifier]) {
             identifier_files[identifier] = [];

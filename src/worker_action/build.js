@@ -2,7 +2,7 @@ import { compile_server_svelte } from '../utils/compile.js';
 import { exists, read_json, to_index, write } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { generate_page_code } from '../utils/generate.js';
-import { filled_array, filled_object, filled_string } from '../utils/validate.js';
+import { filled_array, filled_object, filled_string, is_null } from '../utils/validate.js';
 import { render_server_compiled_svelte } from '../utils/compile_svelte.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { join } from 'path';
@@ -17,6 +17,8 @@ import { write_css_file } from '../utils/css.js';
 import { add_devtools_code } from '../utils/devtools.js';
 import { replace_shortcode } from '../utils/shortcode.js';
 import { inject_client_socket, inject_translations } from '../utils/build.js';
+import { get_error_message } from '../utils/error.js';
+import { process_page_data } from './process_page_data.js';
 
 export async function build(files) {
     if (!filled_array(files)) {
@@ -30,6 +32,7 @@ export async function build(files) {
 
     for (const file of files) {
         Logger.debug('build', file);
+        try {
             const raw_data = read_json(file);
             const data = process_page_data(raw_data, raw_data?._wyvr?.mtime);
             if (is_null(data)) {
@@ -37,67 +40,70 @@ export async function build(files) {
                 continue;
             }
             const identifier = data?._wyvr?.identifier || 'default';
-        // add the current url to the used identifier
-        if (!identifier_files[identifier]) {
-            identifier_files[identifier] = [];
-        }
-        identifier_files[identifier].push(data.url);
+            // add the current url to the used identifier
+            if (!identifier_files[identifier]) {
+                identifier_files[identifier] = [];
+            }
+            identifier_files[identifier].push(data.url);
 
-        let content = generate_page_code(data);
+            let content = generate_page_code(data);
 
-        const exec_result = await compile_server_svelte(content, file);
+            const exec_result = await compile_server_svelte(content, file);
 
-        const rendered_result = await render_server_compiled_svelte(exec_result, data, file);
-        const path = join(release_path, to_index(data.url, data._wyvr.extension));
-        if (rendered_result?.result) {
-            // replace shortcodes
-            const shortcode_result = await replace_shortcode(rendered_result.result.html, data, file);
-            if (shortcode_result) {
-                if (shortcode_result.identifier && shortcode_result.shortcode_imports) {
-                    const shortcode_emit = {
-                        type: WorkerEmit.identifier,
-                        identifier: shortcode_result.identifier,
-                        imports: shortcode_result.shortcode_imports,
-                    };
+            const rendered_result = await render_server_compiled_svelte(exec_result, data, file);
+            const path = join(release_path, to_index(data.url, data._wyvr.extension));
+            if (rendered_result?.result) {
+                // replace shortcodes
+                const shortcode_result = await replace_shortcode(rendered_result.result.html, data, file);
+                if (shortcode_result) {
+                    if (shortcode_result.identifier && shortcode_result.shortcode_imports) {
+                        const shortcode_emit = {
+                            type: WorkerEmit.identifier,
+                            identifier: shortcode_result.identifier,
+                            imports: shortcode_result.shortcode_imports,
+                        };
 
-                    if (shortcode_result.media_query_files) {
-                        Object.keys(shortcode_result.media_query_files).forEach((key) => {
-                            media_query_files[key] = shortcode_result.media_query_files[key];
-                        });
+                        if (shortcode_result.media_query_files) {
+                            Object.keys(shortcode_result.media_query_files).forEach((key) => {
+                                media_query_files[key] = shortcode_result.media_query_files[key];
+                            });
+                        }
+
+                        send_action(WorkerAction.emit, shortcode_emit);
                     }
 
-                    send_action(WorkerAction.emit, shortcode_emit);
+                    // extract media files
+                    const media_result = await replace_media(shortcode_result.html);
+                    if (media_result.has_media) {
+                        has_media = true;
+                        Object.keys(media_result.media).forEach((key) => {
+                            media_files[key] = media_result.media[key];
+                        });
+                    }
+                    content = media_result.content;
                 }
 
-                // extract media files
-                const media_result = await replace_media(shortcode_result.html);
-                if (media_result.has_media) {
-                    has_media = true;
-                    Object.keys(media_result.media).forEach((key) => {
-                        media_files[key] = media_result.media[key];
-                    });
-                }
-                content = media_result.content;
-            }
+                // inject translations
+                // inject websocket connection
+                content = inject_translations(inject_client_socket(content), data?._wyvr?.language);
 
-            // inject translations
-            // inject websocket connection
-            content = inject_translations(inject_client_socket(content), data?._wyvr?.language);
+                // write the html code
+                write(path, add_devtools_code(content, path, data));
 
-            // write the html code
-            write(path, add_devtools_code(content, path, data));
-
-            // write css
-            if (filled_string(identifier) && search_segment(rendered_result.result, 'css.code')) {
-                const css_file_path = Cwd.get(FOLDER_GEN_CSS, `${identifier}.css`);
-                if (!exists(css_file_path) || global.cache.force_media_query_files) {
-                    media_query_files = write_css_file(
-                        css_file_path,
-                        rendered_result.result.css.code,
-                        media_query_files
-                    );
+                // write css
+                if (filled_string(identifier) && search_segment(rendered_result.result, 'css.code')) {
+                    const css_file_path = Cwd.get(FOLDER_GEN_CSS, `${identifier}.css`);
+                    if (!exists(css_file_path) || global.cache.force_media_query_files) {
+                        media_query_files = write_css_file(
+                            css_file_path,
+                            rendered_result.result.css.code,
+                            media_query_files
+                        );
+                    }
                 }
             }
+        } catch (e) {
+            Logger.error(get_error_message(e, file, 'build'));
         }
     }
     // emit media files

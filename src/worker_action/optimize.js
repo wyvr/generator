@@ -25,82 +25,88 @@ export async function optimize(files) {
     });
 
     for (const file of files) {
-        let content = read(file);
-        // replace media query files
-        const media_query_links = [];
-        media_query_files_keys.forEach((media_query_file) => {
-            if (content.indexOf(media_query_file) > -1) {
-                Object.keys(global.cache.media_query_files[media_query_file]).forEach((media) =>
-                    media_query_links.push(
-                        `<link href="${global.cache.media_query_files[media_query_file][media]}" rel="stylesheet" media="${media}">`
-                    )
-                );
-            }
-        });
-        if (filled_array(media_query_links)) {
-            content = content.replace('</head>', media_query_links.join('') + '</head>');
-        }
-        // replace the hashed files
-        hash_keys.forEach((key) => {
-            if (content.indexOf(key)) {
-                content = content.replace(new RegExp(key, 'g'), global.cache.hashes[key].path);
-            }
-        });
-        switch (extname(file)) {
-            case '.html':
-            case '.htm': {
-                const rel_file = to_relative_path(file);
-                // insert critical css
-                if (file_critical_map[rel_file]) {
-                    content = content.replace(
-                        '</head>',
-                        `<style id="critical">${global.cache.critical[file_critical_map[rel_file]]?.css}</style></head>`
+        try {
+            let content = read(file);
+            // replace media query files
+            const media_query_links = [];
+            media_query_files_keys.forEach((media_query_file) => {
+                if (content.indexOf(media_query_file) > -1) {
+                    Object.keys(global.cache.media_query_files[media_query_file]).forEach((media) =>
+                        media_query_links.push(
+                            `<link href="${global.cache.media_query_files[media_query_file][media]}" rel="stylesheet" media="${media}">`
+                        )
                     );
                 }
-                try {
-                    const minified_content = minify(content, {
-                        collapseBooleanAttributes: true,
-                        collapseInlineTagWhitespace: true,
-                        collapseWhitespace: true,
-                        continueOnParseError: true,
-                        removeAttributeQuotes: true,
-                        removeComments: true,
-                        removeScriptTypeAttributes: true,
-                        removeStyleLinkTypeAttributes: true,
-                        useShortDoctype: true,
-                    });
-
-                    write(file, minified_content);
-                } catch (e) {
-                    Logger.error(get_error_message(e, file, 'minify'));
-                }
-                break;
+            });
+            if (filled_array(media_query_links)) {
+                content = content.replace('</head>', media_query_links.join('') + '</head>');
             }
-            case '.css': {
-                try {
+            // replace the hashed files
+            hash_keys.forEach((key) => {
+                if (content.indexOf(key)) {
+                    content = content.replace(new RegExp(key, 'g'), global.cache.hashes[key].path);
+                }
+            });
+            switch (extname(file)) {
+                case '.html':
+                case '.htm': {
+                    const rel_file = to_relative_path(file);
+                    // insert critical css
+                    if (file_critical_map[rel_file]) {
+                        content = content.replace(
+                            '</head>',
+                            `<style id="critical">${
+                                global.cache.critical[file_critical_map[rel_file]]?.css
+                            }</style></head>`
+                        );
+                    }
+                    try {
+                        const minified_content = minify(content, {
+                            collapseBooleanAttributes: true,
+                            collapseInlineTagWhitespace: true,
+                            collapseWhitespace: true,
+                            continueOnParseError: true,
+                            removeAttributeQuotes: true,
+                            removeComments: true,
+                            removeScriptTypeAttributes: true,
+                            removeStyleLinkTypeAttributes: true,
+                            useShortDoctype: true,
+                        });
+
+                        write(file, minified_content);
+                    } catch (e) {
+                        Logger.error(get_error_message(e, file, 'minify'));
+                    }
+                    break;
+                }
+                case '.css': {
+                    try {
+                        const file_hash = global.cache.hashes[to_relative_path(file)];
+                        if (!file_hash) {
+                            break;
+                        }
+                        const result = await postcss([cssnano({ plugins: [autoprefixer] })]).process(content, {
+                            from: undefined,
+                        });
+                        write(join(ReleasePath.get(), file_hash.path), result.css);
+                    } catch (e) {
+                        Logger.error(get_error_message(e, file, 'css'));
+                    }
+                    break;
+                }
+                case '.cjs':
+                case '.mjs':
+                case '.js': {
                     const file_hash = global.cache.hashes[to_relative_path(file)];
                     if (!file_hash) {
                         break;
                     }
-                    const result = await postcss([cssnano({ plugins: [autoprefixer] })]).process(content, {
-                        from: undefined,
-                    });
-                    write(join(ReleasePath.get(), file_hash.path), result.css);
-                } catch (e) {
-                    Logger.error(get_error_message(e, file, 'css'));
-                }
-                break;
-            }
-            case '.cjs':
-            case '.mjs':
-            case '.js': {
-                const file_hash = global.cache.hashes[to_relative_path(file)];
-                if (!file_hash) {
+                    write(join(ReleasePath.get(), file_hash.path), content);
                     break;
                 }
-                write(join(ReleasePath.get(), file_hash.path), content);
-                break;
             }
+        } catch (e) {
+            Logger.error(get_error_message(e, file, 'optimize'));
         }
     }
     return true;

@@ -296,7 +296,7 @@ export class WorkerController {
         });
     }
 
-    static async process_in_workers(action, list, batch_size) {
+    static async process_in_workers(action, list, batch_size, show_name) {
         if (this.workers.length == 0) {
             Logger.error('no worker available');
             process.exit(1);
@@ -316,7 +316,7 @@ export class WorkerController {
         if (!is_int(batch_size)) {
             batch_size = 10;
         }
-        Logger.info('process', amount, amount == 1 ? 'item' : 'items', Logger.color.dim('batch size ' + batch_size));
+        Logger.info('process', amount, amount == 1 ? 'item' : 'items', show_name ? Logger.color.blue(`in ${name}`) : '', Logger.color.dim('batch size ' + batch_size));
 
         // create new queue
         this.queue = new Queue();

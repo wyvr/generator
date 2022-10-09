@@ -164,12 +164,10 @@ export async function regenerate(changed_files) {
                     }
                     file_configs[data.file] = data.config;
                 });
-
-                await WorkerController.process_in_workers(WorkerAction.transform, combined_files, 10);
+                await WorkerController.process_in_workers(WorkerAction.transform, combined_files, 10, true);
 
                 // @TODO update dependencies
-
-                await WorkerController.process_in_workers(WorkerAction.compile, combined_files, 10);
+                await WorkerController.process_in_workers(WorkerAction.compile, combined_files, 10, true);
 
                 // remove listeners
                 Event.off('emit', config_name, config_id);
@@ -268,7 +266,7 @@ export async function regenerate(changed_files) {
                     }
                 });
                 
-                await WorkerController.process_in_workers(WorkerAction.route, routes_data, 10);
+                await WorkerController.process_in_workers(WorkerAction.route, routes_data, 10, true);
 
                 // remove listeners
                 Event.off('emit', identifier_name, identifier_id);
@@ -298,14 +296,14 @@ export async function regenerate(changed_files) {
                 delete data.type;
                 identifiers[data.identifier] = data;
             });
-            await WorkerController.process_in_workers(WorkerAction.build, routes, 100);
+            await WorkerController.process_in_workers(WorkerAction.build, routes, 100, true);
             Event.off('emit', identifier_name, identifier_id);
             reload_page = true;
         }
         Logger.debug('identifiers', identifiers);
         if (filled_object(identifiers)) {
             const data = Object.keys(identifiers).map((key) => all_identifiers[key]);
-            await WorkerController.process_in_workers(WorkerAction.scripts, data, 1);
+            await WorkerController.process_in_workers(WorkerAction.scripts, data, 1, true);
             reload_page = true;
         }
 

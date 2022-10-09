@@ -1,6 +1,6 @@
-import { extname, join } from 'path';
+import { dirname, extname, join, resolve } from 'path';
 import { exists, read, to_extension } from './file.js';
-import { filled_array, filled_object, filled_string, is_array, is_null, is_number, is_string } from './validate.js';
+import { filled_array, filled_object, filled_string, is_array, is_func, is_null, is_number, is_path, is_string } from './validate.js';
 import { compile_sass, compile_typescript } from './compile.js';
 import { Cwd } from '../vars/cwd.js';
 import { to_dirname } from './to.js';
@@ -10,6 +10,7 @@ import { uniq_values } from './uniq.js';
 import { Env } from '../vars/env.js';
 import { Logger } from './logger.js';
 import { FOLDER_GEN_SRC } from '../constants/folder.js';
+import { get_error_message } from './error.js';
 
 const __dirname = join(to_dirname(import.meta.url), '..');
 
@@ -368,4 +369,45 @@ export function fix_reserved_tag_names(content) {
     // avoid replacing
     // const nav 
     return content.replace(/(<|<\/|import\s)(Nav)(\s|\/|>)/g, '$1Wyvr$2$3');
+}
+
+export function replace_imports(content, file, src_folder, scope, cache_breaker, hooks) {
+
+    const replacer = (_, imported, path) => {
+        if (is_path(path)) {
+            // correct the path
+            path = replace_src_in_path(path, src_folder).replace(new RegExp(FOLDER_GEN_SRC, 'g'), src_folder);
+            // transform to js from svelte
+            const ext = extname(path);
+            if(is_func(hooks?.modify_path)) {
+                path = hooks.modify_path(path, ext)
+            }
+            // if (type === 'server' && ext == '.svelte') {
+            //     path = to_extension(path, 'js');
+            // }
+
+            // force file ending when nothing is specified
+            if (!ext) {
+                const check_ext = ['.js', '.mjs', '.ts'];
+                const dir = dirname(file);
+                const new_ext = check_ext.find((search_ext) => exists(resolve(dir, `${path}${search_ext}`)));
+                if (!new_ext) {
+                    Logger.warning(
+                        get_error_message(
+                            new Error(
+                                `can't find import ${path} with the extensions ${check_ext.join(',')} in ${file}`
+                            ),
+                            file,
+                            scope
+                        )
+                    );
+                }
+                path = `${path}${new_ext || ''}`;
+            }
+            path += cache_breaker;
+        }
+
+        return `import ${imported} from '${path}'`;
+    };
+    return content.replace(/import (.*?) from ['"]([^'"]+)['"]/g, replacer);
 }

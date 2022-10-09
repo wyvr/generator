@@ -1,16 +1,16 @@
 import { compile } from 'svelte/compiler';
 import { get_error_message } from './error.js';
 import { Logger } from './logger.js';
-import { in_array, filled_string, is_func, is_null, is_path, match_interface } from './validate.js';
-import { exists, remove, to_extension, write } from './file.js';
-import { dirname, extname, resolve } from 'path';
+import { in_array, filled_string, is_func, is_null, match_interface } from './validate.js';
+import { remove, to_extension, write } from './file.js';
+import { extname } from 'path';
 import { Env } from '../vars/env.js';
 import { css_hash } from './hash.js';
 import { uniq_id } from './uniq.js';
 import { Cwd } from '../vars/cwd.js';
-import { FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC, FOLDER_GEN_TEMP } from '../constants/folder.js';
+import { FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_TEMP } from '../constants/folder.js';
 import { search_segment } from './segment.js';
-import { fix_reserved_tag_names, replace_src_in_path, replace_src_path } from './transform.js';
+import { fix_reserved_tag_names, replace_imports, replace_src_path } from './transform.js';
 import { register_inject, register_i18n, register_prop } from './global.js';
 import { inject } from './config.js';
 import { get_language } from './i18n.js';
@@ -26,39 +26,13 @@ export async function prepare_code_to_compile(content, file, type) {
     if (type === 'server') {
         content = fix_reserved_tag_names(content);
     }
-    const replacer = (_, imported, path) => {
-        if (is_path(path)) {
-            // correct the path
-            path = replace_src_in_path(path, folder).replace(new RegExp(FOLDER_GEN_SRC, 'g'), folder);
-            // transform to js from svelte
-            const ext = extname(path);
-            if (type === 'server' && ext == '.svelte') {
-                path = to_extension(path, 'js');
-            }
-            // force file ending when nothing is specified
-            if (!ext) {
-                const check_ext = ['.js', '.mjs', '.ts'];
-                const dir = dirname(file);
-                const new_ext = check_ext.find((search_ext) => exists(resolve(dir, `${path}${search_ext}`)));
-                if (!new_ext) {
-                    Logger.warning(
-                        get_error_message(
-                            new Error(
-                                `can't find import ${path} with the extensions ${check_ext.join(',')} in ${file}`
-                            ),
-                            file,
-                            scope
-                        )
-                    );
-                }
-                path = `${path}${new_ext || ''}`;
-            }
-            path += cache_breaker;
+    // replace the imports in this file
+    let modified_content = replace_imports(content, file, folder, scope, cache_breaker, {modify_path: (path, ext)=> {
+        if (type === 'server' && ext == '.svelte') {
+            return to_extension(path, 'js');
         }
-
-        return `import ${imported} from '${path}'`;
-    };
-    let modified_content = content.replace(/import (.*?) from ['"]([^'"]+)['"]/g, replacer);
+        return path;
+    }});
     // replace names of components because some can not used, which are default html tags
     if (type === 'server') {
         modified_content = fix_reserved_tag_names(modified_content);

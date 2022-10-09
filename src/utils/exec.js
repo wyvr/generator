@@ -1,11 +1,11 @@
 import { statSync } from 'fs';
-import { FOLDER_GEN_EXEC } from '../constants/folder.js';
+import { FOLDER_GEN_EXEC, FOLDER_GEN_SRC } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { compile_server_svelte } from './compile.js';
 import { render_server_compiled_svelte } from './compile_svelte.js';
 import { set_config_cache } from './config_cache.js';
 import { get_error_message } from './error.js';
-import { collect_files, exists, to_index } from './file.js';
+import { collect_files, exists, read, to_index, write } from './file.js';
 import { generate_page_code } from './generate.js';
 import { Logger } from './logger.js';
 import { to_relative_path } from './to.js';
@@ -24,6 +24,7 @@ import { inject_client_socket, inject_translations } from './build.js';
 import { add_devtools_code } from './devtools.js';
 import { join } from 'path';
 import { ReleasePath } from '../vars/release_path.js';
+import { replace_imports } from './transform.js';
 
 export async function build_cache() {
     const files = collect_files(Cwd.get(FOLDER_GEN_EXEC));
@@ -54,8 +55,11 @@ export async function load_exec(file) {
         return undefined;
     }
     let result;
+    const cache_breaker = `?${Date.now()}`;
+    const uniq_path = `${file}?${cache_breaker}`;
+    write(file, replace_imports(read(file), file, FOLDER_GEN_SRC, 'exec', cache_breaker));
     try {
-        result = await import(file + '?' + Date.now());
+        result = await import(uniq_path);
         if (result && result.default) {
             result = result.default;
         }

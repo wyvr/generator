@@ -1,5 +1,5 @@
 import { basename, dirname, extname } from 'path';
-import { FOLDER_GEN_DATA, FOLDER_GEN_ROUTES } from '../constants/folder.js';
+import { FOLDER_GEN_DATA, FOLDER_GEN_ROUTES, FOLDER_GEN_SRC } from '../constants/folder.js';
 import { Route } from '../model/route.js';
 import { RouteStructure } from '../struc/route.js';
 import { Cwd } from '../vars/cwd.js';
@@ -8,6 +8,7 @@ import { get_error_message } from './error.js';
 import { collect_files, create_dir, exists, read, remove_index, to_extension, to_index, write } from './file.js';
 import { register_inject } from './global.js';
 import { Logger } from './logger.js';
+import { replace_imports } from './transform.js';
 import { filled_array, filled_string, in_array, is_array, is_func, is_null, match_interface } from './validate.js';
 
 export function collect_routes(dir, package_tree) {
@@ -23,7 +24,7 @@ export function collect_routes(dir, package_tree) {
             const extension = extname(file_name);
             // files starting with a _ are no routes, these are helper files
             // allow only specific file extensions as routes
-            if (file_name.match(/^_/) || !in_array(['.js', '.ts', '.md'], extension)) {
+            if (file_name.match(/^_/) || !in_array(['.mjs', ',cjs', '.js', '.ts', '.md'], extension)) {
                 return false;
             }
             return true;
@@ -79,8 +80,13 @@ export async function execute_route(route) {
         case '.mjs':
         case '.cjs':
         case '.js':
-            const uniq_path = `${route.path}?${new Date().getTime()}`;
+            const cache_breaker = `?${Date.now()}`;
+            const uniq_path = `${route.path}?${cache_breaker}`;
             let route_module, result;
+            write(
+                route.path,
+                replace_imports(read(route.path), route.rel_path, FOLDER_GEN_SRC, 'route', cache_breaker)
+            );
             try {
                 route_module = await import(uniq_path);
             } catch (e) {

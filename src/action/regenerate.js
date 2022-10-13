@@ -22,10 +22,10 @@ import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
 import { Config } from '../utils/config.js';
 import { get_config_cache, set_config_cache } from '../utils/config_cache.js';
-import { get_identifiers_of_file } from '../utils/dependency.js';
+import { dependencies_from_content, flip_dependency_tree, get_identifiers_of_file } from '../utils/dependency.js';
 import { Event } from '../utils/event.js';
 import { build_cache } from '../utils/exec.js';
-import { copy, remove, to_extension, to_index } from '../utils/file.js';
+import { copy, read, remove, to_extension, to_index } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { to_identifiers, to_relative_path, to_single_identifier_name } from '../utils/to.js';
 import { uniq_values } from '../utils/uniq.js';
@@ -107,12 +107,25 @@ export async function regenerate(changed_files) {
             const identifier_files = get_config_cache('identifier.files');
             const dependencies_bottom = get_config_cache('dependencies.bottom');
             const src = frag_files.src;
+            let dependencies;
             if (src.change || src.add) {
                 const identifier_list = [];
                 const dependent_files = [];
                 const main_files = [];
                 const files = [].concat(src.change || [], src.add || []).map((file) => {
                     const rel_path = file.rel_path.replace(/^src\//, '');
+                    const dep_result = dependencies_from_content(read(file.path), rel_path);
+                    if(dep_result?.dependencies) {
+                        if(!dependencies) {
+                            dependencies = {};
+                        }
+                        Object.keys(dep_result.dependencies).forEach((key)=> {
+                            if(!dependencies[key]) {
+                                dependencies[key] = [];
+                            }
+                            dependencies[key].push(...dep_result.dependencies[key]);
+                        });
+                    }
                     if (rel_path.match(/^(?:doc|layout|page)\//)) {
                         main_files.push(rel_path);
                     }
@@ -126,6 +139,19 @@ export async function regenerate(changed_files) {
                     return target;
                     // console.log(file.rel_path, dependencies_bottom);
                 });
+                // update dependencies
+                if(dependencies) {
+                    const new_dep = get_config_cache('dependencies.top');
+                    Object.keys(dependencies).forEach((key)=> {
+                        if(!new_dep[key]) {
+                            new_dep[key] = [];
+                        }
+                        new_dep[key].push(...dependencies[key]);
+                    });
+                    set_config_cache('dependencies.top', new_dep);
+                    set_config_cache('dependencies.bottom', flip_dependency_tree(new_dep));
+                }
+
                 const combined_files = uniq_values(
                     [].concat(
                         files,
@@ -265,7 +291,7 @@ export async function regenerate(changed_files) {
                         routes.push(...data.routes);
                     }
                 });
-                
+
                 await WorkerController.process_in_workers(WorkerAction.route, routes_data, 10, true);
 
                 // remove listeners

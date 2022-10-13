@@ -152,6 +152,10 @@ export async function run_exec(request, response, uid, exec) {
 
     const rendered_result = await render_server_compiled_svelte(exec_result, page_data, exec.path);
 
+    if (!rendered_result) {
+        return undefined;
+    }
+    
     if (rendered_result) {
         rendered_result.data = page_data;
     }

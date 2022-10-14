@@ -9,6 +9,7 @@ import { Logger } from './logger.js';
 import { StorageCacheStructure, StorageDetailsStructure } from '../struc/storage.js';
 import { get_error_message } from './error.js';
 import { parse } from './json.js';
+import { search_segment } from './segment.js';
 
 export class Storage {
     /**
@@ -156,10 +157,16 @@ export class Storage {
             return undefined;
         }
         const db = await this.open(name);
+        const parts = key.split('.');
+        const segment_key = parts.shift();
+        const data_key = parts.join('.');
         try {
-            const result = await this.cache[db.name].get('SELECT value FROM "data" WHERE key=?;', key);
-            const parsed = parse(result?.value);
-            return parsed || result?.value;
+            const result = await this.cache[db.name].get('SELECT value FROM "data" WHERE key=?;', segment_key);
+            let parsed = parse(result?.value) || result?.value;
+            if(filled_string(data_key)) {
+                return search_segment(parsed, data_key);
+            }
+            return parsed;
         } catch (e) {
             Logger.error(get_error_message(e, name, 'storage'));
         }

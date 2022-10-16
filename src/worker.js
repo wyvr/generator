@@ -25,7 +25,7 @@ process.on('message', async (msg) => {
 });
 // catch when master exited and kill the worker
 process.on('exit', function () {
-    process.exit();
+    setTimeout(() => process.exit(), 500);
 });
 
 global.cache = {};

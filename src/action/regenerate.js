@@ -115,12 +115,12 @@ export async function regenerate(changed_files) {
                 const files = [].concat(src.change || [], src.add || []).map((file) => {
                     const rel_path = file.rel_path.replace(/^src\//, '');
                     const dep_result = dependencies_from_content(read(file.path), rel_path);
-                    if(dep_result?.dependencies) {
-                        if(!dependencies) {
+                    if (dep_result?.dependencies) {
+                        if (!dependencies) {
                             dependencies = {};
                         }
-                        Object.keys(dep_result.dependencies).forEach((key)=> {
-                            if(!dependencies[key]) {
+                        Object.keys(dep_result.dependencies).forEach((key) => {
+                            if (!dependencies[key]) {
                                 dependencies[key] = [];
                             }
                             dependencies[key].push(...dep_result.dependencies[key]);
@@ -140,10 +140,10 @@ export async function regenerate(changed_files) {
                     // console.log(file.rel_path, dependencies_bottom);
                 });
                 // update dependencies
-                if(dependencies) {
+                if (dependencies) {
                     const new_dep = get_config_cache('dependencies.top');
-                    Object.keys(dependencies).forEach((key)=> {
-                        if(!new_dep[key]) {
+                    Object.keys(dependencies).forEach((key) => {
+                        if (!new_dep[key]) {
                             new_dep[key] = [];
                         }
                         new_dep[key].push(...dependencies[key]);
@@ -328,7 +328,9 @@ export async function regenerate(changed_files) {
         }
         Logger.debug('identifiers', identifiers);
         if (filled_object(identifiers)) {
-            const data = Object.keys(identifiers).map((key) => all_identifiers[key]);
+            const data = Object.keys(identifiers)
+                .map((key) => all_identifiers[key])
+                .filter((x) => x);
             await WorkerController.process_in_workers(WorkerAction.scripts, data, 1, true);
             reload_page = true;
         }

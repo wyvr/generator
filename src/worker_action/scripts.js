@@ -11,7 +11,7 @@ import { stringify } from '../utils/json.js';
 import { Logger } from '../utils/logger.js';
 import { write_identifier_structure } from '../utils/structure.js';
 import { to_dirname, to_relative_path } from '../utils/to.js';
-import { filled_array, in_array } from '../utils/validate.js';
+import { filled_array, in_array, is_null } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
 
@@ -31,6 +31,10 @@ export async function scripts(identifiers) {
     }
     for (const identifier of identifiers) {
         try {
+            if(is_null(identifier)) {
+                Logger.warning('empty identifier found');
+                continue;
+            }
             const is_shortcode = !!identifier.imports;
             let dependencies = [];
             // shortcode dependencies

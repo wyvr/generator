@@ -5,7 +5,7 @@ import { compile_server_svelte } from './compile.js';
 import { render_server_compiled_svelte } from './compile_svelte.js';
 import { set_config_cache } from './config_cache.js';
 import { get_error_message } from './error.js';
-import { collect_files, exists, read, to_index, write } from './file.js';
+import { collect_files, exists, read, write } from './file.js';
 import { generate_page_code } from './generate.js';
 import { Logger } from './logger.js';
 import { to_relative_path } from './to.js';
@@ -20,10 +20,7 @@ import {
     match_interface,
 } from './validate.js';
 import { process_page_data } from './../worker_action/process_page_data.js';
-import { inject_client_socket, inject_translations } from './build.js';
-import { add_devtools_code } from './devtools.js';
-import { join } from 'path';
-import { ReleasePath } from '../vars/release_path.js';
+import { inject } from './build.js';
 import { replace_imports } from './transform.js';
 
 export async function build_cache() {
@@ -155,21 +152,17 @@ export async function run_exec(request, response, uid, exec) {
     if (!rendered_result) {
         return undefined;
     }
-    
+
     if (rendered_result) {
         rendered_result.data = page_data;
     }
 
-    // inject translations
-    // inject websocket connection
-    rendered_result.result.html = inject_translations(
-        inject_client_socket(rendered_result.result.html),
-        page_data?._wyvr?.language
-    );
+    const injected_result = await inject(rendered_result, data, exec.path, (shortcode_emit) => {
+        // send_action(WorkerAction.emit, shortcode_emit);
+        console.log('@TODO process shortcodes in exec', shortcode_emit);
+    });
 
-    // add the debug code
-    const path = join(ReleasePath.get(), to_index(page_data.url, page_data._wyvr?.extension));
-    rendered_result.result.html = add_devtools_code(rendered_result.result.html, path, page_data);
+    rendered_result.result.html = injected_result.content;
 
     return rendered_result;
 }

@@ -6,7 +6,8 @@ export class Cwd {
         if (!filled_array(parts)) {
             return this.value;
         }
-        return join(this.value, ...parts);
+        const value = [this.value, ...parts].filter((x) => x);
+        return join(...value);
     }
     static set(value) {
         this.value = value;

@@ -155,7 +155,12 @@ export async function regenerate(changed_files) {
                 const combined_files = uniq_values(
                     [].concat(
                         files,
-                        dependent_files.filter((x) => x).map((path) => Cwd.get(FOLDER_GEN_SRC, path))
+                        dependent_files
+                            .flat(1)
+                            .filter((x) => x)
+                            .map((path) => {
+                                return Cwd.get(FOLDER_GEN_SRC, path);
+                            })
                     )
                 );
 

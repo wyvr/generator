@@ -4,7 +4,6 @@ import { Logger } from '../utils/logger.js';
 import { generate_page_code } from '../utils/generate.js';
 import { filled_array, filled_object, is_null } from '../utils/validate.js';
 import { render_server_compiled_svelte } from '../utils/compile_svelte.js';
-import { ReleasePath } from '../vars/release_path.js';
 import { send_action } from '../worker/communication.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerEmit } from '../struc/worker_emit.js';

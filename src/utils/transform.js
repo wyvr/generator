@@ -383,7 +383,7 @@ export function fix_reserved_tag_names(content) {
 
 export function replace_imports(content, file, src_folder, scope, cache_breaker, hooks) {
     if (!filled_string(content)) {
-        return content;
+        return '';
     }
 
     const replacer = (_, imported, path) => {

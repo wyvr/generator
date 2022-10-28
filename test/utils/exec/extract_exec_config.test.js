@@ -24,7 +24,7 @@ describe('utils/exec/extract_exec_config', () => {
         const result = extract_exec_config({ url: '/test' }, join(dir, 'config/test.js'));
         result.mtime = 0;
         deepStrictEqual(result, {
-            match: '^\\/test$',
+            match: '^\\/test/?$',
             methods: ['get', 'head', 'post', 'put', 'delete', 'connect', 'options', 'trace', 'patch'],
             mtime: 0,
             params: [],
@@ -46,7 +46,7 @@ describe('utils/exec/extract_exec_config', () => {
         );
         result.mtime = 0;
         deepStrictEqual(result, {
-            match: '^\\/methods$',
+            match: '^\\/methods/?$',
             methods: ['post'],
             mtime: 0,
             params: [],

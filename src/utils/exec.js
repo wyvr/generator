@@ -92,7 +92,7 @@ export async function run_exec(request, response, uid, exec) {
     // get parameters from url
     const params = {};
     exec.params.forEach((param, idx) => {
-        params[param] = params_match[idx + 1];
+        params[param] = params_match[idx + 1].replace(/\/$/, '').trim();
     });
     params.isExec = !request.isNotExec;
     // get the exec result
@@ -106,9 +106,10 @@ export async function run_exec(request, response, uid, exec) {
 
     // execute load function when set to get data
     let data = {};
+    const exec_object = {request, response, params};
     if (is_func(code.onExec)) {
         try {
-            data = await code.onExec(request, response, params);
+            data = await code.onExec(exec_object);
         } catch (e) {
             Logger.error('[exec]', error_message('onExec'), get_error_message(e, exec.path, 'exec'));
         }
@@ -119,6 +120,8 @@ export async function run_exec(request, response, uid, exec) {
         data = {};
     }
 
+    exec_object.data = data;
+
     // replace function properties
     await Promise.all(
         Object.keys(code).map(async (key) => {
@@ -127,7 +130,7 @@ export async function run_exec(request, response, uid, exec) {
             }
             if (is_func(code[key])) {
                 try {
-                    data[key] = await code[key](request, response, params, data);
+                    data[key] = await code[key](exec_object);
                 } catch (e) {
                     Logger.error('[exec]', error_message(key), get_error_message(e, exec.path, 'exec'));
                 }
@@ -183,7 +186,7 @@ export function extract_exec_config(result, path) {
             }
             return item;
         })
-        .join('\\/')}$`;
+        .join('\\/')}/?$`;
     let methods = ['get', 'head', 'post', 'put', 'delete', 'connect', 'options', 'trace', 'patch'];
     if (filled_array(result?._wyvr?.exec_methods)) {
         methods = result?._wyvr?.exec_methods.filter((method) => in_array(methods, method));

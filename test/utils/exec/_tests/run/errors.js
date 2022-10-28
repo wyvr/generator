@@ -4,13 +4,13 @@ export default {
         exec_methods: ['get'],
     },
     url: '/test',
-    onExec: async (req, res, params) => {
+    onExec: async () => {
         throw new Error('huhu');
     },
-    content: (req, res, params, data) => {
+    content: ({ params }) => {
         return 'dyn content ' + params.id;
     },
-    title: ()=> {
+    title: () => {
         throw new Error('hihi');
-    }
+    },
 };

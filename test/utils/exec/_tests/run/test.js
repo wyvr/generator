@@ -4,10 +4,10 @@ export default {
         exec_methods: ['get'],
     },
     url: '/test',
-    onExec: async (req, res, params) => {
+    onExec: async () => {
         return { from_exec: true };
     },
-    content: (req, res, params, data) => {
+    content: ({params}) => {
         return 'dyn content ' + params.id;
     },
 };

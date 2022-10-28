@@ -21,6 +21,7 @@
             ],
             "internalConsoleOptions": "openOnSessionStart",
             "name": "[test] all tests - Mocha",
+            "runtimeVersion": "18",
             "program": "${workspaceFolder}/node_modules/mocha/bin/mocha",
             "request": "launch",
             "skipFiles": [
@@ -39,6 +40,7 @@
             ],
             "internalConsoleOptions": "openOnSessionStart",
             "name": "[test] current test - Mocha",
+            "runtimeVersion": "18",
             "program": "${workspaceFolder}/node_modules/mocha/bin/mocha",
             "request": "launch",
             "skipFiles": [
@@ -50,6 +52,7 @@
             "type": "pwa-node",
             "request": "launch",
             "name": "[dev] run wyvr",
+            "runtimeVersion": "18",
             "skipFiles": ["<node_internals>/**"],
             "program": "${workspaceFolder}/lib/index.ts",
             "preLaunchTask": "tsc: build - tsconfig.json",
@@ -63,6 +66,7 @@
             "type": "pwa-node",
             "request": "launch",
             "name": "[prod] run wyvr",
+            "runtimeVersion": "18",
             "skipFiles": ["<node_internals>/**"],
             "program": "${workspaceFolder}/lib/index.ts",
             "preLaunchTask": "tsc: build - tsconfig.json",

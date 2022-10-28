@@ -1,6 +1,16 @@
 import { dirname, extname, join, resolve } from 'path';
 import { exists, read, to_extension } from './file.js';
-import { filled_array, filled_object, filled_string, is_array, is_func, is_null, is_number, is_path, is_string } from './validate.js';
+import {
+    filled_array,
+    filled_object,
+    filled_string,
+    is_array,
+    is_func,
+    is_null,
+    is_number,
+    is_path,
+    is_string,
+} from './validate.js';
 import { compile_sass, compile_typescript } from './compile.js';
 import { Cwd } from '../vars/cwd.js';
 import { to_dirname } from './to.js';
@@ -367,11 +377,14 @@ export function fix_reserved_tag_names(content) {
     // <Nav a="nav"></Nav>
 
     // avoid replacing
-    // const nav 
+    // const nav
     return content.replace(/(<|<\/|import\s)(Nav)(\s|\/|>)/g, '$1Wyvr$2$3');
 }
 
 export function replace_imports(content, file, src_folder, scope, cache_breaker, hooks) {
+    if (!filled_string(content)) {
+        return content;
+    }
 
     const replacer = (_, imported, path) => {
         if (is_path(path)) {
@@ -379,8 +392,8 @@ export function replace_imports(content, file, src_folder, scope, cache_breaker,
             path = replace_src_in_path(path, src_folder).replace(new RegExp(FOLDER_GEN_SRC, 'g'), src_folder);
             // transform to js from svelte
             const ext = extname(path);
-            if(is_func(hooks?.modify_path)) {
-                path = hooks.modify_path(path, ext)
+            if (is_func(hooks?.modify_path)) {
+                path = hooks.modify_path(path, ext);
             }
             // if (type === 'server' && ext == '.svelte') {
             //     path = to_extension(path, 'js');

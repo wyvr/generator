@@ -17,7 +17,7 @@ export async function transform(files) {
         return false;
     }
     const cache_breaker = `?${Date.now()}`;
-
+    
     for (const file of files) {
         if (!exists(file)) {
             continue;
@@ -27,10 +27,11 @@ export async function transform(files) {
             if (extension == '.svelte') {
                 let content = read(file);
                 const combined = await combine_splits(file, content);
-                if (filled_string(combined.content)) {
-                    content = combined.content;
+                if (!filled_string(combined.content)) {
+                    continue;
                 }
-
+                content = combined.content;
+                
                 // extract wyvr file config and send the data
                 const dependency_emit = {
                     type: WorkerEmit.wyvr_config,
@@ -38,10 +39,10 @@ export async function transform(files) {
                     config: extract_wyvr_file_config(content),
                 };
                 send_action(WorkerAction.emit, dependency_emit);
-
+                
                 // override the content
                 write(file, content);
-
+                
                 continue;
             }
             // replace import in text files

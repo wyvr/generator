@@ -34,6 +34,7 @@ import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { WatcherPaths } from '../vars/watcher_paths.js';
 import { WorkerController } from '../worker/controller.js';
+import { sleep } from '../utils/sleep.js';
 
 /**
  * Regenerate the files and the result of the given changed files
@@ -345,9 +346,10 @@ export async function regenerate(changed_files) {
         set_config_cache('identifiers', merged_identifiers);
 
         copy_folder(Cwd.get(FOLDER_GEN), [FOLDER_ASSETS, FOLDER_CSS, FOLDER_JS, FOLDER_I18N], ReleasePath.get());
-
+        
         // @TODO reload the whole browser page
         if (reload_page) {
+            await sleep(200);
             Logger.info('force reloading');
             reload();
         }

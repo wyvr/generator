@@ -193,6 +193,10 @@ export class WorkerController {
     }
 
     static send_message(worker, data) {
+        if (!this.multi_threading) {
+            Event.emit('process', 'message', data);
+            return true;
+        }
         if (!this.is_worker(worker)) {
             return false;
         }
@@ -316,7 +320,13 @@ export class WorkerController {
         if (!is_int(batch_size)) {
             batch_size = 10;
         }
-        Logger.info('process', amount, amount == 1 ? 'item' : 'items', show_name ? Logger.color.blue(`in ${name}`) : '', Logger.color.dim('batch size ' + batch_size));
+        Logger.info(
+            'process',
+            amount,
+            amount == 1 ? 'item' : 'items',
+            show_name ? Logger.color.blue(`in ${name}`) : '',
+            Logger.color.dim('batch size ' + batch_size)
+        );
 
         // create new queue
         this.queue = new Queue();
@@ -367,7 +377,11 @@ export class WorkerController {
             });
         });
     }
+    static set_multi_threading(value) {
+        this.multi_threading = !!value;
+    }
 }
 WorkerController.exiting = false;
 WorkerController.workers = [];
 WorkerController.worker_ratio = 0;
+WorkerController.multi_threading = true;

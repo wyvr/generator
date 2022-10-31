@@ -11,7 +11,12 @@ export async function unknown_command(config) {
     const command_map = {
         build: {
             desc: 'statically generate site',
-            flags: [],
+            flags: [
+                {
+                    key: 'single',
+                    desc: 'run the generator in single threaded mode only recommended for debugging purposes',
+                },
+            ],
         },
         cron: {
             desc: 'execute the cronjobs',
@@ -19,7 +24,12 @@ export async function unknown_command(config) {
         },
         app: {
             desc: 'run as a service for server side execution',
-            flags: [],
+            flags: [
+                {
+                    key: 'single',
+                    desc: 'run the generator in single threaded mode only recommended for debugging purposes',
+                },
+            ],
         },
         watch: {
             desc: 'statically generate site and watch for file changes',
@@ -27,10 +37,16 @@ export async function unknown_command(config) {
         },
         dev: {
             desc: 'build the site in development mode and rebuild when changes are made',
-            flags: [{
-                key: 'fast',
-                desc: 'fast starting watch server without building the site'
-            }],
+            flags: [
+                {
+                    key: 'fast',
+                    desc: 'fast starting watch server without building the site',
+                },
+                {
+                    key: 'single',
+                    desc: 'run the generator in single threaded mode only recommended for debugging purposes',
+                },
+            ],
         },
     };
     Object.keys(command_map).forEach((key) => {

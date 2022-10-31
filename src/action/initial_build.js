@@ -29,6 +29,8 @@ import { set_config_cache } from '../utils/config_cache.js';
 import { build_cache } from '../utils/exec.js';
 import { wyvr_internal } from './wyvr_internal.js';
 import { join } from 'path';
+import { NoWorker } from '../no_worker.js';
+import { Event } from '../utils/event.js';
 
 export async function pre_initial_build(build_id, config_data) {
     // set release folder
@@ -48,10 +50,26 @@ export async function pre_initial_build(build_id, config_data) {
     // set worker ratio
     WorkerController.set_worker_ratio(Config.get('worker.ratio', 1));
 
-    // Create the workers for the processing
-    const worker_amount = WorkerController.get_worker_amount_from_ratio();
-    Logger.present('worker', worker_amount, Logger.color.dim(`of ${cpus().length} threads`));
-    WorkerController.create_workers(worker_amount);
+    if (config_data?.cli?.flags?.single) {
+        Logger.warning('running in single threaded mode, no workers will be started');
+        WorkerController.set_multi_threading(false);
+        WorkerController.create_workers(1, () => {
+            return {
+                pid: process.pid,
+                on: (key, fn) => {
+                    Event.on('master', key, async (...args) => {
+                        await fn(...args);
+                    });
+                },
+            };
+        });
+        NoWorker();
+    } else {
+        // Create the workers for the processing
+        const worker_amount = WorkerController.get_worker_amount_from_ratio();
+        Logger.present('worker', worker_amount, Logger.color.dim(`of ${cpus().length} threads`));
+        WorkerController.create_workers(worker_amount);
+    }
 
     // Create required symlinks
     symlink(Cwd.get(FOLDER_MEDIA), join(ReleasePath.get(), FOLDER_MEDIA));

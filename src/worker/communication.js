@@ -1,13 +1,27 @@
 import { get_name as get_action_name, WorkerAction } from '../struc/worker_action.js';
 import { get_name as get_status_name, WorkerStatus } from '../struc/worker_status.js';
+import { Event } from '../utils/event.js';
 import { is_null, is_number } from '../utils/validate.js';
 import { Env } from '../vars/env.js';
 
+let communicate_by_ipc = true;
+
+export function useIPC(value) {
+    communicate_by_ipc = !!value;
+}
+
 export function send(data) {
-    process.send({
-        pid: process.pid,
-        data,
-    });
+    if (communicate_by_ipc) {
+        process.send({
+            pid: process.pid,
+            data,
+        });
+    } else {
+        Event.emit('master', 'message', {
+            pid: process.pid,
+            data,
+        });
+    }
 }
 export function send_action(action, data) {
     const name = get_action_name(action);

@@ -10,6 +10,7 @@ SHELL := /bin/bash
 WYVR_LINT=npx eslint src --ext .js
 WYVR_TEST=npx mocha -R dot './test/**/*.test.js'
 WYVR_COVERAGE=npx c8 -x src/action -x src/command -x src/command.js -x src/worker.js -x src/worker_action -x src/resource --skip-full $(WYVR_TEST)
+READONLY_FILES=chmod +w test/utils/file/_tests/not_writeable.txt; echo -n "" > test/utils/file/_tests/not_writeable.txt; chmod -rw test/utils/file/_tests/not_writeable.txt
 
 compile-watch: ## Start watcher and make dev builds
 	@env npx nodemon \
@@ -25,11 +26,11 @@ compile-watch: ## Start watcher and make dev builds
 		--exec '${WYVR_LINT}'
 
 test: ## Executes the tests
-	@chmod -rw test/utils/file/_tests/not_writeable.txt
+	@$(READONLY_FILES)
 	@$(WYVR_TEST)
 
 test-watch: ## Watches changes in the tests
-	@chmod -rw test/utils/file/_tests/not_writeable.txt
+	@$(READONLY_FILES)
 	@npx nodemon --watch src --watch test --ignore test/**/_tests/**/*.js -e js --exec "$(WYVR_LINT); $(WYVR_TEST)"
 
 init: ## Install and prepare setup

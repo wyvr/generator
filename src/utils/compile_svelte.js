@@ -27,12 +27,14 @@ export async function prepare_code_to_compile(content, file, type) {
         content = fix_reserved_tag_names(content);
     }
     // replace the imports in this file
-    let modified_content = replace_imports(content, file, folder, scope, cache_breaker, {modify_path: (path, ext)=> {
-        if (type === 'server' && ext == '.svelte') {
-            return to_extension(path, 'js');
-        }
-        return path;
-    }});
+    let modified_content = replace_imports(content, file, folder, scope, cache_breaker, {
+        modify_path: (path, ext) => {
+            if (type === 'server' && ext == '.svelte') {
+                return to_extension(path, 'js');
+            }
+            return path;
+        },
+    });
     // replace names of components because some can not used, which are default html tags
     if (type === 'server') {
         modified_content = fix_reserved_tag_names(modified_content);
@@ -59,6 +61,7 @@ export async function compile_svelte_from_code(content, file, type, include_css 
         options.css = true;
     }
     try {
+        // console.log(content)
         // compile svelte
         const compiled = await compile(content, options);
         result = compiled;
@@ -79,7 +82,9 @@ export function type_value(type, client, server) {
 
 export async function compile_server_svelte_from_code(content, file) {
     const prepared_content = await prepare_code_to_compile(content, file, 'server');
-    return await compile_svelte_from_code(prepared_content, file, 'server');
+
+    const result = await compile_svelte_from_code(prepared_content, file, 'server');
+    return result;
 }
 export async function compile_client_svelte_from_code(content, file) {
     return await prepare_code_to_compile(content, file, 'client');

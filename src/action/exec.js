@@ -15,7 +15,8 @@ export async function exec_request(req, res, uid, force_generating_of_resources)
     const exec = get_exec_request(req);
     if (exec) {
         Logger.debug('exec', req.url, exec.url);
-        return await send_process_exec_request(req, res, uid, exec, force_generating_of_resources);
+        const result = await send_process_exec_request(req, res, uid, exec, force_generating_of_resources);
+        return result;
     }
     return false;
 }
@@ -70,6 +71,7 @@ export async function process_exec_request(req, res, uid, exec, force_generating
         await scripts(identifiers);
         copy(Cwd.get(FOLDER_GEN_JS, `${result.data._wyvr.identifier}.js`), js_path);
     }
+    
     // persist the result
     if (result?.result?.html && result?.data?._wyvr?.persist && Env.is_prod()) {
         const file = to_index(req.url, 'html');

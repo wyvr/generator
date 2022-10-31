@@ -10,12 +10,14 @@ import { Logger } from '../../../src/utils/logger.js';
 import { remove } from '../../../src/utils/file.js';
 import { readdirSync } from 'fs';
 import { existsSync } from 'fs';
+import { ReleasePath } from '../../../src/vars/release_path.js';
 
 describe('utils/global/register_prop', () => {
     const __dirname = join(to_dirname(import.meta.url), '_tests');
 
     before(() => {
         Cwd.set(__dirname);
+        ReleasePath.set(join(__dirname, 'release'));
     });
     afterEach(() => {
         delete global._prop_file;
@@ -23,6 +25,7 @@ describe('utils/global/register_prop', () => {
     });
     after(() => {
         Cwd.set(undefined);
+        Cwd.set(__dirname);
     });
 
     it('missing file', () => {

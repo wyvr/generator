@@ -31,6 +31,9 @@
     export let fixed = false;
 
     function get_src(src, w, h, m, q, f, use_width) {
+        if(Array.isArray(src)) {
+            src = src.filter((x) => x).join('/').replace(/^(https?):\/([^\/])/, '$1://$2');
+        }
         if (!src) {
             return '';
         }

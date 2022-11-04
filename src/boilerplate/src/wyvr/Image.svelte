@@ -31,6 +31,9 @@
     export let fixed = false;
 
     function get_src(src, w, h, m, q, f, use_width) {
+        if (!src) {
+            return '';
+        }
         let height = '';
         const width_addition = use_width ? ` ${w}w` : '';
         if(h > 0) {

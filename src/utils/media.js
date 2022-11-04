@@ -11,6 +11,7 @@ import { Logger } from './logger.js';
 import { get_error_message } from './error.js';
 import { MediaModelMode, MediaModelOutput } from '../struc/media.js';
 import { clone } from './json.js';
+import https from 'https';
 
 export async function process(media) {
     if (!match_interface(media, { result: true })) {
@@ -221,15 +222,16 @@ export async function get_buffer(src) {
     // download the image and return buffer from it
     if (src.indexOf('http') == 0) {
         try {
+            const httpsAgent = new https.Agent({ rejectUnauthorized: false });
             const res = await axios({
                 url: src,
                 method: 'GET',
                 responseType: 'arraybuffer',
+                httpsAgent,
             });
             return Buffer.from(res.data);
         } catch (err) {
-            // @TODO implement logging
-            // console.log(err);
+            Logger.error(get_error_message(err, src, 'media get_buffer'));
             return undefined;
         }
     }

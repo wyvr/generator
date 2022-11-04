@@ -22,6 +22,15 @@ export async function unknown_command(config) {
             desc: 'execute the cronjobs',
             flags: [],
         },
+        clear: {
+            desc: 'clear the caches and generated data',
+            flags: [
+                {
+                    key: 'hard',
+                    desc: 'delete everything'
+                }
+            ],
+        },
         app: {
             desc: 'run as a service for server side execution',
             flags: [

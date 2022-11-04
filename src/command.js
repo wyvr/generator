@@ -3,7 +3,7 @@ import { get_config_data } from './action/get_config_data.js';
 import { app_command } from './command/app.js';
 import { build_command } from './command/build.js';
 import { dev_command } from './command/dev.js';
-// import { clear_command } from './command/clear';
+import { clear_command } from './command/clear.js';
 // import { create_command } from './command/create';
 import { cron_command } from './command/cron.js';
 // import { health_command } from './command/health';
@@ -53,8 +53,9 @@ export async function command(config) {
         case 'version':
             result = await version_command(config);
             break;
-        // case 'clear':
-        //     return await clear_command(config);
+        case 'clear':
+            result = await clear_command(config);
+            break;
         // case 'create':
         //     return await create_command(config);
         case 'cron':

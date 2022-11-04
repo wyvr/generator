@@ -10,23 +10,30 @@ export function present(config_data) {
     if (id.length > 5) {
         formatted_id += Logger.color.dim(id.substring(5));
     }
-    let command = config_data?.cli?.command;
-    if (!filled_array(command)) {
-        command = ['-'];
-    }
-    command = command.join(' ')
+
     // prepare process
-    process.title = `wyvr ${command} ${process.pid}`;
     // present some variables
     Logger.present('pid', process.pid);
     Logger.present('cwd', Cwd.get());
 
     Logger.present('id', formatted_id);
     Logger.present('environment', Env.name());
+    const { command, flags } = get_present_command(config_data?.cli?.command, config_data?.cli?.flags);
+    process.title = `wyvr ${command} ${process.pid}`;
+    Logger.present('command', command, Logger.color.dim(flags));
+}
+export function get_present_command(command_array, flags_array) {
+    if (!filled_array(command_array)) {
+        command_array = ['-'];
+    }
+    let command = command_array.join(' ');
 
     let flags = '';
-    if (is_object(config_data?.cli?.flags)) {
-        flags = Object.keys(config_data.cli.flags).join(' ');
+    if (is_object(flags_array)) {
+        flags = Object.keys(flags_array).join(' ');
     }
-    Logger.present('command', command, Logger.color.dim(flags));
+    return {
+        command,
+        flags,
+    };
 }

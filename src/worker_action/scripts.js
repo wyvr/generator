@@ -1,5 +1,5 @@
 import { join } from 'path';
-import { FOLDER_GEN, FOLDER_GEN_CLIENT, FOLDER_GEN_JS } from '../constants/folder.js';
+import { FOLDER_GEN, FOLDER_GEN_CLIENT, FOLDER_GEN_JS, FOLDER_JS } from '../constants/folder.js';
 import { WyvrFileLoading } from '../struc/wyvr_file.js';
 import { build } from '../utils/build.js';
 import { get_config_cache } from '../utils/config_cache.js';
@@ -14,6 +14,7 @@ import { to_dirname, to_relative_path } from '../utils/to.js';
 import { filled_array, filled_string, in_array, is_null } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
+import { ReleasePath } from '../vars/release_path.js';
 
 const __dirname = to_dirname(import.meta.url);
 const lib_dir = join(__dirname, '..');
@@ -89,10 +90,10 @@ export async function scripts(identifiers) {
                                 file.config.loading
                             )
                         ) {
-                            const lazy_file_path = `/js/${to_extension(file.path, 'js')}`;
+                            const lazy_file_path = `/${FOLDER_JS}/${to_extension(file.path, 'js')}`;
                             const real_lazy_file_path = Cwd.get(FOLDER_GEN, lazy_file_path);
                             // write the lazy file from the component
-                            if (!exists(real_lazy_file_path)) {
+                            if (!exists(real_lazy_file_path) || Env.is_dev()) {
                                 // ${script_partials.hydrate}
                                 // ${script_partials.props}
                                 // ${script_partials.portal}
@@ -105,14 +106,17 @@ export async function scripts(identifiers) {
                             `,
                                     real_lazy_file_path
                                 );
-                                write(
-                                    real_lazy_file_path,
-                                    result.code.replace(
-                                        '%sourcemap%',
-                                        `# sourceMappingURL=${to_extension(file.path, 'js')}.map`
-                                    )
+
+                                const code = result.code.replace(
+                                    '%sourcemap%',
+                                    `# sourceMappingURL=${to_extension(file.path, 'js')}.map`
                                 );
+
+                                write(real_lazy_file_path, code);
+                                write(join(ReleasePath.get(), lazy_file_path), code);
+
                                 write(real_lazy_file_path + '.map', result.sourcemap);
+                                write(join(ReleasePath.get(), lazy_file_path + '.map'), result.sourcemap);
                             }
                             // set marker for the needed hydrate methods
                             has[file.config.loading] = true;
@@ -158,11 +162,13 @@ export async function scripts(identifiers) {
                 result = await build(build_content, identifier_file);
             }
 
-            write(
-                identifier_file,
-                result.code.replace('%sourcemap%', `# sourceMappingURL=/js/${identifier.identifier}.js.map`)
-            );
+            const code = result.code.replace('%sourcemap%', `# sourceMappingURL=/js/${identifier.identifier}.js.map`);
+
+            write(identifier_file, code);
+            write(join(ReleasePath.get(), FOLDER_JS, `${identifier.identifier}.js`), code);
+
             write(identifier_file + '.map', result.sourcemap);
+            write(join(ReleasePath.get(), FOLDER_JS, `${identifier.identifier}.js.map`), result.sourcemap);
             Logger.debug('identifier', identifier, dependencies);
         } catch (e) {
             Logger.error(get_error_message(e, identifier.identifier, 'script'));

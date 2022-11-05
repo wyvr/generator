@@ -22,6 +22,8 @@ import { WorkerController } from '../worker/controller.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { tmpdir } from 'os';
 
+let show_success = true;
+
 export function server(host, port, on_request, on_end) {
     if (!filled_string(host) || !is_number(port)) {
         Logger.warning('server could not be started because host or port is missing');
@@ -109,7 +111,9 @@ export function log_end(req, res, uid, start) {
             Logger.info(...message);
             return;
         case '2':
-            Logger.success(...message);
+            if (show_success) {
+                Logger.success(...message);
+            }
             return;
         case '3':
             Logger.warning(...message);
@@ -202,6 +206,7 @@ export function app_server(host, port) {
 
 export function watch_server(host, port, wsport, fallback) {
     Logger.emit = true;
+    show_success = false;
     generate_server(
         host,
         port,

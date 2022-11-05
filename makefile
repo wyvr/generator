@@ -9,7 +9,7 @@ SHELL := /bin/bash
 # base commands
 WYVR_LINT=npx eslint src --ext .js
 WYVR_TEST=npx mocha -R dot './test/**/*.test.js'
-WYVR_COVERAGE=npx c8 -x src/action -x src/command -x src/command.js -x src/worker.js -x src/worker_action -x src/resource --skip-full $(WYVR_TEST)
+WYVR_COVERAGE=npx c8 -x src/action -x src/command -x src/command.js -x src/worker.js -x src/no_worker.js -x src/worker_action -x src/resource --skip-full $(WYVR_TEST)
 READONLY_FILES=chmod +w test/utils/file/_tests/not_writeable.txt; echo -n "" > test/utils/file/_tests/not_writeable.txt; chmod -rw test/utils/file/_tests/not_writeable.txt
 
 compile-watch: ## Start watcher and make dev builds

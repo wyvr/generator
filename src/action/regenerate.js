@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { extname, join } from 'path';
 import { copy_files, copy_folder } from './copy.js';
 import { measure_action } from './helper.js';
 import { i18n } from './i18n.js';
@@ -25,7 +25,7 @@ import { get_config_cache, set_config_cache } from '../utils/config_cache.js';
 import { dependencies_from_content, flip_dependency_tree, get_identifiers_of_file } from '../utils/dependency.js';
 import { Event } from '../utils/event.js';
 import { build_cache } from '../utils/exec.js';
-import { copy, read, remove, to_extension, to_index } from '../utils/file.js';
+import { copy, exists, read, remove, to_extension, to_index } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { to_identifiers, to_relative_path, to_single_identifier_name } from '../utils/to.js';
 import { uniq_values } from '../utils/uniq.js';
@@ -153,6 +153,7 @@ export async function regenerate(changed_files) {
                     set_config_cache('dependencies.bottom', flip_dependency_tree(new_dep));
                 }
 
+                // when a split file gets edited, also add the original file
                 const combined_files = uniq_values(
                     [].concat(
                         files,
@@ -163,7 +164,18 @@ export async function regenerate(changed_files) {
                                 return Cwd.get(FOLDER_GEN_SRC, path);
                             })
                     )
-                );
+                )
+                    .map((file) => {
+                        if (extname(file) == '.svelte') {
+                            return file;
+                        }
+                        const svelte_file = to_extension(file, '.svelte');
+                        if (exists(svelte_file)) {
+                            return [file, svelte_file];
+                        }
+                        return file;
+                    })
+                    .flat(1);
 
                 // detect shortcode dependencies
                 const used_shortcode_identifiers = shortcode_identifiers.filter((identifier) => {
@@ -196,6 +208,7 @@ export async function regenerate(changed_files) {
                     }
                     file_configs[data.file] = data.config;
                 });
+
                 await WorkerController.process_in_workers(WorkerAction.transform, combined_files, 10, true);
 
                 // @TODO update dependencies
@@ -346,7 +359,7 @@ export async function regenerate(changed_files) {
         set_config_cache('identifiers', merged_identifiers);
 
         copy_folder(Cwd.get(FOLDER_GEN), [FOLDER_ASSETS, FOLDER_CSS, FOLDER_JS, FOLDER_I18N], ReleasePath.get());
-        
+
         // @TODO reload the whole browser page
         if (reload_page) {
             await sleep(200);

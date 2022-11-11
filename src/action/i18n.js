@@ -3,7 +3,7 @@ import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
 import { measure_action } from './helper.js';
 
-export async function i18n(available_packages) {
+export async function i18n(available_packages, minimize_output) {
     const name = 'i18n';
 
     let languages = [];
@@ -18,6 +18,6 @@ export async function i18n(available_packages) {
             });
             Logger.info('found', languages.length, 'languages', Logger.color.dim(languages.join(',')));
         });
-    });
+    }, minimize_output);
     return languages;
 }

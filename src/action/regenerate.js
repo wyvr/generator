@@ -79,7 +79,7 @@ export async function regenerate(changed_files) {
 
         // regenerate i18n
         if (in_array(fragments, FOLDER_I18N)) {
-            await i18n(packages);
+            await i18n(packages, true);
             copy_folder(Cwd.get(FOLDER_GEN), [FOLDER_I18N], ReleasePath.get());
             // @TODO reload the whole browser page
             reload_page = true;

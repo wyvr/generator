@@ -39,6 +39,9 @@ describe('action/get_config_data/get_config_data', () => {
             default_values: {},
             env: 'prod',
             https: true,
+            i18n: {
+                fallback: 'en',
+            },
             packages: undefined,
             releases: {
                 keep: 0,
@@ -77,6 +80,9 @@ describe('action/get_config_data/get_config_data', () => {
                 default_values: {},
                 env: 'prod',
                 https: true,
+                i18n: {
+                    fallback: 'en',
+                },
                 packages: undefined,
                 releases: {
                     keep: 0,
@@ -99,6 +105,9 @@ describe('action/get_config_data/get_config_data', () => {
             default_values: {},
             env: 'prod',
             https: true,
+            i18n: {
+                fallback: 'en',
+            },
             packages: undefined,
             releases: {
                 keep: 0,
@@ -120,6 +129,9 @@ describe('action/get_config_data/get_config_data', () => {
             default_values: {},
             env: 'dev',
             https: true,
+            i18n: {
+                fallback: 'en',
+            },
             packages: undefined,
             releases: {
                 keep: 0,
@@ -141,6 +153,9 @@ describe('action/get_config_data/get_config_data', () => {
             default_values: {},
             env: 'debug',
             https: true,
+            i18n: {
+                fallback: 'en',
+            },
             packages: undefined,
             releases: {
                 keep: 0,

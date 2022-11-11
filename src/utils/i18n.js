@@ -7,7 +7,7 @@ import { stringify } from './json.js';
 
 const language_cache = {};
 
-export function collect_i18n(packages) {
+export function collect_i18n(packages, fallback_language) {
     if (!filled_array(packages)) {
         return {};
     }
@@ -42,6 +42,23 @@ export function collect_i18n(packages) {
             });
         });
     });
+    // fill the translation with the translations from the base language
+    if (fallback_language && translations[fallback_language]) {
+        const base = translations[fallback_language];
+        const languages = Object.keys(translations).filter((lang) => lang != fallback_language);
+        Object.keys(base).forEach((group) => {
+            Object.keys(base[group]).forEach((key) => {
+                languages.forEach((lang) => {
+                    if (!translations[lang][group]) {
+                        translations[lang][group] = {};
+                    }
+                    if (!translations[lang][group][key]) {
+                        translations[lang][group][key] = base[group][key];
+                    }
+                });
+            });
+        });
+    }
     return translations;
 }
 

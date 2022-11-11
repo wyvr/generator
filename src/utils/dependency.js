@@ -168,6 +168,12 @@ function get_parents_of_file_recursive(tree, file) {
         return undefined;
     }
     const parents = tree[file];
-    parents.push(...tree[file].map((parent) => get_parents_of_file_recursive(tree, parent)));
+    // Maximum call stack size exceeded
+    try {
+        parents.push(...tree[file].map((parent) => get_parents_of_file_recursive(tree, parent)).filter((x) => x));
+    } catch (e) {
+        console.log(file, tree);
+        throw e;
+    }
     return parents;
 }

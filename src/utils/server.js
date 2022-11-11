@@ -22,7 +22,7 @@ import { WorkerController } from '../worker/controller.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { tmpdir } from 'os';
 
-let show_success = true;
+let show_all_requests = true;
 
 export function server(host, port, on_request, on_end) {
     if (!filled_string(host) || !is_number(port)) {
@@ -111,12 +111,14 @@ export function log_end(req, res, uid, start) {
             Logger.info(...message);
             return;
         case '2':
-            if (show_success) {
+            if (show_all_requests) {
                 Logger.success(...message);
             }
             return;
         case '3':
-            Logger.warning(...message);
+            if (show_all_requests) {
+                Logger.warning(...message);
+            }
             return;
         default:
             Logger.error(...message);
@@ -206,7 +208,7 @@ export function app_server(host, port) {
 
 export function watch_server(host, port, wsport, fallback) {
     Logger.emit = true;
-    show_success = false;
+    show_all_requests = false;
     generate_server(
         host,
         port,

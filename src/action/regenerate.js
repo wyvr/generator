@@ -96,6 +96,9 @@ export async function regenerate(changed_files) {
                 // @TODO reload the whole browser page
                 reload_page = true;
             }
+            if (exec.unlink) {
+                console.log('@TODO implement exec unlink');
+            }
             await build_cache();
         }
         const identifiers = {};
@@ -256,6 +259,9 @@ export async function regenerate(changed_files) {
                 // add the json paths to be executed as routes
                 routes.push(...data_files);
             }
+            if (src.unlink) {
+                console.log('@TODO implement src unlink');
+            }
         }
 
         if (in_array(fragments, FOLDER_DEVTOOLS)) {
@@ -270,8 +276,9 @@ export async function regenerate(changed_files) {
         // regenerate routes
         const collections = {};
         if (in_array(fragments, FOLDER_ROUTES)) {
-            if (frag_files.routes.change || frag_files.routes.add) {
-                const mod_routes = [].concat(frag_files.routes.change || [], frag_files.routes.add || []);
+            const routes = frag_files.routes;
+            if (routes.change || routes.add) {
+                const mod_routes = [].concat(routes.change || [], routes.add || []);
                 const mod_routes_copy = mod_routes.map((file) => ({ src: file.path, target: './' + file.rel_path }));
                 copy_files(mod_routes_copy, gen_folder);
                 const routes_data = mod_routes.map((file) => {
@@ -317,6 +324,9 @@ export async function regenerate(changed_files) {
                 Event.off('emit', identifier_name, identifier_id);
                 Event.off('emit', collection_name, collection_id);
                 Event.off('emit', routes_name, routes_id);
+            }
+            if (routes.unlink) {
+                console.log('@TODO implement routes unlink');
             }
             reload_page = true;
         }

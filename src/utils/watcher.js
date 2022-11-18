@@ -1,10 +1,12 @@
 import { Cwd } from '../vars/cwd.js';
 import { Logger } from './logger.js';
-import { filled_array } from './validate.js';
+import { filled_array, in_array } from './validate.js';
 import { watch } from 'chokidar';
 import { uniq_values } from './uniq.js';
 import { regenerate } from '../action/regenerate.js';
 import { get_config_cache } from './config_cache.js';
+import { extname, join } from 'path';
+import { to_extension } from './file.js';
 
 let watcher;
 let working = false;
@@ -62,8 +64,9 @@ export async function process_changed_files(changed_files, packages) {
     const package_tree = get_config_cache('package_tree');
 
     const changed_config_files = [];
+    const result = [];
     events.forEach((event) => {
-        changed_files[event] = changed_files[event].map((path) => {
+        changed_files[event].forEach((path) => {
             const pkg = packages.find((pkg) => path.indexOf(pkg.path) == 0);
             let pkg_path = '';
             if (pkg) {
@@ -89,15 +92,37 @@ export async function process_changed_files(changed_files, packages) {
                 restart_required = true;
                 changed_config_files.push(path);
             }
-            return {
+            if (!result[event]) {
+                result[event] = [];
+            }
+            result[event].push({
                 path,
                 rel_path,
                 pkg,
-            };
+            });
+            // special behaviour when css or js from svelte file gets changed or edited, also edit the svelte file
+            if (event == 'add' || event == 'change') {
+                const extension = extname(path);
+                if (in_array(['.css', '.scss', '.js', '.mjs', '.cjs', '.ts'], extension)) {
+                    const svelte_rel_path = to_extension(rel_path, '.svelte');
+                    const pkg = package_tree[svelte_rel_path];
+                    if(pkg) {
+                        const path = join(pkg.path, svelte_rel_path);
+                        if (!result.change) {
+                            result.change = [];
+                        }
+                        result.change.push({
+                            path,
+                            rel_path: svelte_rel_path,
+                            pkg,
+                        });
+                    }
+                }
+            }
         });
     });
 
-    await regenerate(changed_files);
+    await regenerate(result);
 }
 /* c8 ignore stop */
 export function ignore_watched_file(event, path) {

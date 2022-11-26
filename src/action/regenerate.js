@@ -35,6 +35,7 @@ import { ReleasePath } from '../vars/release_path.js';
 import { WatcherPaths } from '../vars/watcher_paths.js';
 import { WorkerController } from '../worker/controller.js';
 import { sleep } from '../utils/sleep.js';
+import { clear_cache } from '../utils/i18n.js';
 
 /**
  * Regenerate the files and the result of the given changed files
@@ -79,6 +80,7 @@ export async function regenerate(changed_files) {
 
         // regenerate i18n
         if (in_array(fragments, FOLDER_I18N)) {
+            clear_cache();
             await i18n(packages, true);
             copy_folder(Cwd.get(FOLDER_GEN), [FOLDER_I18N], ReleasePath.get());
             // @TODO reload the whole browser page

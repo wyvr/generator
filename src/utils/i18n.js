@@ -5,7 +5,7 @@ import { filled_array, filled_object, filled_string } from '../utils/validate.js
 import { Cwd } from '../vars/cwd.js';
 import { stringify } from './json.js';
 
-const language_cache = {};
+let language_cache = {};
 
 export function collect_i18n(packages, fallback_language) {
     if (!filled_array(packages)) {
@@ -95,6 +95,10 @@ export function clear_language(language) {
         return true;
     }
     return false;
+}
+
+export function clear_cache() {
+    language_cache = {};
 }
 
 export function inject_language(content, language) {

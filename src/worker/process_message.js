@@ -1,6 +1,8 @@
 import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerStatus } from '../struc/worker_status.js';
+import { clear_cache } from '../utils/i18n.js';
 import { Logger } from '../utils/logger.js';
+import { Env } from '../vars/env.js';
 import { build } from '../worker_action/build.js';
 import { compile } from '../worker_action/compile.js';
 import { configure } from '../worker_action/configure.js';
@@ -92,4 +94,8 @@ export async function process_message(msg) {
     send_status(WorkerStatus.done);
     // @TODO check memory limit, if near kill process
     send_status(WorkerStatus.idle);
+
+    if (Env.is_dev()) {
+        clear_cache();
+    }
 }

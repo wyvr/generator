@@ -84,6 +84,7 @@ export async function scripts(identifiers) {
                                 [
                                     WyvrFileLoading.lazy,
                                     WyvrFileLoading.idle,
+                                    WyvrFileLoading.interact,
                                     WyvrFileLoading.media,
                                     WyvrFileLoading.none,
                                 ],

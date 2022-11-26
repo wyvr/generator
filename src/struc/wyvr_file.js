@@ -5,7 +5,14 @@ export const WyvrHydrateDisplay = {
 
 export const WyvrFileRender = { static: 'static', hydrate: 'hydrate' };
 
-export const WyvrFileLoading = { instant: 'instant', lazy: 'lazy', idle: 'idle', media: 'media', none: 'none' };
+export const WyvrFileLoading = {
+    instant: 'instant',
+    lazy: 'lazy',
+    idle: 'idle',
+    interact: 'interact',
+    media: 'media',
+    none: 'none',
+};
 
 export const WyvrFileConfig = {
     display: WyvrHydrateDisplay.block,

@@ -28,7 +28,7 @@ const wyvr_interact_init = (e) => {
     wyvr_props(el).then((props) => {
         const target = wyvr_portal(el, props);
         const name = target.getAttribute('data-hydrate');
-        if (name && !wyvr_interact_classes[name].loaded) {
+        if (name && !wyvr_interact_classes[name]?.loaded) {
             wyvr_interact_classes[name].loaded = true;
             const script = document.createElement('script');
             script.setAttribute('src', wyvr_interact_classes[name].path);

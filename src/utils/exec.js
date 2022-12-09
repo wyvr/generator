@@ -70,9 +70,12 @@ export function get_exec(url, method, exec_cache) {
     if (!filled_string(url) || !filled_object(exec_cache)) {
         return undefined;
     }
+
+    // remove the get parameter from the url
+    const clean_url = url.split('?')[0];
     const normalized_method = is_string(method) ? method.trim().toLowerCase() : '';
     const exec_cache_key = Object.keys(exec_cache).find((key) => {
-        return url.match(new RegExp(key)) && in_array(exec_cache[key].methods, normalized_method);
+        return clean_url.match(new RegExp(key)) && in_array(exec_cache[key].methods, normalized_method);
     });
     if (!exec_cache_key) {
         return undefined;
@@ -84,9 +87,12 @@ export async function run_exec(request, response, uid, exec) {
     if (!match_interface(request, { url: true })) {
         return undefined;
     }
-    const params_match = request.url.match(exec.match);
+
+    // remove the get parameter from the url
+    const clean_url = request.url.split('?')[0];
+    const params_match = clean_url.match(exec.match);
     if (!params_match) {
-        Logger.error(uid, "can't extract params from url", request.url, exec);
+        Logger.error(uid, "can't extract params from url", clean_url, exec);
         return undefined;
     }
     // get parameters from url
@@ -141,7 +147,7 @@ export async function run_exec(request, response, uid, exec) {
         })
     );
 
-    data.url = request.url;
+    data.url = clean_url;
     const page_data = process_page_data(data, exec.mtime);
     page_data._wyvr.is_exec = true;
     page_data._wyvr.exec_pattern = exec.url;

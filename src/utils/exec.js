@@ -89,7 +89,19 @@ export async function run_exec(request, response, uid, exec) {
     }
 
     // remove the get parameter from the url
-    const clean_url = request.url.split('?')[0];
+    const split = request.url.split('?');
+    const clean_url = split[0];
+    const query = {};
+    if (split[1]) {
+        decodeURIComponent(split[1]).replace(/\+/g, ' ').split('&').forEach((entry) => {
+            const parts = entry.split('=');
+            if (parts.length == 1) {
+                query[parts[0]] = true;
+                return;
+            }
+            query[parts[0]] = parts[1];
+        });
+    }
     const params_match = clean_url.match(exec.match);
     if (!params_match) {
         Logger.error(uid, "can't extract params from url", clean_url, exec);
@@ -112,7 +124,7 @@ export async function run_exec(request, response, uid, exec) {
 
     // execute load function when set to get data
     let data = {};
-    const exec_object = {request, response, params};
+    const exec_object = { request, response, params, query };
     if (is_func(code.onExec)) {
         try {
             data = await code.onExec(exec_object);

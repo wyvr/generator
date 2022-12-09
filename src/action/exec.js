@@ -22,6 +22,10 @@ export async function exec_request(req, res, uid, force_generating_of_resources)
 }
 
 let exec_cache;
+export function clear_caches() {
+    exec_cache = undefined;
+    fallback_exec_cache = undefined;
+}
 export function get_exec_request(req) {
     if (!exec_cache) {
         exec_cache = get_config_cache('exec.cache');

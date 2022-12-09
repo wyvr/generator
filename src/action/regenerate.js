@@ -36,6 +36,7 @@ import { WatcherPaths } from '../vars/watcher_paths.js';
 import { WorkerController } from '../worker/controller.js';
 import { sleep } from '../utils/sleep.js';
 import { clear_cache } from '../utils/i18n.js';
+import { clear_caches } from './exec.js';
 
 /**
  * Regenerate the files and the result of the given changed files
@@ -101,6 +102,7 @@ export async function regenerate(changed_files) {
             if (exec.unlink) {
                 console.log('@TODO implement exec unlink');
             }
+            clear_caches();
             await build_cache();
         }
         const identifiers = {};

@@ -69,6 +69,9 @@ export function register_prop(file) {
     }
     global._prop = (prop, value) => {
         const converted = stringify(value);
+        if(value === undefined) {
+            return `|${prop}|:undefined`;
+        }
         if (converted.length > 1000) {
             const hash = create_hash(converted);
             const file_name = `${prop}_${hash}.json`;

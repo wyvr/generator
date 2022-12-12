@@ -25,7 +25,7 @@ export async function get_critical_css(content, file) {
             ],
             rebase: undefined,
         });
-        css = result.css;
+        css = result.css || '' + result.html || '';
     } catch (e) {
         Logger.error(get_error_message(e, file, 'critical'));
     }

@@ -56,7 +56,7 @@ describe('utils/global/register_prop', () => {
         const result = _prop('test', undefined);
         const prop_files = existsSync(folder) ? readdirSync(folder) : [];
         remove(folder);
-        deepStrictEqual(result, '|test|:undefined');
+        deepStrictEqual(result, '|test|:null');
         deepStrictEqual(prop_files, []);
     });
     it('generate hugh prop as file', () => {

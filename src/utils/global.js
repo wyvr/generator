@@ -69,7 +69,7 @@ export function register_prop(file) {
     }
     global._prop = (prop, value) => {
         if(value === undefined) {
-            return `|${prop}|:undefined`;
+            return `|${prop}|:null`;
         }
         const converted = stringify(value);
         if (converted.length > 1000) {

@@ -93,14 +93,17 @@ export async function run_exec(request, response, uid, exec) {
     const clean_url = split[0];
     const query = {};
     if (split[1]) {
-        decodeURIComponent(split[1]).replace(/\+/g, ' ').split('&').forEach((entry) => {
-            const parts = entry.split('=');
-            if (parts.length == 1) {
-                query[parts[0]] = true;
-                return;
-            }
-            query[parts[0]] = parts[1];
-        });
+        decodeURIComponent(split[1])
+            .replace(/\+/g, ' ')
+            .split('&')
+            .forEach((entry) => {
+                const parts = entry.split('=');
+                if (parts.length == 1) {
+                    query[parts[0]] = true;
+                    return;
+                }
+                query[parts[0]] = parts[1];
+            });
     }
     const params_match = clean_url.match(exec.match);
     if (!params_match) {
@@ -124,10 +127,24 @@ export async function run_exec(request, response, uid, exec) {
 
     // execute load function when set to get data
     let data = {};
-    const exec_object = { request, response, params, query };
+    const exec_object = {
+        request,
+        response,
+        params,
+        query,
+        returnJSON: (json, status = 200, headers = {}) => {
+            const response_header = Object.assign({}, headers);
+            response_header['Content-Type'] = 'application/json';
+            response.writeHead(status, response_header);
+            response.end(JSON.stringify(json));
+        },
+    };
     if (is_func(code.onExec)) {
         try {
             data = await code.onExec(exec_object);
+            if (response.writableEnded) {
+                return undefined;
+            }
         } catch (e) {
             Logger.error('[exec]', error_message('onExec'), get_error_message(e, exec.path, 'exec'));
         }
@@ -138,6 +155,9 @@ export async function run_exec(request, response, uid, exec) {
         data = {};
     }
 
+    exec_object.returnJSON = () => {
+        Logger.warning('[exec]', 'returnJSON can only be used in onExec');
+    };
     exec_object.data = data;
 
     // replace function properties

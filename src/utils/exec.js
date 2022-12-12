@@ -206,6 +206,10 @@ export function extract_exec_config(result, path) {
         })
         .join('\\/')}/?$`;
     let methods = ['get', 'head', 'post', 'put', 'delete', 'connect', 'options', 'trace', 'patch'];
+    // execute _wyvr to get insights into the executable
+    if(typeof result?._wyvr == 'function') {
+        result._wyvr = result._wyvr({});
+    }
     if (filled_array(result?._wyvr?.exec_methods)) {
         methods = result?._wyvr?.exec_methods.filter((method) => in_array(methods, method));
     }

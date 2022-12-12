@@ -178,7 +178,7 @@ export async function run_exec(request, response, uid, exec) {
         rendered_result.data = page_data;
     }
 
-    const injected_result = await inject(rendered_result, data, exec.path, (shortcode_emit) => {
+    const injected_result = await inject(rendered_result, page_data, exec.path, (shortcode_emit) => {
         // send_action(WorkerAction.emit, shortcode_emit);
         console.log('@TODO process shortcodes in exec', shortcode_emit);
     });

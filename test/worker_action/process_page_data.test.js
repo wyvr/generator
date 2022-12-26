@@ -27,13 +27,13 @@ describe('worker_action/process_page_data', () => {
         Logger.output.restore();
     });
 
-    it('undefined', () => {
-        deepStrictEqual(process_page_data(), undefined);
+    it('undefined', async () => {
+        deepStrictEqual(await process_page_data(), undefined);
     });
-    it('sample page', () => {
+    it('sample page', async () => {
         const mtime = new Date().toISOString();
         deepStrictEqual(
-            process_page_data(
+            await process_page_data(
                 {
                     url: '/url',
                     content: 'text',

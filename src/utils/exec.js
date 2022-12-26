@@ -185,7 +185,7 @@ export async function run_exec(request, response, uid, exec) {
     );
 
     data.url = clean_url;
-    const page_data = process_page_data(data, exec.mtime);
+    const page_data = await process_page_data(data, exec.mtime);
     page_data._wyvr.is_exec = true;
     page_data._wyvr.exec_pattern = exec.url;
 

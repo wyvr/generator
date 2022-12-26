@@ -4,12 +4,13 @@ import { Identifier } from '../model/identifier.js';
 import { WyvrData } from '../model/wyvr_data.js';
 import { Config } from '../utils/config.js';
 import { find_file } from '../utils/file.js';
+import { Plugin } from '../utils/plugin.js';
 import { to_server_path } from '../utils/to.js';
 import { set_default_values } from '../utils/transform.js';
 import { is_null } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 
-export function process_page_data(page_data, mtime) {
+export async function process_page_data(page_data, mtime) {
     if (is_null(page_data)) {
         return undefined;
     }
@@ -40,5 +41,7 @@ export function process_page_data(page_data, mtime) {
     // }
     // nav_data = Generate.add_to_nav(enhanced_data, nav_data);
 
-    return enhanced_data;
+    const plugin = await Plugin.process('process_page_data', enhanced_data);
+    const data = await plugin((data) => data);
+    return data.result;
 }

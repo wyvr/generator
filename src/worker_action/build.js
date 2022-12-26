@@ -24,7 +24,7 @@ export async function build(files) {
         Logger.debug('build', file);
         try {
             const raw_data = read_json(file);
-            const data = process_page_data(raw_data, raw_data?._wyvr?.mtime);
+            const data = await process_page_data(raw_data, raw_data?._wyvr?.mtime);
             if (is_null(data)) {
                 Logger.warning('empty data in', file);
                 continue;

@@ -22,6 +22,8 @@ import {
 import { process_page_data } from './../worker_action/process_page_data.js';
 import { inject } from './build.js';
 import { replace_imports } from './transform.js';
+import { register_i18n } from './global.js';
+import { get_language } from './i18n.js';
 
 export async function build_cache() {
     const files = collect_files(Cwd.get(FOLDER_GEN_EXEC));
@@ -140,6 +142,7 @@ export async function run_exec(request, response, uid, exec) {
         },
     };
     if (is_func(code.onExec)) {
+        register_i18n(get_language(data?._wyvr?.language || 'en'), exec.path);
         try {
             data = await code.onExec(exec_object);
             if (response.writableEnded) {
@@ -159,6 +162,8 @@ export async function run_exec(request, response, uid, exec) {
         Logger.warning('[exec]', 'returnJSON can only be used in onExec');
     };
     exec_object.data = data;
+
+    register_i18n(get_language(data?._wyvr?.language || 'en'), exec.path);
 
     // replace function properties
     await Promise.all(
@@ -227,7 +232,7 @@ export function extract_exec_config(result, path) {
         .join('\\/')}/?$`;
     let methods = ['get', 'head', 'post', 'put', 'delete', 'connect', 'options', 'trace', 'patch'];
     // execute _wyvr to get insights into the executable
-    if(typeof result?._wyvr == 'function') {
+    if (typeof result?._wyvr == 'function') {
         result._wyvr = result._wyvr({});
     }
     if (filled_array(result?._wyvr?.exec_methods)) {

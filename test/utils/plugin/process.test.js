@@ -67,4 +67,32 @@ describe('utils/plugin/process', () => {
         deepStrictEqual(args, [1, 2]);
         deepStrictEqual(logger_messages, []);
     });
+    it('undefined return in plugins', async () => {
+        Plugin.cache = {
+            a: {
+                before: [
+                    {
+                        fn: () => {
+                            
+                        },
+                        source: 'before',
+                    },
+                ],
+                after: [
+                    {
+                        fn: () => {
+
+                        },
+                        source: 'after',
+                    },
+                ],
+            },
+        };
+        const plugin = await Plugin.process('a', 1, 2);
+        strictEqual(typeof plugin, 'function');
+        const { args, error } = await plugin((...args) => args);
+        deepStrictEqual(error, undefined);
+        deepStrictEqual(args, [1, 2]);
+        deepStrictEqual(logger_messages, []);
+    });
 });

@@ -128,7 +128,7 @@ export class Plugin {
                     if (match_interface(partial_result, { args: true, config: true })) {
                         result = partial_result;
                     } else {
-                        if (filled_array(partial_result.args)) {
+                        if (filled_array(partial_result?.args)) {
                             result.args = partial_result.args;
                         }
                     }

@@ -27,7 +27,43 @@ describe('utils/plugin/process', () => {
         const plugin = await Plugin.process('a', 1, 2);
         strictEqual(typeof plugin, 'function');
         const { args, error } = await plugin();
-        deepStrictEqual(error, 'missing plugin function');
+        deepStrictEqual(error, ['missing plugin function']);
+        deepStrictEqual(args, [1, 2]);
+        deepStrictEqual(logger_messages, []);
+    });
+    it('no plugins found messages', async () => {
+        const plugin = await Plugin.process('a', 1, 2);
+        strictEqual(typeof plugin, 'function');
+        const { args, error } = await plugin((...args) => args);
+        deepStrictEqual(error, ['no before plugin for "a" found', 'no after plugin for "a" found']);
+        deepStrictEqual(args, [1, 2]);
+        deepStrictEqual(logger_messages, []);
+    });
+    it('no errors', async () => {
+        Plugin.cache = {
+            a: {
+                before: [
+                    {
+                        fn: (d) => {
+                            return d;
+                        },
+                        source: 'before',
+                    },
+                ],
+                after: [
+                    {
+                        fn: (d) => {
+                            return d;
+                        },
+                        source: 'after',
+                    },
+                ],
+            },
+        };
+        const plugin = await Plugin.process('a', 1, 2);
+        strictEqual(typeof plugin, 'function');
+        const { args, error } = await plugin((...args) => args);
+        deepStrictEqual(error, undefined);
         deepStrictEqual(args, [1, 2]);
         deepStrictEqual(logger_messages, []);
     });

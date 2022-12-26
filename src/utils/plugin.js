@@ -154,17 +154,23 @@ export class Plugin {
                 result: undefined,
             };
             if (!is_func(original_function)) {
-                out.error = 'missing plugin function';
+                out.error = ['missing plugin function'];
                 return out;
             }
-            await Plugin.before(name, ...args);
+            const before = await Plugin.before(name, ...args);
 
-            //await WorkerController.process_in_workers(name, data, 100);
+            out.error = [].concat(out.error, before.error);
+
             const result = await original_function(...args);
 
-            await Plugin.after(name, ...args);
+            const after = await Plugin.after(name, result, ...args);
+            out.error = [].concat(out.error, after.error);
 
-            out.result = result;
+            out.result = after.args[0];
+            out.error = out.error.filter((x) => x !== undefined);
+            if (out.error.length == 0) {
+                out.error = undefined;
+            }
             return out;
         };
     }

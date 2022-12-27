@@ -25,23 +25,24 @@ describe('utils/plugin/before', () => {
             a: {
                 before: [
                     {
-                        fn: ({ error, args, config }) => {
-                            return { error, args: args.map((i) => i + 1), config };
+                        fn: ({ args }) => {
+                            return args.map((i) => i + 1);
                         },
                         source: 'first',
                     },
                     {
-                        fn: ({ error, args }) => {
-                            return { error, args: args.map((i) => 'a' + i) };
+                        fn: ({ result }) => {
+                            return result.map((i) => 'a' + i);
                         },
                         source: 'second',
                     },
                 ],
             },
         };
-        const { args, error } = await Plugin.before('a', 1, 2);
+        const { args, error, result } = await Plugin.before('a', 1, 2);
         deepStrictEqual(error, undefined);
-        deepStrictEqual(args, ['a2', 'a3']);
+        deepStrictEqual(args, [1, 2]);
+        deepStrictEqual(result, ['a2', 'a3']);
         deepStrictEqual(logger_messages, []);
     });
 });

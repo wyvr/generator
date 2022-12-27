@@ -7,7 +7,7 @@ import { Cwd } from '../vars/cwd.js';
 import { get_error_message } from './error.js';
 import { collect_files } from './file.js';
 import { Logger } from './logger.js';
-import { filled_array, filled_string, in_array, is_func, is_null, match_interface } from './validate.js';
+import { filled_array, filled_string, in_array, is_func, is_null } from './validate.js';
 import { nano_to_milli } from './convert.js';
 import { search_segment } from './segment.js';
 import { ReleasePath } from '../vars/release_path.js';
@@ -73,12 +73,12 @@ export class Plugin {
     static async before(name, ...args) {
         return await (
             await this.execute(name, 'before')
-        )(...args);
+        )(undefined, ...args);
     }
-    static async after(name, ...args) {
+    static async after(name, result, ...args) {
         return await (
             await this.execute(name, 'after')
-        )(...args);
+        )(result, ...args);
     }
 
     /**
@@ -89,19 +89,21 @@ export class Plugin {
      */
     static async execute(name, type) {
         if (!filled_string(name) || !filled_string(type)) {
-            return async () => {
+            return async (result) => {
                 return {
                     error: 'missing plugin name or type',
                     args: undefined,
+                    result,
                 };
             };
         }
         const plugins = search_segment(this.cache, `${name}.${type}`);
         if (is_null(plugins)) {
-            return async (...args) => {
+            return async (result, ...args) => {
                 return {
                     error: `no ${type} plugin for "${name}" found`,
                     args,
+                    result,
                 };
             };
         }
@@ -111,8 +113,8 @@ export class Plugin {
             plugins.reverse();
         }
 
-        return async (...args) => {
-            let result = {
+        return async (result, ...args) => {
+            let data = {
                 err: undefined,
                 args,
                 config: {
@@ -120,17 +122,14 @@ export class Plugin {
                     release_path: ReleasePath.get(),
                     env: Env.name(),
                 },
+                result,
             };
             for (let i = 0, len = plugins.length; i < len; i++) {
                 const start = hrtime.bigint();
                 try {
-                    const partial_result = await plugins[i].fn(result);
-                    if (match_interface(partial_result, { args: true, config: true })) {
-                        result = partial_result;
-                    } else {
-                        if (filled_array(partial_result?.args)) {
-                            result.args = partial_result.args;
-                        }
+                    const partial_result = await plugins[i].fn(data);
+                    if (partial_result !== undefined) {
+                        data.result = partial_result;
                     }
                 } catch (e) {
                     Logger.error(
@@ -143,7 +142,7 @@ export class Plugin {
                 const duration = nano_to_milli(hrtime.bigint() - start);
                 Logger.report(duration, 'plugin', name, type, plugins[i].source);
             }
-            return result;
+            return data;
         };
     }
     static async process(name, ...args) {
@@ -166,7 +165,7 @@ export class Plugin {
             const after = await Plugin.after(name, result, ...args);
             out.error = [].concat(out.error, after.error);
 
-            out.result = after.args[0];
+            out.result = after.result;
             out.error = out.error.filter((x) => x !== undefined);
             if (out.error.length == 0) {
                 out.error = undefined;

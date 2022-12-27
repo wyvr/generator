@@ -23,23 +23,24 @@ describe('utils/plugin/after', () => {
             a: {
                 after: [
                     {
-                        fn: ({ error, args }) => {
-                            return { error, args: args.map((i) => 'a' + i) };
+                        fn: ({ result }) => {
+                            return result.map((i) => 'a' + i);
                         },
                         source: 'first',
                     },
                     {
-                        fn: ({ error, args }) => {
-                            return { error, args: args.map((i) => i + 1) };
+                        fn: ({ args }) => {
+                            return args.map((i) => i + 1);
                         },
                         source: 'second',
                     },
                 ],
             },
         };
-        const { args, error } = await Plugin.after('a', 1, 2);
+        const { args, error, result } = await Plugin.after('a', [], 1, 2);
         deepStrictEqual(error, undefined);
-        deepStrictEqual(args, ['a2', 'a3']);
+        deepStrictEqual(result, ['a2', 'a3']);
+        deepStrictEqual(args, [1, 2]);
         deepStrictEqual(logger_messages, []);
     });
 });

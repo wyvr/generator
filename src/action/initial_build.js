@@ -2,7 +2,7 @@ import { cpus } from 'os';
 import { get_config_data } from './get_config_data.js';
 import { collect_packages } from './package.js';
 import { present } from './present.js';
-import { FOLDER_GEN_PLUGINS, FOLDER_MEDIA, FOLDER_RELEASES, FOLDER_STORAGE } from '../constants/folder.js';
+import { FOLDER_MEDIA, FOLDER_RELEASES, FOLDER_STORAGE } from '../constants/folder.js';
 import { package_report } from '../presentation/package_report.js';
 import { Config } from '../utils/config.js';
 import { read_json, symlink } from '../utils/file.js';

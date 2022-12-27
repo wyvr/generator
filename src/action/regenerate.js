@@ -39,7 +39,7 @@ import { sleep } from '../utils/sleep.js';
 import { clear_cache } from '../utils/i18n.js';
 import { clear_caches } from './exec.js';
 import { Plugin } from '../utils/plugin.js';
-import { replace_import_path } from '../utils/transform.js';
+import { replace_src_path } from '../utils/transform.js';
 
 /**
  * Regenerate the files and the result of the given changed files
@@ -98,7 +98,7 @@ export async function regenerate(changed_files) {
             const modified_plugins = [].concat(plugins.change || [], plugins.add || []);
             if (modified_plugins.length > 0) {
                 modified_plugins.forEach((file) => {
-                    write(join(gen_folder, file.rel_path), replace_import_path(read(file.path)));
+                    write(join(gen_folder, file.rel_path), replace_src_path(read(file.path), FOLDER_GEN_SRC));
                 });
             }
             if (plugins.unlink) {

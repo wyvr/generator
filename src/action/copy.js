@@ -3,6 +3,7 @@ import { join } from 'path';
 import {
     FOLDER_GEN,
     FOLDER_GEN_ASSETS,
+    FOLDER_GEN_SRC,
     FOLDER_LIST_PACKAGE_COPY,
     FOLDER_PLUGINS,
     FOLDER_ROUTES,
@@ -14,7 +15,7 @@ import { collect_files, copy as copy_file, exists, read, write } from '../utils/
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
 import { to_relative_path } from '../utils/to.js';
-import { replace_import_path } from '../utils/transform.js';
+import { replace_src_path } from '../utils/transform.js';
 import { filled_array, filled_string, is_func } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { measure_action } from './helper.js';
@@ -52,7 +53,7 @@ export async function copy(available_packages) {
                     const target_key = file.target.replace(/^\.\//, '');
                     package_tree[target_key] = pkg;
                     if (target.indexOf(`/${FOLDER_PLUGINS}/`) > -1) {
-                        write(target, replace_import_path(read(target)));
+                        write(target, replace_src_path(read(target), FOLDER_GEN_SRC));
                     }
                 });
             });

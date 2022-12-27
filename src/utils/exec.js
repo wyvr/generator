@@ -25,6 +25,7 @@ import { replace_imports } from './transform.js';
 import { register_i18n } from './global.js';
 import { get_language } from './i18n.js';
 import { get_cache_breaker } from './cache_breaker.mjs';
+import { Plugin } from './plugin.js';
 
 export async function build_cache() {
     const files = collect_files(Cwd.get(FOLDER_GEN_EXEC));
@@ -129,12 +130,15 @@ export async function run_exec(request, response, uid, exec) {
     const error_message = (key) => `error in ${key} function`;
 
     // execute load function when set to get data
-    let data = {};
-    const exec_object = {
+    let data = {
+        url: clean_url
+    };
+    let exec_object = {
         request,
         response,
         params,
         query,
+        data,
         returnJSON: (json, status = 200, headers = {}) => {
             const response_header = Object.assign({}, headers);
             response_header['Content-Type'] = 'application/json';
@@ -142,6 +146,12 @@ export async function run_exec(request, response, uid, exec) {
             response.end(JSON.stringify(json));
         },
     };
+
+    const run_exec_construct_exec_object = await Plugin.process('run_exec_construct_exec_object', exec_object);
+    const { result } = await run_exec_construct_exec_object((exec_object) => {
+        return exec_object;
+    });
+    exec_object = result;
     if (is_func(code.onExec)) {
         register_i18n(get_language(data?._wyvr?.language || 'en'), exec.path);
         try {

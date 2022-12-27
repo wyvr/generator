@@ -3,6 +3,7 @@ import { FOLDER_GEN_SRC } from '../constants/folder.js';
 import { extract_wyvr_file_config } from '../model/wyvr_file.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerEmit } from '../struc/worker_emit.js';
+import { get_cache_breaker } from '../utils/cache_breaker.mjs';
 import { insert_import } from '../utils/compile.js';
 import { get_error_message } from '../utils/error.js';
 import { exists, read, symlink, write } from '../utils/file.js';
@@ -16,7 +17,7 @@ export async function transform(files) {
     if (!filled_array(files)) {
         return false;
     }
-    const cache_breaker = `?${Date.now()}`;
+    const cache_breaker = get_cache_breaker();
     
     for (const file of files) {
         if (!exists(file)) {

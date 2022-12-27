@@ -2,6 +2,7 @@ import { join } from 'path';
 import { FOLDER_GEN_CSS, FOLDER_GEN_SRC } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
+import { append_cache_breaker } from './cache_breaker.mjs';
 import { compile_server_svelte } from './compile.js';
 import { render_server_compiled_svelte } from './compile_svelte.js';
 import { write_css_file } from './css.js';
@@ -61,9 +62,14 @@ export async function replace_shortcode(html, data, file) {
     if (shortcode_imports) {
         const keys = Object.keys(shortcode_imports);
         const identifier = create_hash(keys.join('|'));
-        const cache_breaker = Env.is_dev() ? `?${Date.now()}` : '';
         const shortcode_content = `<script>${keys
-            .map((key) => `import ${key} from '${to_extension(shortcode_imports[key], 'js')}${cache_breaker}';`)
+            .map(
+                (key) =>
+                    `import ${key} from '${append_cache_breaker(
+                        to_extension(shortcode_imports[key], 'js'),
+                        Env.is_dev()
+                    )}';`
+            )
             .join('\n')}</script>${replaced_content}`;
         const exec_result = await compile_server_svelte(shortcode_content, file);
 

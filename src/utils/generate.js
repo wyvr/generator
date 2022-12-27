@@ -2,6 +2,7 @@ import { join } from 'path';
 import { FOLDER_GEN_SERVER } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
+import { get_cache_breaker } from './cache_breaker.mjs';
 import { search_segment } from './segment.js';
 import { filled_object } from './validate.js';
 
@@ -9,7 +10,7 @@ export function generate_page_code(data) {
     if (!filled_object(data)) {
         return undefined;
     }
-    const cache_breaker = Env.is_dev() ? `?${Date.now()}` : '';
+    const cache_breaker = get_cache_breaker(Env.is_dev());
 
     const base_path = Cwd.get(FOLDER_GEN_SERVER);
     const fallback_tmpl_files = {

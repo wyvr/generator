@@ -14,6 +14,7 @@ import { fix_reserved_tag_names, replace_imports, replace_src_path } from './tra
 import { register_inject, register_i18n, register_prop } from './global.js';
 import { inject } from './config.js';
 import { get_language } from './i18n.js';
+import { get_cache_breaker } from './cache_breaker.mjs';
 
 export async function prepare_code_to_compile(content, file, type) {
     if (!in_array(['client', 'server'], type) || !filled_string(content) || !filled_string(file)) {
@@ -21,13 +22,12 @@ export async function prepare_code_to_compile(content, file, type) {
     }
     const folder = type_value(type, FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER);
     const scope = `svelte ${type} prepare`;
-    const cache_breaker = Env.is_dev() ? `?${Date.now()}` : '';
     // replace names of components because some can not used, which are default html tags
     if (type === 'server') {
         content = fix_reserved_tag_names(content);
     }
     // replace the imports in this file
-    let modified_content = replace_imports(content, file, folder, scope, cache_breaker, {
+    let modified_content = replace_imports(content, file, folder, scope, get_cache_breaker(Env.is_dev()), {
         modify_path: (path, ext) => {
             if (type === 'server' && ext == '.svelte') {
                 return to_extension(path, 'js');

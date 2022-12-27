@@ -24,6 +24,7 @@ import { inject } from './build.js';
 import { replace_imports } from './transform.js';
 import { register_i18n } from './global.js';
 import { get_language } from './i18n.js';
+import { get_cache_breaker } from './cache_breaker.mjs';
 
 export async function build_cache() {
     const files = collect_files(Cwd.get(FOLDER_GEN_EXEC));
@@ -54,8 +55,8 @@ export async function load_exec(file) {
         return undefined;
     }
     let result;
-    const cache_breaker = `?${Date.now()}`;
-    const uniq_path = `${file}?${cache_breaker}`;
+    const cache_breaker = get_cache_breaker();
+    const uniq_path = `${file}${cache_breaker}`;
     write(file, replace_imports(read(file), file, FOLDER_GEN_SRC, 'exec', cache_breaker));
     try {
         result = await import(uniq_path);

@@ -3,6 +3,7 @@ import { FOLDER_GEN_DATA, FOLDER_GEN_ROUTES, FOLDER_GEN_SRC } from '../constants
 import { Route } from '../model/route.js';
 import { RouteStructure } from '../struc/route.js';
 import { Cwd } from '../vars/cwd.js';
+import { get_cache_breaker } from './cache_breaker.mjs';
 import { compile_markdown } from './compile.js';
 import { get_error_message } from './error.js';
 import { collect_files, create_dir, exists, read, remove_index, to_extension, to_index, write } from './file.js';
@@ -80,8 +81,8 @@ export async function execute_route(route) {
         case '.mjs':
         case '.cjs':
         case '.js':
-            const cache_breaker = `?${Date.now()}`;
-            const uniq_path = `${route.path}?${cache_breaker}`;
+            const cache_breaker = get_cache_breaker();
+            const uniq_path = `${route.path}${cache_breaker}`;
             let route_module, result;
             write(
                 route.path,

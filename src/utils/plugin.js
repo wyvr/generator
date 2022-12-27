@@ -12,6 +12,8 @@ import { nano_to_milli } from './convert.js';
 import { search_segment } from './segment.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { Env } from '../vars/env.js';
+import { FOLDER_GEN_PLUGINS } from '../constants/folder.js';
+import { set_config_cache } from './config_cache.js';
 
 export class Plugin {
     static async load(folder) {
@@ -172,6 +174,15 @@ export class Plugin {
             }
             return out;
         };
+    }
+    static async initialize() {
+        this.clear();
+        const plugin_files = await this.load(FOLDER_GEN_PLUGINS);
+        const plugins = await this.generate(plugin_files);
+        if (plugins) {
+            this.cache = plugins;
+            set_config_cache('plugins', plugins);
+        }
     }
 }
 Plugin.cache = {};

@@ -14,6 +14,7 @@ import { ReleasePath } from '../vars/release_path.js';
 import { Env } from '../vars/env.js';
 import { FOLDER_GEN_PLUGINS } from '../constants/folder.js';
 import { set_config_cache } from './config_cache.js';
+import { append_cache_breaker } from './cache_breaker.mjs';
 
 export class Plugin {
     static async load(folder) {
@@ -36,7 +37,7 @@ export class Plugin {
             files.map(async (file_path) => {
                 let plugin;
                 try {
-                    plugin = (await import(join(cwd, file_path))).default;
+                    plugin = (await import(join(cwd, append_cache_breaker(file_path)))).default;
                 } catch (e) {
                     Logger.error('error in plugin', file_path, get_error_message(e, file_path, 'plugin'));
                     return undefined;

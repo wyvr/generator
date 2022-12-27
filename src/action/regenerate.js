@@ -16,6 +16,7 @@ import {
     FOLDER_SRC,
     FOLDER_DEVTOOLS,
     FOLDER_CRON,
+    FOLDER_PLUGINS,
 } from '../constants/folder.js';
 import { Route } from '../model/route.js';
 import { WorkerAction } from '../struc/worker_action.js';
@@ -25,7 +26,7 @@ import { get_config_cache, set_config_cache } from '../utils/config_cache.js';
 import { dependencies_from_content, flip_dependency_tree, get_identifiers_of_file } from '../utils/dependency.js';
 import { Event } from '../utils/event.js';
 import { build_cache } from '../utils/exec.js';
-import { copy, exists, read, remove, to_extension, to_index } from '../utils/file.js';
+import { copy, exists, read, remove, to_extension, to_index, write } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { to_identifiers, to_relative_path, to_single_identifier_name } from '../utils/to.js';
 import { uniq_values } from '../utils/uniq.js';
@@ -37,6 +38,8 @@ import { WorkerController } from '../worker/controller.js';
 import { sleep } from '../utils/sleep.js';
 import { clear_cache } from '../utils/i18n.js';
 import { clear_caches } from './exec.js';
+import { Plugin } from '../utils/plugin.js';
+import { replace_import_path } from '../utils/transform.js';
 
 /**
  * Regenerate the files and the result of the given changed files
@@ -84,6 +87,26 @@ export async function regenerate(changed_files) {
             clear_cache();
             await i18n(packages, true);
             copy_folder(Cwd.get(FOLDER_GEN), [FOLDER_I18N], ReleasePath.get());
+            // @TODO reload the whole browser page
+            reload_page = true;
+        }
+
+        // regenerate plugins
+        if (in_array(fragments, FOLDER_PLUGINS)) {
+            const plugins = frag_files.plugins;
+
+            const modified_plugins = [].concat(plugins.change || [], plugins.add || []);
+            if (modified_plugins.length > 0) {
+                modified_plugins.forEach((file) => {
+                    write(join(gen_folder, file.rel_path), replace_import_path(read(file.path)));
+                });
+            }
+            if (plugins.unlink) {
+                plugins.unlink.forEach((file) => {
+                    remove(join(gen_folder, file.rel_path));
+                });
+            }
+            await Plugin.initialize();
             // @TODO reload the whole browser page
             reload_page = true;
         }

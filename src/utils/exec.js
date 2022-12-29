@@ -121,6 +121,9 @@ export async function run_exec(request, response, uid, exec) {
     let data = {
         url: clean_url,
     };
+    let status = 200;
+    let header = {};
+    let customHead = false;
     let exec_object = {
         request,
         response,
@@ -132,6 +135,14 @@ export async function run_exec(request, response, uid, exec) {
             response_header['Content-Type'] = 'application/json';
             response.writeHead(status, response_header);
             response.end(JSON.stringify(json));
+        },
+        setStatus: (statusCode = 200) => {
+            status = statusCode;
+            customHead = true;
+        },
+        setHeader: (key, value) => {
+            header[key] = value;
+            customHead = true;
         },
     };
 
@@ -186,6 +197,10 @@ export async function run_exec(request, response, uid, exec) {
             return undefined;
         })
     );
+    // when customHead is set execute it
+    if (customHead) {
+        response.writeHead(status, header);
+    }
 
     data.url = clean_url;
     const page_data = await process_page_data(data, exec.mtime);

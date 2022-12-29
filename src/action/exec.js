@@ -41,7 +41,7 @@ export async function fallback_exec_request(req, res, uid) {
             return false;
         }
         const result = await load_exec(fallback_file);
-        fallback_exec_cache = extract_exec_config(result, fallback_file);
+        fallback_exec_cache = await extract_exec_config(result, fallback_file);
         fallback_exec_cache.match = '.*';
     }
     return await send_process_exec_request(req, res, uid, fallback_exec_cache, false);

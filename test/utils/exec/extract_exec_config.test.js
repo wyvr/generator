@@ -13,15 +13,15 @@ describe('utils/exec/extract_exec_config', () => {
     });
     it('undefined', async () => {
         Cwd.set(join(dir, 'config'));
-        deepStrictEqual(extract_exec_config(), undefined);
+        deepStrictEqual(await extract_exec_config(), undefined);
     });
     it('non existing', async () => {
         Cwd.set(join(dir, 'config'));
-        deepStrictEqual(extract_exec_config({ url: '/test' }, join(dir, 'config/non-existing.js')), undefined);
+        deepStrictEqual(await extract_exec_config({ url: '/test' }, join(dir, 'config/non-existing.js')), undefined);
     });
     it('exists', async () => {
         Cwd.set(join(dir, 'config'));
-        const result = extract_exec_config({ url: '/test' }, join(dir, 'config/test.js'));
+        const result = await extract_exec_config({ url: '/test' }, join(dir, 'config/test.js'));
         result.mtime = 0;
         deepStrictEqual(result, {
             match: '^\\/test/?$',
@@ -35,7 +35,7 @@ describe('utils/exec/extract_exec_config', () => {
     });
     it('methods', async () => {
         Cwd.set(join(dir, 'config'));
-        const result = extract_exec_config(
+        const result = await extract_exec_config(
             {
                 url: '/methods',
                 _wyvr: {

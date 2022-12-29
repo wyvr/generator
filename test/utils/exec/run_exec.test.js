@@ -125,4 +125,104 @@ describe('utils/exec/run_exec', () => {
             ['✖', '[exec] error in title function @exec\n[Error] hihi\nsource errors.js'],
         ]);
     });
+    it('false return instead of object', async () => {
+        Cwd.set(join(dir, 'run'));
+        const result = await run_exec({ url: '/test/10', method: 'GET' }, {}, '0000', {
+            match: '^\\/test/([^\\]]*)$',
+            methods: ['get'],
+            mtime: 0,
+            params: ['id'],
+            path: join(dir, 'run/false.js'),
+            rel_path: join(dir, 'run/false.js'),
+            url: '/test',
+        });
+        const html = result?.result?.html;
+        deepStrictEqual(html, '');
+        deepStrictEqual(log, [
+            ['⚠', '[exec] onExec in /home/p/wyvr/generator/test/utils/exec/_tests/run/false.js should return a object'],
+        ]);
+    });
+    it('returnJson', async () => {
+        Cwd.set(join(dir, 'run'));
+        let head, json;
+        const result = await run_exec(
+            { url: '/test/10', method: 'GET' },
+            {
+                writeHead: (...args) => {
+                    head = args;
+                },
+                end: (...args) => {
+                    json = args;
+                },
+                writableEnded: true,
+            },
+            '0000',
+            {
+                match: '^\\/test/([^\\]]*)$',
+                methods: ['get'],
+                mtime: 0,
+                params: ['id'],
+                path: join(dir, 'run/return_json.js'),
+                rel_path: join(dir, 'run/return_json.js'),
+                url: '/test',
+            }
+        );
+        deepStrictEqual(result, undefined);
+        deepStrictEqual(head, [
+            404,
+            {
+                'Content-Type': 'application/json',
+            },
+        ]);
+        deepStrictEqual(json, ['{}']);
+    });
+    it('show all data', async () => {
+        Cwd.set(join(dir, 'run'));
+        const result = await run_exec({ url: '/test/10?a=b&c', method: 'GET' }, {}, '0000', {
+            match: '^\\/test/([^\\]]*)$',
+            methods: ['get'],
+            mtime: 0,
+            params: ['id'],
+            path: join(dir, 'run/show_all.js'),
+            rel_path: join(dir, 'run/show_all.js'),
+            url: '/test',
+        });
+        const html = result?.result?.html;
+        deepStrictEqual(
+            html,
+            '{"request":{"url":"/test/10?a=b&c","method":"GET"},"response":{},"params":{"id":"10","isExec":true},"query":{"a":"b","c":true},"data":{"url":"/test"}}'
+        );
+        deepStrictEqual(log, [['⚠', '[exec] returnJSON can only be used in onExec']]);
+    });
+    it('custom header', async () => {
+        Cwd.set(join(dir, 'run'));
+        let head, json;
+        const result = await run_exec(
+            { url: '/test/10', method: 'GET' },
+            {
+                writeHead: (...args) => {
+                    head = args;
+                },
+            },
+            '0000',
+            {
+                match: '^\\/test/([^\\]]*)$',
+                methods: ['get'],
+                mtime: 0,
+                params: ['id'],
+                path: join(dir, 'run/custom_head.js'),
+                rel_path: join(dir, 'run/custom_head.js'),
+                url: '/test',
+            }
+        );
+        const html = result?.result?.html;
+        deepStrictEqual(html, '');
+        deepStrictEqual(head, [
+            201,
+            {
+                'Custom-Head1': 'ch1',
+                'Custom-Head2': ['ch2', 'ch3'],
+            },
+        ]);
+    });
 });

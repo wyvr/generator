@@ -119,7 +119,7 @@ export async function run_exec(request, response, uid, exec) {
 
     // execute load function when set to get data
     let data = {
-        url: clean_url
+        url: clean_url,
     };
     let exec_object = {
         request,
@@ -141,7 +141,9 @@ export async function run_exec(request, response, uid, exec) {
     });
     exec_object = result;
     if (is_func(code.onExec)) {
-        register_i18n(get_language(data?._wyvr?.language || 'en'), exec.path);
+        /* c8 ignore next */
+        const language = data?._wyvr?.language || 'en';
+        register_i18n(get_language(language), exec.path);
         try {
             data = await code.onExec(exec_object);
             if (response.writableEnded) {
@@ -152,9 +154,9 @@ export async function run_exec(request, response, uid, exec) {
         }
     }
     // when onExec does not return a correct object force one
-    if (is_null(data)) {
+    if (!data) {
         Logger.warning('[exec]', `onExec in ${exec.path} should return a object`);
-        data = {};
+        data = exec_object.data;
     }
 
     exec_object.returnJSON = () => {
@@ -162,7 +164,9 @@ export async function run_exec(request, response, uid, exec) {
     };
     exec_object.data = data;
 
-    register_i18n(get_language(data?._wyvr?.language || 'en'), exec.path);
+    /* c8 ignore next */
+    const language = data?._wyvr?.language || 'en';
+    register_i18n(get_language(language), exec.path);
 
     // replace function properties
     await Promise.all(
@@ -194,9 +198,12 @@ export async function run_exec(request, response, uid, exec) {
 
     const rendered_result = await render_server_compiled_svelte(exec_result, page_data, exec.path);
 
+    /* c8 ignore start */
+    // safeguard
     if (!rendered_result) {
         return undefined;
     }
+    /* c8 ignore end */
 
     if (rendered_result) {
         rendered_result.data = page_data;

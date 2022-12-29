@@ -28,7 +28,7 @@ export function clear_caches() {
 }
 export function get_exec_request(req) {
     if (!exec_cache) {
-        exec_cache = get_config_cache('exec.cache');
+        exec_cache = get_config_cache('exec.cache')?.cache;
     }
     return get_exec(req.url, req.method, exec_cache);
 }

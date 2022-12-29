@@ -1,9 +1,7 @@
-import { strictEqual, deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'assert';
 import { describe, it } from 'mocha';
 import { join } from 'path';
-import Sinon from 'sinon';
 import { extract_exec_config } from '../../../src/utils/exec.js';
-import { to_plain } from '../../../src/utils/to.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 
 describe('utils/exec/extract_exec_config', () => {
@@ -31,6 +29,7 @@ describe('utils/exec/extract_exec_config', () => {
             path: join(dir, 'config/test.js'),
             rel_path: join(dir, 'config/test.js'),
             url: '/test',
+            weight: 1015,
         });
     });
     it('methods', async () => {
@@ -53,6 +52,67 @@ describe('utils/exec/extract_exec_config', () => {
             path: join(dir, 'config/methods.js'),
             rel_path: join(dir, 'config/methods.js'),
             url: '/methods',
+            weight: 1018,
         });
+    });
+    it('all methods', async () => {
+        Cwd.set(join(dir, 'config'));
+        const result = await extract_exec_config(
+            {
+                url: '/methods',
+                _wyvr: {
+                    exec_methods: 'all',
+                },
+            },
+            join(dir, 'config/methods.js')
+        );
+        result.mtime = 0;
+        deepStrictEqual(result.methods, [
+            'get',
+            'head',
+            'post',
+            'put',
+            'delete',
+            'connect',
+            'options',
+            'trace',
+            'patch',
+        ]);
+    });
+    it('weight test', async () => {
+        Cwd.set(join(dir, 'config'));
+        const result = await extract_exec_config(
+            {
+                url: '/exact/[param]/.*',
+            },
+            join(dir, 'config/weight.js')
+        );
+        result.mtime = 0;
+        deepStrictEqual(result.weight, 1137);
+        deepStrictEqual(result.params, ['param']);
+        deepStrictEqual(result.path, join(dir, 'config/weight.js'));
+    });
+    it('async _wyvr prop', async () => {
+        Cwd.set(join(dir, 'config'));
+        const result = await extract_exec_config(
+            {
+                url: '/exact/[param]/.*',
+                _wyvr: async () => {
+                    return new Promise((resolve, reject) => {
+                        setTimeout(() => {
+                            resolve({
+                                exec_methods: ['get'],
+                            });
+                        }, 5);
+                    });
+                },
+            },
+            join(dir, 'config/weight.js')
+        );
+        result.mtime = 0;
+        deepStrictEqual(result.methods, ['get']);
+        deepStrictEqual(result.weight, 1137);
+        deepStrictEqual(result.params, ['param']);
+        deepStrictEqual(result.path, join(dir, 'config/weight.js'));
     });
 });

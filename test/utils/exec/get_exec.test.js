@@ -14,8 +14,8 @@ describe('utils/exec/get_exec', () => {
     });
     it('matching exec', () => {
         deepStrictEqual(
-            get_exec('/huhu', 'GET', {
-                '^\\/huhu$': {
+            get_exec('/huhu', 'GET', [
+                {
                     url: '/huhu',
                     path: './huhu.js',
                     rel_path: 'huhu.js',
@@ -24,7 +24,7 @@ describe('utils/exec/get_exec', () => {
                     mtime: 0.0,
                     methods: ['get'],
                 },
-            }),
+            ]),
             {
                 url: '/huhu',
                 path: './huhu.js',
@@ -38,8 +38,8 @@ describe('utils/exec/get_exec', () => {
     });
     it('wrong formatted method', () => {
         deepStrictEqual(
-            get_exec('/huhu', ' PoST    ', {
-                '^\\/huhu$': {
+            get_exec('/huhu', ' PoST    ', [
+                {
                     url: '/huhu',
                     path: './huhu.js',
                     rel_path: 'huhu.js',
@@ -48,7 +48,7 @@ describe('utils/exec/get_exec', () => {
                     mtime: 0.0,
                     methods: ['post'],
                 },
-            }),
+            ]),
             {
                 match: '^\\/huhu$',
                 methods: ['post'],
@@ -62,8 +62,8 @@ describe('utils/exec/get_exec', () => {
     });
     it('unmatching exec', () => {
         deepStrictEqual(
-            get_exec('/huhu1', 'GET', {
-                '^\\/huhu$': {
+            get_exec('/huhu1', 'GET', [
+                {
                     url: '/huhu',
                     path: './huhu.js',
                     rel_path: 'huhu.js',
@@ -72,14 +72,14 @@ describe('utils/exec/get_exec', () => {
                     mtime: 0.0,
                     methods: ['get'],
                 },
-            }),
+            ]),
             undefined
         );
     });
     it('unmatching method', () => {
         deepStrictEqual(
-            get_exec('/huhu', 'PATCH', {
-                '^\\/huhu$': {
+            get_exec('/huhu', 'PATCH', [
+                {
                     url: '/huhu',
                     path: './huhu.js',
                     rel_path: 'huhu.js',
@@ -88,7 +88,7 @@ describe('utils/exec/get_exec', () => {
                     mtime: 0.0,
                     methods: ['get'],
                 },
-            }),
+            ]),
             undefined
         );
     });

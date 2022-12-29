@@ -9,16 +9,7 @@ import { collect_files, exists, read, write } from './file.js';
 import { generate_page_code } from './generate.js';
 import { Logger } from './logger.js';
 import { to_relative_path } from './to.js';
-import {
-    filled_array,
-    filled_object,
-    filled_string,
-    in_array,
-    is_func,
-    is_null,
-    is_string,
-    match_interface,
-} from './validate.js';
+import { filled_array, filled_string, in_array, is_func, is_null, is_string, match_interface } from './validate.js';
 import { process_page_data } from './../worker_action/process_page_data.js';
 import { inject } from './build.js';
 import { replace_imports } from './transform.js';
@@ -29,7 +20,7 @@ import { Plugin } from './plugin.js';
 
 export async function build_cache() {
     const files = collect_files(Cwd.get(FOLDER_GEN_EXEC));
-    const cache = {};
+    const cache = [];
     const executed_result = await Promise.all(
         files.map(async (file) => {
             Logger.debug(file);
@@ -39,15 +30,15 @@ export async function build_cache() {
                 return undefined;
             }
             const result = await load_exec(file);
-            const config = extract_exec_config(result, file);
+            const config = await extract_exec_config(result, file);
             if (config) {
-                cache[config.match] = config;
+                cache.push(config);
             }
 
             return file;
         })
     );
-    set_config_cache('exec.cache', cache);
+    set_config_cache('exec.cache', { cache: cache.sort((a, b) => b.weight - a.weight) });
     return executed_result.filter((x) => x);
 }
 
@@ -71,20 +62,17 @@ export async function load_exec(file) {
 }
 
 export function get_exec(url, method, exec_cache) {
-    if (!filled_string(url) || !filled_object(exec_cache)) {
+    if (!filled_string(url) || !filled_array(exec_cache)) {
         return undefined;
     }
 
     // remove the get parameter from the url
     const clean_url = url.split('?')[0];
     const normalized_method = is_string(method) ? method.trim().toLowerCase() : '';
-    const exec_cache_key = Object.keys(exec_cache).find((key) => {
-        return clean_url.match(new RegExp(key)) && in_array(exec_cache[key].methods, normalized_method);
+    const found_cache_item = exec_cache.find((item) => {
+        return clean_url.match(new RegExp(item.match)) && in_array(item.methods, normalized_method);
     });
-    if (!exec_cache_key) {
-        return undefined;
-    }
-    return exec_cache[exec_cache_key];
+    return found_cache_item;
 }
 
 export async function run_exec(request, response, uid, exec) {
@@ -249,6 +237,20 @@ export function extract_exec_config(result, path) {
     if (filled_array(result?._wyvr?.exec_methods)) {
         methods = result?._wyvr?.exec_methods.filter((method) => in_array(methods, method));
     }
+
+    // get specificity of the url, to detect the order of match checking
+    const weight = url_parts.reduce((sum, part) => {
+        let weight = 1000; // default weight of exact matches
+        if (part.match(/^\[.*\]$/)) {
+            weight = 100;
+        }
+        if (part == '.*' || part == '*' || !part.trim()) {
+            weight = 10;
+        }
+
+        return sum + weight;
+    }, result.url.length);
+
     return {
         url: result.url,
         path,
@@ -257,5 +259,6 @@ export function extract_exec_config(result, path) {
         match,
         mtime: stats.mtimeMs,
         methods,
+        weight,
     };
 }

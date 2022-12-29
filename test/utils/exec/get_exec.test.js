@@ -10,7 +10,20 @@ describe('utils/exec/get_exec', () => {
         deepStrictEqual(get_exec('/huhu', 'get'), undefined);
     });
     it('invalid method', () => {
-        deepStrictEqual(get_exec('/huhu', 1, { a: true }), undefined);
+        deepStrictEqual(
+            get_exec('/huhu', 1, [
+                {
+                    url: '/huhu',
+                    path: './huhu.js',
+                    rel_path: 'huhu.js',
+                    params: [],
+                    match: '^\\/huhu$',
+                    mtime: 0.0,
+                    methods: ['get'],
+                },
+            ]),
+            undefined
+        );
     });
     it('matching exec', () => {
         deepStrictEqual(

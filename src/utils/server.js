@@ -21,6 +21,7 @@ import { exists } from './file.js';
 import { WorkerController } from '../worker/controller.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { tmpdir } from 'os';
+import { extname } from 'path';
 
 let show_all_requests = true;
 
@@ -34,6 +35,19 @@ export function server(host, port, on_request, on_end) {
         if (Env.is_dev()) {
             res.setHeader('Wyvr-Uid', uid);
         }
+        // force redirect to urls with / at the end
+        const url = req.url;
+        let clean_url = url.replace(/\?.*/, '').replace(/#.*/, '');
+        const question_mark = url.indexOf('?');
+        const hash = url.indexOf('#');
+        if (!extname(clean_url) && clean_url[clean_url.length - 1] != '/') {
+            const params_pos = Math.min(question_mark > -1 ? question_mark : Number.MAX_SAFE_INTEGER, hash > -1 ? hash : Number.MAX_SAFE_INTEGER);
+            res.writeHead(Env.is_dev() ? 302 : 301, {
+                location: clean_url+'/'+url.substring(params_pos),
+            });
+            res.end();
+            return;
+        }
         if (is_func(on_request)) {
             on_request(req, res, uid, start);
         }
@@ -41,13 +55,13 @@ export function server(host, port, on_request, on_end) {
         const data = {};
         const query = {};
         // add query parameters to the request
-        const split_index = req.url.indexOf('?');
-        if (split_index > -1) {
-            const params = new URLSearchParams(req.url.substring(split_index + 1));
+        if (question_mark > -1) {
+            const params = new URLSearchParams(url.substring(question_mark + 1));
             Array.from(params.keys()).forEach((key) => {
                 query[key] = params.get(key);
             });
         }
+
         req.query = query;
         // stop without parsing the body when not post, patch, put
         if (!is_data_method(req.method)) {

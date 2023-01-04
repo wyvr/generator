@@ -2,13 +2,15 @@ import { dirname } from 'path';
 import { FOLDER_GEN_SRC } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { exists, find_file, to_extension } from './file.js';
-import { to_relative_path } from './to.js';
+import { to_relative_path_of_gen } from './to.js';
 import { replace_src } from './transform.js';
 import { filled_array, filled_object, filled_string, is_array, is_func, is_null } from './validate.js';
+import { Logger } from './logger.js';
 import { uniq_values } from './uniq.js';
 import { WyvrFileRender } from '../struc/wyvr_file.js';
 import { WyvrFile } from '../model/wyvr_file.js';
 import { Identifier } from '../model/identifier.js';
+import { get_error_message } from './error.js';
 
 export function dependencies_from_content(content, file) {
     if (!filled_string(content) || !filled_string(file)) {
@@ -21,7 +23,7 @@ export function dependencies_from_content(content, file) {
     }
     const deps = {};
     const i18n = {};
-    const key = to_relative_path(file);
+    const key = to_relative_path_of_gen(file);
     content.replace(/import .*? from ["']([^"']+)["'];?/g, (_, dep) => {
         if (is_null(deps[key])) {
             deps[key] = [];
@@ -45,7 +47,7 @@ export function dependencies_from_content(content, file) {
             );
         }
         if (dep_file) {
-            dep_file = to_relative_path(dep_file.replace(Cwd.get(), '.'));
+            dep_file = to_relative_path_of_gen(dep_file.replace(Cwd.get(), '.'));
             deps[key].push(dep_file);
         }
         return;
@@ -120,39 +122,44 @@ export function get_identifiers_of_file(reversed_tree, file) {
     if (!reversed_tree || !filled_string(file)) {
         return { identifiers_of_file: [], files: [] };
     }
-    const lists = get_parents_of_file_recursive(reversed_tree, file);
+    let lists = undefined;
+    try {
+        lists = get_parents_of_file_recursive(reversed_tree, file);
+    } catch (e) {
+        Logger.error(get_error_message(e, file, 'dependency'));
+    }
     if (is_null(lists)) {
         return { identifiers_of_file: [], files: [file] };
     }
     let has_values = false;
     const files = uniq_values([file].concat(...lists)).filter((x) => x);
 
+    const get_push_value = (file, path) => {
+        const index = file.indexOf(path);
+        if (index != 0) {
+            return undefined;
+        }
+        has_values = true;
+        return file.substring(index + path.length);
+    };
+
     files.forEach((file) => {
-        if (file.indexOf('doc/') == 0) {
-            parents.doc.push(file);
-            has_values = true;
-        }
-        if (file.indexOf('layout/') == 0) {
-            parents.layout.push(file);
-            has_values = true;
-        }
-        if (file.indexOf('page/') == 0) {
-            parents.page.push(file);
-            has_values = true;
-        }
+        ['doc', 'layout', 'page'].forEach((type) => {
+            const value = get_push_value(file, `src/${type}/`);
+            if (value) {
+                parents[type].push(value);
+            }
+        });
     });
     if (!has_values) {
         return { identifiers_of_file: [], files };
     }
-    if (!filled_array(parents.doc)) {
-        parents.doc.push(undefined);
-    }
-    if (!filled_array(parents.layout)) {
-        parents.layout.push(undefined);
-    }
-    if (!filled_array(parents.page)) {
-        parents.page.push(undefined);
-    }
+    // clean empty arrays
+    ['doc', 'layout', 'page'].forEach((type) => {
+        if (!filled_array(parents[type])) {
+            parents[type].push(undefined);
+        }
+    });
     const identifiers = [];
     parents.doc.forEach((doc) => {
         parents.layout.forEach((layout) => {
@@ -163,17 +170,15 @@ export function get_identifiers_of_file(reversed_tree, file) {
     });
     return { identifiers_of_file: uniq_values(identifiers), files };
 }
+
 function get_parents_of_file_recursive(tree, file) {
     if (!tree[file]) {
         return undefined;
     }
     const parents = tree[file];
     // Maximum call stack size exceeded
-    try {
-        parents.push(...tree[file].map((parent) => get_parents_of_file_recursive(tree, parent)).filter((x) => x));
-    } catch (e) {
-        console.log(file, tree);
-        throw e;
-    }
+    // @WARN this code can throw errors, use try catch when using
+    parents.push(...tree[file].map((parent) => get_parents_of_file_recursive(tree, parent)).filter((x) => x));
+
     return parents;
 }

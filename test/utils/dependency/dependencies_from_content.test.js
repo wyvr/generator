@@ -49,6 +49,7 @@ describe('utils/dependency/dependencies_from_content', () => {
             i18n: {},
         });
     });
+    
     it('different types', async () => {
         deepStrictEqual(
             dependencies_from_content(
@@ -64,7 +65,15 @@ describe('utils/dependency/dependencies_from_content', () => {
     it('replace @src', async () => {
         deepStrictEqual(dependencies_from_content(`import a from '@src/svelte.svelte';`, './file.js'), {
             dependencies: {
-                './file.js': ['./svelte.svelte'],
+                './file.js': ['src/svelte.svelte'],
+            },
+            i18n: {},
+        });
+    });
+    it('src in file path', async () => {
+        deepStrictEqual(dependencies_from_content(`import a from '@src/svelte.svelte';`, 'gen/src/file.js'), {
+            dependencies: {
+                'src/file.js': ['src/svelte.svelte'],
             },
             i18n: {},
         });
@@ -72,13 +81,13 @@ describe('utils/dependency/dependencies_from_content', () => {
     it('replace @src with absolute path', async () => {
         const file = join(Cwd.get(), 'file.js');
         const result = { dependencies: {}, i18n: {} };
-        result.dependencies[file] = ['./svelte.svelte'];
+        result.dependencies[file] = ['src/svelte.svelte'];
         deepStrictEqual(dependencies_from_content(`import a from '@src/svelte.svelte';`, file), result);
     });
     it('replace @src with found file in gen src', async () => {
         const file = join(Cwd.get(), 'file.js');
         const result = { dependencies: {}, i18n: {} };
-        result.dependencies[file] = ['gen_src.svelte'];
+        result.dependencies[file] = ['src/gen_src.svelte'];
         deepStrictEqual(dependencies_from_content(`import a from '@src/gen_src.svelte';`, file), result);
     });
     it('extract translations', async () => {

@@ -28,6 +28,18 @@ describe('model/wyvr_file', () => {
             from_lazy: undefined,
         });
     });
+    it('path', () => {
+        deepStrictEqual(WyvrFile('src/test/file'), {
+            name: 'test_file',
+            path: 'src/test/file',
+            config: WyvrFileConfig,
+            scripts: undefined,
+            styles: undefined,
+            props: undefined,
+            rel_path: '@src/test/file',
+            from_lazy: undefined,
+        });
+    });
     it('deep path', () => {
         deepStrictEqual(WyvrFile('gen/src/component/file'), {
             name: 'component_file',

@@ -8,7 +8,7 @@ import { insert_import } from '../utils/compile.js';
 import { get_error_message } from '../utils/error.js';
 import { exists, read, symlink, write } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
-import { to_client_path, to_relative_path, to_server_path } from '../utils/to.js';
+import { to_client_path, to_relative_path_of_gen, to_server_path } from '../utils/to.js';
 import { combine_splits, replace_imports } from '../utils/transform.js';
 import { filled_array, filled_string, in_array } from '../utils/validate.js';
 import { send_action } from '../worker/communication.js';
@@ -36,7 +36,7 @@ export async function transform(files) {
                 // extract wyvr file config and send the data
                 const dependency_emit = {
                     type: WorkerEmit.wyvr_config,
-                    file: to_relative_path(file),
+                    file: to_relative_path_of_gen(file),
                     config: extract_wyvr_file_config(content),
                 };
                 send_action(WorkerAction.emit, dependency_emit);

@@ -14,7 +14,7 @@ import { set_config_cache } from '../utils/config_cache.js';
 import { collect_files, copy as copy_file, exists, read, write } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
-import { to_relative_path } from '../utils/to.js';
+import { to_relative_path_of_gen } from '../utils/to.js';
 import { replace_src_path } from '../utils/transform.js';
 import { filled_array, filled_string, is_func } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
@@ -35,7 +35,7 @@ export async function copy(available_packages) {
             // Build Tree of files and packages
             packages.forEach((pkg) => {
                 copy_folder(pkg.path, FOLDER_LIST_PACKAGE_COPY, Cwd.get(FOLDER_GEN), (file, target) => {
-                    const rel_path = to_relative_path(target);
+                    const rel_path = to_relative_path_of_gen(target);
                     // get file modify time of route files
                     if (
                         target.match(new RegExp(`/${FOLDER_ROUTES}/`)) &&

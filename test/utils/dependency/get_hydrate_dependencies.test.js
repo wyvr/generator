@@ -22,36 +22,36 @@ describe('utils/dependency/get_hydrate_dependencies', () => {
         deepStrictEqual(
             get_hydrate_dependencies(
                 {
-                    'test/Parent.svelte': ['test/Middle.svelte', 'test/Nope.svelte', 'test/Second.svelte'],
-                    'test/Middle.svelte': ['test/Test.svelte'],
+                    'src/test/Parent.svelte': ['src/test/Middle.svelte', 'src/test/Nope.svelte', 'src/test/Second.svelte'],
+                    'src/test/Middle.svelte': ['src/test/Test.svelte'],
                 },
                 {
-                    'test/Test.svelte': {
+                    'src/test/Test.svelte': {
                         display: 'block',
                         render: 'hydrate',
                         loading: 'instant',
                         media: 'all',
                     },
-                    'test/Middle.svelte': {
+                    'src/test/Middle.svelte': {
                         display: 'block',
                         render: 'static',
                         loading: 'instant',
                         media: 'all',
                     },
-                    'test/Parent.svelte': {
+                    'src/test/Parent.svelte': {
                         display: 'block',
                         render: 'static',
                         loading: 'instant',
                         media: 'all',
                     },
-                    'test/Second.svelte': {
+                    'src/test/Second.svelte': {
                         display: 'block',
                         render: 'hydrate',
                         loading: 'instant',
                         media: 'all',
                     },
                 },
-                'test/Parent.svelte'
+                'src/test/Parent.svelte'
             ),
             [
                 {
@@ -63,7 +63,7 @@ describe('utils/dependency/get_hydrate_dependencies', () => {
                     },
                     from_lazy: undefined,
                     name: 'test_Test',
-                    path: 'test/Test.svelte',
+                    path: 'src/test/Test.svelte',
                     props: undefined,
                     rel_path: '@src/test/Test.svelte',
                     scripts: undefined,
@@ -79,7 +79,7 @@ describe('utils/dependency/get_hydrate_dependencies', () => {
                     },
                     from_lazy: undefined,
                     name: 'test_Second',
-                    path: 'test/Second.svelte',
+                    path: 'src/test/Second.svelte',
                     props: undefined,
                     rel_path: '@src/test/Second.svelte',
                     scripts: undefined,

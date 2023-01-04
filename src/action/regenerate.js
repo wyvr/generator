@@ -39,7 +39,8 @@ import { sleep } from '../utils/sleep.js';
 import { clear_cache } from '../utils/i18n.js';
 import { clear_caches } from './exec.js';
 import { Plugin } from '../utils/plugin.js';
-import { replace_src_path } from '../utils/transform.js';
+import { replace_imports } from '../utils/transform.js';
+import { get_cache_breaker } from '../utils/cache_breaker.mjs';
 
 /**
  * Regenerate the files and the result of the given changed files
@@ -94,11 +95,15 @@ export async function regenerate(changed_files) {
         // regenerate plugins
         if (in_array(fragments, FOLDER_PLUGINS)) {
             const plugins = frag_files.plugins;
+            const cache_breaker = get_cache_breaker();
 
             const modified_plugins = [].concat(plugins.change || [], plugins.add || []);
             if (modified_plugins.length > 0) {
                 modified_plugins.forEach((file) => {
-                    write(join(gen_folder, file.rel_path), replace_src_path(read(file.path), FOLDER_GEN_SRC));
+                    write(
+                        join(gen_folder, file.rel_path),
+                        replace_imports(read(file.path), file.path, FOLDER_GEN_SRC, 'plugins', cache_breaker)
+                    );
                 });
             }
             if (plugins.unlink) {
@@ -144,7 +149,7 @@ export async function regenerate(changed_files) {
                 const dependent_files = [];
                 const main_files = [];
                 const files = [].concat(src.change || [], src.add || []).map((file) => {
-                    const rel_path = file.rel_path.replace(/^src\//, '');
+                    const rel_path = file.rel_path.replace(/^(src\/)/, '$1');
                     const dep_result = dependencies_from_content(read(file.path), rel_path);
                     if (dep_result?.dependencies) {
                         if (!dependencies) {

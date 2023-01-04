@@ -1,4 +1,5 @@
 import { join } from 'path';
+import { FOLDER_SRC } from '../constants/folder.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { to_extension, write_json } from './file.js';
 import { filled_string, match_interface } from './validate.js';
@@ -7,12 +8,15 @@ export function get_structure(file, tree, file_config, package_tree) {
     if (!filled_string(file) || !tree || !file_config || !package_tree) {
         return undefined;
     }
-    const src_file = `src/${file}`;
-    const components = (tree[file] || []).map((child) => get_structure(child, tree, file_config, package_tree));
+    let src_file = file;
+    if (src_file.indexOf(FOLDER_SRC) != 0) {
+        src_file = join(FOLDER_SRC, file);
+    }
+    const components = (tree[src_file] || []).map((child) => get_structure(child, tree, file_config, package_tree));
     return {
-        file,
+        file: src_file,
         pkg: package_tree[src_file],
-        config: file_config[file],
+        config: file_config[src_file],
         components,
     };
 }

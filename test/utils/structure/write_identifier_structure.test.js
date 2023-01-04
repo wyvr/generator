@@ -74,9 +74,9 @@ describe('utils/structure/write_identifier_structure', () => {
         );
         deepStrictEqual(collect_files(path), [join(path, 'default.json')]);
         deepStrictEqual(read_json(join(path, 'default.json')), {
-            doc: { file: 'doc/Default.svelte', components: [] },
-            layout: { file: 'layout/Default.svelte', components: [] },
-            page: { file: 'page/Default.svelte', components: [] },
+            doc: { file: 'src/doc/Default.svelte', components: [] },
+            layout: { file: 'src/layout/Default.svelte', components: [] },
+            page: { file: 'src/page/Default.svelte', components: [] },
         });
     });
 });

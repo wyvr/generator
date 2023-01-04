@@ -1,6 +1,6 @@
 import { dirname, extname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
-import { FOLDER_GEN, FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC } from '../constants/folder.js';
+import { FOLDER_GEN, FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC, FOLDER_SRC } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { to_extension } from './file.js';
@@ -90,8 +90,40 @@ export function to_relative_path(path) {
     if (!filled_string(path)) {
         return '';
     }
-    const regex = new RegExp(`.+/${FOLDER_GEN}/[^/]+/`);
-    return path.replace(regex, '').replace(ReleasePath.get(), '');
+    let splitted = path.split('/');
+    const gen_index = splitted.indexOf(FOLDER_GEN);
+    const src_index = splitted.indexOf(FOLDER_SRC);
+    if (gen_index > -1 || src_index > -1) {
+        // gen and the next child or when only src is inside the path
+        const index = Math.max(gen_index + 1, src_index);
+        splitted = splitted.slice(index + 1);
+    }
+    
+    return splitted.join('/').replace(ReleasePath.get(), '');
+}
+/**
+ * Converts the given path to a relative path of gen
+ * @param {string} path
+ * @returns
+ */
+export function to_relative_path_of_gen(path) {
+    if (!filled_string(path)) {
+        return '';
+    }
+    return to_relative_from_markers(path, FOLDER_GEN).replace(ReleasePath.get(), '');
+}
+/**
+ * Converts the given path to a relative path of the given marker folders
+ * @param {string} path
+ * @returns
+ */
+export function to_relative_from_markers(path, ...markers) {
+    let parts = path.split('/');
+    const index = Math.max(...markers.map((marker) => parts.indexOf(marker)));
+    if (index > -1) {
+        parts = parts.slice(index + 1);
+    }
+    return parts.join('/');
 }
 /**
  * Converts the given path to gen/server path and convert svelte files to js
@@ -135,8 +167,7 @@ export function to_single_identifier_name(part) {
     let normalized_part = internal_part.replace(/\.[^.]+$/, '').toLowerCase();
     const index = normalized_part.indexOf(FOLDER_GEN_SERVER);
     if (index >= 0) {
-        normalized_part = normalized_part
-            .substring(index + FOLDER_GEN_SERVER.length);
+        normalized_part = normalized_part.substring(index + FOLDER_GEN_SERVER.length);
     }
 
     return normalized_part.replace(/^\/?(doc|layout|page)\//, '').replace(/\/|-/g, '_');

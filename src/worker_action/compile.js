@@ -6,7 +6,7 @@ import { get_config_cache } from '../utils/config_cache.js';
 import { get_error_message } from '../utils/error.js';
 import { exists, read, write } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
-import { to_client_path, to_relative_path, to_server_path } from '../utils/to.js';
+import { to_client_path, to_relative_path_of_gen, to_server_path } from '../utils/to.js';
 import { insert_hydrate_tag, remove_on_server, replace_wyvr_magic } from '../utils/transform.js';
 import { filled_array } from '../utils/validate.js';
 
@@ -25,7 +25,7 @@ export async function compile(files) {
             const server_file = to_server_path(file);
             let server_code = replace_wyvr_magic(content, false);
             if (server_code) {
-                const rel_path = to_relative_path(file);
+                const rel_path = to_relative_path_of_gen(file);
                 const entry = WyvrFile(rel_path);
                 entry.config = file_config[rel_path];
                 if (entry?.config?.render == WyvrFileRender.hydrate) {

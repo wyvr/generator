@@ -22,8 +22,8 @@ describe('utils/dependency/get_identifiers_of_file', () => {
         });
     });
     it('no identifier found', async () => {
-        deepStrictEqual(get_identifiers_of_file({}, 'test/Test.svelte'), {
-            files: ['test/Test.svelte'],
+        deepStrictEqual(get_identifiers_of_file({}, 'src/test/Test.svelte'), {
+            files: ['src/test/Test.svelte'],
             identifiers_of_file: [],
         });
     });
@@ -31,12 +31,12 @@ describe('utils/dependency/get_identifiers_of_file', () => {
         deepStrictEqual(
             get_identifiers_of_file(
                 {
-                    'test/Test.svelte': ['test/Parent.svelte'],
+                    'src/test/Test.svelte': ['src/test/Parent.svelte'],
                 },
-                'test/Test.svelte'
+                'src/test/Test.svelte'
             ),
             {
-                files: ['test/Test.svelte', 'test/Parent.svelte'],
+                files: ['src/test/Test.svelte', 'src/test/Parent.svelte'],
                 identifiers_of_file: [],
             }
         );
@@ -45,12 +45,12 @@ describe('utils/dependency/get_identifiers_of_file', () => {
         deepStrictEqual(
             get_identifiers_of_file(
                 {
-                    'test/Test.svelte': ['doc/Doc.svelte'],
+                    'src/test/Test.svelte': ['src/doc/Doc.svelte'],
                 },
-                'test/Test.svelte'
+                'src/test/Test.svelte'
             ),
             {
-                files: ['test/Test.svelte', 'doc/Doc.svelte'],
+                files: ['src/test/Test.svelte', 'src/doc/Doc.svelte'],
                 identifiers_of_file: [
                     {
                         doc: 'Doc.svelte',
@@ -66,12 +66,12 @@ describe('utils/dependency/get_identifiers_of_file', () => {
         deepStrictEqual(
             get_identifiers_of_file(
                 {
-                    'test/Test.svelte': ['layout/Layout.svelte'],
+                    'src/test/Test.svelte': ['src/layout/Layout.svelte'],
                 },
-                'test/Test.svelte'
+                'src/test/Test.svelte'
             ),
             {
-                files: ['test/Test.svelte', 'layout/Layout.svelte'],
+                files: ['src/test/Test.svelte', 'src/layout/Layout.svelte'],
                 identifiers_of_file: [
                     {
                         doc: 'Default.js',
@@ -87,12 +87,12 @@ describe('utils/dependency/get_identifiers_of_file', () => {
         deepStrictEqual(
             get_identifiers_of_file(
                 {
-                    'test/Test.svelte': ['page/Page.svelte'],
+                    'src/test/Test.svelte': ['src/page/Page.svelte'],
                 },
-                'test/Test.svelte'
+                'src/test/Test.svelte'
             ),
             {
-                files: ['test/Test.svelte', 'page/Page.svelte'],
+                files: ['src/test/Test.svelte', 'src/page/Page.svelte'],
                 identifiers_of_file: [
                     {
                         doc: 'Default.js',
@@ -108,18 +108,18 @@ describe('utils/dependency/get_identifiers_of_file', () => {
         deepStrictEqual(
             get_identifiers_of_file(
                 {
-                    'test/Test.svelte': ['test/Deep.svelte'],
-                    'test/Deep.svelte': ['doc/Doc.svelte', 'layout/Layout.svelte', 'page/Page.svelte'],
+                    'src/test/Test.svelte': ['src/test/Deep.svelte'],
+                    'src/test/Deep.svelte': ['src/doc/Doc.svelte', 'src/layout/Layout.svelte', 'src/page/Page.svelte'],
                 },
-                'test/Test.svelte'
+                'src/test/Test.svelte'
             ),
             {
                 files: [
-                    'test/Test.svelte',
-                    'test/Deep.svelte',
-                    'doc/Doc.svelte',
-                    'layout/Layout.svelte',
-                    'page/Page.svelte',
+                    'src/test/Test.svelte',
+                    'src/test/Deep.svelte',
+                    'src/doc/Doc.svelte',
+                    'src/layout/Layout.svelte',
+                    'src/page/Page.svelte',
                 ],
                 identifiers_of_file: [
                     {

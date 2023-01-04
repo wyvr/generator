@@ -8,7 +8,7 @@ import { get_error_message } from './error.js';
 import { collect_files, exists, read, write } from './file.js';
 import { generate_page_code } from './generate.js';
 import { Logger } from './logger.js';
-import { to_relative_path } from './to.js';
+import { to_relative_path_of_gen } from './to.js';
 import { filled_array, filled_string, in_array, is_func, is_null, is_string, match_interface } from './validate.js';
 import { process_page_data } from './../worker_action/process_page_data.js';
 import { inject } from './build.js';
@@ -276,7 +276,7 @@ export async function extract_exec_config(result, path) {
     return {
         url: result.url,
         path,
-        rel_path: to_relative_path(path),
+        rel_path: to_relative_path_of_gen(path),
         params,
         match,
         mtime: stats.mtimeMs,

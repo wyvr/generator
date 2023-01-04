@@ -68,4 +68,12 @@ describe('model/identifier', () => {
             page: 'test/Default.js',
         });
     });
+    it('full paths', () => {
+        deepStrictEqual(Identifier('somewhere/on/the/fs/gen/server/doc/test/Default.js', 'somewhere/on/the/fs/gen/server/layout/test/Default.js', 'somewhere/on/the/fs/gen/server/page/test/Default.js'), {
+            identifier: 'test_default-test_default-test_default',
+            doc: 'test/Default.js',
+            layout: 'test/Default.js',
+            page: 'test/Default.js',
+        });
+    });
 });

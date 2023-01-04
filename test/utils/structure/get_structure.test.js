@@ -29,8 +29,8 @@ describe('utils/structure/get_structure', () => {
         deepStrictEqual(get_structure(), undefined);
     });
     it('simple', async () => {
-        deepStrictEqual(get_structure('file', { file: [] }, { file: config }, { 'src/file': pkg }), {
-            file: 'file',
+        deepStrictEqual(get_structure('file', { 'src/file': [] }, { 'src/file': config }, { 'src/file': pkg }), {
+            file: 'src/file',
             pkg: {
                 name: 'Pkg',
                 path: '/path/pkg',
@@ -45,8 +45,8 @@ describe('utils/structure/get_structure', () => {
         });
     });
     it('not found', async () => {
-        deepStrictEqual(get_structure('not_found', { file: [] }, { file: config }, { 'src/file': pkg }), {
-            file: 'not_found',
+        deepStrictEqual(get_structure('not_found', { 'src/file': [] }, { 'src/file': config }, { 'src/file': pkg }), {
+            file: 'src/not_found',
             pkg: undefined,
             config: undefined,
             components: [],
@@ -56,10 +56,10 @@ describe('utils/structure/get_structure', () => {
         deepStrictEqual(
             get_structure(
                 'file',
-                { file: ['child'] },
+                { 'src/file': ['src/child'] },
                 {
-                    file: config,
-                    child: {
+                    'src/file': config,
+                    'src/child': {
                         display: 'inline',
                         render: 'hydrate',
                         loading: 'lazy',
@@ -76,7 +76,7 @@ describe('utils/structure/get_structure', () => {
                 }
             ),
             {
-                file: 'file',
+                file: 'src/file',
                 pkg: {
                     name: 'Pkg',
                     path: '/path/pkg',
@@ -89,7 +89,7 @@ describe('utils/structure/get_structure', () => {
                 },
                 components: [
                     {
-                        file: 'child',
+                        file: 'src/child',
                         pkg: {
                             name: 'Pkg2',
                             path: '/path/pkg2',

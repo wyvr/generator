@@ -1,4 +1,4 @@
-import { dirname } from 'path';
+import { dirname, extname } from 'path';
 import { FOLDER_GEN_SRC } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { exists, find_file, to_extension } from './file.js';
@@ -34,10 +34,14 @@ export function dependencies_from_content(content, file) {
         }
         // replace @src
         dep = replace_src(dep, '');
-        const dep_file_path = Cwd.get(FOLDER_GEN_SRC, dep);
+        const dep_file_path_with_src = Cwd.get(FOLDER_GEN_SRC, dep);
         let dep_file;
-        if (exists(dep_file_path)) {
-            dep_file = dep_file_path;
+        if (exists(dep_file_path_with_src)) {
+            dep_file = dep_file_path_with_src;
+        } else {
+            if(dep[0] === '/' && extname(dep) && exists(dep)) {
+                dep_file = dep;
+            }
         }
         // search for the file
         if (is_null(dep_file)) {

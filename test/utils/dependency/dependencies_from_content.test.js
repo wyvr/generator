@@ -1,4 +1,5 @@
 import { deepStrictEqual } from 'assert';
+import { readFileSync } from 'fs';
 import { describe, it } from 'mocha';
 import { join } from 'path';
 import { dependencies_from_content } from '../../../src/utils/dependency.js';
@@ -49,7 +50,7 @@ describe('utils/dependency/dependencies_from_content', () => {
             i18n: {},
         });
     });
-    
+
     it('different types', async () => {
         deepStrictEqual(
             dependencies_from_content(
@@ -89,6 +90,27 @@ describe('utils/dependency/dependencies_from_content', () => {
         const result = { dependencies: {}, i18n: {} };
         result.dependencies[file] = ['src/gen_src.svelte'];
         deepStrictEqual(dependencies_from_content(`import a from '@src/gen_src.svelte';`, file), result);
+    });
+    it('extract from plugin', async () => {
+        const file = join('plugins', 'test.mjs');
+        const file_path = join(Cwd.get(), 'gen', file);
+        const result = { dependencies: {}, i18n: {} };
+        result.dependencies[file] = ['src/test.mjs'];
+        deepStrictEqual(dependencies_from_content(readFileSync(file_path, { encoding: 'utf-8' }), file), result);
+    });
+    it('extract from plugin with absolute paths', async () => {
+        const file = join('plugins', 'test_abs.mjs');
+        const file_path = join(Cwd.get(), 'gen', file);
+        const result = { dependencies: {}, i18n: {} };
+        result.dependencies[file] = ['src/test.mjs'];
+        const content = readFileSync(file_path, { encoding: 'utf-8' }).replace(/\[cwd\]/g, Cwd.get());
+        deepStrictEqual(
+            dependencies_from_content(
+                content,
+                file
+            ),
+            result
+        );
     });
     it('extract translations', async () => {
         deepStrictEqual(dependencies_from_content(`__('test')`, './file.js'), {

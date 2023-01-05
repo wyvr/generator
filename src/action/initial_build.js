@@ -74,9 +74,6 @@ export async function pre_initial_build(build_id, config_data) {
     // Create required symlinks
     symlink(Cwd.get(FOLDER_MEDIA), join(ReleasePath.get(), FOLDER_MEDIA));
 
-    // Initialize Plugins
-    await Plugin.initialize();
-
     return {
         package_json,
         available_packages,
@@ -105,6 +102,9 @@ export async function intial_build(build_id, config) {
 
     // Transform Svelte files to client and server components
     await transform();
+
+    // Initialize Plugins
+    await Plugin.initialize();
 
     // Extract dependencies
     await dependencies();

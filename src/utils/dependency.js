@@ -39,7 +39,7 @@ export function dependencies_from_content(content, file) {
         if (exists(dep_file_path_with_src)) {
             dep_file = dep_file_path_with_src;
         } else {
-            if(dep[0] === '/' && extname(dep) && exists(dep)) {
+            if (dep[0] === '/' && extname(dep) && exists(dep)) {
                 dep_file = dep;
             }
         }
@@ -130,8 +130,10 @@ export function get_identifiers_of_file(reversed_tree, file) {
     try {
         lists = get_parents_of_file_recursive(reversed_tree, file);
     } catch (e) {
+        /* c8 ignore start */
         Logger.error(get_error_message(e, file, 'dependency'));
     }
+    /* c8 ignore end */
     if (is_null(lists)) {
         return { identifiers_of_file: [], files: [file] };
     }
@@ -175,14 +177,19 @@ export function get_identifiers_of_file(reversed_tree, file) {
     return { identifiers_of_file: uniq_values(identifiers), files };
 }
 
-function get_parents_of_file_recursive(tree, file) {
+export function get_parents_of_file_recursive(tree, file) {
     if (!tree[file]) {
         return undefined;
     }
     const parents = tree[file];
-    // Maximum call stack size exceeded
-    // @WARN this code can throw errors, use try catch when using
-    parents.push(...tree[file].map((parent) => get_parents_of_file_recursive(tree, parent)).filter((x) => x));
+    try {
+        // Maximum call stack size exceeded can easily occure here
+        parents.push(...tree[file].map((parent) => get_parents_of_file_recursive(tree, parent)).filter((x) => x));
+    } catch (e) {
+        /* c8 ignore start */
+        Logger.error(get_error_message(e, file, 'dependency'));
+    }
+    /* c8 ignore end */
 
     return parents;
 }

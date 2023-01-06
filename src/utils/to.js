@@ -1,6 +1,13 @@
 import { dirname, extname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
-import { FOLDER_GEN, FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC, FOLDER_SRC } from '../constants/folder.js';
+import {
+    FOLDER_GEN,
+    FOLDER_GEN_CLIENT,
+    FOLDER_GEN_SERVER,
+    FOLDER_GEN_SRC,
+    FOLDER_SERVER,
+    FOLDER_SRC,
+} from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { to_extension } from './file.js';
@@ -98,7 +105,7 @@ export function to_relative_path(path) {
         const index = Math.max(gen_index + 1, src_index);
         splitted = splitted.slice(index + 1);
     }
-    
+
     return splitted.join('/').replace(ReleasePath.get(), '');
 }
 /**
@@ -164,11 +171,11 @@ export function to_identifier_name(...parts) {
 }
 export function to_single_identifier_name(part) {
     const internal_part = !filled_string(part) ? 'default' : part;
-    let normalized_part = internal_part.replace(/\.[^.]+$/, '').toLowerCase();
-    const index = normalized_part.indexOf(FOLDER_GEN_SERVER);
-    if (index >= 0) {
-        normalized_part = normalized_part.substring(index + FOLDER_GEN_SERVER.length);
-    }
+    let normalized_part = to_relative_from_markers(
+        internal_part.replace(/\.[^.]+$/, '').toLowerCase(),
+        FOLDER_GEN_SERVER,
+        FOLDER_SERVER
+    );
 
     return normalized_part.replace(/^\/?(doc|layout|page)\//, '').replace(/\/|-/g, '_');
 }

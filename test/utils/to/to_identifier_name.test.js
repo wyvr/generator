@@ -120,4 +120,14 @@ describe('utils/to/to_identifier_name', () => {
             'demo_doc_test_doc-test_layout'
         );
     });
+    it('with relative paths', () => {
+        deepStrictEqual(
+            to_identifier_name(
+                join('server', 'doc', 'test', 'Doc.svelte'),
+                join('server', 'layout', 'test', 'Layout.svelte'),
+                join('server', 'page', 'test', 'Page.svelte'),
+            ),
+            'test_doc-test_layout-test_page'
+        );
+    });
 });

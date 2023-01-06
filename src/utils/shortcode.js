@@ -130,10 +130,28 @@ export function parse_props(prop_content, file) {
         return undefined;
     }
     const props = {};
+    prop_content = prop_content.replace(/&quot;/g, '"');
     const data_length = prop_content.length;
     let parentese = 0;
     let prop_name = '';
     let prop_value = '';
+    let name_is_done = false;
+    let is_string = false;
+    const set_prop = () => {
+        parentese = 0;
+        prop_name = prop_name.trim();
+        try {
+            const prop_exec = `JSON.stringify(${prop_value})`;
+            prop_value = eval(prop_exec);
+            props[prop_name] = prop_value.replace(/\n\s*/gm, ''); //.replace(/"/g, '&quot;');
+        } catch (e) {
+            Logger.warning('shortcode', `shortcode prop "${prop_name}" can not be converted in ${file}`);
+        }
+        prop_name = '';
+        prop_value = '';
+        name_is_done = false;
+        is_string = false;
+    };
     for (let i = 0; i < data_length; i++) {
         const char = prop_content[i];
         if (char == '{') {
@@ -145,20 +163,27 @@ export function parse_props(prop_content, file) {
         if (char == '}') {
             parentese--;
             if (parentese == 0) {
-                try {
-                    const prop_exec = `JSON.stringify(${prop_value})`;
-                    prop_value = eval(prop_exec);
-                    props[prop_name.trim()] = prop_value.replace(/\n\s*/gm, ''); //.replace(/"/g, '&quot;');
-                } catch (e) {
-                    Logger.warning('shortcode', `shortcode prop "${prop_name}" can not be converted in ${file}`);
-                }
-                prop_name = '';
-                prop_value = '';
+                set_prop();
                 continue;
             }
         }
-        if (char != '=' && parentese == 0) {
+        if (char != '=' && parentese == 0 && !name_is_done) {
             prop_name += char;
+            continue;
+        }
+        if (char == '=' && parentese == 0) {
+            name_is_done = true;
+            continue;
+        }
+        if (name_is_done && parentese == 0 && (char == '"' || char == "'")) {
+            parentese++;
+            is_string = true;
+            continue;
+        }
+        if (name_is_done && parentese == 1 && is_string && (char == '"' || char == "'")) {
+            prop_value = `"${prop_value}"`;
+            set_prop();
+            continue;
         }
         if (parentese > 0) {
             prop_value += char;

@@ -35,11 +35,37 @@ describe('utils/shortcode/parse_props', () => {
         deepStrictEqual(log, []);
     });
     it('static props', () => {
-        deepStrictEqual(parse_props('label="text"', 'file'), undefined);
+        deepStrictEqual(parse_props('label="text"', 'file'), { label: '"text"' });
         deepStrictEqual(log, []);
     });
     it('multiple prop', () => {
         deepStrictEqual(parse_props('a={1} b={true} c={{key:true}}', 'file'), { a: '1', b: 'true', c: '{"key":true}' });
+        deepStrictEqual(log, []);
+    });
+    it('static prop with &quot;', () => {
+        deepStrictEqual(parse_props('a=&quot;a&quot;', 'file'), {
+            a: '"a"',
+        });
+        deepStrictEqual(log, []);
+    });
+    it('single prop with &quot;', () => {
+        deepStrictEqual(parse_props('b={&quot;b&quot;}', 'file'), {
+            b: '"b"',
+        });
+        deepStrictEqual(log, []);
+    });
+    it('object props with &quot;', () => {
+        deepStrictEqual(parse_props('c={{&quot;key&quot;:&quot;c&quot;}}', 'file'), {
+            c: '{"key":"c"}',
+        });
+        deepStrictEqual(log, []);
+    });
+    it('multiple props with &quot;', () => {
+        deepStrictEqual(parse_props('a=&quot;a&quot; b={&quot;b&quot;} c={{&quot;key&quot;:&quot;c&quot;}}', 'file'), {
+            a: '"a"',
+            b: '"b"',
+            c: '{"key":"c"}',
+        });
         deepStrictEqual(log, []);
     });
     it('unfinished prop', () => {

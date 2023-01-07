@@ -107,7 +107,7 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
             if (filled_array(identifiers_of_file)) {
                 identifier_list.push(...identifiers_of_file);
             }
-            const target = Cwd.get(FOLDER_GEN, file.rel_path);
+            const target = join(gen_folder, file.rel_path);
             copy(file.path, target);
             return target;
         });
@@ -133,7 +133,7 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
                     .flat(1)
                     .filter((x) => x)
                     .map((path) => {
-                        return Cwd.get(FOLDER_GEN_SRC, path);
+                        return Cwd.get(FOLDER_GEN, path);
                     })
             )
         )

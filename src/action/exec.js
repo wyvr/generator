@@ -67,15 +67,21 @@ export async function process_exec_request(req, res, uid, exec, force_generating
         }
     }
     const js_path = join(ReleasePath.get(), FOLDER_JS, `${result?.data?._wyvr?.identifier || 'default'}.js`);
-    if (result?.data?._wyvr?.identifier_data && (!exists(js_path) || force_generating_of_resources)) {
+    const identifiers = result.shortcode || {};
+    const generate_identifier =
+        result?.data?._wyvr?.identifier_data && (!exists(js_path) || force_generating_of_resources);
+    if (generate_identifier) {
         // script only accepts an object
-        const identifiers = {};
         identifiers[result.data._wyvr.identifier_data.identifier] = result?.data._wyvr.identifier_data;
         // save the file to gen
+    }
+    if (Object.keys(identifiers).length > 0) {
         await scripts(identifiers);
+    }
+    if (generate_identifier) {
         copy(Cwd.get(FOLDER_GEN_JS, `${result.data._wyvr.identifier}.js`), js_path);
     }
-    
+
     // persist the result
     if (result?.result?.html && result?.data?._wyvr?.persist && Env.is_prod()) {
         const file = to_index(req.url, 'html');

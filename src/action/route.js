@@ -21,6 +21,7 @@ export async function routes(package_tree, mtime) {
             if (!data) {
                 return;
             }
+            Logger.debug('emit identifier', data);
             delete data.type;
             identifiers[data.identifier] = data;
         });

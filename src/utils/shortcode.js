@@ -1,7 +1,8 @@
 import { join } from 'path';
-import { FOLDER_GEN_CSS, FOLDER_GEN_SRC } from '../constants/folder.js';
+import { FOLDER_CSS, FOLDER_GEN_SRC } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
+import { ReleasePath } from '../vars/release_path.js';
 import { append_cache_breaker } from './cache_breaker.mjs';
 import { compile_server_svelte } from './compile.js';
 import { render_server_compiled_svelte } from './compile_svelte.js';
@@ -77,7 +78,8 @@ export async function replace_shortcode(html, data, file) {
 
         // write css
         if (rendered_result?.result?.css?.code) {
-            const css_file_path = Cwd.get(FOLDER_GEN_CSS, `${identifier}.css`);
+            
+            const css_file_path = join(ReleasePath.get(), FOLDER_CSS, `${identifier}.css`);
             media_query_files = write_css_file(css_file_path, rendered_result.result.css.code, media_query_files);
         }
 

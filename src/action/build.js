@@ -26,6 +26,7 @@ export async function build() {
             if (!data) {
                 return;
             }
+            Logger.debug('emit identifier', data);
             delete data.type;
             identifiers[data.identifier] = data;
         });

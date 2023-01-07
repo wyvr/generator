@@ -1,5 +1,5 @@
 import { compile_server_svelte } from '../utils/compile.js';
-import {  read_json, write } from '../utils/file.js';
+import { read_json, write } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { generate_page_code } from '../utils/generate.js';
 import { filled_array, filled_object, is_null } from '../utils/validate.js';
@@ -41,16 +41,15 @@ export async function build(files) {
             const exec_result = await compile_server_svelte(content, file);
 
             const rendered_result = await render_server_compiled_svelte(exec_result, data, file);
-            const injected_result = await inject(rendered_result, data, file, (shortcode_emit) => {
+            const injected_result = await inject(rendered_result, data, file, identifier, (shortcode_emit) => {
                 send_action(WorkerAction.emit, shortcode_emit);
             });
-            if(injected_result.has_media) {
+            if (injected_result.has_media) {
                 has_media = true;
             }
 
             // write the html code
             write(injected_result.path, injected_result.content);
-
         } catch (e) {
             Logger.error(get_error_message(e, file, 'build'));
         }

@@ -114,7 +114,7 @@ export async function regenerate(changed_files) {
 
         // routes
         const routes_result = await regenerate_routes(
-            RegenerateFragment(frag_files?.exec),
+            RegenerateFragment(frag_files?.routes),
             identifiers,
             routes,
             gen_folder

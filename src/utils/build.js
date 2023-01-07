@@ -147,6 +147,9 @@ export async function inject(rendered_result, data, file, identifier, shortcode_
             // write css
             if (search_segment(rendered_result?.result, 'css.code')) {
                 const css_file_path = Cwd.get(FOLDER_GEN_CSS, `${identifier}.css`);
+                if (!global.cache) {
+                    global.cache = {};
+                }
                 if (!exists(css_file_path) || global.cache.force_media_query_files) {
                     media_query_files = write_css_file(
                         css_file_path,

@@ -17,10 +17,10 @@ const wyvr_hydrate_interact = (path, elements, name, cls) => {
 
 const wyvr_interact_init = (e) => {
     let el = e.target;
-    const path = get_dom_path(el).join('>');
     while (!el.getAttribute('data-hydrate') || el.tagName == 'HTML') {
         el = el.parentNode;
     }
+    const path = get_dom_path(e.target, el).join('>');
     if (el.tagName == 'HTML') {
         return;
     }
@@ -35,13 +35,18 @@ const wyvr_interact_init = (e) => {
             script.onload = () => {
                 // restore original event
                 setTimeout(() => {
-                    const repathed_el = document.querySelector(path);
+                    let repathed_el;
+                    try {
+                        repathed_el = document.querySelector(path);
+                    } catch (e) {
+                        console.log(e, path);
+                    }
                     if (repathed_el) {
                         let event_name = e.type;
                         if (event_name == 'focusin') {
                             event_name = 'focus';
                         }
-                        if(repathed_el[event_name]) {
+                        if (repathed_el[event_name]) {
                             repathed_el[event_name]();
                         }
                     }
@@ -56,9 +61,11 @@ const wyvr_interact_init = (e) => {
     });
 };
 
-function get_dom_path(el) {
+function get_dom_path(el, parent) {
     var stack = [];
-    while (el.parentNode != null) {
+    const id = parent.getAttribute('data-hydrate-path') + '_' + new Date().getTime();
+    parent.setAttribute('data-hydrate-id', id);
+    while (el != parent && el != undefined) {
         var sibCount = 0;
         var sibIndex = 0;
         for (var i = 0; i < el.parentNode.childNodes.length; i++) {
@@ -80,5 +87,6 @@ function get_dom_path(el) {
         }
         el = el.parentNode;
     }
-    return stack.slice(1); // removes the html element
+    stack.unshift(`[data-hydrate-id="${id}"]`); // add it with the id as root
+    return stack;
 }

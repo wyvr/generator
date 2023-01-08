@@ -67,7 +67,7 @@ export async function process_exec_request(req, res, uid, exec, force_generating
         }
     }
     const js_path = join(ReleasePath.get(), FOLDER_JS, `${result?.data?._wyvr?.identifier || 'default'}.js`);
-    const identifiers = result.shortcode || {};
+    const identifiers = result?.shortcode || {};
     const generate_identifier =
         result?.data?._wyvr?.identifier_data && (!exists(js_path) || force_generating_of_resources);
     if (generate_identifier) {

@@ -1,8 +1,8 @@
 import { join, sep } from 'path';
-import { FOLDER_CSS } from '../constants/folder.js';
+import { FOLDER_CSS, FOLDER_GEN, FOLDER_SRC } from '../constants/folder.js';
 import { Env } from '../vars/env.js';
 import { exists, write } from './file.js';
-import { to_relative_path } from './to.js';
+import { to_relative_from_markers } from './to.js';
 import { filled_string, is_null, is_object } from './validate.js';
 
 export function write_css_file(file, code, media_query_files) {
@@ -21,7 +21,10 @@ export function get_css_path(file) {
     if (!filled_string(file)) {
         return undefined;
     }
-    return sep + join(FOLDER_CSS, to_relative_path(file));
+    return (
+        sep +
+        join(FOLDER_CSS, to_relative_from_markers(to_relative_from_markers(file, FOLDER_SRC, FOLDER_GEN), FOLDER_CSS))
+    );
 }
 export function split_css_into_media_query_files(content, file) {
     if (Env.is_prod()) {

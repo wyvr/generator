@@ -47,8 +47,8 @@ describe('utils/css/write_css_file', () => {
         const result = write_css_file(file, 'a {color: red;} @media(min-width:1000px) {a {color:blue}}', {});
         const files = readdirSync(__dirname);
         const test = {};
-        test['/' + join('css', __dirname, 'write.css')] = {
-            '(min-width:1000px)': '/' + join('css', __dirname, 'write_0.css'),
+        test['/' + join('css', '_tests', 'write.css')] = {
+            '(min-width:1000px)': '/' + join('css', '_tests', 'write_0.css'),
         };
         deepStrictEqual(result, test);
         deepStrictEqual(files, ['write.css', 'write_0.css']);

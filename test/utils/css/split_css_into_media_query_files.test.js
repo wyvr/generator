@@ -73,7 +73,7 @@ describe('utils/css/split_css_into_media_query_files', () => {
         );
         const files = readdirSync(__dirname);
         deepStrictEqual(result, {
-            '(min-width:1000px)': '/' + join('css', __dirname, 'split_0.css'),
+            '(min-width:1000px)': '/' + join('css', '_tests', 'split_0.css'),
         });
         deepStrictEqual(files, ['split.css', 'split_0.css']);
     });

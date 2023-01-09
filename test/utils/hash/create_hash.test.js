@@ -9,6 +9,6 @@ describe('utils/hash/create_hash', () => {
     });
     it('has values', () => {
         const result = create_hash('#');
-        strictEqual(result.length, 8, 'length of hash');
+        strictEqual(result.length, 16, 'length of hash');
     });
 });

@@ -40,9 +40,9 @@ describe('utils/shortcode/replace_shortcode', () => {
     it('simple shortcode', async () => {
         deepStrictEqual(await replace_shortcode('here is the ((tag a={true})) content', {}, 'file'), {
             html: 'here is the <span class="green svelte-57clml">awesome</span> content',
-            identifier: '1503916a',
+            identifier: '1503916a2ab2b0fd',
             media_query_files: {
-                '/css/1503916a.css': {},
+                '/css/1503916a2ab2b0fd.css': {},
             },
             shortcode_imports: {
                 Tag: join(root, 'gen', 'src', 'tag.svelte'),
@@ -53,9 +53,9 @@ describe('utils/shortcode/replace_shortcode', () => {
     it('simple shortcode no props', async () => {
         deepStrictEqual(await replace_shortcode('here is the ((tag)) content', {}, 'file'), {
             html: 'here is the <span class="red svelte-57clml">missing</span> content',
-            identifier: '1503916a',
+            identifier: '1503916a2ab2b0fd',
             media_query_files: {
-                '/css/1503916a.css': {},
+                '/css/1503916a2ab2b0fd.css': {},
             },
             shortcode_imports: {
                 Tag: join(root, 'gen', 'src', 'tag.svelte'),

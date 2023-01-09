@@ -26,6 +26,6 @@ describe('utils/hash/get_file_hash', () => {
     it('existing files', () => {
         const file_path = join(path, 'test.txt');
         const result = get_file_hash(file_path);
-        deepStrictEqual(result, '0f24276d');
+        deepStrictEqual(result, '0f24276d1f0a0154');
     });
 });

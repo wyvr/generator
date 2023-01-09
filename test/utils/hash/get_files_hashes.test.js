@@ -32,8 +32,8 @@ describe('utils/hash/get_files_hashes', () => {
         const result = get_files_hashes([file_path]);
         const test = {};
         test[file_path] = {
-            hash: '0f24276d',
-            path: file_path.replace('.txt', '_0f24276d.txt'),
+            hash: '0f24276d1f0a0154',
+            path: file_path.replace('.txt', '_0f24276d1f0a0154.txt'),
             rel_path: file_path,
         };
         deepStrictEqual(result, test);

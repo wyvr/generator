@@ -17,7 +17,7 @@ export function create_hash(value) {
     }
     const hash = cryptoCreateHash('sha256');
     hash.update(value);
-    return hash.digest('hex').substring(0, 8);
+    return hash.digest('hex').substring(0, 16);
 }
 export function get_files_hashes(files) {
     const result = {};

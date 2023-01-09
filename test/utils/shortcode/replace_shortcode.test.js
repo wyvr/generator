@@ -5,12 +5,14 @@ import { collect_files, remove } from '../../../src/utils/file.js';
 import { replace_shortcode } from '../../../src/utils/shortcode.js';
 import { to_plain } from '../../../src/utils/to.js';
 import { Cwd } from '../../../src/vars/cwd.js';
+import { ReleasePath } from '../../../src/vars/release_path.js';
 
 describe('utils/shortcode/replace_shortcode', () => {
     let log = [];
     const root = join(process.cwd(), 'test/utils/shortcode/_tests');
     before(() => {
         Cwd.set(root);
+        ReleasePath.set(root);
         Sinon.stub(console, 'error');
         console.error.callsFake((...msg) => {
             log.push(msg.map(to_plain));
@@ -21,6 +23,7 @@ describe('utils/shortcode/replace_shortcode', () => {
     });
     after(() => {
         Cwd.set(undefined);
+        ReleasePath.set(undefined);
         console.error.restore();
         collect_files(join(root, 'gen/css')).forEach((f) => remove(f));
     });

@@ -40,7 +40,9 @@
     function connect() {
         const connected = check_state();
         if (!connected) {
-            socket = new WebSocket('ws://' + location.hostname + ':{port}');
+            socket = new WebSocket(
+                'ws' + (location.protocol === 'https:' ? 's' : '') + '://' + location.hostname + '/ws'
+            );
             socket.onmessage = function (event) {
                 check_state();
                 let data = event.data;

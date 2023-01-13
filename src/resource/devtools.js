@@ -14,7 +14,7 @@ async function wyvr_devtools_initialize() {
         await Promise.all(
             modules_list.map(async (path) => {
                 try {
-                    const imported_module = await import(path);
+                    const imported_module = await import(location?.origin + path);
                     const module = imported_module?.default;
                     if(module) {
                         if(!module.order) {

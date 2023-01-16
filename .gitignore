@@ -10,5 +10,6 @@
 /cache
 /lib
 /test/utils/file/_tests/not_writeable.txt
+/test/**/svelte_internal.mjs
 tmp
 pub

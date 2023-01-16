@@ -10,15 +10,15 @@ describe('utils/media/config_from_url', () => {
     after(() => {
         Cwd.set(undefined);
     });
-    it('undefined', () => {
-        deepStrictEqual(config_from_url(), undefined);
+    it('undefined', async () => {
+        deepStrictEqual(await config_from_url(), undefined);
     });
-    it('no media url', () => {
-        deepStrictEqual(config_from_url('/assets/favicon.png'), undefined);
+    it('no media url', async () => {
+        deepStrictEqual(await config_from_url('/assets/favicon.png'), undefined);
     });
-    it('media url', () => {
+    it('media url', async () => {
         deepStrictEqual(
-            config_from_url(
+            await config_from_url(
                 '/media/eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6InBuZyIsInF1YWxpdHkiOjYwfQ==/assets/favicon.png'
             ),
             {
@@ -34,9 +34,9 @@ describe('utils/media/config_from_url', () => {
             }
         );
     });
-    it('external media url', () => {
+    it('external media url', async () => {
         deepStrictEqual(
-            config_from_url(
+            await config_from_url(
                 '/media/_d/d3l2ci5kZXY=/eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6InBuZyIsInF1YWxpdHkiOjYwfQ==/favicon.png'
             ),
             {
@@ -53,8 +53,8 @@ describe('utils/media/config_from_url', () => {
             }
         );
     });
-    it('invalid hash', () => {
-        deepStrictEqual(config_from_url('/media/hash/assets/favicon.png'), {
+    it('invalid hash', async () => {
+        deepStrictEqual(await config_from_url('/media/hash/assets/favicon.png'), {
             format: 'jpeg',
             height: -1,
             mode: 'cover',
@@ -66,8 +66,8 @@ describe('utils/media/config_from_url', () => {
             width: -1,
         });
     });
-    it('invalid domain hash', () => {
-        deepStrictEqual(config_from_url('/media/_d/domain/hash2/assets/favicon.png'), {
+    it('invalid domain hash', async () => {
+        deepStrictEqual(await config_from_url('/media/_d/domain/hash2/assets/favicon.png'), {
             domain: 'v\t\u001a\n',
             format: 'jpeg',
             height: -1,
@@ -80,7 +80,7 @@ describe('utils/media/config_from_url', () => {
             width: -1,
         });
     });
-    it('not enough domain params', () => {
-        deepStrictEqual(config_from_url('/media/_d/'), undefined);
+    it('not enough domain params', async () => {
+        deepStrictEqual(await config_from_url('/media/_d/'), undefined);
     });
 });

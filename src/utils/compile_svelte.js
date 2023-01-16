@@ -3,12 +3,12 @@ import { get_error_message } from './error.js';
 import { Logger } from './logger.js';
 import { in_array, filled_string, is_func, is_null, match_interface } from './validate.js';
 import { remove, to_extension, write } from './file.js';
-import { extname } from 'path';
+import { extname, join } from 'path';
 import { Env } from '../vars/env.js';
 import { css_hash } from './hash.js';
 import { uniq_id } from './uniq.js';
 import { Cwd } from '../vars/cwd.js';
-import { FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_TEMP } from '../constants/folder.js';
+import { FOLDER_GEN, FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_TEMP } from '../constants/folder.js';
 import { search_segment } from './segment.js';
 import { fix_reserved_tag_names, replace_imports, replace_src_path } from './transform.js';
 import { register_inject, register_i18n, register_prop } from './global.js';
@@ -47,7 +47,6 @@ export async function compile_svelte_from_code(content, file, type, include_css 
     if (!in_array(['client', 'server'], type) || !filled_string(content) || !filled_string(file)) {
         return undefined;
     }
-    let result;
     const scope = `svelte ${type} compile`;
     const options = {
         dev: Env.is_dev(),
@@ -56,19 +55,24 @@ export async function compile_svelte_from_code(content, file, type, include_css 
         immutable: true,
         hydratable: true,
         cssHash: css_hash,
+        css: 'external'
     };
     if (include_css) {
-        options.css = true;
+        options.css = 'injected';
     }
     try {
         // console.log(content)
         // compile svelte
         const compiled = await compile(content, options);
-        result = compiled;
+        if (type === 'server') {
+            compiled.js.code = make_svelte_code_async(compiled.js.code)
+            write(join(FOLDER_GEN, 'compile', to_extension(file, '.mjs')), compiled.js.code);
+        }
+        return compiled;
     } catch (e) {
         Logger.error(get_error_message(e, file, scope), e.stack);
     }
-    return result;
+    return undefined;
 }
 export function type_value(type, client, server) {
     if (type === 'client') {
@@ -166,67 +170,27 @@ export async function render_server_compiled_svelte(exec_result, data, file) {
 
     return exec_result;
 }
-// static async render(svelte_render_item, props) {
-//     const propNames = Object.keys(props);
-//     if (Array.isArray(propNames) && Array.isArray(svelte_render_item.compiled.vars)) {
-//         // check for not used props
-//         const unused_props = propNames.filter((prop) => {
-//             return (
-//                 svelte_render_item.compiled.vars.find((v) => {
-//                     return v.name == prop;
-//                 }) == null
-//             );
-//         });
-//         if (unused_props.length > 0) {
-//             svelte_render_item.notes.push({ msg: 'unused props', details: unused_props });
-//         }
-//     }
-
-//     // set the correct translations for the page
-//     I18N.setup();
-//     const translations = I18N.get(props._wyvr.language);
-//     I18N.i18n.init(translations);
-//     try {
-//         svelte_render_item.result = await svelte_render_item.component.render(props);
-//     } catch (e) {
-//         return [e, null];
-//     }
-//     // write css file
-//     const css_file_path = join('gen', 'css', `${props._wyvr.identifier.replace(/\./g, '-')}.css`);
-//     const identifier_item = {
-//         url: props.url,
-//         identifier: props._wyvr.identifier,
-//         extension: props._wyvr.extension,
-//     };
-//     let media_files = {};
-//     if (!fs.existsSync(css_file_path)) {
-//         media_files = await this.write_css_file(css_file_path, svelte_render_item.result.css.code);
-//     } else {
-//         const last_modified = fs.statSync(css_file_path).mtime;
-//         // changes in the time range of 5 seconds avoids recreation of css files
-//         // @WARN when hugh amounts of data gets generated css files can be written multiple times
-//         if (new Date().getTime() - new Date(last_modified).getTime() > 5000) {
-//             media_files = await this.write_css_file(css_file_path, svelte_render_item.result.css.code);
-//         }
-//     }
-//     // when there are media files returned, create them
-//     await this.write_media_files(css_file_path, media_files);
-//     if (Object.keys(media_files).length > 0) {
-//         // inject media css files
-//         svelte_render_item.result.html = await this.inject_media_files(
-//             svelte_render_item.result.html,
-//             css_file_path,
-//             media_files
-//         );
-//     }
-//     // inject translations
-//     if (translations) {
-//         svelte_render_item.result.html = svelte_render_item.result.html.replace(
-//             /<\/body>/,
-//             `<script>var wyvr_i18n_tr = ${JSON.stringify(translations)}</script></body>`
-//         );
-//     }
-
-//     // svelte_render_item.result.html = svelte_render_item.result.html.replace('</head>', `<style>${svelte_render_item.result.css.code}</style></head>`);
-//     return [null, svelte_render_item, identifier_item];
-// }
+export function make_svelte_code_async(code) {
+    if(!filled_string(code)) {
+        return '';
+    }
+    code = code
+        .replace(/(create_ssr_component\()/, 'await $1async ')
+        .replace(/(onServer\()/g, 'await $1')
+        .replace(/['"]svelte\/internal['"]/, `'${Cwd.get(FOLDER_GEN_SERVER, 'svelte_internal.mjs')}'`)
+        .replace(/(slots\.default \? )(slots\.default\()/g, '$1await $2')
+        .replace(/([\s=])createEventDispatcher\([^)]*?\)/g, '$1() => {}');
+    const template_index = code.indexOf('return `');
+    /* c8 ignore start */
+    if (template_index == -1) {
+        return code;
+    }
+    /* c8 ignore stop */
+    const base = code.slice(0, template_index);
+    const template = code
+        .slice(template_index)
+        .replace(/(\$\{)(validate_component\()/g, '$1await $2')
+        .replace(/default: \(\) => \{/g, 'default: async () => {')
+        .replace(/\$\{each\(([^,]+), ([^ ]+) => \{/g, '${await each($1, async ($2) => {');
+    return base + template;
+}

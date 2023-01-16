@@ -238,7 +238,7 @@ export function watch_server(host, port, wsport, fallback) {
 async function generate_server(host, port, force_generating_of_resources, onEnd, fallback) {
     server(host, port, undefined, async (req, res, uid) => {
         // check for media files
-        const media_config = config_from_url(req.url);
+        const media_config = await config_from_url(req.url);
         if (media_config && !media_config.result_exists) {
             const buffer = await get_buffer(media_config.src);
             if (buffer) {

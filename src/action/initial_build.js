@@ -31,8 +31,11 @@ import { wyvr_internal } from './wyvr_internal.js';
 import { join } from 'path';
 import { NoWorker } from '../no_worker.js';
 import { Event } from '../utils/event.js';
+import { modify_svelte } from './modify_svelte.mjs';
 
 export async function pre_initial_build(build_id, config_data) {
+    await modify_svelte();
+    
     // set release folder
     ReleasePath.set(Cwd.get(FOLDER_RELEASES, build_id));
 

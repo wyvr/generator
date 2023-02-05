@@ -11,7 +11,7 @@ import {
     lstatSync,
 } from 'fs';
 import { extname, dirname, join } from 'path';
-import {stringify} from './json.js';
+import { stringify } from './json.js';
 import { is_string, filled_string, filled_array } from './validate.js';
 import { WyvrFile } from '../model/wyvr_file.js';
 import { Env } from '../vars/env.js';
@@ -73,7 +73,7 @@ export function to_index(filename, extension) {
         parts[parts.length - 1] = `index.${ext}`;
         return parts.join('/');
     }
-    if(last == 'index') {
+    if (last == 'index') {
         parts[parts.length - 1] = `index.${ext}`;
         return parts.join('/');
     }
@@ -106,7 +106,7 @@ export function remove_index(filename) {
         return '';
     }
     const without = filename.replace(/index\.[^.]+/, '');
-    if(without == '/') {
+    if (without == '/') {
         return without;
     }
     return without.replace(/\/$/, '');
@@ -252,7 +252,15 @@ export function collect_files(dir, extension) {
     }
     entries.forEach((entry) => {
         const path = join(dir, entry);
-        const stat = statSync(path);
+        let stat;
+        try {
+            stat = statSync(path);
+        } catch (e) {
+            return;
+        }
+        if (!stat) {
+            return;
+        }
         if (stat.isDirectory()) {
             result.push(...collect_files(path, extension));
             return;

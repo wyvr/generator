@@ -12,6 +12,7 @@ import { get_error_message } from './error.js';
 import { MediaModelMode, MediaModelOutput } from '../struc/media.js';
 import { clone } from './json.js';
 import https from 'https';
+import { Plugin } from './plugin.js';
 
 export async function process(media) {
     if (!match_interface(media, { result: true })) {
@@ -23,6 +24,7 @@ export async function process(media) {
     if (exists) {
         return undefined;
     }
+
     const buffer = await get_buffer(media.src);
     if (!buffer) {
         Logger.error('@media', `input file "${media.src}" doesn't exist`);
@@ -87,7 +89,7 @@ export async function process(media) {
     return undefined;
 }
 
-export function config_from_url(url) {
+export async function config_from_url(url) {
     if (!filled_string(url)) {
         return undefined;
     }
@@ -115,7 +117,9 @@ export function config_from_url(url) {
         result.result = url;
         result.result_exists = exists(Cwd.get(result.result));
         result.output = MediaModelOutput.path;
-        return result;
+        const media_config = await Plugin.process('media_config', result);
+        const media_config_result = await media_config((result) => result);
+        return media_config_result.result;
     }
     // extract local file
     try {

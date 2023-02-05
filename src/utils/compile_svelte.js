@@ -55,7 +55,7 @@ export async function compile_svelte_from_code(content, file, type, include_css 
         immutable: true,
         hydratable: true,
         cssHash: css_hash,
-        css: 'external'
+        css: 'external',
     };
     if (include_css) {
         options.css = 'injected';
@@ -65,7 +65,7 @@ export async function compile_svelte_from_code(content, file, type, include_css 
         // compile svelte
         const compiled = await compile(content, options);
         if (type === 'server') {
-            compiled.js.code = make_svelte_code_async(compiled.js.code)
+            compiled.js.code = make_svelte_code_async(compiled.js.code);
             write(join(FOLDER_GEN, 'compile', to_extension(file, '.mjs')), compiled.js.code);
         }
         return compiled;
@@ -171,26 +171,43 @@ export async function render_server_compiled_svelte(exec_result, data, file) {
     return exec_result;
 }
 export function make_svelte_code_async(code) {
-    if(!filled_string(code)) {
+    if (!filled_string(code)) {
         return '';
     }
     code = code
+        // make main function async
         .replace(/(create_ssr_component\()/, 'await $1async ')
+        // wrap main function in try catch
+        .replace(/(create_ssr_component.*=> {)/, '$1 try {')
+        .replace(
+            /(\}\);[\n\s]+export default )/,
+            "} catch(e) {console.log(import.meta.url, e); return '';}\n$1"
+        )
+        // make onServer async
         .replace(/(onServer\()/g, 'await $1')
-        .replace(/['"]svelte\/internal['"]/, `'${Cwd.get(FOLDER_GEN_SERVER, 'svelte_internal.mjs')}'`)
-        .replace(/(slots\.default \? )(slots\.default\()/g, '$1await $2')
-        .replace(/([\s=])createEventDispatcher\([^)]*?\)/g, '$1() => {}');
-    const template_index = code.indexOf('return `');
-    /* c8 ignore start */
+        // use own svelte internal, which is async
+        .replace(/['"]svelte\/internal['"]/, `'${Cwd.get(FOLDER_GEN_SERVER, 'svelte_internal.mjs')}'`);
+    const template_index = code.indexOf('await create_ssr_component');
     if (template_index == -1) {
         return code;
     }
-    /* c8 ignore stop */
-    const base = code.slice(0, template_index);
+
     const template = code
-        .slice(template_index)
+        .substring(template_index)
+        // make slots async
+        .replace(/(slots\.default \? )(slots\.default\()/g, '$1await $2')
+        // remove event dispatcher because they are not working server side
+        .replace(/([\s=])createEventDispatcher\([^)]*?\)/g, '$1() => {}')
+        // make sub components async
         .replace(/(\$\{)(validate_component\()/g, '$1await $2')
-        .replace(/default: \(\) => \{/g, 'default: async () => {')
-        .replace(/\$\{each\(([^,]+), ([^ ]+) => \{/g, '${await each($1, async ($2) => {');
-    return base + template;
+        // make default async
+        //.replace(/default: \(\) => \{/g, 'default: async () => {')
+        // make #each async
+        .replace(/\$\{each\(([^,]+), \(([^)]+)\) +=> \{/g, '${await each($1, async ($2) => {')
+        .replace(/\$\{each\(([^,]+), ([^=]+)=> \{/g, '${await each($1, async $2=> {')
+        // make arrow functions async
+        //.replace(/((?:\(\)|[^()]+?) => \{)/g, 'async $1')
+        .replace(/: (\(\) => \{)/g, ': async $1')
+
+    return code.substring(0, template_index) + template;
 }

@@ -1,9 +1,7 @@
 import { strictEqual, deepStrictEqual } from 'assert';
-import { describe, it } from 'mocha';
 import { join } from 'path';
 import { Cwd } from '../../../src/vars/cwd.js';
 import { check_env } from '../../../src/action/check_env.js';
-import { ERRORS } from '../../../src/constants/errors.js';
 import { to_dirname, to_plain } from '../../../src/utils/to.js';
 import Sinon from 'sinon';
 

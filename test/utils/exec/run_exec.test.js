@@ -203,6 +203,25 @@ describe('utils/exec/run_exec', () => {
         );
         deepStrictEqual(log, [['⚠', '[exec] returnJSON can only be used in onExec']]);
     });
+   
+    it('JSON in query parameters', async () => {
+        Cwd.set(join(dir, 'run'));
+        const result = await run_exec({ url: '/test/10?conditions=%5B%7B%22attribute%22%3A%22sale%22%2C%22operator%22%3A%22%3D%3D%22%2C%22value%22%3A%221%22%7D%5D&amount=10', method: 'GET' }, {}, '0000', {
+            match: '^\\/test/([^\\]]*)$',
+            methods: ['get'],
+            mtime: 0,
+            params: ['id'],
+            path: join(dir, 'run/show_all.js'),
+            rel_path: join(dir, 'run/show_all.js'),
+            url: '/test',
+        });
+        const html = result?.result?.html;
+        deepStrictEqual(
+            html,
+            '{"request":{"url":"/test/10?conditions=%5B%7B%22attribute%22%3A%22sale%22%2C%22operator%22%3A%22%3D%3D%22%2C%22value%22%3A%221%22%7D%5D&amount=10","method":"GET"},"response":{},"params":{"id":"10","isExec":true},"query":{"conditions":"[{\\"attribute\\":\\"sale\\",\\"operator\\":\\"==\\",\\"value\\":\\"1\\"}]","amount":"10"},"data":{"url":"/test"}}'
+        );
+        deepStrictEqual(log, [['⚠', '[exec] returnJSON can only be used in onExec']]);
+    });
     it('custom header', async () => {
         Cwd.set(join(dir, 'run'));
         let head, json;

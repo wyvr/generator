@@ -36,6 +36,9 @@ export async function compile(files) {
                     write(server_file, compiled.js.code);
                 }
             }
+            if (file.includes('/node_modules/')) {
+                continue;
+            }
             // generate client file
             const client_file = to_client_path(file);
             const client_code = remove_on_server(replace_wyvr_magic(content, true));

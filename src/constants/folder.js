@@ -3,6 +3,7 @@ import { join } from 'path';
 export const FOLDER_PUBLISH = 'pub';
 export const FOLDER_GEN = 'gen';
 export const FOLDER_SRC = 'src';
+export const FOLDER_NODE_MODULES = 'node_modules';
 export const FOLDER_GEN_SRC = join(FOLDER_GEN, FOLDER_SRC);
 export const FOLDER_SERVER = 'server';
 export const FOLDER_GEN_SERVER = join(FOLDER_GEN, FOLDER_SERVER);

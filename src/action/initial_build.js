@@ -116,7 +116,7 @@ export async function intial_build(build_id, config) {
     await configure();
 
     // Compile svelte files
-    await compile();
+    await compile(available_packages);
 
     // Execute Routes
     const route_identifiers = await routes(package_tree, mtime);

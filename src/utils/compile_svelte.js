@@ -179,10 +179,7 @@ export function make_svelte_code_async(code) {
         .replace(/(create_ssr_component\()/, 'await $1async ')
         // wrap main function in try catch
         .replace(/(create_ssr_component.*=> {)/, '$1 try {')
-        .replace(
-            /(\}\);[\n\s]+export default )/,
-            "} catch(e) {console.log(import.meta.url, e); return '';}\n$1"
-        )
+        .replace(/(\}\);[\n\s]+export default )/, "} catch(e) {console.log(import.meta.url, e); return '';}\n$1")
         // make onServer async
         .replace(/(onServer\()/g, 'await $1')
         // use own svelte internal, which is async
@@ -207,7 +204,7 @@ export function make_svelte_code_async(code) {
         .replace(/\$\{each\(([^,]+), ([^=]+)=> \{/g, '${await each($1, async $2=> {')
         // make arrow functions async
         //.replace(/((?:\(\)|[^()]+?) => \{)/g, 'async $1')
-        .replace(/: (\(\) => \{)/g, ': async $1')
+        .replace(/: (\(\) => \{)/g, ': async $1');
 
     return code.substring(0, template_index) + template;
 }

@@ -33,6 +33,17 @@ export function generate_page_code(data) {
     import Layout from '${tmpl_files.layout}${cache_breaker}';
     import Page from '${tmpl_files.page}${cache_breaker}';
     const data = ${JSON.stringify(data, null, Env.json_spaces())};
+    global.getWyvrData = (segment, fallback) => {
+        if(!segment || typeof segment != 'string' || !data) {
+            return fallback;
+        }
+        return segment.split('.').reduce((acc, cur) => {
+            if (typeof acc == 'object' && acc != null && !Array.isArray(acc) && acc[cur] != undefined) {
+                return acc[cur];
+            }
+            return fallback_value;
+        }, data);
+    }
 </script>
 
 <Doc data={data}>

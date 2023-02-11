@@ -35,6 +35,17 @@ describe('utils/generate/generate_page_code', () => {
     import Layout from '${process.cwd()}/test/utils/generate/_tests/generate_page_code/doc/Default';
     import Page from '${process.cwd()}/test/utils/generate/_tests/generate_page_code/doc/Default';
     const data = {"_wyvr":{"url":"/url","template_files":{"doc":"${process.cwd()}/test/utils/generate/_tests/generate_page_code/doc/Default","layout":"${process.cwd()}/test/utils/generate/_tests/generate_page_code/doc/Default","page":"${process.cwd()}/test/utils/generate/_tests/generate_page_code/doc/Default"}}};
+    global.getWyvrData = (segment, fallback) => {
+        if(!segment || typeof segment != 'string' || !data) {
+            return fallback;
+        }
+        return segment.split('.').reduce((acc, cur) => {
+            if (typeof acc == 'object' && acc != null && !Array.isArray(acc) && acc[cur] != undefined) {
+                return acc[cur];
+            }
+            return fallback_value;
+        }, data);
+    }
 </script>
 
 <Doc data={data}>
@@ -76,6 +87,17 @@ describe('utils/generate/generate_page_code', () => {
         }
     }
 };
+    global.getWyvrData = (segment, fallback) => {
+        if(!segment || typeof segment != 'string' || !data) {
+            return fallback;
+        }
+        return segment.split('.').reduce((acc, cur) => {
+            if (typeof acc == 'object' && acc != null && !Array.isArray(acc) && acc[cur] != undefined) {
+                return acc[cur];
+            }
+            return fallback_value;
+        }, data);
+    }
 </script>
 
 <Doc data={data}>

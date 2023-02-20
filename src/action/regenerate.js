@@ -43,6 +43,7 @@ import { RegenerateFragment } from '../model/regenerate_fragment.mjs';
  * Regenerate the files and the result of the given changed files
  */
 export async function regenerate(changed_files) {
+    let test_files = [];
     await measure_action('regenerate', async () => {
         const cache_breaker = get_cache_breaker();
 
@@ -111,6 +112,7 @@ export async function regenerate(changed_files) {
         );
         let identifiers = src_result.identifiers;
         let pages = src_result.pages;
+        test_files.push(...src_result.test_files);
 
         // pages
         const pages_result = await regenerate_pages(
@@ -180,6 +182,10 @@ export async function regenerate(changed_files) {
             reload(reload_files);
         }
     });
+
+    if (test_files.length > 0) {
+        Logger.warning('test files found but this feature is not implemented');
+    }
 
     return;
 }

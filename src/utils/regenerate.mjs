@@ -77,6 +77,7 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
     let dependencies;
     let identifiers = {};
     let pages = [];
+    let test_files = [];
 
     const mod_files = [].concat(change, add);
     if (mod_files.length > 0) {
@@ -226,9 +227,24 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
             .map((url) => Cwd.get(FOLDER_GEN_DATA, to_index(url, 'json')));
         // add the json paths to be executed as pages
         pages.push(...data_files);
+
+        // check if files have test files in place and execute them
+        test_files = combined_files
+            .map((file) => {
+                const ext = extname(file);
+                if (!in_array(['.js', '.cjs', '.mjs'], ext)) {
+                    return undefined;
+                }
+                const test_file = file.replace(new RegExp(`${ext}$`), `.spec${ext}`).replace(/\.spec\.spec/, '.spec');
+                if (!exists(test_file)) {
+                    return undefined;
+                }
+                return { file, test: test_file};
+            })
+            .filter((x) => x);
     }
     unlink_from(unlink, gen_folder, Cwd.get(FOLDER_GEN_CLIENT), Cwd.get(FOLDER_GEN_SERVER));
-    return { identifiers, pages };
+    return { identifiers, pages, test_files };
 }
 
 /**
@@ -353,7 +369,7 @@ function unlink_from(unlink, ...folders) {
 /**
  * Copy the given files to the gen folder
  * @param {RegenerateFragment} RegenerateFragment
- * @param {string} gen_folder 
+ * @param {string} gen_folder
  */
 export function regeneration_static_file({ change, add, unlink }, gen_folder) {
     [].concat(change, add).forEach((file) => {

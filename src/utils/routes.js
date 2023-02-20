@@ -262,8 +262,8 @@ export async function extract_route_config(result, path) {
     if (typeof result?._wyvr == 'function') {
         result._wyvr = await result._wyvr({});
     }
-    if (filled_array(result?._wyvr?.route_methods)) {
-        methods = result?._wyvr?.route_methods.filter((method) => in_array(methods, method));
+    if (filled_array(result?._wyvr?.methods)) {
+        methods = result?._wyvr?.methods.filter((method) => in_array(methods, method));
     }
 
     // get specificity of the url, to detect the order of match checking

@@ -38,7 +38,7 @@ describe('utils/routes/extract_route_config', () => {
             {
                 url: '/methods',
                 _wyvr: {
-                    route_methods: ['post', 'invalid'],
+                    methods: ['post', 'invalid'],
                 },
             },
             join(dir, 'config/methods.js')
@@ -61,7 +61,7 @@ describe('utils/routes/extract_route_config', () => {
             {
                 url: '/methods',
                 _wyvr: {
-                    route_methods: 'all',
+                    methods: 'all',
                 },
             },
             join(dir, 'config/methods.js')
@@ -101,7 +101,7 @@ describe('utils/routes/extract_route_config', () => {
                     return new Promise((resolve, reject) => {
                         setTimeout(() => {
                             resolve({
-                                route_methods: ['get'],
+                                methods: ['get'],
                             });
                         }, 5);
                     });

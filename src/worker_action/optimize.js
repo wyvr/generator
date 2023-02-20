@@ -27,6 +27,9 @@ export async function optimize(files) {
     for (const file of files) {
         try {
             let content = read(file);
+            if (!content) {
+                continue;
+            }
             // replace media query files
             const media_query_links = [];
             media_query_files_keys.forEach((media_query_file) => {

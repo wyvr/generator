@@ -10,7 +10,7 @@ import { critical } from '../worker_action/critical.js';
 import { dependencies } from '../worker_action/dependencies.js';
 import { media } from '../worker_action/media.js';
 import { optimize } from '../worker_action/optimize.js';
-import { route } from '../worker_action/route.js';
+import { page } from '../worker_action/page.js';
 import { scripts } from '../worker_action/scripts.js';
 import { transform } from '../worker_action/transform.js';
 import { send_status } from './communication.js';
@@ -51,8 +51,8 @@ export async function process_message(msg) {
             await compile(value);
             break;
         }
-        case WorkerAction.route: {
-            await route(value);
+        case WorkerAction.page: {
+            await page(value);
             break;
         }
         case WorkerAction.build: {

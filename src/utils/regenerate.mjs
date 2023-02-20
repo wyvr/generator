@@ -1,6 +1,6 @@
 import { extname, join } from 'path';
 import { copy_files, copy_folder } from '../action/copy.js';
-import { clear_caches } from '../action/exec.js';
+import { clear_caches } from '../action/route.js';
 import { i18n } from '../action/i18n.js';
 import {
     FOLDER_GEN,
@@ -10,11 +10,11 @@ import {
     FOLDER_GEN_SRC,
     FOLDER_I18N,
 } from '../constants/folder.js';
-import { Route } from '../model/route.js';
+import { Page } from '../model/page.js';
 import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { Config } from './config.js';
-import { build_cache } from './exec.js';
+import { build_cache } from './routes.js';
 import { copy, exists, read, remove, to_extension, to_index, write } from './file.js';
 import { clear_cache } from './i18n.js';
 import { Plugin } from './plugin.js';
@@ -55,11 +55,11 @@ export async function regenerate_plugins({ change, add, unlink }, gen_folder, ca
  * @param {string} gen_folder
  * @returns whether the page has to be reloaded or not
  */
-export async function regenerate_exec({ change, add, unlink }, gen_folder) {
+export async function regenerate_routes({ change, add, unlink }, gen_folder) {
     let reload_page = false;
-    const modified_exec = [].concat(change, add);
-    if (modified_exec.length > 0) {
-        modified_exec.map((file) => {
+    const modified_route = [].concat(change, add);
+    if (modified_route.length > 0) {
+        modified_route.map((file) => {
             copy(file.path, join(gen_folder, file.rel_path));
         });
         reload_page = true;
@@ -76,7 +76,7 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
     });
     let dependencies;
     let identifiers = {};
-    let routes = [];
+    let pages = [];
 
     const mod_files = [].concat(change, add);
     if (mod_files.length > 0) {
@@ -190,7 +190,7 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
 
         set_config_cache('dependencies.config', file_configs);
 
-        // when doc, layout or page has changed search directly in the routes reference
+        // when doc, layout or page has changed search directly in the pages reference
         if (filled_array(main_files)) {
             const identifier_keys = Object.keys(identifier_files);
             main_files.forEach((file) => {
@@ -224,30 +224,30 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
         const data_files = []
             .concat(...identifier_files_list)
             .map((url) => Cwd.get(FOLDER_GEN_DATA, to_index(url, 'json')));
-        // add the json paths to be executed as routes
-        routes.push(...data_files);
+        // add the json paths to be executed as pages
+        pages.push(...data_files);
     }
     unlink_from(unlink, gen_folder, Cwd.get(FOLDER_GEN_CLIENT), Cwd.get(FOLDER_GEN_SERVER));
-    return { identifiers, routes };
+    return { identifiers, pages };
 }
 
 /**
- * Regenerate the routes
+ * Regenerate the pages
  * @param {RegenerateFragment} RegenerateFragment
  * @param {*} identifiers
- * @param {*} routes
+ * @param {*} pages
  * @param {string} gen_folder
- * @returns an object with reload, identifiers, collections and routes
+ * @returns an object with reload, identifiers, collections and pages
  */
-export async function regenerate_routes({ change, add, unlink }, identifiers, routes, gen_folder) {
+export async function regenerate_pages({ change, add, unlink }, identifiers, pages, gen_folder) {
     let reload_page = false;
     const collections = {};
-    const mod_routes = [].concat(change, add);
-    if (mod_routes.length > 0) {
-        const mod_routes_copy = mod_routes.map((file) => ({ src: file.path, target: './' + file.rel_path }));
-        copy_files(mod_routes_copy, gen_folder);
-        const routes_data = mod_routes.map((file) => {
-            return new Route({
+    const mod_pages = [].concat(change, add);
+    if (mod_pages.length > 0) {
+        const mod_pages_copy = mod_pages.map((file) => ({ src: file.path, target: './' + file.rel_path }));
+        copy_files(mod_pages_copy, gen_folder);
+        const pages_data = mod_pages.map((file) => {
+            return new Page({
                 path: join(gen_folder, file.rel_path),
                 rel_path: file.rel_path,
                 pkg: file.pkg,
@@ -255,7 +255,7 @@ export async function regenerate_routes({ change, add, unlink }, identifiers, ro
         });
         const identifier_name = get_name(WorkerEmit.identifier);
         const collection_name = get_name(WorkerEmit.collection);
-        const routes_name = get_name(WorkerEmit.route);
+        const pages_name = get_name(WorkerEmit.page);
         const identifier_id = Event.on('emit', identifier_name, (data) => {
             if (!data) {
                 return;
@@ -277,29 +277,29 @@ export async function regenerate_routes({ change, add, unlink }, identifiers, ro
                 collections[entry.scope].push(entry);
             });
         });
-        const routes_id = Event.on('emit', routes_name, (data) => {
-            if (data && data.routes) {
-                routes.push(...data.routes);
+        const pages_id = Event.on('emit', pages_name, (data) => {
+            if (data && data.pages) {
+                pages.push(...data.pages);
             }
         });
 
-        await WorkerController.process_in_workers(WorkerAction.route, routes_data, 10, true);
+        await WorkerController.process_in_workers(WorkerAction.page, pages_data, 10, true);
 
         // remove listeners
         Event.off('emit', identifier_name, identifier_id);
         Event.off('emit', collection_name, collection_id);
-        Event.off('emit', routes_name, routes_id);
+        Event.off('emit', pages_name, pages_id);
         reload_page = true;
     }
     if (unlink) {
-        // @TODO delete the generated routes
+        // delete the generated pages
         unlink_from(unlink, gen_folder);
     }
     return {
         reload_page,
         identifiers,
         collections,
-        routes,
+        pages,
     };
 }
 

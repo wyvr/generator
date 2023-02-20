@@ -65,7 +65,7 @@
         window.structure = await wyvr_fetch('/{identifier}.json');
         if (!window.structure) {
             console.warn('structure not available');
-            console.info('structure is not available in exec routes');
+            console.info('structure is not available in routes');
             console.groupEnd();
             return undefined;
         }

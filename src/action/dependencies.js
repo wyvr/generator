@@ -1,4 +1,4 @@
-import { FOLDER_GEN_EXEC, FOLDER_GEN_PLUGINS, FOLDER_GEN_SRC } from '../constants/folder.js';
+import { FOLDER_GEN_ROUTES, FOLDER_GEN_PLUGINS, FOLDER_GEN_SRC } from '../constants/folder.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
 import { set_config_cache } from '../utils/config_cache.js';
@@ -48,7 +48,7 @@ export async function dependencies() {
         const data = [].concat(
             collect_svelte_files(Cwd.get(FOLDER_GEN_SRC)).map((file) => file.path),
             collect_files(Cwd.get(FOLDER_GEN_PLUGINS)),
-            collect_files(Cwd.get(FOLDER_GEN_EXEC))
+            collect_files(Cwd.get(FOLDER_GEN_ROUTES))
         );
         // wrap in plugin
         const caller = await Plugin.process(name, data);

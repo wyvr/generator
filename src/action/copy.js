@@ -6,7 +6,7 @@ import {
     FOLDER_GEN_SRC,
     FOLDER_LIST_PACKAGE_COPY,
     FOLDER_PLUGINS,
-    FOLDER_ROUTES,
+    FOLDER_PAGES,
     FOLDER_SRC,
 } from '../constants/folder.js';
 import { Config } from '../utils/config.js';
@@ -36,9 +36,9 @@ export async function copy(available_packages) {
             packages.forEach((pkg) => {
                 copy_folder(pkg.path, FOLDER_LIST_PACKAGE_COPY, Cwd.get(FOLDER_GEN), (file, target) => {
                     const rel_path = to_relative_path_of_gen(target);
-                    // get file modify time of route files
+                    // get file modify time of page files
                     if (
-                        target.match(new RegExp(`/${FOLDER_ROUTES}/`)) &&
+                        target.match(new RegExp(`/${FOLDER_PAGES}/`)) &&
                         !target.match(new RegExp(`/${FOLDER_SRC}/`))
                     ) {
                         const stats = statSync(file.src);

@@ -1,6 +1,6 @@
 export const WorkerEmit = {
     navigation: 1,
-    route: 2,
+    page: 2,
     identifier: 3,
     identifier_list: 4,
     build: 5,

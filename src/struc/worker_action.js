@@ -3,7 +3,7 @@ export const WorkerAction = {
     status: 1,
     configure: 2,
     emit: 3,
-    route: 4,
+    page: 4,
     transform: 5,
     compile: 6,
     generate: 7,

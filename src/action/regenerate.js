@@ -30,10 +30,10 @@ import { sleep } from '../utils/sleep.js';
 import { get_cache_breaker } from '../utils/cache_breaker.mjs';
 import {
     regenerate_assets,
-    regenerate_exec,
+    regenerate_routes,
     regenerate_i18n,
     regenerate_plugins,
-    regenerate_routes,
+    regenerate_pages,
     regenerate_src,
     regeneration_static_file,
 } from '../utils/regenerate.mjs';
@@ -96,9 +96,9 @@ export async function regenerate(changed_files) {
             reload_page = true;
         }
 
-        // exec
-        const exec_reload = await regenerate_exec(RegenerateFragment(frag_files?.exec), gen_folder);
-        if (exec_reload) {
+        // routes
+        const routes_reload = await regenerate_routes(RegenerateFragment(frag_files?.routes), gen_folder);
+        if (routes_reload) {
             reload_page = true;
         }
 
@@ -110,35 +110,35 @@ export async function regenerate(changed_files) {
             gen_folder
         );
         let identifiers = src_result.identifiers;
-        let routes = src_result.routes;
+        let pages = src_result.pages;
 
-        // routes
-        const routes_result = await regenerate_routes(
-            RegenerateFragment(frag_files?.routes),
+        // pages
+        const pages_result = await regenerate_pages(
+            RegenerateFragment(frag_files?.pages),
             identifiers,
-            routes,
+            pages,
             gen_folder
         );
-        if (routes_result.reload_page) {
+        if (pages_result.reload_page) {
             reload_page = true;
         }
         // @TODO handle collections
-        //const collections = routes_result.collections;
-        identifiers = routes_result.identifiers;
-        routes = routes_result.routes;
+        //const collections = pages_result.collections;
+        identifiers = pages_result.identifiers;
+        pages = pages_result.pages;
 
-        // always add the watching routes to the new generated routes
+        // always add the watching pages to the new generated pages
         const watcher_paths = WatcherPaths.get();
         if (watcher_paths) {
-            const watcher_routes = Object.values(watcher_paths)
+            const watcher_pages = Object.values(watcher_paths)
                 .filter((x) => x)
                 .map((path) => Cwd.get(FOLDER_GEN_DATA, to_index(path, 'json')));
-            Logger.debug('watcher routes', watcher_routes);
-            routes = uniq_values([].concat(routes, watcher_routes));
+            Logger.debug('watcher pages', watcher_pages);
+            pages = uniq_values([].concat(pages, watcher_pages));
         }
 
-        Logger.debug('routes', routes);
-        if (filled_array(routes)) {
+        Logger.debug('pages', pages);
+        if (filled_array(pages)) {
             const identifier_name = get_name(WorkerEmit.identifier);
             const identifier_id = Event.on('emit', identifier_name, (data) => {
                 if (!data) {
@@ -147,7 +147,7 @@ export async function regenerate(changed_files) {
                 delete data.type;
                 identifiers[data.identifier] = data;
             });
-            await WorkerController.process_in_workers(WorkerAction.build, routes, 100, true);
+            await WorkerController.process_in_workers(WorkerAction.build, pages, 100, true);
             Event.off('emit', identifier_name, identifier_id);
             reload_page = true;
         }

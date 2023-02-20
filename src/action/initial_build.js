@@ -18,7 +18,7 @@ import { transform } from './transform.js';
 import { dependencies } from './dependencies.js';
 import { configure } from './configure.js';
 import { compile } from './compile.js';
-import { routes } from './route.js';
+import { pages } from './page.js';
 import { build } from './build.js';
 import { to_identifiers } from '../utils/to.js';
 import { scripts } from './script.js';
@@ -26,7 +26,7 @@ import { media } from './media.js';
 import { copy_static_generated } from './copy_static_generated.js';
 import { copy } from './copy.js';
 import { set_config_cache } from '../utils/config_cache.js';
-import { build_cache } from '../utils/exec.js';
+import { build_cache } from '../utils/routes.js';
 import { wyvr_internal } from './wyvr_internal.js';
 import { join } from 'path';
 import { NoWorker } from '../no_worker.js';
@@ -118,14 +118,14 @@ export async function intial_build(build_id, config) {
     // Compile svelte files
     await compile(available_packages);
 
-    // Execute Routes
-    const route_identifiers = await routes(package_tree, mtime);
+    // Execute Pages
+    const page_identifiers = await pages(package_tree, mtime);
 
     // Build Pages
     const build_result = await build();
 
     // combine identifiers
-    const identifiers = to_identifiers(route_identifiers, build_result.identifiers);
+    const identifiers = to_identifiers(page_identifiers, build_result.identifiers);
     set_config_cache('identifiers', identifiers);
 
     //  Inject Data into the pages

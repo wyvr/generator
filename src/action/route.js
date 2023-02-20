@@ -1,85 +1,93 @@
-import { WorkerAction } from '../struc/worker_action.js';
-import { get_name, WorkerEmit } from '../struc/worker_emit.js';
-import { Event } from '../utils/event.js';
+import { join } from 'path';
+import { FOLDER_CSS, FOLDER_GEN_ROUTES, FOLDER_GEN_JS, FOLDER_JS } from '../constants/folder.js';
+import { get_config_cache } from '../utils/config_cache.js';
+import { extract_route_config, get_route, load_route, run_route } from '../utils/routes.js';
+import { copy, exists, write, to_index } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
-import { Plugin } from '../utils/plugin.js';
-import { collect_routes } from '../utils/route.js';
-import { Storage } from '../utils/storage.js';
+import { send_content, send_head } from '../utils/server.js';
 import { filled_string } from '../utils/validate.js';
-import { WorkerController } from '../worker/controller.js';
-import { measure_action } from './helper.js';
+import { Cwd } from '../vars/cwd.js';
+import { Env } from '../vars/env.js';
+import { ReleasePath } from '../vars/release_path.js';
+import { scripts } from './script.js';
 
-export async function routes(package_tree, mtime) {
-    const name = 'route';
-    const identifier_name = get_name(WorkerEmit.identifier);
-    const identifiers = {};
-    const collection_name = get_name(WorkerEmit.collection);
-    const collections = {};
+export async function route_request(req, res, uid, force_generating_of_resources) {
+    const route = get_route_request(req);
+    if (route) {
+        Logger.debug('route', req.url, route.url);
+        const result = await send_process_route_request(req, res, uid, route, force_generating_of_resources);
+        return result;
+    }
+    return false;
+}
 
-    await measure_action(name, async () => {
-        const identifier_id = Event.on('emit', identifier_name, (data) => {
-            if (!data) {
-                return;
-            }
-            Logger.debug('emit identifier', data);
-            delete data.type;
-            identifiers[data.identifier] = data;
-        });
-        const collection_id = Event.on('emit', collection_name, (data) => {
-            if (!data || !data.collection) {
-                return;
-            }
-            data.collection.forEach((entry) => {
-                if (!filled_string(entry.url)) {
-                    return;
-                }
-                if (!collections[entry.scope]) {
-                    collections[entry.scope] = [];
-                }
-                collections[entry.scope].push(entry);
-            });
-        });
+let route_cache;
+export function clear_caches() {
+    route_cache = undefined;
+    fallback_route_cache = undefined;
+}
+export function get_route_request(req) {
+    if (!route_cache) {
+        route_cache = get_config_cache('route.cache')?.cache;
+    }
+    return get_route(req.url, req.method, route_cache);
+}
 
-        const data = collect_routes(undefined, package_tree);
+let fallback_route_cache;
+export async function fallback_route_request(req, res, uid) {
+    if (!fallback_route_cache) {
+        const fallback_file = Cwd.get(FOLDER_GEN_ROUTES, '_fallback.js');
+        if (!exists(fallback_file)) {
+            return false;
+        }
+        const result = await load_route(fallback_file);
+        fallback_route_cache = await extract_route_config(result, fallback_file);
+        fallback_route_cache.match = '.*';
+    }
+    return await send_process_route_request(req, res, uid, fallback_route_cache, false);
+}
 
-        WorkerController.set_all_workers('mtime', mtime);
-        
-        // wrap in plugin
-        const caller = await Plugin.process(name, data);
-        await caller(async (data) => {
-            await WorkerController.process_in_workers(WorkerAction.route, data, 10);
-        });
-        
-        WorkerController.set_all_workers('mtime', undefined);
+export async function send_process_route_request(req, res, uid, route, force_generating_of_resources) {
+    const result = await process_route_request(req, res, uid, route, force_generating_of_resources);
+    if (result?.result?.html && !res.writableEnded) {
+        send_head(res, 200, 'text/html');
+        send_content(res, result.result.html);
+        return true;
+    }
+    return false;
+}
 
-        // remove listeners
-        Event.off('emit', identifier_name, identifier_id);
-        Event.off('emit', collection_name, collection_id);
+export async function process_route_request(req, res, uid, route, force_generating_of_resources) {
+    const result = await run_route(req, res, uid, route);
+    // write css
+    if (filled_string(result?.data?._wyvr?.identifier) && result?.result?.css?.code) {
+        const css_file_path = join(ReleasePath.get(), FOLDER_CSS, `${result.data._wyvr.identifier}.css`);
+        if (!exists(css_file_path) || force_generating_of_resources) {
+            write(css_file_path, result.result.css.code);
+        }
+    }
+    const js_path = join(ReleasePath.get(), FOLDER_JS, `${result?.data?._wyvr?.identifier || 'default'}.js`);
+    const identifiers = result?.shortcode || {};
+    const generate_identifier =
+        result?.data?._wyvr?.identifier_data && (!exists(js_path) || force_generating_of_resources);
+    if (generate_identifier) {
+        // script only accepts an object
+        identifiers[result.data._wyvr.identifier_data.identifier] = result?.data._wyvr.identifier_data;
+        // save the file to gen
+    }
+    if (Object.keys(identifiers).length > 0) {
+        await scripts(identifiers);
+    }
+    if (generate_identifier) {
+        copy(Cwd.get(FOLDER_GEN_JS, `${result.data._wyvr.identifier}.js`), js_path);
+    }
 
-        const identifier_length = Object.keys(identifiers).length;
-        Logger.info(
-            'found',
-            identifier_length,
-            identifier_length == 1 ? 'identifier' : 'identifiers',
-            Logger.color.dim('different layout combinations')
-        );
-
-        // sort the collection entries
-        Object.keys(collections).forEach((key) => {
-            collections[key] = collections[key]
-                .sort((a, b) => a.url.localeCompare(b.url))
-                .sort((a, b) => {
-                    if (a.order > b.order) {
-                        return -1;
-                    }
-                    if (a.order < b.order) {
-                        return 1;
-                    }
-                    return 0;
-                });
-        });
-        await Storage.set('collection', collections);
-    });
-
-    return identifiers;
+    // persist the result
+    if (result?.result?.html && result?.data?._wyvr?.persist && Env.is_prod()) {
+        const file = to_index(req.url, 'html');
+        const persisted_path = join(ReleasePath.get(), file);
+        write(persisted_path, result.result.html);
+        Logger.improve('persisted', file);
+    }
+    return result;
 }

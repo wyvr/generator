@@ -1,7 +1,9 @@
 import Mocha from 'mocha';
-import { append_cache_breaker } from './cache_breaker.mjs';
+import { extname } from 'path';
+import { get_cache_breaker } from './cache_breaker.mjs';
+import { exists } from './file.js';
 import { Logger } from './logger.js';
-import { filled_array } from './validate.js';
+import { filled_array, in_array } from './validate.js';
 const { EVENT_TEST_FAIL } = Mocha.Runner.constants; // other constants https://mochajs.org/api/runner.js.html
 
 export async function run_tests(files) {
@@ -10,7 +12,6 @@ export async function run_tests(files) {
     }
     await new Promise((resolve) => {
         let stats = null;
-        // generate the mocha instance with logging for errors
         const mocha = new Mocha({
             reporter: function (runner) {
                 stats = runner.stats;
@@ -28,15 +29,13 @@ export async function run_tests(files) {
                 });
             },
         });
-        // add the files to the suite
         files.forEach((file) => {
             mocha.addFile(file.test);
         });
-        // execute tests and final event
         mocha
             .loadFilesAsync({
-                // needed to avoid caching of resources
-                esmDecorator: (path) => append_cache_breaker(path),
+                // needed to avoid caching of resources and is not allowed 
+                esmDecorator: (path) => path + get_cache_breaker(),
             })
             .then(() => {
                 mocha.run(function (failures) {
@@ -50,4 +49,16 @@ export async function run_tests(files) {
                 });
             });
     });
+}
+
+export function get_test_file(file) {
+    const ext = extname(file);
+    if (!in_array(['.js', '.cjs', '.mjs'], ext)) {
+        return undefined;
+    }
+    const test_file = file.replace(new RegExp(`${ext}$`), `.spec${ext}`).replace(/\.spec\.spec/, '.spec');
+    if (!exists(test_file)) {
+        return undefined;
+    }
+    return { file, test: test_file };
 }

@@ -28,6 +28,7 @@ import { dependencies_from_content, flip_dependency_tree, get_identifiers_of_fil
 import { get_config_cache, set_config_cache } from './config_cache.js';
 import { uniq_values } from './uniq.js';
 import { to_relative_path, to_single_identifier_name } from './to.js';
+import { get_test_file } from './tests.mjs';
 
 /**
  * Regenerate the plugins
@@ -229,19 +230,7 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
         pages.push(...data_files);
 
         // check if files have test files in place and execute them
-        test_files = combined_files
-            .map((file) => {
-                const ext = extname(file);
-                if (!in_array(['.js', '.cjs', '.mjs'], ext)) {
-                    return undefined;
-                }
-                const test_file = file.replace(new RegExp(`${ext}$`), `.spec${ext}`).replace(/\.spec\.spec/, '.spec');
-                if (!exists(test_file)) {
-                    return undefined;
-                }
-                return { file, test: test_file};
-            })
-            .filter((x) => x);
+        test_files = combined_files.map((file) => get_test_file(file)).filter((x) => x);
     }
     unlink_from(unlink, gen_folder, Cwd.get(FOLDER_GEN_CLIENT), Cwd.get(FOLDER_GEN_SERVER));
     return { identifiers, pages, test_files };

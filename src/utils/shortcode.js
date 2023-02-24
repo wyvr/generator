@@ -78,7 +78,6 @@ export async function replace_shortcode(html, data, file) {
 
         // write css
         if (rendered_result?.result?.css?.code) {
-            
             const css_file_path = join(ReleasePath.get(), FOLDER_CSS, `${identifier}.css`);
             media_query_files = write_css_file(css_file_path, rendered_result.result.css.code, media_query_files);
         }
@@ -195,4 +194,63 @@ export function parse_props(prop_content, file) {
         return undefined;
     }
     return props;
+}
+
+export function parse_tag(content) {
+    if (!filled_string(content)) {
+        return undefined;
+    }
+    const data = {};
+    let name_index = content.indexOf(' ');
+    if (name_index == -1) {
+        name_index = content.length;
+    }
+    data.tag = content.substring(0, name_index);
+    content = content.substring(name_index).trim();
+    if (!filled_string(content)) {
+        return data;
+    }
+    const len = content.length;
+    let attr_name = '';
+    let attr_value = '';
+    let found_equal = false;
+    let opened_value = false;
+    data.attributes = {};
+    for (let i = 0; i < len; i++) {
+        const char = content[i];
+        if (char == '=') {
+            found_equal = true;
+            continue;
+        }
+        if (!found_equal && char == ' ' && attr_name) {
+            data.attributes[attr_name.trim()] = true;
+            attr_name = '';
+            attr_value = '';
+            found_equal = false;
+            continue;
+        }
+        if (!found_equal) {
+            attr_name += char;
+            continue;
+        }
+        if (!opened_value && char == '"') {
+            opened_value = true;
+            continue;
+        }
+        if (char == '"') {
+            data.attributes[attr_name.trim()] = attr_value;
+            attr_name = '';
+            attr_value = '';
+            found_equal = false;
+            opened_value = false;
+            continue;
+        }
+        if (found_equal) {
+            attr_value += char;
+        }
+    }
+    if (attr_name) {
+        data.attributes[attr_name.trim()] = true;
+    }
+    return data;
 }

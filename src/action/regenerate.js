@@ -38,6 +38,7 @@ import {
     regeneration_static_file,
 } from '../utils/regenerate.mjs';
 import { RegenerateFragment } from '../model/regenerate_fragment.mjs';
+import { run_tests } from '../utils/tests.mjs';
 
 /**
  * Regenerate the files and the result of the given changed files
@@ -183,9 +184,7 @@ export async function regenerate(changed_files) {
         }
     });
 
-    if (test_files.length > 0) {
-        Logger.warning('test files found but this feature is not implemented');
-    }
+    await run_tests(test_files);
 
     return;
 }

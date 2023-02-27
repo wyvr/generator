@@ -11,6 +11,7 @@ import { cron_command } from './command/cron.js';
 // import { report_command } from './command/report';
 import { unknown_command } from './command/unknown.js';
 import { version_command } from './command/version.js';
+import { test_command } from './command/test.js';
 import { get_logo } from './presentation/logo.js';
 import { nano_to_milli } from './utils/convert.js';
 import { Logger } from './utils/logger.js';
@@ -60,6 +61,9 @@ export async function command(config) {
         //     return await create_command(config);
         case 'cron':
             result = await cron_command(config);
+            break;
+        case 'test':
+            result = await test_command(config);
             break;
         // case 'health':
         //     return await health_command(config);

@@ -19,8 +19,10 @@ const config = {
 
 // console.error(config);
 (async () => {
-    const { result, duration } = await command(config);
-    console.log(result, duration);
+    const { result } = await command(config);
+    if(result) {
+        console.log(result);
+    }
 
     process.exitCode = 0;
     return;

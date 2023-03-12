@@ -111,11 +111,21 @@ describe('cli/config/extract_cli_config', () => {
     });
     it('flag value string', () => {
         deepStrictEqual(
-            extract_cli_config(['node', 'script', '-b=text', '-c="text"']),
+            extract_cli_config(['node', 'script', '-b=text', '-c="text"', '-d="some text"']),
             Object.assign({}, default_config, {
                 interpreter: 'node',
                 script: 'script',
-                flags: { b: 'text', c: 'text' },
+                flags: { b: 'text', c: 'text', d: 'some text' },
+            })
+        );
+    });
+    it('flag value string with double dashes', () => {
+        deepStrictEqual(
+            extract_cli_config(['node', 'script', '--b=text', '--c="text"', '--d="some text"']),
+            Object.assign({}, default_config, {
+                interpreter: 'node',
+                script: 'script',
+                flags: { b: 'text', c: 'text', d: 'some text' },
             })
         );
     });

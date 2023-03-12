@@ -79,6 +79,16 @@ describe('cli/config/extract_cli_config', () => {
             })
         );
     });
+    it('flag value boolean', () => {
+        deepStrictEqual(
+            extract_cli_config(['node', 'script', '-a=true', '-b=TRUE', '-c=false', '-d=FALSE']),
+            Object.assign({}, default_config, {
+                interpreter: 'node',
+                script: 'script',
+                flags: { a: true, b: true, c: false, d: false },
+            })
+        );
+    });
     it('flag value number', () => {
         deepStrictEqual(
             extract_cli_config(['node', 'script', '--worker=0.5', '-a=1']),

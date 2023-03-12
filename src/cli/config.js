@@ -47,6 +47,13 @@ export function extract_cli_config(argv) {
                     }
                 }
 
+                // handle bool values
+                if (value === 'true' || value === 'TRUE') {
+                    value = true;
+                }
+                if (value === 'false' || value === 'FALSE') {
+                    value = false;
+                }
                 flags[argument[0]] = value;
                 return false;
             }

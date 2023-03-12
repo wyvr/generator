@@ -129,4 +129,14 @@ describe('cli/config/extract_cli_config', () => {
             })
         );
     });
+    it('combine flag values into single strings', () => {
+        deepStrictEqual(
+            extract_cli_config(['node', 'script', '-a=some', 'text', '--b=here', 'also']),
+            Object.assign({}, default_config, {
+                interpreter: 'node',
+                script: 'script',
+                flags: { a: 'some text', b: 'here also' },
+            })
+        );
+    });
 });

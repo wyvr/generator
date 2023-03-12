@@ -2,7 +2,7 @@ import { readFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import process from 'process';
-import { is_string } from '../utils/validate.js';
+import { filled_string, is_string } from '../utils/validate.js';
 
 export function extract_cli_config(argv) {
     const default_config = {
@@ -24,6 +24,7 @@ export function extract_cli_config(argv) {
 
     // extract commands & flags
     let flags = undefined;
+    let last_flag;
     default_config.command = argv
         .slice(2)
         .filter((arg) => {
@@ -54,10 +55,16 @@ export function extract_cli_config(argv) {
                 if (value === 'false' || value === 'FALSE') {
                     value = false;
                 }
+                last_flag = argument[0];
                 flags[argument[0]] = value;
                 return false;
             }
-            return true;
+            if(!last_flag || !filled_string(arg)) {
+                return true;
+            }
+            // add the char to the last flag
+            flags[last_flag] += ' ' + arg;
+            return false;
         })
         .map((cmd) => cmd.toLowerCase());
     if (flags) {

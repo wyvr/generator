@@ -196,3 +196,18 @@ export function to_identifiers(...items) {
     });
     return identifiers;
 }
+
+export function to_tabbed(content, tabsize = 4, prefix = '') {
+    if (!is_array(content)) {
+        return '';
+    }
+    const tab = new Array(tabsize).fill(' ').join('');
+    return content
+        .map((line) => {
+            if (!is_array(line)) {
+                return prefix + line.toString();
+            }
+            return to_tabbed(line, tabsize, prefix + tab);
+        })
+        .join('\n');
+}

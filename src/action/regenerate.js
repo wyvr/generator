@@ -224,7 +224,7 @@ function append_dependencies_as_changed_files(changed_files, dependencies_bottom
             .concat(changed_files.change || [], changed_files.add || [])
             .map((file) => file.rel_path)
             .map((rel_path) => get_parents_of_file_recursive(dependencies_bottom, rel_path))
-            .flat(2)
+            .flat(Infinity)
     );
     // add the dependencies as "changed" files to the current batch
     mod_files_rel_path.forEach((rel_path) => {

@@ -3,7 +3,7 @@ import formidable from 'formidable';
 import { Logger } from './logger.js';
 import { filled_string, is_func, is_number } from './validate.js';
 import { uniq_id } from './uniq.js';
-import NodeStatic from 'node-static';
+import ServeStatic from 'serve-static';
 import { WebSocketServer } from 'ws';
 import { Cwd } from '../vars/cwd.js';
 import { get_error_message } from './error.js';
@@ -41,9 +41,12 @@ export function server(host, port, on_request, on_end) {
         const question_mark = url.indexOf('?');
         const hash = url.indexOf('#');
         if (!extname(clean_url) && clean_url[clean_url.length - 1] != '/') {
-            const params_pos = Math.min(question_mark > -1 ? question_mark : Number.MAX_SAFE_INTEGER, hash > -1 ? hash : Number.MAX_SAFE_INTEGER);
+            const params_pos = Math.min(
+                question_mark > -1 ? question_mark : Number.MAX_SAFE_INTEGER,
+                hash > -1 ? hash : Number.MAX_SAFE_INTEGER
+            );
             res.writeHead(Env.is_dev() ? 302 : 301, {
-                location: clean_url+'/'+url.substring(params_pos),
+                location: clean_url + '/' + url.substring(params_pos),
             });
             res.end();
             return;
@@ -180,19 +183,20 @@ export function send_content(res, content) {
 
 let static_server_instance;
 export async function static_server(req, res, uid, on_end) {
-    const cache = Env.is_prod() ? 3600 : false;
     const start = log_start(req, uid);
 
     if (!static_server_instance) {
-        static_server_instance = new NodeStatic.Server(Cwd.get('pub'), {
-            cache,
-            serverInfo: `wyvr`,
+        static_server_instance = new ServeStatic(Cwd.get('pub'), {
+            cacheControl: Env.is_prod(),
+            etag: Env.is_prod(),
+            maxAge: Env.is_prod() ? 3600 : false,
+            dotfiles: 'ignore',
         });
     }
     // static server is not able to handle other requests then get, avoid post, put, patch
     if (!is_data_method(req.method)) {
-        static_server_instance.serve(req, res, async (err) => {
-            await static_server_final(err, req, res, uid, on_end, start);
+        static_server_instance(req, res, async () => {
+            await static_server_final({ message: 'Not found', status: 404 }, req, res, uid, on_end, start);
         });
     } else {
         await static_server_final({ message: 'Not found', status: 404 }, req, res, uid, on_end, start);

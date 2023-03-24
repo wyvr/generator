@@ -21,11 +21,11 @@ export async function collect_data(questions, default_data, get_answers_callback
             if (!question._field) {
                 continue;
             }
-            if (!default_data[question?._field]) {
+            if (is_null(default_data[question?._field])) {
                 Logger.warning(`missing field ${JSON.stringify(question?._field)} for question condition`);
                 continue;
             }
-            let conditional_value = default_data[question._field];
+            let conditional_value = default_data[question._field].toString();
             // fallback condition "_"
             if (question._ && !question[conditional_value]) {
                 conditional_value = '_';

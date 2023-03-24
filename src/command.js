@@ -4,7 +4,7 @@ import { app_command } from './command/app.js';
 import { build_command } from './command/build.js';
 import { dev_command } from './command/dev.js';
 import { clear_command } from './command/clear.js';
-// import { create_command } from './command/create';
+import { create_command } from './command/create.mjs';
 import { cron_command } from './command/cron.js';
 // import { health_command } from './command/health';
 // import { regenerate_command } from './command/regenerate';
@@ -57,8 +57,9 @@ export async function command(config) {
         case 'clear':
             result = await clear_command(config);
             break;
-        // case 'create':
-        //     return await create_command(config);
+        case 'create':
+            result = await create_command(config);
+            break;
         case 'cron':
             result = await cron_command(config);
             break;

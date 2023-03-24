@@ -1,0 +1,9 @@
+.vscode
+node_modules
+cache
+gen
+media
+pub
+releases
+storage
+@wyvr

@@ -1,0 +1,12 @@
+{
+    "name": "{{name}}",
+    "description": "wyvr project created with wyvr {{version}}",
+    "type": "module",
+    "keywords": [
+        "wyvr",
+        "generator"
+    ],
+    "dependencies": {
+        "@wyvr/generator": "^{{version}}"
+    }
+}

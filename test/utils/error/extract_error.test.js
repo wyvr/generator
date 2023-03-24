@@ -141,7 +141,7 @@ describe('utils/error/extract_error', () => {
         strictEqual(error.code, undefined);
         strictEqual(error.filename, undefined);
         strictEqual(error.hint, undefined);
-        strictEqual(error.message, 'Transform failed with 1 error:');
+        strictEqual(error.message, 'Transform failed with 1 error:\n<stdin>:3:8: ERROR: Unexpected end of file');
         strictEqual(error.name, undefined);
         strictEqual(error.source, 'gen/src');
         deepStrictEqual(error.stack, ['3:8: ERROR: Unexpected end of file']);
@@ -301,8 +301,7 @@ describe('utils/error/extract_error', () => {
                         file: 'test/utils/build/_tests/gen/tmp/416e310ccc464fa1bc3da767bc4d791b.js',
                         length: 78,
                         line: 130,
-                        lineText:
-                            "import file from 'file.svelte';",
+                        lineText: "import file from 'file.svelte';",
                         namespace: '',
                         suggestion: '',
                     },

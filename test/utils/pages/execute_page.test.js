@@ -96,9 +96,7 @@ describe('utils/pages/execute_page', () => {
         deepStrictEqual(log, [
             [
                 '✖',
-                '@page execution\n' +
-                    '[ReferenceError] exports is not defined in ES module scope\n' +
-                    'source pages/commonjs.js',
+                "@page execution\n[ReferenceError] exports is not defined in ES module scope\nThis file is being treated as an ES module because it has a '.js' file extension and '/home/p/wyvr/generator/package.json' contains \"type\": \"module\". To treat it as a CommonJS script, rename it to use the '.cjs' file extension.\nsource pages/commonjs.js",
             ],
         ]);
     });

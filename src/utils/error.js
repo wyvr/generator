@@ -67,8 +67,7 @@ export function extract_error(e, source) {
         }
     }
     if (e.message) {
-        const splitted_message = e.message.split('\n');
-        object.message = splitted_message.shift();
+        object.message = e.message
     }
     // sass error
     if (e.formatted) {

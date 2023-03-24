@@ -50,9 +50,7 @@ describe('utils/config/load', () => {
         deepStrictEqual(logger_messages, [
             [
                 '✖',
-                '@config\n' +
-                    '[ReferenceError] module is not defined in ES module scope\n' +
-                    'source test/utils/config/_tests/invalid/wyvr.js',
+                "@config\n[ReferenceError] module is not defined in ES module scope\nThis file is being treated as an ES module because it has a '.js' file extension and '/home/p/wyvr/generator/package.json' contains \"type\": \"module\". To treat it as a CommonJS script, rename it to use the '.cjs' file extension.\nsource test/utils/config/_tests/invalid/wyvr.js",
             ],
         ]);
     });

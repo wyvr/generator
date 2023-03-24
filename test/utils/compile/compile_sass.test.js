@@ -9,13 +9,7 @@ describe('utils/to/compile_sass', () => {
     let log = [];
     let console_error;
     const cwd = process.cwd();
-    const __dirname = join(
-        to_dirname(import.meta.url),
-        '..',
-        'transform',
-        '_tests',
-        'combine_splits'
-    );
+    const __dirname = join(to_dirname(import.meta.url), '..', 'transform', '_tests', 'combine_splits');
     beforeEach(() => {
         Cwd.set(__dirname);
         console_error = console.error;
@@ -45,14 +39,7 @@ describe('utils/to/compile_sass', () => {
         deepStrictEqual(log, [
             [
                 '✖',
-                '@sass\n' +
-                    '[Error] Undefined variable.\n' +
-                    'stack\n' +
-                    '-   ╷\n' +
-                    '- 1 │ .a {color:$color;}\n' +
-                    '-   │           ^^^^^^\n' +
-                    '-   ╵\n' +
-                    'source testfile.scss',
+                '@sass\n[Error] Undefined variable.\n  ╷\n1 │ .a {color:$color;}\n  │           ^^^^^^\n  ╵\n  - 1:11  root stylesheet\nstack\n-   ╷\n- 1 │ .a {color:$color;}\n-   │           ^^^^^^\n-   ╵\nsource testfile.scss',
             ],
         ]);
     });
@@ -97,13 +84,7 @@ describe('utils/to/compile_sass', () => {
         deepStrictEqual(log, [
             [
                 '✖',
-                '@sass\n' +
-                    '[Error] Undefined variable.\n' +
-                    'stack\n' +
-                    '-   ╷\n' +
-                    '- 1 │ .a {color:$color;}\n' +
-                    '-   │           ^^^^^^\n' +
-                    '-   ╵',
+                '@sass\n[Error] Undefined variable.\n  ╷\n1 │ .a {color:$color;}\n  │           ^^^^^^\n  ╵\n  - 1:11  root stylesheet\nstack\n-   ╷\n- 1 │ .a {color:$color;}\n-   │           ^^^^^^\n-   ╵',
             ],
         ]);
     });

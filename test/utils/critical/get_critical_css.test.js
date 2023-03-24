@@ -70,7 +70,7 @@ describe('utils/css/get_critical_css', () => {
             ),
             ''
         );
-        deepStrictEqual(log, [['✖', '@critical\n[Error] Error: File not found: test.css']]);
+        deepStrictEqual(log, [['✖', "@critical\n[Error] Error: File not found: test.css\n       Current working directory: /home/p/wyvr/generator\n       Searched in: /home/p/wyvr/generator"]]);
     });
     it('no media query and no file', async () => {
         deepStrictEqual(await get_critical_css('a {color: red;}'), 'a {color: red;}');

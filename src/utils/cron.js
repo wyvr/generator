@@ -2,7 +2,6 @@ import { Logger } from './logger.js';
 import { filled_object } from './validate.js';
 import { clone } from './json.js';
 
-
 export function filter_cronjobs(cronjobs) {
     if (!filled_object(cronjobs)) {
         return [];
@@ -12,8 +11,8 @@ export function filter_cronjobs(cronjobs) {
         date.getMinutes(), // Minute 0 - 59
         date.getHours(), // Hour 0 - 23
         date.getDate(), // Day 0 - 31
-        date.getMonth()+1, // Month 1 - 12
-        date.getDay() // Weekday 0 Sunday - 6 Saturday - 7 Sunday
+        date.getMonth() + 1, // Month 1 - 12
+        date.getDay(), // Weekday 0 Sunday - 6 Saturday - 7 Sunday
     ];
     return Object.keys(cronjobs)
         .map((name) => {
@@ -37,7 +36,7 @@ export function filter_cronjobs(cronjobs) {
                     return true;
                 }
                 let check_value = date_values[index];
-                
+
                 // check if every x is set
                 if (part.indexOf('*/') == 0) {
                     part = parseInt(part.replace(/^\*\/(\d+)$/, '$1'), 10);

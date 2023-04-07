@@ -1,1 +1,2 @@
-- svelte hydration bug https://github.com/sveltejs/svelte/issues/4308
+# Notes
+- the package `svelte` must have the same version in the project as in the used wyvr version

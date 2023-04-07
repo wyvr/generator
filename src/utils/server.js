@@ -23,7 +23,7 @@ import { WorkerAction } from '../struc/worker_action.js';
 import { tmpdir } from 'os';
 import { extname } from 'path';
 
-let show_all_requests = true;
+let show_requests = true;
 
 export function server(host, port, on_request, on_end) {
     if (!filled_string(host) || !is_number(port)) {
@@ -40,6 +40,14 @@ export function server(host, port, on_request, on_end) {
         let clean_url = url.replace(/\?.*/, '').replace(/#.*/, '');
         const question_mark = url.indexOf('?');
         const hash = url.indexOf('#');
+        if (show_requests) {
+            Logger.log(
+                Logger.color.dim('›'),
+                Logger.color.dim(req.method),
+                req.url,
+                ...get_time_log_infos(undefined, uid)
+            );
+        }
         if (!extname(clean_url) && clean_url[clean_url.length - 1] != '/') {
             const params_pos = Math.min(
                 question_mark > -1 ? question_mark : Number.MAX_SAFE_INTEGER,
@@ -121,45 +129,39 @@ export function log_start(req, uid) {
     return process.hrtime.bigint();
 }
 export function log_end(req, res, uid, start) {
-    const type = (res.statusCode + '')[0]; // first digit inticates the type
-    const message = [req.method, req.url, ...get_base_log_infos(res.statusMessage, res.statusCode, start, uid)];
-    switch (type) {
-        case '1':
-            Logger.info(...message);
-            return;
-        case '2':
-            if (show_all_requests) {
-                Logger.success(...message);
-            }
-            return;
-        case '3':
-            if (show_all_requests) {
-                Logger.warning(...message);
-            }
-            return;
-        default:
-            Logger.error(...message);
-            return;
+    const message = [req.method, req.url, ...get_done_log_infos(res.statusMessage, res.statusCode, start, uid)];
+    if (show_requests) {
+        const type = (res.statusCode + '')[0]; // first digit indicates the type
+        const type_logger = {
+            1: (message) => Logger.info(...message),
+            2: (message) => Logger.success(...message),
+            3: (message) => Logger.warning(...message),
+            4: (message) => Logger.warning(...message),
+            _: (message) => Logger.error(...message),
+        };
+        (type_logger[type] || type_logger['_'])(message);
     }
 }
 export function is_data_method(method) {
     return ['post', 'patch', 'put'].indexOf(method.toLowerCase()) > -1;
 }
 export function return_not_found(req, res, uid, message, status, start) {
-    Logger.error(req.method, req.url, ...get_base_log_infos(message, status, start, uid));
+    Logger.error(req.method, req.url, ...get_done_log_infos(message, status, start, uid));
     send_head(res, status, 'text/html');
     send_content(res, message);
     return;
 }
-export function get_base_log_infos(message, status, start, uid) {
+export function get_done_log_infos(message, status, start, uid) {
+    return [`${status}${Logger.color.dim(`(${message})`)}`, ...get_time_log_infos(start, uid)];
+}
+export function get_time_log_infos(start = undefined, uid = undefined) {
     const date = new Date();
     return [
-        `${status}${Logger.color.dim(`(${message})`)}`,
-        nano_to_milli(process.hrtime.bigint() - start) + Logger.color.dim('ms'),
+        start ? nano_to_milli(process.hrtime.bigint() - start) + Logger.color.dim('ms') : undefined,
         date.toLocaleTimeString(),
         Logger.color.dim(date.toLocaleDateString()),
-        Logger.color.dim(uid),
-    ];
+        uid ? Logger.color.dim(uid) : undefined,
+    ].filter((x) => x);
 }
 
 export function send_head(res, status, content_type) {
@@ -226,7 +228,7 @@ export function app_server(host, port) {
 
 export function watch_server(host, port, wsport, fallback) {
     Logger.emit = true;
-    show_all_requests = false;
+    show_requests = false;
     generate_server(
         host,
         port,

@@ -254,14 +254,6 @@ async function generate_server(host, port, force_generating_of_resources, onEnd,
         }
         await static_server(req, res, uid, async (err) => {
             if (err) {
-                if (show_requests) {
-                    Logger.log(
-                        Logger.color.dim('›'),
-                        Logger.color.dim(req.method),
-                        req.url,
-                        ...get_time_log_infos(undefined, uid)
-                    );
-                }
                 const route_result = await route_request(req, res, uid, force_generating_of_resources);
                 if (route_result) {
                     return;

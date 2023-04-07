@@ -1,21 +1,9 @@
 {
     "check-coverage": true,
     "all": true,
-    "extension": [
-        ".js"
-    ],
-    "include": [
-        "src/**/*.js"
-    ],
-    "exclude": [
-        "src/resource/**/*.*",
-        "test/**",
-        "node_modules/**"
-    ],
-    "reporter": [
-        "html",
-        "lcov",
-        "text"
-    ],
+    "extension": [".js", ".mjs"],
+    "include": ["src/**/*.js", "src/**/*.mjs"],
+    "exclude": ["src/resource/**/*.*", "test/**", "node_modules/**"],
+    "reporter": ["html", "lcov", "text"],
     "report-dir": "coverage"
 }

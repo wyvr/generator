@@ -37,10 +37,12 @@ init: ## Install and prepare setup
 	@npm install
 
 coverage: ## Get test coverage result
+	@$(READONLY_FILES)
 	@$(WYVR_COVERAGE)
 	
 lint: ## Use ESLint on the codebase
 	@${WYVR_LINT}
 
 coverage-watch: ## Watches changes in the tests
+	@$(READONLY_FILES)
 	@npx nodemon --watch src --watch test --ignore test/**/_tests/**/*.js -e js --exec "$(WYVR_LINT); $(WYVR_COVERAGE)"

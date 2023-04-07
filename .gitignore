@@ -13,3 +13,4 @@
 /test/**/svelte_internal.mjs
 tmp
 pub
+not_writeable.txt

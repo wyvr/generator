@@ -76,7 +76,7 @@ export async function process_route_request(req, res, uid, route, force_generati
         // save the file to gen
     }
     if (Object.keys(identifiers).length > 0) {
-        await scripts(identifiers);
+        await scripts(identifiers, true);
     }
     if (generate_identifier) {
         copy(Cwd.get(FOLDER_GEN_JS, `${result.data._wyvr.identifier}.js`), js_path);

@@ -3,7 +3,7 @@ import { Plugin } from '../utils/plugin.js';
 import { WorkerController } from '../worker/controller.js';
 import { measure_action } from './helper.js';
 
-export async function scripts(identifier) {
+export async function scripts(identifier, minimize_output) {
     const name = 'scripts';
 
     await measure_action(name, async () => {
@@ -12,7 +12,7 @@ export async function scripts(identifier) {
         // wrap in plugin
         const caller = await Plugin.process(name, data);
         await caller(async (data) => {
-            await WorkerController.process_in_workers(WorkerAction.scripts, data, 1);
+            await WorkerController.process_in_workers(WorkerAction.scripts, data, 1, true);
         });
-    });
+    }, minimize_output);
 }

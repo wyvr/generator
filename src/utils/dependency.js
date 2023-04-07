@@ -129,11 +129,11 @@ export function get_identifiers_of_file(reversed_tree, file) {
     let lists = undefined;
     try {
         lists = get_parents_of_file_recursive(reversed_tree, file);
-    } catch (e) {
         /* c8 ignore start */
+    } catch (e) {
         Logger.error(get_error_message(e, file, 'dependency'));
+        /* c8 ignore end */
     }
-    /* c8 ignore end */
     if (is_null(lists)) {
         return { identifiers_of_file: [], files: [file] };
     }

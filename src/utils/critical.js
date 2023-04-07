@@ -2,12 +2,26 @@ import { generate } from 'critical';
 import { ReleasePath } from '../vars/release_path.js';
 import { get_error_message } from './error.js';
 import { Logger } from './logger.js';
-import { filled_string } from './validate.js';
+import { filled_string, is_null } from './validate.js';
 
 export async function get_critical_css(content, file) {
-    let css = '';
+    const result = await generate_critical_css(content, file);
+    if (is_null(result)) {
+        return '';
+    }
+    
+    if (result.css) {
+        return result.css;
+    }
+    if (result.html) {
+        return result.html;
+    }
+    return '';
+}
+
+export async function generate_critical_css(content, file) {
     if (!filled_string(content)) {
-        return css;
+        return undefined;
     }
     try {
         // create above the fold inline css
@@ -25,12 +39,9 @@ export async function get_critical_css(content, file) {
             ],
             rebase: undefined,
         });
-        css = result.css || '' + result.html || '';
+        return result;
     } catch (e) {
         Logger.error(get_error_message(e, file, 'critical'));
     }
-    if (!css) {
-        css = '';
-    }
-    return css;
+    return undefined;
 }

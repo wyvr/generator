@@ -21,7 +21,7 @@ import { exists } from './file.js';
 import { WorkerController } from '../worker/controller.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { tmpdir } from 'os';
-import { extname } from 'path';
+import { basename, extname } from 'path';
 
 let show_requests = true;
 
@@ -40,14 +40,6 @@ export function server(host, port, on_request, on_end) {
         let clean_url = url.replace(/\?.*/, '').replace(/#.*/, '');
         const question_mark = url.indexOf('?');
         const hash = url.indexOf('#');
-        if (show_requests) {
-            Logger.log(
-                Logger.color.dim('›'),
-                Logger.color.dim(req.method),
-                req.url,
-                ...get_time_log_infos(undefined, uid)
-            );
-        }
         if (!extname(clean_url) && clean_url[clean_url.length - 1] != '/') {
             const params_pos = Math.min(
                 question_mark > -1 ? question_mark : Number.MAX_SAFE_INTEGER,
@@ -244,6 +236,7 @@ export function watch_server(host, port, wsport, fallback) {
 async function generate_server(host, port, force_generating_of_resources, onEnd, fallback) {
     server(host, port, undefined, async (req, res, uid) => {
         // check for media files
+        const name = basename(req.url);
         const media_config = await config_from_url(req.url);
         if (media_config && !media_config.result_exists) {
             const buffer = await get_buffer(media_config.src);
@@ -252,20 +245,25 @@ async function generate_server(host, port, force_generating_of_resources, onEnd,
                 // generate media on demand
                 await WorkerController.process_data(WorkerAction.media, [media_config]);
                 // the file needs some time to be available after generation
-                const success = await wait_for(() => {
-                    return exists(Cwd.get(media_config.result));
-                });
+                if (show_requests) {
+                    const success = await wait_for(() => {
+                        return exists(Cwd.get(media_config.result));
+                    });
 
-                Logger[success ? 'success' : 'error'](
-                    'generate media',
-                    nano_to_milli(process.hrtime.bigint() - start),
-                    Logger.color.dim('ms'),
-                    Logger.color.dim(uid)
-                );
+                    Logger[success ? 'success' : 'error']('media', name, ...get_time_log_infos(start, uid));
+                }
             }
         }
         await static_server(req, res, uid, async (err) => {
             if (err) {
+                if (show_requests) {
+                    Logger.log(
+                        Logger.color.dim('›'),
+                        Logger.color.dim(req.method),
+                        req.url,
+                        ...get_time_log_infos(undefined, uid)
+                    );
+                }
                 const route_result = await route_request(req, res, uid, force_generating_of_resources);
                 if (route_result) {
                     return;

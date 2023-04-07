@@ -122,17 +122,15 @@ export function log_start(req, uid) {
 }
 export function log_end(req, res, uid, start) {
     const message = [req.method, req.url, ...get_done_log_infos(res.statusMessage, res.statusCode, start, uid)];
-    if (show_requests) {
-        const type = (res.statusCode + '')[0]; // first digit indicates the type
-        const type_logger = {
-            1: (message) => Logger.info(...message),
-            2: (message) => Logger.success(...message),
-            3: (message) => Logger.warning(...message),
-            4: (message) => Logger.warning(...message),
-            _: (message) => Logger.error(...message),
-        };
-        (type_logger[type] || type_logger['_'])(message);
-    }
+    const type = (res.statusCode + '')[0]; // first digit indicates the type
+    const type_logger = {
+        1: (message) => Logger.info(...message),
+        2: (message) => Logger.success(...message),
+        3: (message) => Logger.warning(...message),
+        4: (message) => Logger.warning(...message),
+        _: (message) => Logger.error(...message),
+    };
+    (type_logger[type] || type_logger['_'])(message);
 }
 export function is_data_method(method) {
     return ['post', 'patch', 'put'].indexOf(method.toLowerCase()) > -1;

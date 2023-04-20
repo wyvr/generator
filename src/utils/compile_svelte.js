@@ -204,7 +204,7 @@ export function make_svelte_code_async(code) {
         .replace(/\$\{each\(([^,]+), ([^=]+)=> \{/g, '${await each($1, async $2=> {')
         // make arrow functions async
         //.replace(/((?:\(\)|[^()]+?) => \{)/g, 'async $1')
-        .replace(/: (\(\) => \{)/g, ': async $1');
+        .replace(/: (\([^)]*?\) => \{)/g, ': async $1');
 
     return code.substring(0, template_index) + template;
 }

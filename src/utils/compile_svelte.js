@@ -192,7 +192,7 @@ export function make_svelte_code_async(code) {
     const template = code
         .substring(template_index)
         // make slots async
-        .replace(/(slots\.default \? )(slots\.default\()/g, '$1await $2')
+        .replace(/(slots\.\w+? \? )(slots\.\w+?\()/g, '$1await $2')
         // remove event dispatcher because they are not working server side
         .replace(/([\s=])createEventDispatcher\([^)]*?\)/g, '$1() => {}')
         // make sub components async

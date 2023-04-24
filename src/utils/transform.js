@@ -11,7 +11,7 @@ import {
     is_path,
     is_string,
 } from './validate.js';
-import { compile_sass, compile_typescript } from './compile.js';
+import { compile_sass, compile_typescript, insert_import } from './compile.js';
 import { Cwd } from '../vars/cwd.js';
 import { to_dirname } from './to.js';
 import { clone } from './json.js';
@@ -184,18 +184,22 @@ export async function extract_and_load_split(path, content, tag, extensions) {
     result.tags = (
         await Promise.all(
             extracted.tags.map(async (code) => {
+                const is_style = tag == 'style';
                 const contains_sass =
                     (code.indexOf('type="text/scss"') > -1 ||
                         code.indexOf('lang="scss"') > -1 ||
                         code.indexOf('lang="sass"') > -1) &&
-                    tag == 'style';
+                    is_style;
                 const contains_typescript = code.indexOf('lang="ts"') > -1 && tag == 'script';
                 code = code.replace(new RegExp(`^<${tag}[^>]*>`), '').replace(new RegExp(`<\\/${tag}>$`), '');
                 if (contains_sass) {
-                    code = await compile_sass(code, path);
+                    return await compile_sass(code, path);
                 }
                 if (contains_typescript) {
-                    code = await compile_typescript(code, path);
+                    return await compile_typescript(code, path);
+                }
+                if (is_style) {
+                    return insert_import(code, path);
                 }
                 return code;
             })

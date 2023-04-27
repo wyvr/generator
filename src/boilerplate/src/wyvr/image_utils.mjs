@@ -80,7 +80,7 @@ export function get_image_src(src, config) {
             }
         }
     }
-    return `/media/${hash}/${src.replace(/^\//, '')}${width_addition}`;
+    return `/media/${hash}/${src.replace(/^\//, '')}`;
 }
 export function correct_image_format(format) {
     if (!format) {

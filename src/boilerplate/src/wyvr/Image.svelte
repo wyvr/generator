@@ -16,7 +16,13 @@
         />
     */
 
-    import { isClient, isServer, onServer } from '@wyvr/generator';
+    import { isClient, isServer } from '@wyvr/generator';
+    import {
+        get_image_src_data,
+        get_image_src,
+        get_image_src_shortcode,
+        correct_image_format,
+    } from '@src/wyvr/image_utils.mjs';
     export let src = null;
     export let width = 0;
     export let height = 0;
@@ -31,96 +37,20 @@
     export let fixed = false;
 
     function get_src(src, w, h, m, q, f, use_width) {
-        if (Array.isArray(src)) {
-            src = src
-                .filter((x) => x)
-                .join('/')
-                .replace(/^(https?):\/([^\/])/, '$1://$2');
-        }
-        if (!src) {
+        const data = get_image_src_data(src, w, h, m, q, f, fixed, use_width, width);
+        if (!data) {
             return '';
         }
-        let src_height = '';
-        const width_addition = use_width ? ` ${w}w` : '';
-        if (h > 0) {
-            if (fixed) {
-                src_height = h;
-            } else {
-                src_height = (h / width) * w;
-            }
-        }
         if (isServer) {
-            return `(media(src:'${src}', width: ${w}, ${
-                src_height ? `height: ${src_height},` : ''
-            } mode: '${m}', quality: ${q}, format: '${f}'))${width_addition}`;
+            return get_image_src_shortcode(data.src, data.config) + data.width_addition;
         }
         if (isClient) {
-            const hash_config = {
-                mode: 'cover',
-                format: 'jpeg',
-            };
-            if (w) {
-                hash_config.width = w;
-            }
-            if (h > 0) {
-                hash_config.height = src_height;
-            }
-            if (q) {
-                hash_config.quality = q;
-            }
-            if (m) {
-                hash_config.mode = m;
-            }
-            const extension = src.match(/\.([^\.]+)$/);
-            if (!f && extension && extension[1] != hash_config.format) {
-                f = extension[1];
-            }
-            if (f) {
-                if (f == 'jpg') {
-                    f = 'jpeg';
-                }
-                hash_config.format = f;
-            }
-            const hash = get_hash(JSON.stringify(hash_config));
-
-            if (src.indexOf('http') == 0) {
-                const domain_match = src.match(/^https?:\/\/([^\/]*?)\//);
-                if (domain_match) {
-                    const domain = domain_match[1];
-                    const domain_hash = get_hash(domain);
-                    if (domain_hash) {
-                        const src_path = src.substring(src.indexOf(domain) + domain.length).replace(/^\//, '');
-                        return `/media/_d/${domain_hash}/${hash}/${src_path}${width_addition}`;
-                    }
-                }
-            }
-            return `/media/${hash}/${src.replace(/^\//, '')}${width_addition}`;
+            return get_image_src(data.src, data.config) + data.width_addition;
         }
         return src;
     }
-    function get_hash(value) {
-        return btoa(value);
-    }
-    function correct_format(format) {
-        if (!format) {
-            return null;
-        }
-        format = format.toLowerCase();
-        switch (format) {
-            case 'jpg':
-                return 'jpeg';
-            case 'gif':
-            case 'png':
-            case 'jpeg':
-            case 'webp':
-            case 'avif':
-            case 'heif':
-                return format;
-        }
-        return null;
-    }
 
-    $: cor_format = correct_format(format);
+    $: cor_format = correct_image_format(format);
     $: cor_formats = ['webp'].filter((x, i, arr) => arr.indexOf(x) == i).filter((x) => x != cor_format);
     $: loading = lazy ? 'lazy' : null;
     $: ordered_widths = Array.isArray(widths)

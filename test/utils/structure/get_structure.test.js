@@ -107,4 +107,59 @@ describe('utils/structure/get_structure', () => {
             }
         );
     });
+    it('with doubled', async () => {
+        deepStrictEqual(
+            get_structure(
+                'file',
+                { 'src/file': ['src/child', 'src/child'] },
+                {
+                    'src/file': config,
+                    'src/child': {
+                        display: 'inline',
+                        render: 'hydrate',
+                        loading: 'lazy',
+                        media: 'all',
+                        portal: 'target',
+                    },
+                },
+                {
+                    'src/file': pkg,
+                    'src/child': {
+                        name: 'Pkg2',
+                        path: '/path/pkg2',
+                    },
+                }
+            ),
+            {
+                file: 'src/file',
+                pkg: {
+                    name: 'Pkg',
+                    path: '/path/pkg',
+                },
+                config: {
+                    display: 'block',
+                    render: 'static',
+                    loading: 'instant',
+                    media: 'all',
+                },
+                components: [
+                    {
+                        file: 'src/child',
+                        pkg: {
+                            name: 'Pkg2',
+                            path: '/path/pkg2',
+                        },
+                        config: {
+                            display: 'inline',
+                            render: 'hydrate',
+                            loading: 'lazy',
+                            media: 'all',
+                            portal: 'target',
+                        },
+                        components: [],
+                    },
+                ],
+            }
+        );
+    });
 });

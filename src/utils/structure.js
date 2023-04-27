@@ -3,6 +3,7 @@ import { FOLDER_SRC } from '../constants/folder.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { to_extension, write_json } from './file.js';
 import { filled_string, match_interface } from './validate.js';
+import { uniq_values } from './uniq.js';
 
 export function get_structure(file, tree, file_config, package_tree) {
     if (!filled_string(file) || !tree || !file_config || !package_tree) {
@@ -12,7 +13,7 @@ export function get_structure(file, tree, file_config, package_tree) {
     if (src_file.indexOf(FOLDER_SRC) != 0) {
         src_file = join(FOLDER_SRC, file);
     }
-    const components = (tree[src_file] || []).map((child) => get_structure(child, tree, file_config, package_tree));
+    const components = uniq_values(tree[src_file] || []).map((child) => get_structure(child, tree, file_config, package_tree));
     return {
         file: src_file,
         pkg: package_tree[src_file],

@@ -2,7 +2,7 @@ import { FOLDER_GEN_ROUTES, FOLDER_GEN_PLUGINS, FOLDER_GEN_SRC } from '../consta
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
 import { set_config_cache } from '../utils/config_cache.js';
-import { flip_dependency_tree } from '../utils/dependency.js';
+import { cache_dependencies } from '../utils/dependency.js';
 import { Event } from '../utils/event.js';
 import { collect_files, collect_svelte_files } from '../utils/file.js';
 import { Plugin } from '../utils/plugin.js';
@@ -59,13 +59,8 @@ export async function dependencies() {
         Event.off('emit', dependency_name, dep_listener_id);
         Event.off('emit', i18n_name, i18n_listener_id);
 
-        // create bottom-top dependency tree
-        const inverted_dependencies = flip_dependency_tree(dependencies);
-
-        // add to config and write gen files
-        set_config_cache('dependencies.top', dependencies);
-
-        set_config_cache('dependencies.bottom', inverted_dependencies);
+        // cache the given dependencies
+        cache_dependencies(dependencies);
 
         set_config_cache('dependencies.i18n', i18n);
     });

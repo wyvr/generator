@@ -11,6 +11,7 @@ import { WyvrFileRender } from '../struc/wyvr_file.js';
 import { WyvrFile } from '../model/wyvr_file.js';
 import { Identifier } from '../model/identifier.js';
 import { get_error_message } from './error.js';
+import { set_config_cache } from './config_cache.js';
 
 export function dependencies_from_content(content, file) {
     if (!filled_string(content) || !filled_string(file)) {
@@ -192,4 +193,29 @@ export function get_parents_of_file_recursive(tree, file) {
     /* c8 ignore end */
 
     return parents;
+}
+
+/**
+ * Caches the given dependencies to disk
+ * @param {object} dependencies
+ * @returns {(object|undefined)}
+ */
+export function cache_dependencies(dependencies) {
+    if (typeof dependencies != 'object') {
+        return undefined;
+    }
+    const files = Object.keys(dependencies);
+    if (files.length == 0) {
+        return undefined;
+    }
+    // remove doubled dependencies
+    files.forEach((file) => {
+        dependencies[file] = uniq_values(dependencies[file]);
+    });
+
+    set_config_cache('dependencies.top', dependencies);
+
+    set_config_cache('dependencies.bottom', flip_dependency_tree(dependencies));
+
+    return dependencies;
 }

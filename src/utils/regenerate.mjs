@@ -24,7 +24,7 @@ import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerController } from '../worker/controller.js';
 import { filled_array, filled_string, in_array, is_null, match_interface } from './validate.js';
 import { Event } from './event.js';
-import { dependencies_from_content, flip_dependency_tree, get_identifiers_of_file } from './dependency.js';
+import { cache_dependencies, dependencies_from_content, get_identifiers_of_file } from './dependency.js';
 import { get_config_cache, set_config_cache } from './config_cache.js';
 import { uniq_values } from './uniq.js';
 import { to_relative_path, to_single_identifier_name } from './to.js';
@@ -123,8 +123,8 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
                 }
                 new_dep[key].push(...dependencies[key]);
             });
-            set_config_cache('dependencies.top', new_dep);
-            set_config_cache('dependencies.bottom', flip_dependency_tree(new_dep));
+            // cache the given dependencies
+            cache_dependencies(new_dep);
         }
 
         // when a split file gets edited, also add the original file

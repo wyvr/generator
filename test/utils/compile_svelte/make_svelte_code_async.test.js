@@ -59,4 +59,10 @@ describe('utils/compile_svelte/make_svelte_code_async', () => {
         const async_code = await make_svelte_code_async(orig);
         deepStrictEqual(async_code, result);
     });
+    it('await slots props', async () => {
+        const orig = read(Cwd.get('make_svelte_code_async/slot_props_orig.js'));
+        const result = read(Cwd.get('make_svelte_code_async/slot_props_result.js')).replace(/\[root\]/g, Cwd.get());
+        const async_code = await make_svelte_code_async(orig);
+        deepStrictEqual(async_code, result);
+    });
 });

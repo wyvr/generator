@@ -40,14 +40,18 @@
         if (!src) {
             return '';
         }
-        let height = '';
+        let src_height = '';
         const width_addition = use_width ? ` ${w}w` : '';
         if (h > 0) {
-            height = fixed ? h : (h / width) * w;
+            if (fixed) {
+                src_height = h;
+            } else {
+                src_height = (h / width) * w;
+            }
         }
         if (isServer) {
             return `(media(src:'${src}', width: ${w}, ${
-                height ? `height: ${height},` : ''
+                src_height ? `height: ${src_height},` : ''
             } mode: '${m}', quality: ${q}, format: '${f}'))${width_addition}`;
         }
         if (isClient) {
@@ -59,7 +63,7 @@
                 hash_config.width = w;
             }
             if (h > 0) {
-                hash_config.height = h;
+                hash_config.height = src_height;
             }
             if (q) {
                 hash_config.quality = q;

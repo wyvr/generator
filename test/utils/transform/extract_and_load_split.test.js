@@ -75,7 +75,7 @@ describe('utils/transform/extract_and_load_split', () => {
     it('replace @src in content', async () => {
         const path = join(__dirname, 'empty.svelte');
         deepStrictEqual(
-            await extract_and_load_split(path, 'test<style>@import "@src/link";.b {color:blue;}</style>', 'style', [
+            await extract_and_load_split(path, 'test<style>@import "@src/link";.b {color:blue;background-image:url("@src/image");}</style>', 'style', [
                 'css',
                 'scss',
             ]),
@@ -85,9 +85,7 @@ describe('utils/transform/extract_and_load_split', () => {
                 loaded_file: cwd + '/test/utils/transform/_tests/combine_splits/empty.css',
                 path,
                 tag: 'style',
-                tags: [
-                    '@import "' + cwd + '/test/utils/transform/_tests/combine_splits/gen/src/link";.b {color:blue;}',
-                ],
+                tags: ['a {     color: red; } .b {color:blue;background-image:url("' + cwd + '/test/utils/transform/_tests/combine_splits/gen/src/image");}'],
             }
         );
     });
@@ -96,7 +94,7 @@ describe('utils/transform/extract_and_load_split', () => {
         deepStrictEqual(
             await extract_and_load_split(
                 undefined,
-                'test<style>@import "@src/link";.b {color:blue;}</style>',
+                'test<style>@import "@src/link";.b {color:blue;background-image:url(\'@src/image\');}</style>',
                 'style',
                 ['css', 'scss']
             ),
@@ -107,9 +105,27 @@ describe('utils/transform/extract_and_load_split', () => {
 
                 content: 'test',
                 tag: 'style',
-                tags: [
-                    '@import "' + cwd + '/test/utils/transform/_tests/combine_splits/gen/src/link";.b {color:blue;}',
-                ],
+                tags: ['a {     color: red; } .b {color:blue;background-image:url(\'' + cwd + '/test/utils/transform/_tests/combine_splits/gen/src/image\');}'],
+            }
+        );
+    });
+    it('replace @src not when not in  quotes', async () => {
+        const path = join(__dirname, 'empty.svelte');
+        deepStrictEqual(
+            await extract_and_load_split(
+                undefined,
+                'test<style>@import "@src/link";.b {color:blue;background-image: url(@src/image);}</style>',
+                'style',
+                ['css', 'scss']
+            ),
+            {
+                loaded_content: undefined,
+                loaded_file: undefined,
+                path: undefined,
+
+                content: 'test',
+                tag: 'style',
+                tags: ['a {     color: red; } .b {color:blue;background-image: url(@src/image);}'],
             }
         );
     });

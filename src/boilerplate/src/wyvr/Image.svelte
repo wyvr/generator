@@ -31,19 +31,24 @@
     export let fixed = false;
 
     function get_src(src, w, h, m, q, f, use_width) {
-        if(Array.isArray(src)) {
-            src = src.filter((x) => x).join('/').replace(/^(https?):\/([^\/])/, '$1://$2');
+        if (Array.isArray(src)) {
+            src = src
+                .filter((x) => x)
+                .join('/')
+                .replace(/^(https?):\/([^\/])/, '$1://$2');
         }
         if (!src) {
             return '';
         }
         let height = '';
         const width_addition = use_width ? ` ${w}w` : '';
-        if(h > 0) {
+        if (h > 0) {
             height = fixed ? h : (h / width) * w;
         }
         if (isServer) {
-            return `(media(src:'${src}', width: ${w}, ${height ? `height: ${height},` : ''} mode: '${m}', quality: ${q}, format: '${f}'))${width_addition}`;
+            return `(media(src:'${src}', width: ${w}, ${
+                height ? `height: ${height},` : ''
+            } mode: '${m}', quality: ${q}, format: '${f}'))${width_addition}`;
         }
         if (isClient) {
             const hash_config = {
@@ -120,16 +125,22 @@
               .sort()
               .reverse()
         : null;
-    $: cor_height = height <= 0 ? null : height
-    $: srcset = Array.isArray(ordered_widths) ? ordered_widths.map((src_width) => {
-        return get_src(src, src_width, cor_height, mode, quality, cor_format, true)
-    }).join(', ') : null;
+    $: cor_height = height <= 0 ? null : height;
+    $: srcset = Array.isArray(ordered_widths)
+        ? ordered_widths
+              .map((src_width) => {
+                  return get_src(src, src_width, cor_height, mode, quality, cor_format, true);
+              })
+              .join(', ')
+        : null;
     $: srcset_formats =
         Array.isArray(cor_formats) && Array.isArray(ordered_widths)
             ? cor_formats.map((format) => {
                   return {
                       format,
-                      srcset: ordered_widths.map((src_width) => get_src(src, src_width, cor_height, mode, quality, format, true)).join(', '),
+                      srcset: ordered_widths
+                          .map((src_width) => get_src(src, src_width, cor_height, mode, quality, format, true))
+                          .join(', '),
                   };
               })
             : [];
@@ -140,6 +151,14 @@
         {#each srcset_formats as entry}
             <source {sizes} srcset={entry.srcset} type="image/{entry.format}" />
         {/each}
-        <img src={get_src(src, width, cor_height, mode, quality, format, false)} {width} height={cor_height} {loading} {sizes} {srcset} {alt} />
+        <img
+            src={get_src(src, width, cor_height, mode, quality, format, false)}
+            {width}
+            height={cor_height}
+            {loading}
+            {sizes}
+            {srcset}
+            {alt}
+        />
     </picture>
 {/if}

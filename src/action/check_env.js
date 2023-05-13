@@ -5,6 +5,7 @@ import { env_report } from '../presentation/env_report.js';
 import { is_file, read_json } from '../utils/file.js';
 import { to_dirname } from '../utils/to.js';
 import { Cwd } from '../vars/cwd.js';
+import { get_config_path } from '../utils/config.js';
 
 export async function check_env() {
     const check_env_report = await get_report();
@@ -31,21 +32,20 @@ export async function get_report() {
 
     // check if a package.json is present
     const package_json_path = Cwd.get('package.json');
-    if(!is_file(package_json_path)) {
+    if (!is_file(package_json_path)) {
         report.warning.push(ERRORS.package_is_not_present);
     } else {
-        if(!read_json(package_json_path)) {
+        if (!read_json(package_json_path)) {
             report.warning.push(ERRORS.package_is_not_valid);
         }
     }
-    
-    // check if a wyvr.js is present
-    const wyvr_js_path = Cwd.get('wyvr.js');
-    if(!is_file(wyvr_js_path)) {
+
+    // check if a wyvr config file is present
+    const config_path = get_config_path(Cwd.get());
+    if (!config_path) {
         report.success = false;
         report.error.push(ERRORS.wyvr_js_is_not_present);
     }
 
     return report;
 }
-

@@ -1,4 +1,3 @@
-//const wyvr_config = (await import('../wyvr.js')).default;
 import merge from 'deepmerge';
 import { WyvrConfig } from '../model/wyvr_config.js';
 import { get_error_message } from './error.js';
@@ -69,8 +68,8 @@ function config() {
             if (!is_string(path)) {
                 return {};
             }
-            let filepath = find_file(path, ['wyvr.js', 'wyvr.mjs', 'wyvr.cjs']);
-            if (!is_file(filepath)) {
+            const filepath = get_config_path(path);
+            if (!filepath) {
                 return {};
             }
             try {
@@ -95,7 +94,7 @@ export async function inject(content, file) {
     const search_string = '_inject(';
     const found = content.match(new RegExp('\\W' + search_string.replace('(', '\\(')));
     // when not found or part of another word
-    if(!found) {
+    if (!found) {
         return content;
     }
     const start_index = found.index + 1;
@@ -130,4 +129,12 @@ export async function inject(content, file) {
         return await inject(replaced);
     }
     return content;
+}
+
+export function get_config_path(path) {
+    const filepath = find_file(path, ['wyvr.js', 'wyvr.mjs', 'wyvr.cjs']);
+    if (!is_file(filepath)) {
+        return undefined;
+    }
+    return filepath;
 }

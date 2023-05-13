@@ -7,6 +7,7 @@ import { regenerate } from '../action/regenerate.js';
 import { get_config_cache } from './config_cache.js';
 import { extname, join } from 'path';
 import { to_extension } from './file.js';
+import { get_config_path } from './config.js';
 
 let watcher;
 let working = false;
@@ -23,7 +24,8 @@ export async function package_watcher(packages) {
     pkgs = packages;
     return new Promise(() => {
         const watch_folder = packages.map((pkg) => pkg.path);
-        watch_folder.push(Cwd.get('wyvr.js'));
+        const config_path = get_config_path(Cwd.get());
+        watch_folder.push(config_path);
 
         watcher = watch(watch_folder, {
             ignoreInitial: true,
@@ -106,7 +108,7 @@ export async function process_changed_files(changed_files, packages) {
                 if (in_array(['.css', '.scss', '.js', '.mjs', '.cjs', '.ts'], extension)) {
                     const svelte_rel_path = to_extension(rel_path, '.svelte');
                     const pkg = package_tree[svelte_rel_path];
-                    if(pkg) {
+                    if (pkg) {
                         const path = join(pkg.path, svelte_rel_path);
                         if (!result.change) {
                             result.change = [];

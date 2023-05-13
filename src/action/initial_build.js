@@ -32,9 +32,15 @@ import { join } from 'path';
 import { NoWorker } from '../no_worker.js';
 import { Event } from '../utils/event.js';
 import { modify_svelte } from './modify_svelte.mjs';
+import { get_error_message } from '../utils/error.js';
 
 export async function pre_initial_build(build_id, config_data) {
-    await modify_svelte();
+    try {
+        await modify_svelte();
+    } catch(e) {
+        Logger.error(get_error_message(e, undefined, 'initial build'));
+        process.exit(1);
+    }
     
     // set release folder
     ReleasePath.set(Cwd.get(FOLDER_RELEASES, build_id));

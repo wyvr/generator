@@ -1,6 +1,6 @@
 import { join } from 'path';
 import { FOLDER_GEN_SERVER } from '../constants/folder.js';
-import { exists, find_file, read, write } from '../utils/file.js';
+import { exists, find_file, is_file, read, write } from '../utils/file.js';
 
 export async function modify_svelte() {
     // make the svelte/internal file asynchronous to allow onServer to be executed correctly
@@ -8,6 +8,9 @@ export async function modify_svelte() {
         'node_modules/svelte/internal/index.mjs',
         'node_modules/@wyvr/generator/node_modules/svelte/internal/index.mjs',
     ]);
+    if (!is_file(internal_file)) {
+        throw new Error('svelte is not installed');
+    }
     const internal_path = join(FOLDER_GEN_SERVER, 'svelte_internal.mjs');
     if (!exists(internal_path)) {
         write(internal_path, await modify_svelte_internal(read(internal_file)));

@@ -42,6 +42,7 @@ export function create_package(name, templates, version, result, target_dir) {
     }
     if (result.features.includes('pages')) {
         copy_template_file(join(templates, 'pages', 'markdown.md'), Cwd.get(target_dir, 'pages', 'index.md'), {
+            name,
             version,
         });
         copy_template_file(join(templates, 'pages', 'page.mjs'), Cwd.get(target_dir, 'pages', 'page.mjs'), {

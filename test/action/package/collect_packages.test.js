@@ -65,10 +65,13 @@ describe('action/package/collect_packages', () => {
         const result = await collect_packages();
         deepStrictEqual(result, {
             available_packages: [],
-            disabled_packages: [].concat(empty_disabled_packages(Cwd.get()), [
-                { name: 'local', path: join(Cwd.get(), 'local') },
-                { name: '#2', path: join(Cwd.get(), 'path') },
-            ]),
+            disabled_packages: [].concat(
+                [
+                    { name: 'local', path: join(Cwd.get(), 'local') },
+                    { name: '#1', path: join(Cwd.get(), 'path') },
+                ],
+                empty_disabled_packages(Cwd.get())
+            ),
         });
     });
     // it('missing package.json', async () => {

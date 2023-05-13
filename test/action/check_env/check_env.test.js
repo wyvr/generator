@@ -52,7 +52,7 @@ describe('action/check_env/check_env', () => {
         await check_env();
         deepStrictEqual(log, [
             ['⚠', 'package.json is not present'],
-            ['✖', 'wyvr.js is not present'],
+            ['✖', 'wyvr config file is not present'],
             ['✖', 'terminated wyvr because of critical errors'],
         ]);
         strictEqual(exit_value, 1);
@@ -62,7 +62,7 @@ describe('action/check_env/check_env', () => {
         await check_env();
         deepStrictEqual(log, [
             ['⚠', 'package.json is invalid JSON'],
-            ['✖', 'wyvr.js is not present'],
+            ['✖', 'wyvr config file is not present'],
             ['✖', 'terminated wyvr because of critical errors'],
         ]);
         strictEqual(exit_value, 1);
@@ -72,7 +72,7 @@ describe('action/check_env/check_env', () => {
         await check_env();
         deepStrictEqual(log, [
             ['⚠', 'package.json is not present'],
-            ['✖', 'wyvr.js is not present'],
+            ['✖', 'wyvr config file is not present'],
             ['✖', 'terminated wyvr because of critical errors'],
         ]);
         strictEqual(exit_value, 1);

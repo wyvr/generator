@@ -32,6 +32,7 @@
     export let sizes = null;
     export let widths = null;
     export let css = null;
+    export let style = null;
     export let lazy = true;
     export let mode = 'cover';
     export let fixed = false;
@@ -93,6 +94,7 @@
             {sizes}
             {srcset}
             {alt}
+            {style}
         />
     </picture>
 {/if}

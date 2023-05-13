@@ -79,12 +79,17 @@ export async function process_changed_files(changed_files, packages) {
 
             const used_pkg = package_tree[rel_path];
             if (used_pkg && used_pkg.path != pkg_path) {
+                // if the given package is over the used, proceed
+                const used_index = packages.findIndex((p) => p == used_pkg);
+                const current_index = packages.findIndex((p) => p == pkg);
+                if (current_index > -1 && current_index >= used_index) {
                 Logger.warning(
                     `ignoring ${event} of ${rel_path} from ${pkg.name}, it is used from ${
                         used_pkg.name
                     } ${Logger.color.dim(used_pkg.path)}`
                 );
                 return;
+                }
             }
 
             Logger.info('detect', event, Logger.color.dim(pkg_path + '/') + rel_path);

@@ -31,6 +31,10 @@ export class Env {
         return 4;
     }
     static name() {
-        return Object.keys(EnvType).find((key) => EnvType[key] === this.value) || 'prod';
+        return get_name(this.value) || 'prod';
     }
+}
+
+export function get_name(value) {
+    return Object.keys(EnvType).find((key) => EnvType[key] === value);
 }

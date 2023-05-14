@@ -26,7 +26,7 @@ export async function collect_packages(package_json) {
     if (!filled_array(packages)) {
         packages = [];
     }
-    packages.unshift(boilerplate);
+    packages.push(boilerplate);
 
     // iterate over packages
     let packages_config = {};
@@ -42,21 +42,26 @@ export async function collect_packages(package_json) {
                 if (proc_pkg.config) {
                     packages_config = Config.merge(packages_config, proc_pkg.config);
                 }
-                available_packages.push(proc_pkg.pkg);
+                available_packages[index] = proc_pkg.pkg;
                 return index;
             }
-            disabled_packages.push(proc_pkg.pkg);
+            disabled_packages[index] = proc_pkg.pkg;
             return index;
         })
     );
     // update config, but keep the main config values
     const merged_config = Config.merge(packages_config, new_base_config);
+
+    const result = {
+        available_packages: available_packages.filter((x) => x),
+        disabled_packages: disabled_packages.filter((x) => x),
+    };
     // update the packages in the config
-    merged_config.packages = available_packages;
+    merged_config.packages = result.available_packages;
 
     Config.replace(merged_config);
 
-    return { available_packages, disabled_packages };
+    return result;
 }
 
 async function process_package(pkg, index, package_json) {

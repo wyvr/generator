@@ -6,7 +6,7 @@ import { uniq_values } from './uniq.js';
 import { regenerate } from '../action/regenerate.js';
 import { get_config_cache } from './config_cache.js';
 import { extname, join } from 'path';
-import { to_extension } from './file.js';
+import { exists, to_extension } from './file.js';
 import { get_config_path } from './config.js';
 
 let watcher;
@@ -25,7 +25,9 @@ export async function package_watcher(packages) {
     return new Promise(() => {
         const watch_folder = packages.map((pkg) => pkg.path);
         const config_path = get_config_path(Cwd.get());
-        watch_folder.push(config_path);
+        if (config_path) {
+            watch_folder.push(config_path);
+        }
 
         watcher = watch(watch_folder, {
             ignoreInitial: true,
@@ -83,12 +85,12 @@ export async function process_changed_files(changed_files, packages) {
                 const used_index = packages.findIndex((p) => p == used_pkg);
                 const current_index = packages.findIndex((p) => p == pkg);
                 if (current_index > -1 && current_index >= used_index) {
-                Logger.warning(
-                    `ignoring ${event} of ${rel_path} from ${pkg.name}, it is used from ${
-                        used_pkg.name
-                    } ${Logger.color.dim(used_pkg.path)}`
-                );
-                return;
+                    Logger.warning(
+                        `ignoring ${event} of ${rel_path} from ${pkg.name}, it is used from ${
+                            used_pkg.name
+                        } ${Logger.color.dim(used_pkg.path)}`
+                    );
+                    return;
                 }
             }
 
@@ -122,6 +124,23 @@ export async function process_changed_files(changed_files, packages) {
                             path,
                             rel_path: svelte_rel_path,
                             pkg,
+                        });
+                    }
+                }
+            }
+            // when a file is remove add the next file to the list of changed files
+            if (event == 'unlink') {
+                const remaining_packages = packages.filter((p) => p != pkg);
+                if (remaining_packages) {
+                    const fallback_package = remaining_packages.find((p) => exists(join(p.path, rel_path)));
+                    if (fallback_package) {
+                        if (!result.change) {
+                            result.change = [];
+                        }
+                        result.change.push({
+                            path: join(fallback_package.path, rel_path),
+                            rel_path,
+                            pkg: fallback_package,
                         });
                     }
                 }

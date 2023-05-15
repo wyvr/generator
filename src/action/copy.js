@@ -31,9 +31,9 @@ export async function copy(available_packages) {
         const caller = await Plugin.process(name, available_packages);
         await caller(async (packages) => {
             // Copy static files from packages
-            // Copy files from packages and override in the package order
+            // Copy files from packages and override in the reversed package order
             // Build Tree of files and packages
-            packages.forEach((pkg) => {
+            packages.reverse().forEach((pkg) => {
                 copy_folder(pkg.path, FOLDER_LIST_PACKAGE_COPY, Cwd.get(FOLDER_GEN), (file, target) => {
                     const rel_path = to_relative_path_of_gen(target);
                     // get file modify time of page files

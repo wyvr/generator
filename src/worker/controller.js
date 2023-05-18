@@ -235,6 +235,22 @@ export class WorkerController {
         return true;
     }
 
+    /**
+     * set config cache in all workers
+     * @param {string} segment
+     * @param {any} value
+     * @returns whether the value was sent to the workers or not
+     */
+    static set_config_cache_all_workers(segment, value) {
+        if (!filled_string(segment)) {
+            return false;
+        }
+        this.workers.forEach((worker) => {
+            this.send_action(worker, WorkerAction.set_config_cache, { segment, value });
+        });
+        return true;
+    }
+
     static get_workers_by_status(status) {
         const name = get_status_name(status);
         if (is_null(name)) {

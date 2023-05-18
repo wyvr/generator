@@ -22,7 +22,7 @@ import { replace_imports } from './transform.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerController } from '../worker/controller.js';
-import { filled_array, filled_string, in_array, is_null, match_interface } from './validate.js';
+import { filled_array, filled_object, filled_string, in_array, is_null, match_interface } from './validate.js';
 import { Event } from './event.js';
 import { cache_dependencies, dependencies_from_content, get_identifiers_of_file } from './dependency.js';
 import { get_config_cache, set_config_cache } from './config_cache.js';
@@ -184,14 +184,14 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
         });
 
         await WorkerController.process_in_workers(WorkerAction.transform, combined_files, 10, true);
-
-        await WorkerController.process_in_workers(WorkerAction.compile, combined_files, 10, true);
-
+        
         // remove listeners
         Event.off('emit', config_name, config_id);
-
+        // dependencies.config has to set before compile runs
         set_config_cache('dependencies.config', file_configs);
-
+        
+        await WorkerController.process_in_workers(WorkerAction.compile, combined_files, 10, true);
+        
         // when doc, layout or page has changed search directly in the pages reference
         if (filled_array(main_files)) {
             const identifier_keys = Object.keys(identifier_files);
@@ -231,7 +231,14 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
 
         // check if files have test files in place and execute them
         test_files = combined_files.map((file) => get_test_file(file)).filter((x) => x);
+
+        // rebuild the identifiers
+        if (filled_object(identifiers)) {
+            const scripts_data = Object.keys(identifiers).map((key) => identifiers[key]);
+            await WorkerController.process_in_workers(WorkerAction.scripts, scripts_data, 1, true);
+        }
     }
+
     unlink_from(unlink, gen_folder, Cwd.get(FOLDER_GEN_CLIENT), Cwd.get(FOLDER_GEN_SERVER));
     return { identifiers, pages, test_files };
 }

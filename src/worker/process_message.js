@@ -1,5 +1,6 @@
 import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerStatus } from '../struc/worker_status.js';
+import { set_config_cache } from '../utils/config_cache.js';
 import { clear_cache } from '../utils/i18n.js';
 import { Logger } from '../utils/logger.js';
 import { Env } from '../vars/env.js';
@@ -37,6 +38,10 @@ export async function process_message(msg) {
             const set_key = value.key,
                 set_value = value.value;
             global.cache[set_key] = set_value;
+            break;
+        }
+        case WorkerAction.set_config_cache: {
+            set_config_cache(value.segment, value.value);
             break;
         }
         case WorkerAction.transform: {

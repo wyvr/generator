@@ -15,7 +15,8 @@ export const WorkerAction = {
     media: 13,
     dependencies: 14,
     set: 15,
-    critical: 16,
+    set_config_cache: 16,
+    critical: 17,
 };
 export function get_name(action) {
     return Object.keys(WorkerAction).find((key) => WorkerAction[key] == action);

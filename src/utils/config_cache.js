@@ -1,5 +1,7 @@
 import { FOLDER_CACHE } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
+import { IsWorker } from '../vars/is_worker.js';
+import { WorkerController } from '../worker/controller.js';
 import { Config } from './config.js';
 import { read_json, write_json } from './file.js';
 import { filled_string, is_null } from './validate.js';
@@ -9,15 +11,17 @@ export function get_config_cache(segment, fallback_value) {
         return fallback_value;
     }
     let value = Config.get(segment);
-    const path = get_config_cache_path(segment);
     if (!is_null(value)) {
         return value;
     }
-    const cache = read_json(path);
-    if (is_null(cache)) {
-        return fallback_value;
+    if (!IsWorker.get()) {
+        const path = get_config_cache_path(segment);
+        const cache = read_json(path);
+        if (is_null(cache)) {
+            return fallback_value;
+        }
+        Config.set(segment, cache);
     }
-    Config.set(segment, cache);
     return Config.get(segment, fallback_value);
 }
 
@@ -25,9 +29,12 @@ export function set_config_cache(segment, value) {
     if (!filled_string(segment)) {
         return;
     }
-    const path = get_config_cache_path(segment);
     Config.set(segment, value);
-    write_json(path, value);
+    if (!IsWorker.get()) {
+        const path = get_config_cache_path(segment);
+        write_json(path, value);
+        WorkerController.set_config_cache_all_workers(segment, value);
+    }
 }
 
 export function get_config_cache_path(segment) {

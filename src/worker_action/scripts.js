@@ -42,7 +42,11 @@ export async function scripts(identifiers) {
             if (is_shortcode) {
                 dependencies = [].concat(
                     ...Object.keys(identifier.imports).map((key) => {
-                        return get_hydrate_dependencies(tree, file_config, to_relative_path_of_gen(identifier.imports[key]));
+                        return get_hydrate_dependencies(
+                            tree,
+                            file_config,
+                            to_relative_path_of_gen(identifier.imports[key])
+                        );
                     })
                 );
             } else {
@@ -95,18 +99,14 @@ export async function scripts(identifiers) {
                             const real_lazy_file_path = Cwd.get(FOLDER_GEN, lazy_file_path);
                             // write the lazy file from the component
                             if (!exists(real_lazy_file_path) || Env.is_dev()) {
-                                // ${script_partials.hydrate}
-                                // ${script_partials.props}
-                                // ${script_partials.portal}
-                                const result = await build(
-                                    `
-                            ${read(join(resouce_dir, 'hydrate_instant.js'))}
-                            ${read(join(resouce_dir, 'props.js'))}
-                            ${read(join(resouce_dir, 'portal.js'))}
-                            ${instant_code}
-                            `,
-                                    real_lazy_file_path
-                                );
+                                const content = [
+                                    read(join(resouce_dir, 'hydrate_instant.js')),
+                                    read(join(resouce_dir, 'props.js')),
+                                    read(join(resouce_dir, 'portal.js')),
+                                    instant_code,
+                                ].join('\n');
+
+                                const result = await build(content, real_lazy_file_path);
 
                                 const code = result.code.replace(
                                     '%sourcemap%',

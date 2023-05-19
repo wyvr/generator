@@ -56,6 +56,4 @@ window.requestIdleCallback
     ? requestIdleCallback(() => {
           wyvr_media_checker();
       })
-    : setTimeout(() => {
-          wyvr_media_checker();
-      }, 1000);
+    : wyvr_media_checker();

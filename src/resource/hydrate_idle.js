@@ -3,15 +3,11 @@
 /* eslint-disable no-unused-vars */
 const wyvr_hydrate_idle = (path, elements, name, cls) => {
     wyvr_idle_classes[name] = { cls, path, loaded: false };
-    if (window.requestIdleCallback) {
-        requestIdleCallback(() => {
-            wyvr_idle_init(elements);
-        });
-    } else {
-        setTimeout(() => {
-            wyvr_idle_init(elements);
-        }, 5000);
-    }
+    window.requestIdleCallback
+        ? requestIdleCallback(() => {
+              wyvr_idle_init(elements);
+          })
+        : wyvr_idle_init(elements);
 };
 const wyvr_idle_init = (elements) => {
     Array.from(elements).forEach((el) => {

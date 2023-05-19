@@ -26,7 +26,7 @@ describe('utils/transform/insert_hydrate_tag', () => {
                     media: 'all',
                 },
             }),
-            `<script>export let a = '';</script><div data-hydrate="name"  data-props="{_prop('a', a)}"  ><p>{a}</p></div>`
+            `<script>export let a = '';</script><div data-hydrate="name" data-props="{_prop('a', a)}" data-loading="instant"><p>{a}</p></div>`
         );
     });
     it('inline', () => {
@@ -44,7 +44,7 @@ describe('utils/transform/insert_hydrate_tag', () => {
                     media: 'all',
                 },
             }),
-            `<script>export let a = '';</script><span data-hydrate="name"  data-props="{_prop('a', a)}"  ><p>{a}</p></span>`
+            `<script>export let a = '';</script><span data-hydrate="name" data-props="{_prop('a', a)}" data-loading="instant"><p>{a}</p></span>`
         );
     });
     it('hydrate lazy', () => {
@@ -62,7 +62,7 @@ describe('utils/transform/insert_hydrate_tag', () => {
                     media: 'all',
                 },
             }),
-            `<script>export let a = '';</script><div data-hydrate="name"  data-props="{_prop('a', a)}"  ><p>{a}</p></div>`
+            `<script>export let a = '';</script><div data-hydrate="name" data-props="{_prop('a', a)}" data-loading="lazy"><p>{a}</p></div>`
         );
     });
     it('portal', () => {
@@ -80,7 +80,7 @@ describe('utils/transform/insert_hydrate_tag', () => {
                     media: 'all',
                 },
             }),
-            `<script>export let a = '';</script><div data-hydrate="name"  data-props="{_prop('a', a)}" data-portal="target" ><p>{a}</p></div>`
+            `<script>export let a = '';</script><div data-hydrate="name" data-props="{_prop('a', a)}" data-loading="instant" data-portal="target"><p>{a}</p></div>`
         );
     });
     it('none', () => {
@@ -98,7 +98,7 @@ describe('utils/transform/insert_hydrate_tag', () => {
                     media: 'all',
                 },
             }),
-            `<script>export let a = '';</script><div data-hydrate="name"  data-props="{_prop('a', a)}"  ><p>{a}</p></div>`
+            `<script>export let a = '';</script><div data-hydrate="name" data-props="{_prop('a', a)}" data-loading="none"><p>{a}</p></div>`
         );
     });
     it('media', () => {
@@ -116,7 +116,7 @@ describe('utils/transform/insert_hydrate_tag', () => {
                     media: 'all',
                 },
             }),
-            `<script>export let a = '';</script><div data-hydrate="name"  data-props="{_prop('a', a)}"  data-media="all"><p>{a}</p></div>`
+            `<script>export let a = '';</script><div data-hydrate="name" data-props="{_prop('a', a)}" data-loading="media" data-media="all"><p>{a}</p></div>`
         );
     });
     it('dev env', () => {
@@ -137,7 +137,7 @@ describe('utils/transform/insert_hydrate_tag', () => {
         Env.set(EnvType.prod);
         strictEqual(
             result,
-            `<script>export let a = '';</script><div data-hydrate="name" data-hydrate-path="undefined" data-props="{_prop('a', a)}"  ><p>{a}</p></div>`
+            `<script>export let a = '';</script><div data-hydrate="name" data-hydrate-path="undefined" data-props="{_prop('a', a)}" data-loading="instant"><p>{a}</p></div>`
         );
     });
 });

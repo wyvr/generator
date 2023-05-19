@@ -287,14 +287,17 @@ export function insert_hydrate_tag(content, wyvr_file) {
     const props_include = `data-props="${props.map((prop) => `{_prop('${prop}', ${prop})}`).join(',')}"`;
 
     // add portal when set
-    const portal = wyvr_file.config.portal ? `data-portal="${wyvr_file.config.portal}"` : '';
+    const portal = wyvr_file.config.portal ? `data-portal="${wyvr_file.config.portal}"` : undefined;
     // add media when loading is media
-    const media = wyvr_file.config.loading == WyvrFileLoading.media ? `data-media="${wyvr_file.config.media}"` : '';
+    const media = wyvr_file.config.loading == WyvrFileLoading.media ? `data-media="${wyvr_file.config.media}"` : undefined;
+    // add the loading type as attribute when using this info in the FE
+    const loading = `data-loading="${wyvr_file.config.loading}"`;
     // add hydrate tag
     const hydrate_tag = wyvr_file.config.display == 'inline' ? 'span' : 'div';
     // debug info
-    const debug_info = Env.is_dev() ? `data-hydrate-path="${wyvr_file.rel_path}"` : '';
-    content = `<${hydrate_tag} data-hydrate="${wyvr_file.name}" ${debug_info} ${props_include} ${portal} ${media}>${content}</${hydrate_tag}>`;
+    const debug_info = Env.is_dev() ? `data-hydrate-path="${wyvr_file.rel_path}"` : undefined;
+    const attributes = [debug_info, props_include, loading, portal, media].filter((x) => x).join(' ');
+    content = `<${hydrate_tag} data-hydrate="${wyvr_file.name}" ${attributes}>${content}</${hydrate_tag}>`;
     content = replace_slots_static(content);
     return scripts.tags.join('\n') + content + styles.tags.join('\n');
 }

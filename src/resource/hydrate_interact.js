@@ -12,6 +12,8 @@ const wyvr_hydrate_interact = (path, elements, name, cls) => {
         el.addEventListener('mousedown', wyvr_interact_init);
         el.addEventListener('focusin', wyvr_interact_init);
         el.addEventListener('pointerover', wyvr_interact_init);
+        el.addEventListener('interact', wyvr_interact_init);
+        el.setAttribute('data-bind-interact', 'true');
     });
 };
 

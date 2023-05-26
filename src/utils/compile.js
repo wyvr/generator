@@ -91,6 +91,8 @@ export function compile_markdown(code) {
     }
 
     const content = marked(front_matter.body, {
+        mangle: false,
+        headerIds: false,
         breaks: false,
     }).replace(/<code[^>]*>[\s\S]*?<\/code>/g, (match) => {
         // replace svelte placeholder inside code blocks

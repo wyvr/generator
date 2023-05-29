@@ -5,6 +5,7 @@ if (!window.wyvr_debug_initialized) {
     wyvr_devtools_initialize();
 }
 async function wyvr_devtools_initialize() {
+    const cb = new Date().getTime();
     const modules_list = await wyvr_fetch('/devtools/modules.json');
     if (!Array.isArray(modules_list)) {
         console.error('could not load debug modules');
@@ -14,7 +15,9 @@ async function wyvr_devtools_initialize() {
         await Promise.all(
             modules_list.map(async (path) => {
                 try {
-                    const imported_module = await import(location?.origin + path);
+                    let path_parts = (location?.origin + path).split('?');
+                    path_parts.push(cb);
+                    const imported_module = await import(path_parts.join('&').replace('&', '?'));
                     const module = imported_module?.default;
                     if(module) {
                         if(!module.order) {

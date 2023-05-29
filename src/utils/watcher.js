@@ -97,7 +97,7 @@ export async function process_changed_files(changed_files, packages) {
             Logger.info('detect', event, Logger.color.dim(pkg_path + '/') + rel_path);
 
             // when config file is changed restart
-            if (path.match(/wyvr\.js$/)) {
+            if (path.match(/wyvr\.[mc]?js$/)) {
                 restart_required = true;
                 changed_config_files.push(path);
             }

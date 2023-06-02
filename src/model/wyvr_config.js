@@ -12,7 +12,7 @@ export const WyvrConfig = Object.freeze({
     },
     url: 'localhost',
     worker: {
-        ratio: 0,
+        ratio: 0.3,
         force_initial_build: false,
     },
 });

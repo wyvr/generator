@@ -2,7 +2,7 @@
     "name": "@wyvr/generator",
     "version": "0.0.0",
     "description": "",
-    "main": "src/index.mjs",
+    "main": "index.mjs",
     "author": "wyvr",
     "license": "MIT",
     "type": "module",

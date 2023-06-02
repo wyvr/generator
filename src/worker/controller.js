@@ -95,6 +95,9 @@ export class WorkerController {
     static exit() {
         this.exiting = true;
         Logger.debug('killing', this.workers.length, 'workers');
+        if (!this.multi_threading) {
+            return;
+        }
         this.workers.forEach((worker) => {
             process.kill(worker.pid);
         });
@@ -194,7 +197,9 @@ export class WorkerController {
 
     static send_message(worker, data) {
         if (!this.multi_threading) {
-            Event.emit('process', 'message', data);
+            setTimeout(() => {
+                Event.emit('process', 'message', data);
+            }, 100);
             return true;
         }
         if (!this.is_worker(worker)) {

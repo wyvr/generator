@@ -23,8 +23,8 @@ const config = {
     if(result) {
         console.log(result);
     }
-
     process.exitCode = 0;
+    process.exit(0);
     return;
 })();
 /* eslint-enable */

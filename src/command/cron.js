@@ -8,6 +8,7 @@ import { Config } from '../utils/config.js';
 import { filter_cronjobs } from '../utils/cron.js';
 import { get_error_message } from '../utils/error.js';
 import { read_json } from '../utils/file.js';
+import { clone } from '../utils/json.js';
 import { Logger } from '../utils/logger.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
@@ -29,11 +30,37 @@ export async function cron_command(config) {
     const { available_packages, disabled_packages } = await collect_packages(package_json);
     package_report(available_packages, disabled_packages);
 
-    if(Env.is_dev()) {
+    if (Env.is_dev()) {
         Logger.warning('in dev environment no exec results gets persisted');
     }
 
-    let cronjobs = filter_cronjobs(Config.get('cron'));
+    // check for specific cron calls
+    const all_cronjobs = Config.get('cron');
+    const non_existing_cronjobs = [];
+    const explicit_crons = (config_data?.cli?.command || ['cron'])
+        .slice(1)
+        .map((name) => {
+            const cron = clone(all_cronjobs[name]);
+            if (!cron) {
+                non_existing_cronjobs.push(name);
+                return undefined;
+            }
+            cron.name = name;
+            cron.failed = false;
+            return cron;
+        })
+        .filter((x) => x);
+
+    if (non_existing_cronjobs.length > 0) {
+        Logger.warning('non existing cronjobs', non_existing_cronjobs.join(' '));
+    }
+    let cronjobs = [];
+    if (explicit_crons.length > 0) {
+        cronjobs = explicit_crons;
+    } else {
+        // filter out currently not running cronjobs
+        cronjobs = filter_cronjobs(all_cronjobs);
+    }
     if (cronjobs.length == 0) {
         Logger.warning('no cronjobs to run');
         return '-';

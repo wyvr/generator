@@ -10,6 +10,8 @@ import { extname, join, sep } from 'path';
 import { replace_src_path } from './transform.js';
 import { compile_server_svelte_from_code, execute_server_compiled_svelte } from './compile_svelte.js';
 import { FOLDER_GEN, FOLDER_SRC } from '../constants/folder.js';
+import { gfmHeadingId } from 'marked-gfm-heading-id';
+
 /**
  * replace @import in content
  * @param {string} content
@@ -89,7 +91,7 @@ export function compile_markdown(code) {
     if (is_object(front_matter.attributes)) {
         data = front_matter.attributes;
     }
-
+    marked.use(gfmHeadingId({}));
     const content = marked(front_matter.body, {
         mangle: false,
         headerIds: false,

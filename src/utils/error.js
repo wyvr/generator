@@ -67,7 +67,7 @@ export function extract_error(e, source) {
         }
     }
     if (e.message) {
-        object.message = e.message
+        object.message = e.message;
     }
     // sass error
     if (e.formatted) {
@@ -82,16 +82,52 @@ export function extract_error(e, source) {
         object.stack = [];
     }
     // esbuild errors
-    if (filled_array(e.errors) && e.name == 'Error') {
-        object.message = e.errors
-            .map((error) => {
-                let text = '- ' + error.text;
-                if (error.location && !is_null(error.location.line) && !is_null(error.location.column)) {
-                    text += ` ${error.location.line}:${error.location.column}`;
-                }
-                return text;
-            })
-            .join('\n');
+    if (filled_array(e.errors)) {
+        object.message =
+            '\n' +
+            e.errors
+                .map((error) => {
+                    let text = '- ' + error.text;
+                    const has_location =
+                        error.location && !is_null(error.location.line) && !is_null(error.location.column);
+                    let where = error.location.file
+                        ? '\n' + error.location.file.replace(/\?.*$/, '').replace(/^gen\/[^/]+\//, '@src/')
+                        : '';
+
+                    if (has_location) {
+                        where += ` @ ${error.location.line}:${error.location.column}`;
+                    }
+
+                    let preview = '';
+
+                    if (has_location) {
+                        if (!is_null(error.location.lineText)) {
+                            const before = error.location.lineText.substring(0, error.location.column);
+                            const highlight = error.location.lineText.substring(
+                                error.location.column,
+                                error.location.column + error.location.length
+                            );
+                            const after = error.location.lineText.substring(
+                                error.location.column + error.location.length
+                            );
+                            preview = `${error.location.line} | `;
+                            const preLength = preview.length;
+                            preview += `${Logger.color.dim(before)}${Logger.color.bold(highlight)}${Logger.color.dim(
+                                after
+                            )}\n${' '.repeat(preLength + error.location.column)}${'^'.repeat(error.location.length)}`;
+                            preview = `\n\n${preview}`;
+                        }
+                    }
+                    text += where + preview;
+                    if (!is_null(error.notes)) {
+                        text += `\n\n${error.notes
+                            .map((n) => n.text)
+                            .filter((x) => x)
+                            .join('\n')}`;
+                    }
+                    return text;
+                })
+                .join('\n');
     }
 
     return object;

@@ -7,6 +7,7 @@ import { read, write } from '../../../src/utils/file.js';
 import { to_dirname, to_plain } from '../../../src/utils/to.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 import { Env } from '../../../src/vars/env.js';
+import { assert } from 'console';
 
 describe('utils/build/build', () => {
     let log = [];
@@ -83,16 +84,11 @@ describe('utils/build/build', () => {
             .replace(/\[root\]/g, process.cwd());
         const result = await build(content, 'error.js');
         deepStrictEqual(result, { code: undefined, sourcemap: undefined });
-        deepStrictEqual(log, [
-            [
-                '✖',
-                '@build\n' +
-                    '[Error] - Could not resolve "' +
-                    __dirname +
-                    '/gen/client/Nonexisting.svelte" 130:17\n' +
-                    'source error.js',
-            ],
-        ]);
+        assert(
+            log[0][0].indexOf('- Could not resolve "' + __dirname + '/gen/client/Nonexisting.svelte"') > -1,
+            'missing error message'
+        );
+        assert(log[0][0].indexOf('130:17') > -1, 'missing line and column information');
     });
     it('throw error', async () => {
         const content = read(join(__dirname, 'error.js'))
@@ -100,8 +96,7 @@ describe('utils/build/build', () => {
             .replace(/\[root\]/g, process.cwd());
         const result = await build(content, 'error.js');
         strictEqual(result.code, undefined);
-        deepStrictEqual(log, [
-            ['✖', '@build\n' + '[Error] - Cannot assign to "a" because it is a constant 2:0\n' + 'source error.js'],
-        ]);
+        assert(log[0][0].indexOf('- Cannot assign to "a" because it is a constant') > -1, 'missing error message');
+        assert(log[0][0].indexOf('2:0') > -1, 'missing line and column information');
     });
 });

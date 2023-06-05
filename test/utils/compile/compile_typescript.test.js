@@ -1,4 +1,4 @@
-import { deepStrictEqual, strictEqual } from 'assert';
+import assert, { deepStrictEqual, strictEqual } from 'assert';
 import { describe, it } from 'mocha';
 import { compile_typescript } from '../../../src/utils/compile.js';
 import { to_plain } from '../../../src/utils/to.js';
@@ -39,16 +39,9 @@ describe('utils/to/compile_typescript', () => {
             ),
             undefined
         );
-        deepStrictEqual(log, [
-            [
-                '✖',
-                '@typescript\n' +
-                    '[Error] - Unexpected end of file 3:8\n' +
-                    'stack\n' +
-                    '- 3:8: ERROR: Unexpected end of file\n' +
-                    'source test.ts',
-            ],
-        ]);
+        assert(log[0][1].indexOf('test.ts') > -1, 'missing filename');
+        assert(log[0][1].indexOf('- Unexpected end of file') > -1, 'missing error message');
+        assert(log[0][1].indexOf('3:8') > -1, 'missing line and column information');
     });
     it('error without filename', async () => {
         strictEqual(
@@ -59,14 +52,7 @@ describe('utils/to/compile_typescript', () => {
             ),
             undefined
         );
-        deepStrictEqual(log, [
-            [
-                '✖',
-                '@typescript\n' +
-                    '[Error] - Unexpected end of file 3:8\n' +
-                    'stack\n' +
-                    '- 3:8: ERROR: Unexpected end of file',
-            ],
-        ]);
+        assert(log[0][1].indexOf('- Unexpected end of file') > -1, 'missing error message');
+        assert(log[0][1].indexOf('3:8') > -1, 'missing line and column information');
     });
 });

@@ -299,7 +299,7 @@ describe('utils/error/extract_error', () => {
                     location: {
                         column: 17,
                         file: 'test/utils/build/_tests/gen/tmp/416e310ccc464fa1bc3da767bc4d791b.js',
-                        length: 78,
+                        length: 13,
                         line: 130,
                         lineText: "import file from 'file.svelte';",
                         namespace: '',
@@ -319,6 +319,18 @@ describe('utils/error/extract_error', () => {
                 },
             ],
         });
-        deepStrictEqual(error.message, '- Could not resolve "file.svelte" 130:17\n- errortext');
+        deepStrictEqual(
+            error.message,
+            '\n' +
+                '- Could not resolve "file.svelte"\n' +
+                'test/utils/build/_tests/gen/tmp/416e310ccc464fa1bc3da767bc4d791b.js @ 130:17\n' +
+                '\n' +
+                "130 | \x1B[2mimport file from \x1B[22m\x1B[1m'file.svelte'\x1B[22m\x1B[2m;\x1B[22m\n" +
+                '                       ^^^^^^^^^^^^^\n' +
+                '\n' +
+                '\n' +
+                '- errortext\n' +
+                '\n'
+        );
     });
 });

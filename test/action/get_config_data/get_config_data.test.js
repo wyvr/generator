@@ -49,7 +49,7 @@ describe('action/get_config_data/get_config_data', () => {
             url: 'localhost',
             worker: {
                 force_initial_build: false,
-                ratio: 0,
+                ratio: 0.3,
             },
         });
     });
@@ -91,7 +91,7 @@ describe('action/get_config_data/get_config_data', () => {
                 version: '0.0.0',
                 worker: {
                     force_initial_build: false,
-                    ratio: 0,
+                    ratio: 0.3,
                 },
             }
         );
@@ -115,7 +115,7 @@ describe('action/get_config_data/get_config_data', () => {
             url: 'localhost',
             worker: {
                 force_initial_build: false,
-                ratio: 0,
+                ratio: 0.3,
             },
         });
     });
@@ -139,7 +139,7 @@ describe('action/get_config_data/get_config_data', () => {
             url: 'localhost',
             worker: {
                 force_initial_build: false,
-                ratio: 0,
+                ratio: 0.3,
             },
         });
     });
@@ -163,7 +163,7 @@ describe('action/get_config_data/get_config_data', () => {
             url: 'localhost',
             worker: {
                 force_initial_build: false,
-                ratio: 0,
+                ratio: 0.3,
             },
         });
     });

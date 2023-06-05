@@ -8,6 +8,7 @@ import {
     FOLDER_PLUGINS,
     FOLDER_PAGES,
     FOLDER_SRC,
+    FOLDER_CRON,
 } from '../constants/folder.js';
 import { Config } from '../utils/config.js';
 import { set_config_cache } from '../utils/config_cache.js';
@@ -37,10 +38,7 @@ export async function copy(available_packages) {
                 copy_folder(pkg.path, FOLDER_LIST_PACKAGE_COPY, Cwd.get(FOLDER_GEN), (file, target) => {
                     const rel_path = to_relative_path_of_gen(target);
                     // get file modify time of page files
-                    if (
-                        target.match(new RegExp(`/${FOLDER_PAGES}/`)) &&
-                        !target.match(new RegExp(`/${FOLDER_SRC}/`))
-                    ) {
+                    if (target.match(new RegExp(`/${FOLDER_PAGES}/`)) && !target.match(new RegExp(`/${FOLDER_SRC}/`))) {
                         const stats = statSync(file.src);
                         mtime[rel_path] = {
                             mtime: stats.mtime,
@@ -52,7 +50,7 @@ export async function copy(available_packages) {
                     // transform to "./src/file.svelte" "src/file.svelte"
                     const target_key = file.target.replace(/^\.\//, '');
                     package_tree[target_key] = pkg;
-                    if (target.indexOf(`/${FOLDER_PLUGINS}/`) > -1) {
+                    if ([`/${FOLDER_PLUGINS}/`, `/${FOLDER_CRON}/`].find((path) => target.indexOf(path) > -1)) {
                         write(target, replace_src_path(read(target), FOLDER_GEN_SRC));
                     }
                 });

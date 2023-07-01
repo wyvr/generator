@@ -31,13 +31,18 @@ export async function scripts(identifiers) {
         package_tree = get_config_cache('package_tree');
     }
     for (const identifier of identifiers) {
+        if (is_null(identifier)) {
+            Logger.warning('empty identifier found');
+            continue;
+        }
+        let result = { code: '', sourcemap: '' };
+        let identifier_file;
+        let dependencies = [];
+        let content;
+        const scripts = [];
+
         try {
-            if (is_null(identifier)) {
-                Logger.warning('empty identifier found');
-                continue;
-            }
             const is_shortcode = !!identifier.imports;
-            let dependencies = [];
             // shortcode dependencies
             if (is_shortcode) {
                 dependencies = [].concat(
@@ -66,7 +71,7 @@ export async function scripts(identifiers) {
 
             const has = { instant: false };
             // build file content
-            const content = (
+            content = (
                 await Promise.all(
                     dependencies.map(async (file) => {
                         const target = `const ${file.name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');`;
@@ -131,7 +136,6 @@ export async function scripts(identifiers) {
                     })
                 )
             ).filter((x) => x);
-            const scripts = [];
             Object.keys(has).forEach((key) => {
                 const script_path = join(resouce_dir, `hydrate_${key}.js`);
                 scripts.push(read(script_path));
@@ -148,8 +152,12 @@ export async function scripts(identifiers) {
             const dependencies = ${stringify(dependencies)};
             console.log('dependencies', dependencies);`);
 
-            const identifier_file = Cwd.get(FOLDER_GEN_JS, `${identifier.identifier}.js`);
-
+            identifier_file = Cwd.get(FOLDER_GEN_JS, `${identifier.identifier}.js`);
+        } catch (e) {
+            Logger.error(get_error_message(e, identifier.identifier, 'script create'));
+            continue;
+        }
+        try {
             let build_content;
             if (filled_array(content)) {
                 build_content = scripts.join('\n') + content.join('\n');
@@ -158,11 +166,19 @@ export async function scripts(identifiers) {
                     build_content = scripts.join('\n');
                 }
             }
-            let result = { code: '', sourcemap: '' };
+
             if (filled_string(build_content)) {
                 result = await build(build_content, identifier_file);
             }
-
+        } catch (e) {
+            Logger.error(get_error_message(e, identifier.identifier, 'script build'));
+            continue;
+        }
+        if (!result?.code) {
+            Logger.error('empty code in', identifier.identifier);
+            continue;
+        }
+        try {
             const code = result.code.replace('%sourcemap%', `# sourceMappingURL=/js/${identifier.identifier}.js.map`);
 
             write(identifier_file, code);
@@ -172,7 +188,7 @@ export async function scripts(identifiers) {
             write(join(ReleasePath.get(), FOLDER_JS, `${identifier.identifier}.js.map`), result.sourcemap);
             Logger.debug('identifier', identifier, dependencies);
         } catch (e) {
-            Logger.error(get_error_message(e, identifier.identifier, 'script'));
+            Logger.error(get_error_message(e, identifier.identifier, 'script write'));
         }
     }
 }

@@ -52,39 +52,5 @@ export async function create_command(config) {
     if (type_match && is_func(type_match)) {
         type_match();
     }
-    // switch (result.type) {
-    // case 'config': {
-    //     const config_file = result.project_config ? 'project.mjs' : 'package.mjs';
-    //     copy_template_file(join(templates, 'config', config_file), Cwd.get('wyvr.mjs'), {
-    //         version,
-    //         url: result.url,
-    //         cron_code: '',
-    //     });
-    //     break;
-    // }
-    // case 'cron': {
-    //     const ext = extname(result.name);
-    //     if (!['.mjs', ',cjs', '.js'].includes(ext)) {
-    //         result.name = to_extension(result.name, '.mjs');
-    //     }
-    //     copy_template_file(join(templates, 'cron', 'cron.mjs'), Cwd.get('cron', result.name), {
-    //         version,
-    //     });
-    //     Logger.warning(
-    //         'add the following cron entry into your wyvr config file',
-    //         [
-    //             '',
-    //             '',
-    //             `${result.name.replace(/\.[mc]?js$/, '').replace(/[/-\s]+/g, '_')}: {`,
-    //             `${tab}when: '${result.cron_interval}',`,
-    //             `${tab}what: '${result.name}',`,
-    //             `${tab}options: {}`,
-    //             '}',
-    //         ].join('\n')
-    //     );
-
-    //     break;
-    // }
-    // }
     return null;
 }

@@ -62,7 +62,7 @@ export async function run_tests(files) {
 
 export function get_test_file(file) {
     const ext = extname(file);
-    if (!in_array(['.js', '.cjs', '.mjs'], ext)) {
+    if (!in_array(['.js', '.mjs'], ext)) {
         return undefined;
     }
     const test_file = file.replace(new RegExp(`${ext}$`), `.spec${ext}`).replace(/\.spec\.spec/, '.spec');

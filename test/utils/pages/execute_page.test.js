@@ -91,15 +91,6 @@ describe('utils/pages/execute_page', () => {
             ['✖', '@page execution\n' + '[ReferenceError] undefined_var is not defined\n' + 'source pages/error.js'],
         ]);
     });
-    it('js file, error common js', async () => {
-        deepStrictEqual(await execute_page(mockPage('pages/commonjs.js', undefined, root)), undefined);
-        deepStrictEqual(log, [
-            [
-                '✖',
-                "@page execution\n[ReferenceError] exports is not defined in ES module scope\nThis file is being treated as an ES module because it has a '.js' file extension and '/home/p/wyvr/generator/package.json' contains \"type\": \"module\". To treat it as a CommonJS script, rename it to use the '.cjs' file extension.\nsource pages/commonjs.js",
-            ],
-        ]);
-    });
     it('unknonwn extension', async () => {
         deepStrictEqual(await execute_page(mockPage('pages/unknown.py', undefined, root)), undefined);
         deepStrictEqual(log, [['⚠', 'unknown file extension .py for page pages/unknown.py']]);

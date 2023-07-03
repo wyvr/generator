@@ -47,10 +47,10 @@ export async function transform(files) {
                 continue;
             }
             // replace import in text files
-            if (in_array(['.mjs', '.cjs', '.js', '.ts', '.css', '.scss'], extension)) {
+            if (in_array(['.mjs', '.js', '.ts', '.css', '.scss'], extension)) {
                 let content = read(file);
                 // replace @src in source files
-                if (in_array(['.mjs', '.cjs', '.js', '.ts'], extension)) {
+                if (in_array(['.mjs', '.js', '.ts'], extension)) {
                     content = replace_imports(content, file, FOLDER_GEN_SRC, 'transform', cache_breaker);
                 }
                 const expanded_content = insert_import(content, file);

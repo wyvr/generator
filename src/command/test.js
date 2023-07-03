@@ -20,7 +20,7 @@ export async function test_command(config) {
     process.title = `wyvr ${command} ${process.pid}`;
     Logger.present('command', command, Logger.color.dim(flags));
 
-    const test_files = collect_files(Cwd.get(FOLDER_GEN_SRC)).filter((file) => file.match(/\.spec\.[mc]?js$/));
+    const test_files = collect_files(Cwd.get(FOLDER_GEN_SRC)).filter((file) => file.match(/\.spec\.m?js$/));
     const { failures } = await run_tests(test_files);
     return failures;
 }

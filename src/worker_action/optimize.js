@@ -97,7 +97,6 @@ export async function optimize(files) {
                     }
                     break;
                 }
-                case '.cjs':
                 case '.mjs':
                 case '.js': {
                     const file_hash = global.cache.hashes[to_relative_path(file)];

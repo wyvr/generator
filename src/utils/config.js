@@ -132,7 +132,7 @@ export async function inject(content, file) {
 }
 
 export function get_config_path(path) {
-    const filepath = find_file(path, ['wyvr.js', 'wyvr.mjs', 'wyvr.cjs']);
+    const filepath = find_file(path, ['wyvr.js', 'wyvr.mjs']);
     if (!is_file(filepath)) {
         return undefined;
     }

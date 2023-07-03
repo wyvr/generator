@@ -48,7 +48,7 @@ export function dependencies_from_content(content, file) {
         if (is_null(dep_file)) {
             dep_file = find_file(
                 file_path,
-                ['svelte', 'js', 'mjs', 'cjs', 'ts'].map((ext) => to_extension(dep, ext))
+                ['svelte', 'js', 'mjs', 'ts'].map((ext) => to_extension(dep, ext))
             );
         }
         if (dep_file) {

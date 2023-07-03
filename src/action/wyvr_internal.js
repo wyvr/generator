@@ -51,7 +51,7 @@ export async function build_wyvr_internal() {
                 return undefined;
             }
             const filename = to_extension(file, 'svelte.mjs');
-            const module = await build(result.js.code, filename, 'esm');
+            const module = await build(result.js.code, filename, 'esm'); // @TODO must return esm code
 
             write(filename, module.code);
             return result;

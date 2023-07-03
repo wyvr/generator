@@ -79,7 +79,6 @@ export async function execute_page(page) {
         }
         /* eslint-disable no-case-declarations */
         case '.mjs':
-        case '.cjs':
         case '.js':
             const cache_breaker = get_cache_breaker();
             const uniq_path = `${page.path}${cache_breaker}`;

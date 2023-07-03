@@ -25,6 +25,6 @@ export function create_cron(templates, version, result, target_dir = undefined, 
 }
 
 export function get_cron_code(cron_file, cron_interval) {
-    const name = cron_file ? cron_file.replace(/\.[mc]?js$/, '').replace(/[/-\s]+/g, '_') : '';
+    const name = cron_file ? cron_file.replace(/\.m?js$/, '').replace(/[/-\s]+/g, '_') : '';
     return [`${name}: {`, [`when: '${cron_interval}',`, `what: '${cron_file}',`, 'options: {}'], '}'];
 }

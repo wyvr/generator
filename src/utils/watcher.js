@@ -97,7 +97,7 @@ export async function process_changed_files(changed_files, packages) {
             Logger.info('detect', event, Logger.color.dim(pkg_path + '/') + rel_path);
 
             // when config file is changed restart
-            if (path.match(/wyvr\.[mc]?js$/)) {
+            if (path.match(/wyvr\.m?js$/)) {
                 restart_required = true;
                 changed_config_files.push(path);
             }
@@ -112,7 +112,7 @@ export async function process_changed_files(changed_files, packages) {
             // special behaviour when css or js from svelte file gets changed or edited, also edit the svelte file
             if (event == 'add' || event == 'change') {
                 const extension = extname(path);
-                if (in_array(['.css', '.scss', '.js', '.mjs', '.cjs', '.ts'], extension)) {
+                if (in_array(['.css', '.scss', '.js', '.mjs', '.ts'], extension)) {
                     const svelte_rel_path = to_extension(rel_path, '.svelte');
                     const pkg = package_tree[svelte_rel_path];
                     if (pkg) {

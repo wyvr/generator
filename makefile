@@ -21,7 +21,7 @@ compile-watch: ## Start watcher and make dev builds
 		--ignore gen \
 		--ignore releases \
 		--ignore cache \
-		-e js,ts,svelte,css \
+		-e js,mjs,ts,svelte,css \
 		--verbose \
 		--exec '${WYVR_LINT}'
 

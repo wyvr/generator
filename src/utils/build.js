@@ -43,7 +43,7 @@ export async function build(content, file, format = 'iife') {
             logLevel: 'silent',
             plugins: [
                 sveltePlugin({
-                    compilerOptions: { css: true, dev: Env.is_dev() },
+                    compilerOptions: { css: 'injected', dev: Env.is_dev() },
                     filterWarnings: (warning) => {
                         // ignore some warnings
                         if (warning.code == 'css-unused-selector' && warning.message.indexOf('[data-slot=') > -1) {

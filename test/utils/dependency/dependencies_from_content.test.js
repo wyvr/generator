@@ -54,11 +54,11 @@ describe('utils/dependency/dependencies_from_content', () => {
     it('different types', async () => {
         deepStrictEqual(
             dependencies_from_content(
-                `import a from './nonexisting';import ts from './ts';import js from './js';import mjs from './mjs';import cjs from './cjs';`,
+                `import a from './nonexisting';import ts from './ts';import js from './js';import mjs from './mjs';`,
                 './file.js'
             ),
             {
-                dependencies: { './file.js': ['./ts.ts', './js.js', './mjs.mjs', './cjs.cjs'] },
+                dependencies: { './file.js': ['./ts.ts', './js.js', './mjs.mjs'] },
                 i18n: {},
             }
         );

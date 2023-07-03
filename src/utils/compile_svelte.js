@@ -51,7 +51,6 @@ export async function compile_svelte_from_code(content, file, type, include_css 
     const options = {
         dev: Env.is_dev(),
         generate: type_value(type, 'dom', 'ssr'),
-        format: 'esm',
         immutable: true,
         hydratable: true,
         cssHash: css_hash,

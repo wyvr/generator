@@ -1,6 +1,15 @@
 import { Logger } from '../utils/logger.js';
 
 export const available_commands = {
+    app: {
+        desc: 'run as a service for server side execution',
+        flags: [
+            {
+                key: 'single',
+                desc: 'run the generator in single threaded mode only recommended for debugging purposes',
+            },
+        ],
+    },
     build: {
         desc: 'statically generate site',
         flags: [
@@ -9,10 +18,6 @@ export const available_commands = {
                 desc: 'run the generator in single threaded mode only recommended for debugging purposes',
             },
         ],
-    },
-    cron: {
-        desc: 'execute the cronjobs',
-        flags: [],
     },
     clear: {
         desc: 'clear the caches and generated data',
@@ -23,17 +28,12 @@ export const available_commands = {
             },
         ],
     },
-    app: {
-        desc: 'run as a service for server side execution',
-        flags: [
-            {
-                key: 'single',
-                desc: 'run the generator in single threaded mode only recommended for debugging purposes',
-            },
-        ],
+    cron: {
+        desc: 'execute the cronjobs',
+        flags: [],
     },
-    watch: {
-        desc: 'statically generate site and watch for file changes',
+    create: {
+        desc: 'scaffold new projects and files',
         flags: [],
     },
     dev: {
@@ -49,16 +49,16 @@ export const available_commands = {
             },
         ],
     },
+    help: {
+        desc: 'show available commands and flags',
+        flags: [],
+    },
     info: {
         desc: 'show basic information about node version, wyvr version and the current working directory',
         flags: [],
     },
     version: {
         desc: 'show wyvr version',
-        flags: [],
-    },
-    help: {
-        desc: 'show available commands and flags',
         flags: [],
     },
 };

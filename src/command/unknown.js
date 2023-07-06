@@ -1,65 +1,48 @@
 import { Logger } from '../utils/logger.js';
 import { filled_array } from '../utils/validate.js';
+import { available_commands, show_command, show_help } from './available_commands.js';
 
 export async function unknown_command(config) {
     let command = config?.cli?.command;
     if (!filled_array(command)) {
         command = [];
     }
+    const has_command = command.length > 0;
     const value = command.join(' ');
-    Logger.error(command.length == 0 ? 'command is missing' : `unknown command ${value}`);
-    const command_map = {
-        build: {
-            desc: 'statically generate site',
-            flags: [
-                {
-                    key: 'single',
-                    desc: 'run the generator in single threaded mode only recommended for debugging purposes',
-                },
-            ],
-        },
-        cron: {
-            desc: 'execute the cronjobs',
-            flags: [],
-        },
-        clear: {
-            desc: 'clear the caches and generated data',
-            flags: [
-                {
-                    key: 'hard',
-                    desc: 'delete everything'
-                }
-            ],
-        },
-        app: {
-            desc: 'run as a service for server side execution',
-            flags: [
-                {
-                    key: 'single',
-                    desc: 'run the generator in single threaded mode only recommended for debugging purposes',
-                },
-            ],
-        },
-        watch: {
-            desc: 'statically generate site and watch for file changes',
-            flags: [],
-        },
-        dev: {
-            desc: 'build the site in development mode and rebuild when changes are made',
-            flags: [
-                {
-                    key: 'fast',
-                    desc: 'fast starting watch server without building the site',
-                },
-                {
-                    key: 'single',
-                    desc: 'run the generator in single threaded mode only recommended for debugging purposes',
-                },
-            ],
-        },
-    };
-    Object.keys(command_map).forEach((key) => {
-        Logger.present(key, command_map[key].desc);
+    Logger.error(has_command ? `unknown command ${value}` : 'command is missing');
+    if (has_command) {
+        // check if command was found with the text
+        const found_command = Object.keys(available_commands).filter((key) => {
+            return command.find((c) => key.indexOf(c) !== -1);
+        });
+        if (found_command.length > 0) {
+            Logger.log('');
+            Logger.info('did you mean?');
+            found_command.forEach((key) =>
+            show_command(key, {
+                flags: true,
+            })
+            );
+            process.exit(1);
+        }
+        // check if description was found with the text
+        const found_desc = Object.keys(available_commands).filter((key) => {
+            return command.find((c) => available_commands[key].desc.toLowerCase().indexOf(c) !== -1);
+        });
+        if (found_desc.length > 0) {
+            Logger.log('');
+            Logger.info('did you mean?');
+            found_desc.forEach((key) =>
+            show_command(key, {
+                flags: true,
+            })
+            );
+            process.exit(1);
+        }
+    }
+    show_help({
+        flags: false,
     });
+
     process.exit(1);
 }

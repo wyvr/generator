@@ -1,4 +1,4 @@
-import sass from 'sass';
+import * as sass from 'sass';
 import esbuild from 'esbuild';
 import { marked } from 'marked';
 import fm from 'front-matter';

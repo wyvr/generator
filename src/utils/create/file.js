@@ -1,6 +1,6 @@
 import { join } from 'path';
 import { Cwd } from '../../vars/cwd.js';
-import { copy_template_file } from '../create.mjs';
+import { copy_template_file } from '../create.js';
 import { read } from '../file.js';
 import { to_tabbed } from '../to.js';
 
@@ -14,12 +14,12 @@ export function create_file(templates, version, result) {
         copy_template_file(join(templates, 'file', 'file.css'), Cwd.get('src', `${result.name}.css`), {
             version,
         });
-        copy_template_file(join(templates, 'file', 'file.mjs'), Cwd.get('src', `${result.name}.mjs`), {
+        copy_template_file(join(templates, 'file', 'file.js'), Cwd.get('src', `${result.name}.js`), {
             version,
         });
     } else {
         wyvr_split_css = read(join(templates, 'file', 'file.css')).replace(/\/\*.*?\*\//g, '');
-        wyvr_split_js = read(join(templates, 'file', 'file.mjs')).replace(/\/\*.*?\*\//g, '');
+        wyvr_split_js = read(join(templates, 'file', 'file.js')).replace(/\/\*.*?\*\//g, '');
     }
     wyvr_imports += to_tabbed([[`import { onServer } from '@wyvr/generator';`], '']);
     if (result.wyvr_render != 'static') {

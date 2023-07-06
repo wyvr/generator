@@ -1,5 +1,5 @@
 import { filled_string } from '../../utils/validate.js';
-import { questions_package_features, questions_package_features_additional } from './package.mjs';
+import { questions_package_features, questions_package_features_additional } from './package.js';
 
 export const questions_project = [
     [

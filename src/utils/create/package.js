@@ -1,8 +1,8 @@
 import { join } from 'path';
 import { Cwd } from '../../vars/cwd.js';
-import { copy_template_file } from '../create.mjs';
+import { copy_template_file } from '../create.js';
 import { to_dirname } from '../to.js';
-import { create_config } from './config.mjs';
+import { create_config } from './config.js';
 
 export function create_package(name, templates, version, result, target_dir) {
     const boilerplate = join(to_dirname(import.meta.url), '..', '..', 'boilerplate');
@@ -12,7 +12,7 @@ export function create_package(name, templates, version, result, target_dir) {
         copy_template_file(join(boilerplate, 'assets', 'favicon.png'), Cwd.get(target_dir, 'assets', 'favicon.png'));
     }
     if (result.features.includes('devtools')) {
-        copy_template_file(join(templates, 'devtools', 'devtool.mjs'), Cwd.get(target_dir, 'devtools', 'devtool.mjs'), {
+        copy_template_file(join(templates, 'devtools', 'devtool.js'), Cwd.get(target_dir, 'devtools', 'devtool.js'), {
             version,
         });
         copy_template_file(
@@ -45,21 +45,21 @@ export function create_package(name, templates, version, result, target_dir) {
             name,
             version,
         });
-        copy_template_file(join(templates, 'pages', 'page.mjs'), Cwd.get(target_dir, 'pages', 'page.mjs'), {
+        copy_template_file(join(templates, 'pages', 'page.js'), Cwd.get(target_dir, 'pages', 'page.js'), {
             version,
         });
     }
     if (result.features.includes('plugins')) {
         copy_template_file(
-            join(templates, 'plugins', 'plugin.mjs'),
-            Cwd.get(target_dir, 'plugins', name, 'plugin.mjs'),
+            join(templates, 'plugins', 'plugin.js'),
+            Cwd.get(target_dir, 'plugins', name, 'plugin.js'),
             {
                 version,
             }
         );
     }
     if (result.features.includes('routes')) {
-        copy_template_file(join(templates, 'routes', 'route.mjs'), Cwd.get(target_dir, 'routes', name, 'route.mjs'), {
+        copy_template_file(join(templates, 'routes', 'route.js'), Cwd.get(target_dir, 'routes', name, 'route.js'), {
             name: name,
             version,
         });

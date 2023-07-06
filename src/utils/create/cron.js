@@ -1,6 +1,6 @@
 import { extname, join } from 'path';
 import { Cwd } from '../../vars/cwd.js';
-import { copy_template_file } from '../create.mjs';
+import { copy_template_file } from '../create.js';
 import { to_extension } from '../file.js';
 import { Logger } from '../logger.js';
 import { to_tabbed } from '../to.js';
@@ -10,10 +10,10 @@ export function create_cron(templates, version, result, target_dir = undefined, 
         result.cron_file = result.name;
     }
     const ext = extname(result.cron_file);
-    if (!['.mjs', ',cjs', '.js'].includes(ext)) {
-        result.cron_file = to_extension(result.cron_file, '.mjs');
+    if (!['.mjs', '.js'].includes(ext)) {
+        result.cron_file = to_extension(result.cron_file, '.js');
     }
-    copy_template_file(join(templates, 'cron', 'cron.mjs'), Cwd.get(target_dir, 'cron', result.cron_file), {
+    copy_template_file(join(templates, 'cron', 'cron.js'), Cwd.get(target_dir, 'cron', result.cron_file), {
         version,
     });
     if (show_insert_hint) {

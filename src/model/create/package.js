@@ -1,7 +1,7 @@
 import { filled_string } from '../../utils/validate.js';
-import { questions_config } from './config.mjs';
-import { generate_cron_name, questions_cron_interval } from './cron.mjs';
-import { questions_i18n } from './i18n.mjs';
+import { questions_config } from './config.js';
+import { generate_cron_name, questions_cron_interval } from './cron.js';
+import { questions_i18n } from './i18n.js';
 
 export const questions_package_features = [
     {

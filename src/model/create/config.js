@@ -1,5 +1,5 @@
 import { filled_string } from '../../utils/validate.js';
-import { generate_cron_name, questions_cron_interval } from './cron.mjs';
+import { generate_cron_name, questions_cron_interval } from './cron.js';
 
 export const questions_config = [
     [
@@ -40,6 +40,7 @@ export const questions_config = [
             {
                 _field: 'use_cron',
                 true: [[generate_cron_name('cron_file'), questions_cron_interval]],
+                _: [],
             },
         ],
     },

@@ -4,7 +4,7 @@ import { app_command } from './command/app.js';
 import { build_command } from './command/build.js';
 import { dev_command } from './command/dev.js';
 import { clear_command } from './command/clear.js';
-import { create_command } from './command/create.mjs';
+import { create_command } from './command/create.js';
 import { cron_command } from './command/cron.js';
 // import { health_command } from './command/health';
 // import { regenerate_command } from './command/regenerate';

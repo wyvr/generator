@@ -21,4 +21,10 @@ describe('action/modify_svelte/modify_svelte_internal', () => {
         const output = await modify_svelte_internal(orig);
         deepStrictEqual(output.split('\n'), result);
     });
+    it('modify_svelte_internal 3.59.2', async () => {
+        const orig = readFileSync(join(test_folder, '3.59.2', 'orig.js'), { encoding: 'utf8' });
+        const result = readFileSync(join(test_folder, '3.59.2', 'result.js'), { encoding: 'utf8' }).split('\n');
+        const output = await modify_svelte_internal(orig);
+        deepStrictEqual(output.split('\n'), result);
+    });
 });

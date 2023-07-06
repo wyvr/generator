@@ -10,6 +10,6 @@ export async function info_command(config) {
     const cwd = Cwd.get();
     Logger.present('wyvr', wyvr_version);
     Logger.present('node', node_version);
-    Logger.present('pwd', cwd);
+    Logger.present('cwd', cwd);
     return '';
 }

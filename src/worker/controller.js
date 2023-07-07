@@ -23,6 +23,7 @@ export class WorkerController {
                 this.workers.push(worker);
             }
         }
+        this.worker_amount = this.workers.length;
         return this.workers;
     }
     static set_worker_ratio(ratio) {
@@ -385,6 +386,7 @@ export class WorkerController {
                 this.livecycle(idle[0]);
             }
             const done_listener_id = Event.on('worker_status', WorkerStatus.done, () => {
+                console.log('done', done);
                 Logger.text(
                     name,
                     Logger.color.dim('...'),
@@ -392,7 +394,7 @@ export class WorkerController {
                     Logger.color.dim(`${done}/${size}`)
                 );
                 done++;
-                if (done == size) {
+                if (done >= size) {
                     Event.off('worker_status', WorkerStatus.done, done_listener_id);
                 }
             });

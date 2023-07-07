@@ -49,7 +49,7 @@ export async function create_command(config) {
         file: () => create_file(templates, version, result),
         config: () => create_config(templates, version, result),
         cron: () => create_cron(templates, version, result),
-        ddev: () => create_ddev(templates, version, result),
+        ddev: () => create_ddev(templates),
     }[result.type];
     if (type_match && is_func(type_match)) {
         type_match();

@@ -4,7 +4,7 @@ import { copy_template_file } from '../create.js';
 import { exists, read, write } from '../file.js';
 import { Logger } from '../logger.js';
 
-export function create_ddev(templates, version, result) {
+export function create_ddev(templates) {
     // only allow when ddev was initated before
     if (!exists(Cwd.get('.ddev'))) {
         // ddev must create a pub folder when config starts, but it is a symlink to the release in wyvr

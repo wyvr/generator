@@ -2,15 +2,6 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "[debug] Attach by Process ID",
-            "processId": "${command:PickProcess}",
-            "request": "attach",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "type": "node"
-        },
-        {
             "name": "Docker: Attach to Node",
             "type": "node",
             "request": "attach",
@@ -22,6 +13,15 @@
             "skipFiles": [
                 "<node_internals>/**/*.js"
             ]
+        },
+        {
+            "name": "[debug] Attach by Process ID",
+            "processId": "${command:PickProcess}",
+            "request": "attach",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
         },
         {
             "args": [

@@ -55,7 +55,13 @@ export async function execute_page(page) {
 
     switch (extension) {
         case '.md': {
-            const markdown = compile_markdown(read(page.path));
+            let markdown;
+            try {
+                markdown = compile_markdown(read(page.path));
+            } catch (e) {
+                Logger.error(get_error_message(e, page.rel_path, 'markdown compilation'));
+                Logger.debug(e);
+            }
             if (is_null(markdown)) {
                 return undefined;
             }
@@ -84,10 +90,7 @@ export async function execute_page(page) {
             const cache_breaker = get_cache_breaker();
             const uniq_path = `${page.path}${cache_breaker}`;
             let page_module, result;
-            write(
-                page.path,
-                replace_imports(read(page.path), page.rel_path, FOLDER_GEN_SRC, 'page', cache_breaker)
-            );
+            write(page.path, replace_imports(read(page.path), page.rel_path, FOLDER_GEN_SRC, 'page', cache_breaker));
             try {
                 page_module = await import(uniq_path);
             } catch (e) {

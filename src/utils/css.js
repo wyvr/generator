@@ -6,10 +6,13 @@ import { to_relative_from_markers } from './to.js';
 import { filled_string, is_null, is_object } from './validate.js';
 
 export function write_css_file(file, code, media_query_files) {
-    if (!filled_string(file) || !filled_string(code) || is_null(media_query_files) || !is_object(media_query_files)) {
+    if (!filled_string(file) ) {
         return {};
     }
     write(file, code);
+    if (!filled_string(code) || is_null(media_query_files) || !is_object(media_query_files)) {
+        return {};
+    }
     // file must exists before it can be splitted
     const splitted_media_queries = split_css_into_media_query_files(code, file);
     if (splitted_media_queries) {

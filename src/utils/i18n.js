@@ -59,6 +59,10 @@ export function collect_i18n(packages, fallback_language) {
             });
         });
     }
+    // when no translations are set avoid that the file will not be generated
+    if(fallback_language && !translations[fallback_language]) {
+        translations[fallback_language] = {};
+    }
     return translations;
 }
 

@@ -18,7 +18,10 @@ export async function publish() {
         const caller = await Plugin.process(name, build_id, release_path);
         await caller(async () => {
             const pub = Cwd.get(FOLDER_PUBLISH);
-            symlink(release_path, pub);
+            const created = symlink(release_path, pub);
+            if(!created) {
+                process.exit(1);
+            }
         });
 
         Logger.info('published', build_id);

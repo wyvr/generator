@@ -386,7 +386,6 @@ export class WorkerController {
                 this.livecycle(idle[0]);
             }
             const done_listener_id = Event.on('worker_status', WorkerStatus.done, () => {
-                console.log('done', done);
                 Logger.text(
                     name,
                     Logger.color.dim('...'),

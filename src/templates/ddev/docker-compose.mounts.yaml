@@ -1,0 +1,7 @@
+version: '3.6'
+services:
+  web:
+    expose:
+      - 3001
+    ports:
+      - "3001:3001"

@@ -25,6 +25,10 @@ export const questions_type = [
                 name: `Cron`,
                 value: 'cron',
             },
+            {
+                name: `DDEV requirements`,
+                value: 'ddev',
+            },
         ],
     },
 ];

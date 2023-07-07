@@ -1,0 +1,3 @@
+hooks:
+  post-start:
+    - exec-host: ddev nvm install {{version}} && ddev nvm use {{version}} && ddev nvm alias default {{version}}

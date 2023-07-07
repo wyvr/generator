@@ -13,6 +13,7 @@ import { create_file } from '../utils/create/file.js';
 import { create_config } from '../utils/create/config.js';
 import { create_cron } from '../utils/create/cron.js';
 import { create_project } from '../utils/create/project.js';
+import { create_ddev } from '../utils/create/ddev.js';
 
 export async function create_command(config) {
     const { command, flags } = get_present_command(config?.cli?.command, config?.cli?.flags);
@@ -25,7 +26,7 @@ export async function create_command(config) {
 
     const result = await collect_data_from_cli(create_questions, init_data);
 
-    Logger.improve('result', result);
+    Logger.debug('result', result);
     /*
     {
         "type":"project",
@@ -39,7 +40,7 @@ export async function create_command(config) {
     }*/
     const templates = join(to_dirname(import.meta.url), '..', 'templates');
 
-    Logger.improve('templates', templates);
+    Logger.debug('templates', templates);
 
     const version = get_wyvr_version();
     const type_match = {
@@ -48,6 +49,7 @@ export async function create_command(config) {
         file: () => create_file(templates, version, result),
         config: () => create_config(templates, version, result),
         cron: () => create_cron(templates, version, result),
+        ddev: () => create_ddev(templates, version, result),
     }[result.type];
     if (type_match && is_func(type_match)) {
         type_match();

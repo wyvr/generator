@@ -69,6 +69,10 @@ export function extract_cli_config(argv) {
         .map((cmd) => cmd.toLowerCase());
     if (flags) {
         default_config.flags = flags;
+        // inspect mode requires single mode otherwise the debug post will be used multiple times
+        if(flags.inspect) {
+            flags.single = true;
+        }
     }
     return default_config;
 }

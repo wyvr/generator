@@ -10,6 +10,7 @@ import { cron_command } from './command/cron.js';
 // import { regenerate_command } from './command/regenerate';
 // import { report_command } from './command/report';
 import { unknown_command } from './command/unknown.js';
+import { help_command } from './command/help.js';
 import { version_command } from './command/version.js';
 import { test_command } from './command/test.js';
 import { info_command } from './command/info.js';
@@ -52,8 +53,11 @@ export async function command(config) {
         case 'build':
             result = await build_command(config);
             break;
-        case 'version':
-            result = await version_command(config);
+        case 'help':
+            result = await help_command(config);
+            break;
+        case 'info':
+            result = await info_command(config);
             break;
         case 'clear':
             result = await clear_command(config);
@@ -67,15 +71,9 @@ export async function command(config) {
         case 'test':
             result = await test_command(config);
             break;
-        case 'info':
-            result = await info_command(config);
+        case 'version':
+            result = await version_command(config);
             break;
-        // case 'health':
-        //     return await health_command(config);
-        // case 'regenerate':
-        //     return await regenerate_command(config);
-        // case 'report':
-        //     return await report_command(config);
         default:
             result = await unknown_command(config);
             break;

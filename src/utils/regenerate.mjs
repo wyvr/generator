@@ -88,7 +88,7 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
         const main_files = [];
         // get dependencies of the file and copy them to the gen folder
         const files = mod_files.map((file) => {
-            const rel_path = file.rel_path.replace(/^(src\/)/, '$1');
+            const rel_path = file.rel_path.replace(/^\/?(src\/)/, '$1');
             const dep_result = dependencies_from_content(read(file.path), rel_path);
             if (dep_result?.dependencies) {
                 if (!dependencies) {
@@ -101,7 +101,7 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
                     dependencies[key].push(...dep_result.dependencies[key]);
                 });
             }
-            if (rel_path.match(/^(?:doc|layout|page)\//)) {
+            if (rel_path.match(/^src\/(?:doc|layout|page)\//)) {
                 main_files.push(rel_path);
             }
             const { identifiers_of_file, files } = get_identifiers_of_file(dependencies_bottom, rel_path);
@@ -220,7 +220,7 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
         // get 2 dimensional array of affected urls
         const identifier_files_list = uniq_values(identifier_list).map((identifier) => {
             identifiers[identifier.identifier] = identifier;
-            return identifier_files[identifier.identifier];
+            return identifiers[identifier.identifier];
         });
         // convert the urls to data json paths
         const data_files = []

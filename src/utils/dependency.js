@@ -179,7 +179,12 @@ export function get_identifiers_of_file(reversed_tree, file) {
 }
 
 export function get_parents_of_file_recursive(tree, file) {
+    // buggy when the parent directly is the file
     if (!tree[file]) {
+        // try search for the file if it is a doc, layout or page
+        if (file.match(/\/(?:doc|layout|page)\//)) {
+            return [file];
+        }
         return undefined;
     }
     const parents = tree[file];

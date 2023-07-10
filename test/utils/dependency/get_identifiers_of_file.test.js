@@ -41,6 +41,27 @@ describe('utils/dependency/get_identifiers_of_file', () => {
             }
         );
     });
+    it('modify parent', async () => {
+        deepStrictEqual(
+            get_identifiers_of_file(
+                {
+                    'src/test/Test.svelte': ['src/layout/Layout.svelte'],
+                },
+                'src/layout/Layout.svelte'
+            ),
+            {
+                files: ['src/layout/Layout.svelte'],
+                identifiers_of_file: [
+                    {
+                        doc: 'Default.js',
+                        identifier: 'default-layout-default',
+                        layout: 'Layout.svelte',
+                        page: 'Default.js',
+                    },
+                ],
+            }
+        );
+    });
     it('only doc found', async () => {
         deepStrictEqual(
             get_identifiers_of_file(

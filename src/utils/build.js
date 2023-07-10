@@ -149,7 +149,7 @@ export async function inject(rendered_result, data, file, identifier, shortcode_
             if (!global.cache) {
                 global.cache = {};
             }
-            let css_code = '/*_*/';
+            let css_code = '';
             if (search_segment(rendered_result?.result, 'css.code')) {
                 css_code = rendered_result.result.css.code;
             }

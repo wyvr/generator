@@ -206,7 +206,7 @@ export function get_parents_of_file_recursive(tree, file) {
     }
     /* c8 ignore end */
 
-    return parents;
+    return parents.flat(8);
 }
 
 /**

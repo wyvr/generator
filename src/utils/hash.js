@@ -13,7 +13,7 @@ export function css_hash(data) {
 }
 export function create_hash(value) {
     if (!value) {
-        return '';
+        return '0x0';
     }
     const hash = cryptoCreateHash('sha256');
     hash.update(value);

@@ -28,4 +28,9 @@ describe('utils/hash/get_file_hash', () => {
         const result = get_file_hash(file_path);
         deepStrictEqual(result, '0f24276d1f0a0154');
     });
+    it('empty file', () => {
+        const file_path = join(path, 'empty.txt');
+        const result = get_file_hash(file_path);
+        deepStrictEqual(result, '0x0');
+    });
 });

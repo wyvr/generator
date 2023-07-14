@@ -1,7 +1,7 @@
-
 import { get_error_message } from './src/utils/error.js';
 import { Logger } from './src/utils/logger.js';
 import { uniq_id } from './src/utils/uniq.js';
+import { Config } from './src/utils/config.js';
 
 /**
  * Execute the given url
@@ -39,4 +39,14 @@ export async function execute_route(url, options) {
         Logger.error(get_error_message(e, url, 'cron'));
     }
     return false;
+}
+
+/**
+ * Get config value
+ * @param {string} segment 
+ * @param {any} fallback_value 
+ * @returns 
+ */
+export function get_config(segment, fallback_value) {
+    return Config.get(segment, fallback_value);
 }

@@ -1,8 +1,11 @@
 /* Created with wyvr {{version}} */
-import { Config } from '@wyvr/generator/src/utils/config.js';
+import { execute_route, get_config } from '@wyvr/generator/cron.js';
 
 export default async function (options) {
-    const url = Config.get('url');
+    const url = get_config('url');
+
+    // regenerate persistet route
+    // await execute_route('/static');
 
     console.log(url, options);
 }

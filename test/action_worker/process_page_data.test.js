@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual } from 'assert';
 import { describe, it } from 'mocha';
-import { process_page_data } from '../../src/worker_action/process_page_data.js';
+import { process_page_data } from '../../src/action_worker/process_page_data.js';
 import { Cwd } from '../../src/vars/cwd.js';
 import { join } from 'path';
 import { to_plain } from '../../src/utils/to.js';
@@ -8,9 +8,9 @@ import Sinon from 'sinon';
 import { Logger } from '../../src/utils/logger.js';
 import { FOLDER_GEN_SERVER } from '../../src/constants/folder.js';
 
-describe('worker_action/process_page_data', () => {
+describe('action_worker/process_page_data', () => {
     let log = [];
-    const path = join(process.cwd(), 'test', 'worker_action', '_tests', 'process_page_data');
+    const path = join(process.cwd(), 'test', 'action_worker', '_tests', 'process_page_data');
     before(() => {
         Cwd.set(path);
         Sinon.stub(Logger, 'output');

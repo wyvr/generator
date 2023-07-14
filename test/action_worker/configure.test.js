@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual } from 'assert';
 import { describe, it } from 'mocha';
-import { configure } from '../../src/worker_action/configure.js';
+import { configure } from '../../src/action_worker/configure.js';
 import { Logger } from '../../src/utils/logger.js';
 import Sinon from 'sinon';
 import { EnvType } from '../../src/struc/env.js';
@@ -13,7 +13,7 @@ import { WyvrPath } from '../../src/vars/wyvr_path.js';
 import { UniqId } from '../../src/vars/uniq_id.js';
 import { Report } from '../../src/vars/report.js';
 
-describe('worker_action/configure', () => {
+describe('action_worker/configure', () => {
     let logger_messages = [];
     before(() => {
         Sinon.stub(Logger, 'output');

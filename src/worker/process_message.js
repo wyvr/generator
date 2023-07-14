@@ -4,16 +4,16 @@ import { set_config_cache } from '../utils/config_cache.js';
 import { clear_cache } from '../utils/i18n.js';
 import { Logger } from '../utils/logger.js';
 import { Env } from '../vars/env.js';
-import { build } from '../worker_action/build.js';
-import { compile } from '../worker_action/compile.js';
-import { configure } from '../worker_action/configure.js';
-import { critical } from '../worker_action/critical.js';
-import { dependencies } from '../worker_action/dependencies.js';
-import { media } from '../worker_action/media.js';
-import { optimize } from '../worker_action/optimize.js';
-import { page } from '../worker_action/page.js';
-import { scripts } from '../worker_action/scripts.js';
-import { transform } from '../worker_action/transform.js';
+import { build } from '../action_worker/build.js';
+import { compile } from '../action_worker/compile.js';
+import { configure } from '../action_worker/configure.js';
+import { critical } from '../action_worker/critical.js';
+import { dependencies } from '../action_worker/dependencies.js';
+import { media } from '../action_worker/media.js';
+import { optimize } from '../action_worker/optimize.js';
+import { page } from '../action_worker/page.js';
+import { scripts } from '../action_worker/scripts.js';
+import { transform } from '../action_worker/transform.js';
 import { send_status } from './communication.js';
 
 export async function process_message(msg) {

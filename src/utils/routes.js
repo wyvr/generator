@@ -10,7 +10,7 @@ import { generate_page_code } from './generate.js';
 import { Logger } from './logger.js';
 import { to_relative_path_of_gen } from './to.js';
 import { filled_array, filled_string, in_array, is_func, is_null, is_string, match_interface } from './validate.js';
-import { process_page_data } from '../worker_action/process_page_data.js';
+import { process_page_data } from '../action_worker/process_page_data.js';
 import { inject } from './build.js';
 import { replace_imports } from './transform.js';
 import { register_i18n } from './global.js';

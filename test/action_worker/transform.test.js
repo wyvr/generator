@@ -1,13 +1,13 @@
 import { deepStrictEqual, strictEqual } from 'assert';
 import { describe, it } from 'mocha';
-import { transform } from '../../src/worker_action/transform.js';
+import { transform } from '../../src/action_worker/transform.js';
 import { Cwd } from '../../src/vars/cwd.js';
 import { join } from 'path';
 import { copyFileSync } from 'fs';
 import { collect_files, copy, exists, read, remove } from '../../src/utils/file.js';
 import { FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC } from '../../src/constants/folder.js';
 
-describe('worker_action/transform', () => {
+describe('action_worker/transform', () => {
     let logger_messages = [];
     const path = join(process.cwd(), 'test', 'worker_action', '_tests', 'transform');
     before(() => {

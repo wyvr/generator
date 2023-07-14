@@ -198,7 +198,7 @@ export function get_parents_of_file_recursive(tree, file) {
     const parents = [...tree[file]];
     try {
         // Maximum call stack size exceeded can easily occure here
-        const found_parents = tree[file].map((parent) => get_parents_of_file_recursive(tree, parent)).filter(Boolean));
+        const found_parents = tree[file].map((parent) => get_parents_of_file_recursive(tree, parent)).filter(Boolean);
         parents.push(...found_parents);
     } catch (e) {
         /* c8 ignore start */

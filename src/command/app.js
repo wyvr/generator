@@ -1,11 +1,17 @@
 import { check_env } from '../action/check_env.js';
+import { clear_releases } from '../action/clear_releases.js';
+import { critical } from '../action/critical.js';
 import { get_config_data } from '../action/get_config_data.js';
-import { pre_initial_build } from '../action/initial_build.js';
+import { intial_build, pre_initial_build } from '../action/initial_build.js';
+import { optimize } from '../action/optimize.js';
 import { get_ports } from '../action/port.js';
 import { present } from '../action/present.js';
+import { publish } from '../action/publish.js';
+import { sitemap } from '../action/sitemap.js';
 import { FOLDER_GEN_PLUGINS } from '../constants/folder.js';
 import { Config } from '../utils/config.js';
 import { set_config_cache } from '../utils/config_cache.js';
+import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
 import { app_server } from '../utils/server.js';
 import { UniqId } from '../vars/uniq_id.js';
@@ -15,20 +21,45 @@ export const app_command = async (config) => {
     const { port } = await get_ports(config);
     Config.set('port', port);
 
-    const build_id = UniqId.load();
-    UniqId.set(build_id || UniqId.get());
+    let build_id = UniqId.load();
+    let build_needed = false;
+    if (!build_id) {
+        build_needed = true;
+        build_id = UniqId.get();
+    }
+    UniqId.set(build_id);
 
-    const config_data = get_config_data(config, build_id);
-    present(config_data);
+    if (build_needed) {
+        Logger.warning('no build id found, build is required');
+        const { media_query_files } = await intial_build(build_id, config);
 
-    await pre_initial_build(build_id, config_data);
+        // Generate critical css
+        const critical_result = await critical();
 
-    // Initialize Plugins
-    const plugin_files = await Plugin.load(FOLDER_GEN_PLUGINS);
-    const plugins = await Plugin.generate(plugin_files);
-    if (plugins) {
-        Plugin.cache = plugins;
-        set_config_cache('plugins', plugins);
+        // Optimize Pages
+        await optimize(media_query_files, critical_result);
+
+        // Create sitemap
+        await sitemap();
+
+        // Publish the new release
+        await publish();
+
+        await clear_releases(build_id);
+    } else {
+        const config_data = get_config_data(config, build_id);
+
+        present(config_data);
+
+        await pre_initial_build(build_id, config_data);
+
+        // Initialize Plugins
+        const plugin_files = await Plugin.load(FOLDER_GEN_PLUGINS);
+        const plugins = await Plugin.generate(plugin_files);
+        if (plugins) {
+            Plugin.cache = plugins;
+            set_config_cache('plugins', plugins);
+        }
     }
 
     app_server('localhost', port);

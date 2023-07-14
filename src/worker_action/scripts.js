@@ -155,6 +155,7 @@ export async function scripts(identifiers) {
             identifier_file = Cwd.get(FOLDER_GEN_JS, `${identifier.identifier}.js`);
         } catch (e) {
             Logger.error(get_error_message(e, identifier.identifier, 'script create'));
+            Logger.debug(e);
             continue;
         }
         try {

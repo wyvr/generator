@@ -158,13 +158,21 @@ export async function scripts(identifiers) {
             Logger.debug(e);
             continue;
         }
+        let has_content = false;
         try {
             let build_content;
             if (filled_array(content)) {
+                has_content = true;
                 build_content = scripts.join('\n') + content.join('\n');
             } else {
                 if (Env.is_dev()) {
                     build_content = scripts.join('\n');
+                } else {
+                    // minimal set of js
+                    build_content = [
+                        read(join(resouce_dir, 'events.js')),
+                        read(join(resouce_dir, 'i18n.js')).replace(/\[lib\]/g, lib_dir),
+                    ].join('\n');
                 }
             }
 
@@ -175,7 +183,7 @@ export async function scripts(identifiers) {
             Logger.error(get_error_message(e, identifier.identifier, 'script build'));
             continue;
         }
-        if (!result?.code) {
+        if (!result?.code && has_content) {
             Logger.error('empty code in', identifier.identifier);
             continue;
         }

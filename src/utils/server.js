@@ -21,7 +21,9 @@ import { exists } from './file.js';
 import { WorkerController } from '../worker/controller.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { tmpdir } from 'os';
-import { basename, extname } from 'path';
+import { basename, extname, join } from 'path';
+import { get_route } from './routes.js';
+import { get_config_cache } from './config_cache.js';
 
 let show_requests = true;
 
@@ -216,7 +218,7 @@ export function app_server(host, port) {
     generate_server(host, port, false, undefined, undefined);
 }
 
-export function watch_server(host, port, wsport, fallback) {
+export function watch_server(host, port, wsport, packages, fallback) {
     Logger.emit = true;
     show_requests = false;
     generate_server(
@@ -228,7 +230,7 @@ export function watch_server(host, port, wsport, fallback) {
         },
         fallback
     );
-    websocket_server(wsport);
+    websocket_server(wsport, packages);
 }
 
 async function generate_server(host, port, force_generating_of_resources, onEnd, fallback) {
@@ -275,7 +277,7 @@ async function generate_server(host, port, force_generating_of_resources, onEnd,
     });
 }
 
-export function websocket_server(port) {
+export function websocket_server(port, packages) {
     const server = new WebSocketServer({ port });
     const watchers = {};
 
@@ -328,8 +330,22 @@ export function websocket_server(port) {
                     }
                     case 'rebuild': {
                         if (data.data) {
+                            let path;
                             Logger.block('rebuild', data.data);
-                            watcher_event('change', data.data);
+                            // check if the url is a route
+                            const route = get_route(data.data, 'get', get_config_cache('route.cache')?.cache);
+                            if (route) {
+                                const found_route = packages
+                                    .map((pkg) => join(pkg.path, route.rel_path))
+                                    .find((file) => exists(file));
+                                if (found_route) {
+                                    path = found_route;
+                                }
+                            }
+                            if(!path) {
+                                path = data.data;
+                            }
+                            watcher_event('change', path);
                         }
                         break;
                     }

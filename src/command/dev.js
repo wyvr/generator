@@ -50,7 +50,7 @@ export async function dev_command(config) {
     }
     await publish();
 
-    watch_server('localhost', port, wsport);
+    watch_server('localhost', port, wsport, packages);
 
     await package_watcher(packages);
 

@@ -8,7 +8,7 @@ export const available_commands = {
             {
                 key: 'single',
                 desc: 'run the generator in single threaded mode only recommended for debugging purposes',
-            },
+            }
         ],
     },
     build: {
@@ -88,6 +88,10 @@ export const global_flags = [
     {
         key: 'single',
         desc: 'run the generator in single threaded mode',
+    },
+    {
+        key: 'worker',
+        desc: 'set the worker ratio, value from 0-1, use 0.5 for 50% of the available threads',
     },
 ];
 

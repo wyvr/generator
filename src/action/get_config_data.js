@@ -1,7 +1,7 @@
 import { EnvType } from '../struc/env.js';
 import { Config } from '../utils/config.js';
 import { Logger } from '../utils/logger.js';
-import { is_object } from '../utils/validate.js';
+import { is_number, is_object } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
 
@@ -25,6 +25,10 @@ export function get_config_data(cli_config, build_id) {
         }
         if (cli_config.cli.flags.silent) {
             Logger.disable = true;
+        }
+        if (is_number(cli_config.cli.flags.worker)) {
+            const worker_ratio = Math.max(0, Math.min(1, cli_config.cli.flags.worker));
+            config.worker.ratio = worker_ratio;
         }
     }
     config.cwd = Cwd.get();

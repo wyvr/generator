@@ -13,7 +13,7 @@ export async function clear_releases(ignore_id) {
     const keep = Config.get('releases.keep', 0);
     const path = Cwd.get(FOLDER_RELEASES);
 
-    if(!exists(path)) {
+    if (!exists(path)) {
         return;
     }
     await measure_action(name, async () => {
@@ -22,9 +22,14 @@ export async function clear_releases(ignore_id) {
 
         const delete_releases = releases
             .map((release) => {
-                const { ctime } = statSync(join('releases', release), { bigint: true });
+                const path = join('releases', release);
+                if (!exists(path)) {
+                    return undefined;
+                }
+                const { ctime } = statSync(path, { bigint: true });
                 return { ctime, release };
             })
+            .filter(Boolean)
             .sort((a, b) => b.ctime.getTime() - a.ctime.getTime())
             .slice(keep)
             .map((entry) => {

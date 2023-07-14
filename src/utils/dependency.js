@@ -195,10 +195,11 @@ export function get_parents_of_file_recursive(tree, file) {
         }
         return undefined;
     }
-    const parents = tree[file];
+    const parents = [...tree[file]];
     try {
         // Maximum call stack size exceeded can easily occure here
-        parents.push(...tree[file].map((parent) => get_parents_of_file_recursive(tree, parent)).filter((x) => x));
+        const found_parents = tree[file].map((parent) => get_parents_of_file_recursive(tree, parent)).filter(Boolean));
+        parents.push(...found_parents);
     } catch (e) {
         /* c8 ignore start */
         Logger.error(get_error_message(e, file, 'dependency'));

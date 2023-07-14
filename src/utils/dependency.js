@@ -179,7 +179,15 @@ export function get_identifiers_of_file(reversed_tree, file) {
 }
 
 export function get_parents_of_file_recursive(tree, file) {
-    // buggy when the parent directly is the file
+    // @TODO quickfix if the file is a array
+    if (is_array(file)) {
+        if (file.length > 1) {
+            Logger.error('file is an array and has more then one entries', file, tree);
+        }
+        // use only first entry
+        file = file[0];
+    }
+    // @TODO buggy when the parent directly is the file
     if (!tree[file]) {
         // try search for the file if it is a doc, layout or page
         if (file.match(/\/(?:doc|layout|page)\//)) {
@@ -215,7 +223,7 @@ export function cache_dependencies(dependencies) {
     }
     // remove doubled dependencies
     files.forEach((file) => {
-        dependencies[file] = uniq_values(dependencies[file]);
+        dependencies[file] = uniq_values(dependencies[file].flat(2));
     });
 
     set_config_cache('dependencies.top', dependencies);

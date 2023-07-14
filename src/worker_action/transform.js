@@ -6,10 +6,10 @@ import { WorkerEmit } from '../struc/worker_emit.js';
 import { get_cache_breaker } from '../utils/cache_breaker.mjs';
 import { insert_import } from '../utils/compile.js';
 import { get_error_message } from '../utils/error.js';
-import { exists, read, symlink, write } from '../utils/file.js';
+import { exists, read, write, symlink } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { to_client_path, to_relative_path_of_gen, to_server_path } from '../utils/to.js';
-import { combine_splits, replace_imports } from '../utils/transform.js';
+import { combine_splits, replace_imports, replace_wyvr_magic } from '../utils/transform.js';
 import { filled_array, filled_string, in_array } from '../utils/validate.js';
 import { send_action } from '../worker/communication.js';
 
@@ -55,7 +55,15 @@ export async function transform(files) {
                 }
                 const expanded_content = insert_import(content, file);
                 write(file, expanded_content);
+
+                // write client and server versions of scripts
+                if(in_array(['.mjs', '.cjs', '.js', '.ts'], extension)) {
+                    write(to_server_path(file), replace_wyvr_magic(expanded_content, false));
+                    write(to_client_path(file), replace_wyvr_magic(expanded_content, true));
+                    continue;
+                }
             }
+            
             // link static files
             symlink(file, to_server_path(file));
             symlink(file, to_client_path(file));

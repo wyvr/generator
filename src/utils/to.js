@@ -125,8 +125,20 @@ export function to_relative_path_of_gen(path) {
  * @returns
  */
 export function to_relative_from_markers(path, ...markers) {
+    if (!filled_string(path)) {
+        return '';
+    }
     let parts = path.split('/');
-    const index = Math.max(...markers.map((marker) => parts.indexOf(marker)));
+    const max_index = parts.length - 1;
+    const index = Math.max(
+        ...markers.map((marker) => {
+            const index = parts.indexOf(marker);
+            if (index == max_index) {
+                return -1;
+            }
+            return index;
+        })
+    );
     if (index > -1) {
         parts = parts.slice(index + 1);
     }

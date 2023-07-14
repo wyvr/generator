@@ -7,9 +7,8 @@
         if (window.on) {
             clearInterval(check_on);
             on('wyvr_devtools_rebuild', () => {
-                wyvr_devtools_inspect_data().then(() => {
-                    send({ action: 'rebuild', data: window.data._wyvr.page });
-                });
+                const path = get_path();
+                send({ action: 'rebuild', data: path });
             });
         }
     }, 1000);

@@ -33,7 +33,7 @@ export const clear_command = async (config) => {
     if (flags_array.find((flag) => ['hard', 'gen'].indexOf(flag) > -1)) {
         clear_folders.push(FOLDER_GEN);
     }
-    if (flags_array.find((flag) => ['hard', 'media'].indexOf(flag) > -1)) {
+    if (flags_array.find((flag) => ['media'].indexOf(flag) > -1)) {
         clear_folders.push(FOLDER_MEDIA);
     }
     if (flags_array.find((flag) => ['hard', 'storage'].indexOf(flag) > -1)) {

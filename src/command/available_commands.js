@@ -8,7 +8,7 @@ export const available_commands = {
             {
                 key: 'single',
                 desc: 'run the generator in single threaded mode only recommended for debugging purposes',
-            }
+            },
         ],
     },
     build: {
@@ -25,7 +25,23 @@ export const available_commands = {
         flags: [
             {
                 key: 'hard',
-                desc: 'delete everything',
+                desc: 'delete cache, gen and storage',
+            },
+            {
+                key: 'cache',
+                desc: 'delete cache files',
+            },
+            {
+                key: 'gen',
+                desc: 'delete generated files',
+            },
+            {
+                key: 'media',
+                desc: 'deletes all generated media files, not included in hard',
+            },
+            {
+                key: 'storage',
+                desc: 'delete storage databases',
             },
         ],
     },

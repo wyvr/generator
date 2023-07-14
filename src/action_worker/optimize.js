@@ -27,29 +27,29 @@ export async function optimize(files) {
     for (const file of files) {
         try {
             let content = read(file);
-            if (!content) {
-                continue;
+            if(!content) {
+                content = '';
             }
             // replace media query files
             const media_query_links = [];
-            media_query_files_keys.forEach((media_query_file) => {
-                if (content.indexOf(media_query_file) > -1) {
-                    Object.keys(global.cache.media_query_files[media_query_file]).forEach((media) =>
-                        media_query_links.push(
-                            `<link href="${global.cache.media_query_files[media_query_file][media]}" rel="stylesheet" media="${media}">`
-                        )
-                    );
+                media_query_files_keys.forEach((media_query_file) => {
+                    if (content.indexOf(media_query_file) > -1) {
+                        Object.keys(global.cache.media_query_files[media_query_file]).forEach((media) =>
+                            media_query_links.push(
+                                `<link href="${global.cache.media_query_files[media_query_file][media]}" rel="stylesheet" media="${media}">`
+                            )
+                        );
+                    }
+                });
+                if (filled_array(media_query_links)) {
+                    content = content.replace('</head>', media_query_links.join('') + '</head>');
                 }
-            });
-            if (filled_array(media_query_links)) {
-                content = content.replace('</head>', media_query_links.join('') + '</head>');
-            }
-            // replace the hashed files
-            hash_keys.forEach((key) => {
-                if (content.indexOf(key)) {
-                    content = content.replace(new RegExp(key, 'g'), global.cache.hashes[key].path);
-                }
-            });
+                // replace the hashed files
+                hash_keys.forEach((key) => {
+                    if (content.indexOf(key)) {
+                        content = content.replace(new RegExp(key, 'g'), global.cache.hashes[key].path);
+                    }
+                });
             switch (extname(file)) {
                 case '.html':
                 case '.htm': {

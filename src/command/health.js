@@ -3,9 +3,8 @@ import { search_segment } from '../utils/segment.js';
 import { Cwd } from '../vars/cwd.js';
 import { find_port } from '../utils/port.js';
 import { get_report } from '../action/check_env.js';
-import { exists } from '../utils/file.js';
-import { lstatSync } from 'fs';
 import { FOLDER_PUBLISH } from '../constants/folder.js';
+import { is_pub_valid } from '../utils/health.js';
 
 export async function health_command(config) {
     const wyvr_version = search_segment(config, 'version', '');
@@ -55,13 +54,8 @@ export async function health_command(config) {
     }
 
     const pub = Cwd.get(FOLDER_PUBLISH);
-    if (exists(pub)) {
-        if (!lstatSync(pub).isSymbolicLink()) {
-            Logger.error(`pub ${pub} is not a symbolic link`);
-            success = false;
-        } else {
-            Logger.present('pub', pub);
-        }
+    if (is_pub_valid()) {
+        Logger.present('pub', pub);
     } else {
         Logger.warning('pub', pub, 'does not exist');
     }

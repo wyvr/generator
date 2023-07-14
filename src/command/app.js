@@ -11,6 +11,7 @@ import { sitemap } from '../action/sitemap.js';
 import { FOLDER_GEN_PLUGINS } from '../constants/folder.js';
 import { Config } from '../utils/config.js';
 import { set_config_cache } from '../utils/config_cache.js';
+import { is_pub_valid } from '../utils/health.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
 import { app_server } from '../utils/server.js';
@@ -23,14 +24,14 @@ export const app_command = async (config) => {
 
     let build_id = UniqId.load();
     let build_needed = false;
-    if (!build_id) {
+    if (!build_id || !is_pub_valid()) {
         build_needed = true;
         build_id = UniqId.get();
     }
     UniqId.set(build_id);
 
     if (build_needed) {
-        Logger.warning('no build id found, build is required');
+        Logger.warning('no build id or pub folder found, build is required');
         const { media_query_files } = await intial_build(build_id, config);
 
         // Generate critical css

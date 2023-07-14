@@ -24,6 +24,7 @@ import { tmpdir } from 'os';
 import { basename, extname, join } from 'path';
 import { get_route } from './routes.js';
 import { get_config_cache } from './config_cache.js';
+import { pub_healthcheck } from './health.js';
 
 let show_requests = true;
 
@@ -235,6 +236,8 @@ export function watch_server(host, port, wsport, packages, fallback) {
 
 async function generate_server(host, port, force_generating_of_resources, onEnd, fallback) {
     server(host, port, undefined, async (req, res, uid) => {
+        // check if pub is available
+        pub_healthcheck();
         // check for media files
         const name = basename(req.url);
         const media_config = await config_from_url(req.url);
@@ -342,7 +345,7 @@ export function websocket_server(port, packages) {
                                     path = found_route;
                                 }
                             }
-                            if(!path) {
+                            if (!path) {
                                 path = data.data;
                             }
                             watcher_event('change', path);

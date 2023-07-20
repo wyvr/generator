@@ -29,7 +29,7 @@ const wyvr_media_checker = () => {
             }
             return false;
         })
-        .reduce((acc, cur) => (acc ? true : cur), false);
+        .every((loaded) => loaded);
     // when evetrything is loaded remove resize listener
     if (loaded) {
         window.removeEventListener('resize', wyvr_media_resize_throttle);

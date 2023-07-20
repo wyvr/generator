@@ -1,4 +1,4 @@
-import { dirname, extname } from 'path';
+import { dirname, extname, join } from 'path';
 import { FOLDER_GEN_SRC } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { exists, find_file, to_extension } from './file.js';
@@ -22,6 +22,8 @@ export function dependencies_from_content(content, file) {
     if (file_path.indexOf('/') != 0) {
         file_path = Cwd.get(file_path);
     }
+    // paths are relative to the src folder
+    let rel_base_path = file_path.replace(Cwd.get(), '').replace(/^\/?src/, '');
     const deps = {};
     const i18n = {};
     const key = to_relative_path_of_gen(file);
@@ -35,6 +37,11 @@ export function dependencies_from_content(content, file) {
         }
         // replace @src
         dep = replace_src(dep, '');
+        // fix relative paths of the dependencies
+        // './multiply.js' in folder 'local/src/test/import' must become '/test/import/multiply.js'
+        if (dep.indexOf('./') == 0) {
+            dep = join(rel_base_path, dep);
+        }
         const dep_file_path_with_src = Cwd.get(FOLDER_GEN_SRC, dep);
         let dep_file;
         if (exists(dep_file_path_with_src)) {

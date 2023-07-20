@@ -25,7 +25,7 @@ export function collect_pages(dir, package_tree) {
             const extension = extname(file_name);
             // files starting with a _ are no pages, these are helper files
             // allow only specific file extensions as pages
-            if (file_name.match(/^_/) || !in_array(['.mjs', ',cjs', '.js', '.ts', '.md'], extension)) {
+            if (file_name.match(/^_/) || !in_array(['.mjs', '.cjs', '.js', '.ts', '.md'], extension)) {
                 return false;
             }
             return true;

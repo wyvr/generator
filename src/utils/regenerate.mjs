@@ -29,6 +29,7 @@ import { get_config_cache, set_config_cache } from './config_cache.js';
 import { uniq_values } from './uniq.js';
 import { to_relative_path, to_single_identifier_name } from './to.js';
 import { get_test_file } from './tests.mjs';
+import { transform } from '../action/transform.js';
 
 /**
  * Regenerate the plugins
@@ -82,7 +83,7 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
 
     const mod_files = [].concat(change, add);
     if (mod_files.length > 0) {
-        const identifier_files = get_config_cache('identifier.files');
+        const identifier_files = get_config_cache('identifiers');
         const identifier_list = [];
         const dependent_files = [];
         const main_files = [];
@@ -172,23 +173,9 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
             });
         }
 
-        const config_name = get_name(WorkerEmit.wyvr_config);
+        // transform and prefill with the existing configs
         const file_configs = get_config_cache('dependencies.config', {});
-
-        // wrap in plugin
-        const config_id = Event.on('emit', config_name, (data) => {
-            if (is_null(data) || !match_interface(data, { file: true, config: true })) {
-                return;
-            }
-            file_configs[data.file] = data.config;
-        });
-
-        await WorkerController.process_in_workers(WorkerAction.transform, combined_files, 10, true);
-        
-        // remove listeners
-        Event.off('emit', config_name, config_id);
-        // dependencies.config has to set before compile runs
-        set_config_cache('dependencies.config', file_configs);
+        await transform(combined_files, file_configs, true);
         
         await WorkerController.process_in_workers(WorkerAction.compile, combined_files, 10, true);
         
@@ -196,16 +183,17 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
         if (filled_array(main_files)) {
             const identifier_keys = Object.keys(identifier_files);
             main_files.forEach((file) => {
-                if (file.match(/^(?:doc|layout|page)\//)) {
-                    const identifier_name = to_single_identifier_name(file);
+                const no_src_file = file.replace(/^\/?src\//, '');
+                if (no_src_file.match(/^(?:doc|layout|page)\//)) {
+                    const identifier_name = to_single_identifier_name(no_src_file);
                     const wildcard = '[^-]+';
                     const regexp = new RegExp(
                         '^' +
-                            (file.match(/^doc\//) ? identifier_name : wildcard) +
+                            (no_src_file.match(/^doc\//) ? identifier_name : wildcard) +
                             '-' +
-                            (file.match(/^layout\//) ? identifier_name : wildcard) +
+                            (no_src_file.match(/^layout\//) ? identifier_name : wildcard) +
                             '-' +
-                            (file.match(/^page\//) ? identifier_name : wildcard) +
+                            (no_src_file.match(/^page\//) ? identifier_name : wildcard) +
                             '$'
                     );
 

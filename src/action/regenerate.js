@@ -36,7 +36,7 @@ import {
     regenerate_pages,
     regenerate_src,
     regeneration_static_file,
-} from '../utils/regenerate.mjs';
+} from '../utils/regenerate.js';
 import { RegenerateFragment } from '../model/regenerate_fragment.mjs';
 import { run_tests } from '../utils/tests.mjs';
 

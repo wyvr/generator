@@ -71,5 +71,9 @@ export function extract_wyvr_file_config(content) {
             }
         });
     }
+    // auto encapsulte media queries
+    if (config.media != 'all' && !config.media.match(/\sand\s|\sor\s/)) {
+        config.media = `(${config.media})`;
+    }
     return config;
 }

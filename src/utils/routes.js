@@ -17,6 +17,7 @@ import { register_i18n } from './global.js';
 import { get_language } from './i18n.js';
 import { get_cache_breaker } from './cache_breaker.mjs';
 import { Plugin } from './plugin.js';
+import { is_path_valid } from './reserved_words.js';
 
 export async function build_cache() {
     const files = collect_files(Cwd.get(FOLDER_GEN_ROUTES));
@@ -54,6 +55,9 @@ export async function load_route(file) {
         result = await import(uniq_path);
         if (result && result.default) {
             result = result.default;
+        }
+        if (!is_path_valid(result.url)) {
+            return undefined;
         }
     } catch (e) {
         Logger.error(get_error_message(e, file, 'route'));

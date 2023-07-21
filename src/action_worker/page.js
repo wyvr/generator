@@ -7,6 +7,7 @@ import { execute_page, write_pages } from '../utils/pages.js';
 import { filled_array, is_null } from '../utils/validate.js';
 import { send_action } from '../worker/communication.js';
 import { process_page_data } from './process_page_data.js';
+import { is_path_valid } from '../utils/reserved_words.js';
 
 export async function page(files) {
     if (!filled_array(files)) {
@@ -25,6 +26,9 @@ export async function page(files) {
         const processed_pages = await Promise.all(
             wyvr_pages.map(async (wyvr_page) => {
                 const page_data = await process_page_data(wyvr_page, mtime);
+                if (!is_path_valid(page_data.url)) {
+                    return undefined;
+                }
                 // page is required to identify the correct page when rebuilding
                 page_data._wyvr.page = join(page.pkg.path, page.rel_path);
                 page_data._wyvr.pkg = page.pkg.name;
@@ -44,7 +48,7 @@ export async function page(files) {
                 return page_data;
             })
         );
-        pages = write_pages(processed_pages);
+        pages = write_pages(processed_pages.filter(Boolean));
     }
 
     if (filled_array(collections)) {

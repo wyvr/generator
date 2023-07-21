@@ -181,7 +181,7 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
         
         // when doc, layout or page has changed search directly in the pages reference
         if (filled_array(main_files)) {
-            const identifier_keys = Object.keys(identifier_files);
+            const identifier_keys = Object.keys(all_identifiers).concat(Object.keys(identifier_files));
             main_files.forEach((file) => {
                 const no_src_file = file.replace(/^\/?src\//, '');
                 if (no_src_file.match(/^(?:doc|layout|page)\//)) {

@@ -23,6 +23,7 @@ export function collect_pages(dir, package_tree) {
         .filter((file) => {
             const file_name = basename(file);
             const extension = extname(file_name);
+            // @TODO check if hekoer functions are legit anymore
             // files starting with a _ are no pages, these are helper files
             // allow only specific file extensions as pages
             if (file_name.match(/^_/) || !in_array(['.mjs', '.cjs', '.js', '.ts', '.md'], extension)) {

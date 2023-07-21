@@ -83,7 +83,7 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
 
     const mod_files = [].concat(change, add);
     if (mod_files.length > 0) {
-        const identifier_files = get_config_cache('identifiers');
+        const identifier_files = get_config_cache('identifiers.files', {});
         const identifier_list = [];
         const dependent_files = [];
         const main_files = [];

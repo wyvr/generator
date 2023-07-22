@@ -1,9 +1,9 @@
 .vscode
-node_modules
-cache
-gen
-media
-pub
-releases
-storage
-@wyvr
+/cache
+/gen
+/media
+/node_modules
+/pub
+/releases
+/storage
+/@wyvr

@@ -2,7 +2,7 @@ import { dirname } from 'path';
 import replaceAsync from 'string-replace-async';
 import { FOLDER_GEN, FOLDER_MEDIA } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
-import { create_dir, exists, is_file, read_buffer, write } from './file.js';
+import { create_dir, exists, is_file, read_buffer, to_extension, write } from './file.js';
 import { filled_object, filled_string, in_array, is_object, match_interface } from './validate.js';
 import axios from 'axios';
 import sharp from 'sharp';
@@ -15,7 +15,7 @@ import https from 'https';
 import { Plugin } from './plugin.js';
 
 export async function process(media) {
-    if (!match_interface(media, { result: true })) {
+    if (!match_interface(media, { src: true, result: true })) {
         return undefined;
     }
     const output = get_output(media.result);
@@ -129,7 +129,9 @@ export async function config_from_url(url) {
     } catch (e) {
         Logger.error(get_error_message(e, matches[2], 'media on demand'));
     }
-    result.src = matches[2];
+    if(!result.src) {
+        result.src = matches[2];
+    }
     result.result = url;
     result.result_exists = exists(Cwd.get(result.result));
     result.output = MediaModelOutput.path;
@@ -160,10 +162,12 @@ export async function replace_media(content) {
 export async function get_config(content) {
     // get the config of the media
     const config = new MediaModel(get_config_from_content(content));
+    // convert to correct format
+    let src = config.src || '';
+    const mod_src = to_extension(src, config.format);
     // create config hash to group different images together
     const hash = get_config_hash(config);
     config.hash = hash;
-    let src = config.src || '';
     let domain = null;
     if (src.indexOf('http') == 0) {
         const domain_match = src.match(/^https?:\/\/([^/]*?)\//);
@@ -173,9 +177,9 @@ export async function get_config(content) {
         }
     }
     if (domain) {
-        config.result = `/${FOLDER_MEDIA}/_d/${domain}/${hash}/${src}`;
+        config.result = `/${FOLDER_MEDIA}/_d/${domain}/${hash}/${mod_src}`;
     } else {
-        config.result = `/${FOLDER_MEDIA}/${hash}/${src}`;
+        config.result = `/${FOLDER_MEDIA}/${hash}/${mod_src}`;
     }
     // return the newly combined path
     return config;
@@ -203,7 +207,7 @@ export function get_config_hash(config) {
     if (!is_object(config)) {
         return 'undefined';
     }
-    ['width', 'height', 'mode', 'format', 'quality'].forEach((key) => {
+    ['width', 'height', 'mode', 'format', 'quality', 'src'].forEach((key) => {
         if (config[key]) {
             hash_config[key] = config[key];
         }

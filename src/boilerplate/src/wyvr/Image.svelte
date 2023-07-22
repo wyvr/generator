@@ -22,7 +22,7 @@
         get_image_src,
         get_image_src_shortcode,
         correct_image_format,
-    } from '@src/wyvr/image_utils.mjs';
+    } from '@src/wyvr/image_utils.js';
     export let src = null;
     export let width = 0;
     export let height = 0;

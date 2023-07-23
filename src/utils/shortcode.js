@@ -214,11 +214,13 @@ export function parse_tag(content) {
     let attr_name = '';
     let attr_value = '';
     let found_equal = false;
+    let no_quotes = false;
     let opened_value = false;
     data.attributes = {};
     for (let i = 0; i < len; i++) {
         const char = content[i];
         if (char == '=') {
+            no_quotes = content[i+1] != '"';
             found_equal = true;
             continue;
         }
@@ -237,7 +239,7 @@ export function parse_tag(content) {
             opened_value = true;
             continue;
         }
-        if (char == '"') {
+        if (char == '"' || (no_quotes && char == ' ')) {
             data.attributes[attr_name.trim()] = attr_value;
             attr_name = '';
             attr_value = '';
@@ -249,7 +251,11 @@ export function parse_tag(content) {
             attr_value += char;
         }
     }
-    if (attr_name) {
+
+    if (attr_name && attr_value) {
+        data.attributes[attr_name.trim()] = attr_value;
+    }
+    if (attr_name && !attr_value) {
         data.attributes[attr_name.trim()] = true;
     }
     return data;

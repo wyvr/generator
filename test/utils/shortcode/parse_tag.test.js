@@ -58,4 +58,38 @@ describe('utils/shortcode/parse_tag', () => {
             },
         });
     });
+    it('tag and attribute without quotes', () => {
+        const content = 'tag key=value';
+        const result = parse_tag(content);
+        deepStrictEqual(result, {
+            tag: 'tag',
+            attributes: {
+                key: 'value',
+            },
+        });
+    });
+    it('tag and multiple attributes without quotes', () => {
+        const content = 'tag bool key=value lorem=ipsum';
+        const result = parse_tag(content);
+        deepStrictEqual(result, {
+            tag: 'tag',
+            attributes: {
+                bool: true,
+                key: 'value',
+                lorem: 'ipsum',
+            },
+        });
+    });
+    it('tag and multiple attributes with and without quotes', () => {
+        const content = 'tag bool key=value lorem="ipsum dolor"';
+        const result = parse_tag(content);
+        deepStrictEqual(result, {
+            tag: 'tag',
+            attributes: {
+                bool: true,
+                key: 'value',
+                lorem: 'ipsum dolor',
+            },
+        });
+    });
 });

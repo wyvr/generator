@@ -4,7 +4,7 @@ const Component = await create_ssr_component(async ($$result, $$props, $$binding
     let { data = null } = $$props;
     if ($$props.data === void 0 && $$bindings.data && data !== void 0) $$bindings.data(data);
     return `${slots.default ? await slots.default({}) : ``}${slots.named ? await slots.named({}) : ``}`;
-} catch(e) {console.log(import.meta.url, e); return '';}
+} catch(e) {throw e;}
 });
 
 export default Component;

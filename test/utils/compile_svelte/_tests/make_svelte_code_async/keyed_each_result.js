@@ -22,7 +22,7 @@ const App = await create_ssr_component(async ($$result, $$props, $$bindings, slo
 ${await each(things, async thing => {
 		return `${await validate_component(Thing, "Thing").$$render($$result, { name: thing.name }, {}, {})}`;
 	})}`;
-} catch(e) {console.log(import.meta.url, e); return '';}
+} catch(e) {throw e;}
 });
 
 export default App;

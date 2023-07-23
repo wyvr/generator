@@ -17,7 +17,7 @@ const App = await create_ssr_component(async ($$result, $$props, $$bindings, slo
 		return `<li><a target="${"_blank"}" href="${"https://www.youtube.com/watch?v=" + escape(id, true)}" rel="${"noreferrer"}">${escape(i + 1)}: ${escape(name)}
 		</a></li>`;
 	})}</ul>`;
-} catch(e) {console.log(import.meta.url, e); return '';}
+} catch(e) {throw e;}
 });
 
 export default App;

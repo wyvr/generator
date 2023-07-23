@@ -29,7 +29,7 @@ const Component = await create_ssr_component(async ($$result, $$props, $$binding
 	return `<div data-hydrate="magento2_product_Switcher" data-hydrate-path="@src/magento2/product/Switcher.svelte"${add_attribute("data-props", _prop('product', product), 0)}><div><span data-slot="product">${slots.product
 	? await slots.product({ product: slot_product })
 	: ``}</span></div></div>`;
-} catch(e) {console.log(import.meta.url, e); return '';}
+} catch(e) {throw e;}
 });
 
 export default Component;

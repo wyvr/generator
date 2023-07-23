@@ -36,7 +36,7 @@ ${(function (__value) {
 `;
 		})(__value);
 	})(promise)}`;
-} catch(e) {console.log(import.meta.url, e); return '';}
+} catch(e) {throw e;}
 });
 
 export default App;

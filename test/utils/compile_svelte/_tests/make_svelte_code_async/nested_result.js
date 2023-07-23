@@ -18,7 +18,7 @@ const Component = await create_ssr_component(async ($$result, $$props, $$binding
 			})}`;
 		}
 	})}`;
-} catch(e) {console.log(import.meta.url, e); return '';}
+} catch(e) {throw e;}
 });
 
 export default Component;

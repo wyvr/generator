@@ -160,6 +160,7 @@ export async function render_server_compiled_svelte(exec_result, data, file) {
     };
 
     try {
+        // svelte creates console log output themself inside
         exec_result.result = await exec_result.component.render(data);
         // remove svelte comments
         exec_result.result.html = exec_result.result.html.replace(/<!-- HTML_TAG_(?:START|END) -->/g, '');
@@ -183,7 +184,9 @@ export function make_svelte_code_async(code) {
         // make onServer async
         .replace(/(onServer\()/g, 'await $1')
         // use own svelte internal, which is async
-        .replace(/['"]svelte\/internal['"]/, `'${Cwd.get(FOLDER_GEN_SERVER, 'svelte_internal.mjs')}'`);
+        .replace(/['"]svelte\/internal['"]/, `'${Cwd.get(FOLDER_GEN_SERVER, 'svelte_internal.mjs')}'`)
+        // throw errors from server code instead of logging them to the console
+        .replace(/catch\(e\) \{console.log\(import.meta.url, e\); return '';\}/g, `catch(e) {throw e;}`);
     const template_index = code.indexOf('await create_ssr_component');
     if (template_index == -1) {
         return code;

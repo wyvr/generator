@@ -162,18 +162,21 @@ export async function replace_media(content) {
 export async function get_config(content) {
     // get the config of the media
     const config = new MediaModel(get_config_from_content(content));
+    if(!filled_string(config.src))  {
+        return config;
+    }
     // convert to correct format
     let src = config.src || '';
-    const mod_src = to_extension(src, config.format);
+    let mod_src = to_extension(src, config.format);
     // create config hash to group different images together
     const hash = get_config_hash(config);
     config.hash = hash;
     let domain = null;
     if (src.indexOf('http') == 0) {
-        const domain_match = src.match(/^https?:\/\/([^/]*?)\//);
+        const domain_match = mod_src.match(/^https?:\/\/([^/]*?)\//);
         if (domain_match) {
             domain = get_hash(domain_match[1]);
-            src = src.substring(src.indexOf(domain_match[1]) + domain_match[1].length).replace(/^\//, '');
+            mod_src = mod_src.substring(src.indexOf(domain_match[1]) + domain_match[1].length).replace(/^\//, '');
         }
     }
     if (domain) {

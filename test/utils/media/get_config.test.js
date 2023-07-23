@@ -15,8 +15,8 @@ describe('utils/media/get_config', () => {
         deepStrictEqual(
             await get_config(),
             new MediaModel({
-                hash: 'eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6ImpwZWciLCJxdWFsaXR5Ijo2MH0=',
-                result: '/media/eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6ImpwZWciLCJxdWFsaXR5Ijo2MH0=/',
+                hash: undefined,
+                result: undefined,
             })
         );
     });
@@ -24,8 +24,8 @@ describe('utils/media/get_config', () => {
         deepStrictEqual(
             await get_config(true),
             new MediaModel({
-                hash: 'eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6ImpwZWciLCJxdWFsaXR5Ijo2MH0=',
-                result: '/media/eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6ImpwZWciLCJxdWFsaXR5Ijo2MH0=/',
+                hash: undefined,
+                result: undefined,
             })
         );
     });
@@ -35,8 +35,8 @@ describe('utils/media/get_config', () => {
             new MediaModel({
                 format: 'png',
                 src: 'assets/favicon.png',
-                hash: 'eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6InBuZyIsInF1YWxpdHkiOjYwfQ==',
-                result: '/media/eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6InBuZyIsInF1YWxpdHkiOjYwfQ==/assets/favicon.png',
+                hash: 'eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6InBuZyIsInF1YWxpdHkiOjYwLCJzcmMiOiJhc3NldHMvZmF2aWNvbi5wbmcifQ==',
+                result: '/media/eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6InBuZyIsInF1YWxpdHkiOjYwLCJzcmMiOiJhc3NldHMvZmF2aWNvbi5wbmcifQ==/assets/favicon.png',
             })
         );
     });
@@ -46,8 +46,8 @@ describe('utils/media/get_config', () => {
             new MediaModel({
                 format: 'png',
                 src: 'https://wyvr.dev/favicon.png',
-                hash: 'eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6InBuZyIsInF1YWxpdHkiOjYwfQ==',
-                result: '/media/_d/d3l2ci5kZXY=/eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6InBuZyIsInF1YWxpdHkiOjYwfQ==/favicon.png',
+                hash: 'eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6InBuZyIsInF1YWxpdHkiOjYwLCJzcmMiOiJodHRwczovL3d5dnIuZGV2L2Zhdmljb24ucG5nIn0=',
+                result: '/media/_d/d3l2ci5kZXY=/eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6InBuZyIsInF1YWxpdHkiOjYwLCJzcmMiOiJodHRwczovL3d5dnIuZGV2L2Zhdmljb24ucG5nIn0=/favicon.png',
             })
         );
     });

@@ -27,17 +27,17 @@ describe('utils/media/replace_media', () => {
     it('content with media', async () => {
         deepStrictEqual(await replace_media(`<img src="(media(src: '/assets/favicon.png'))" />`), {
             content:
-                '<img src="/media/eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6InBuZyIsInF1YWxpdHkiOjYwfQ==/assets/favicon.png" />',
+                '<img src="/media/eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6InBuZyIsInF1YWxpdHkiOjYwLCJzcmMiOiJhc3NldHMvZmF2aWNvbi5wbmcifQ==/assets/favicon.png" />',
             media: {
-                '/media/eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6InBuZyIsInF1YWxpdHkiOjYwfQ==/assets/favicon.png':
+                '/media/eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6InBuZyIsInF1YWxpdHkiOjYwLCJzcmMiOiJhc3NldHMvZmF2aWNvbi5wbmcifQ==/assets/favicon.png':
                     new MediaModel({
                         domain: undefined,
                         format: 'png',
-                        hash: 'eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6InBuZyIsInF1YWxpdHkiOjYwfQ==',
+                        hash: 'eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6InBuZyIsInF1YWxpdHkiOjYwLCJzcmMiOiJhc3NldHMvZmF2aWNvbi5wbmcifQ==',
                         mode: 'cover',
                         output: 'path',
                         quality: 60,
-                        result: '/media/eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6InBuZyIsInF1YWxpdHkiOjYwfQ==/assets/favicon.png',
+                        result: '/media/eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6InBuZyIsInF1YWxpdHkiOjYwLCJzcmMiOiJhc3NldHMvZmF2aWNvbi5wbmcifQ==/assets/favicon.png',
                         result_exists: false,
                         src: 'assets/favicon.png',
                         width: -1,

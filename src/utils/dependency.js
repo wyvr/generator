@@ -31,6 +31,8 @@ export function dependencies_from_content(content, file) {
         if (is_null(deps[key])) {
             deps[key] = [];
         }
+        // remove cache breaker
+        dep = dep.replace(/\?\d+$/, '');
         // node dependency
         if (dep.indexOf('./') != 0 && dep.indexOf('/') != 0 && dep.indexOf('@src') != 0) {
             return;

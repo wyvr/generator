@@ -4,7 +4,7 @@ import { get_name, WorkerEmit } from '../struc/worker_emit.js';
 import { set_config_cache } from '../utils/config_cache.js';
 import { cache_dependencies } from '../utils/dependency.js';
 import { Event } from '../utils/event.js';
-import { collect_files, collect_svelte_files } from '../utils/file.js';
+import { collect_files } from '../utils/file.js';
 import { Plugin } from '../utils/plugin.js';
 import { is_array, is_null } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
@@ -46,7 +46,7 @@ export async function dependencies() {
         });
 
         const data = [].concat(
-            collect_svelte_files(Cwd.get(FOLDER_GEN_SRC)).map((file) => file.path),
+            collect_files(Cwd.get(FOLDER_GEN_SRC)),
             collect_files(Cwd.get(FOLDER_GEN_PLUGINS)),
             collect_files(Cwd.get(FOLDER_GEN_ROUTES))
         );

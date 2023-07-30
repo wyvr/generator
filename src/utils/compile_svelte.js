@@ -27,7 +27,7 @@ export async function prepare_code_to_compile(content, file, type) {
         content = fix_reserved_tag_names(content);
     }
     // replace the imports in this file
-    let modified_content = replace_imports(content, file, folder, scope, get_cache_breaker(Env.is_dev()), {
+    let modified_content = replace_imports(content, file, folder, scope, {
         modify_path: (path, ext) => {
             if (type === 'server' && ext == '.svelte') {
                 return to_extension(path, 'js');

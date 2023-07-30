@@ -17,7 +17,6 @@ export async function transform(files) {
     if (!filled_array(files)) {
         return false;
     }
-    const cache_breaker = get_cache_breaker();
     
     for (const file of files) {
         if (!exists(file)) {
@@ -51,7 +50,7 @@ export async function transform(files) {
                 let content = read(file);
                 // replace @src in source files
                 if (in_array(['.mjs', '.cjs', '.js', '.ts'], extension)) {
-                    content = replace_imports(content, file, FOLDER_GEN_SRC, 'transform', cache_breaker);
+                    content = replace_imports(content, file, FOLDER_GEN_SRC, 'transform');
                 }
                 const expanded_content = insert_import(content, file);
                 write(file, expanded_content);

@@ -30,7 +30,6 @@ import { uniq_values } from './uniq.js';
 import { to_relative_path, to_single_identifier_name } from './to.js';
 import { get_test_file } from './tests.mjs';
 import { transform } from '../action/transform.js';
-import { get_cache_breaker } from './cache_breaker.mjs';
 
 /**
  * Regenerate the plugins
@@ -40,12 +39,11 @@ import { get_cache_breaker } from './cache_breaker.mjs';
  */
 export async function regenerate_plugins({ change, add, unlink }, gen_folder) {
     const modified_plugins = [].concat(change, add);
-    const cache_breaker = get_cache_breaker();
     if (modified_plugins.length > 0) {
         modified_plugins.forEach((file) => {
             write(
                 join(gen_folder, file.rel_path),
-                replace_imports(read(file.path), file.path, FOLDER_GEN_SRC, 'plugins', cache_breaker)
+                replace_imports(read(file.path), file.path, FOLDER_GEN_SRC, 'plugins')
             );
         });
     }

@@ -2,7 +2,7 @@ import { join } from 'path';
 import { FOLDER_GEN_SERVER } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
-import { get_cache_breaker } from './cache_breaker.mjs';
+import { get_cache_breaker, remove_cache_breaker } from './cache_breaker.mjs';
 import { search_segment } from './segment.js';
 import { filled_object } from './validate.js';
 
@@ -29,9 +29,9 @@ export function generate_page_code(data) {
     });
     const code = `
 <script type="module">
-    import Doc from '${tmpl_files.doc}${cache_breaker}';
-    import Layout from '${tmpl_files.layout}${cache_breaker}';
-    import Page from '${tmpl_files.page}${cache_breaker}';
+    import Doc from '${remove_cache_breaker(tmpl_files.doc)}${cache_breaker}';
+    import Layout from '${remove_cache_breaker(tmpl_files.layout)}${cache_breaker}';
+    import Page from '${remove_cache_breaker(tmpl_files.page)}${cache_breaker}';
     const data = ${JSON.stringify(data, null, Env.json_spaces())};
     global.getWyvrData = (segment, fallback) => {
         if(!segment || typeof segment != 'string' || !data) {

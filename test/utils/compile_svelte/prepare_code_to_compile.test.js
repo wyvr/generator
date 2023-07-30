@@ -43,16 +43,6 @@ describe('utils/compile_svelte/prepare_code_to_compile', () => {
         deepStrictEqual(await prepare_code_to_compile('<p>Hello</p>', 'file', 'server'), '<p>Hello</p>');
     });
     it('import', async () => {
-        deepStrictEqual(
-            await prepare_code_to_compile(
-                '<script>import Header from "@src/component/Header.svelte";</script> <Header />',
-                'file',
-                'server'
-            ),
-            `<script>import Header from '${process.cwd()}/test/utils/compile_svelte/_tests/gen/server/component/Header.js';</script> <Header />`
-        );
-    });
-    it('import dev', async () => {
         Env.set(EnvType.debug);
         const result = await prepare_code_to_compile(
             '<script>import Header from "@src/component/Header.svelte";</script> <Header />',

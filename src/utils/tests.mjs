@@ -1,9 +1,9 @@
 import Mocha from 'mocha';
 import { extname } from 'path';
-import { get_cache_breaker } from './cache_breaker.mjs';
+import { append_cache_breaker, get_cache_breaker } from './cache_breaker.mjs';
 import { exists } from './file.js';
 import { Logger } from './logger.js';
-import { filled_array, filled_string, in_array } from './validate.js';
+import { filled_array, filled_string, in_array, is_object } from './validate.js';
 const { EVENT_TEST_FAIL } = Mocha.Runner.constants; // other constants https://mochajs.org/api/runner.js.html
 
 export async function run_tests(files) {
@@ -42,6 +42,9 @@ export async function run_tests(files) {
             .loadFilesAsync({
                 // needed to avoid caching of resources
                 esmDecorator: (path) => {
+                    if (is_object(path) && path.pathname) {
+                        return append_cache_breaker(path.pathname);
+                    }
                     return path + get_cache_breaker();
                 },
             })

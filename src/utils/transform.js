@@ -21,6 +21,7 @@ import { Env } from '../vars/env.js';
 import { Logger } from './logger.js';
 import { FOLDER_GEN_SRC } from '../constants/folder.js';
 import { get_error_message } from './error.js';
+import { append_cache_breaker } from './cache_breaker.mjs';
 
 const __dirname = join(to_dirname(import.meta.url), '..');
 
@@ -289,7 +290,8 @@ export function insert_hydrate_tag(content, wyvr_file) {
     // add portal when set
     const portal = wyvr_file.config.portal ? `data-portal="${wyvr_file.config.portal}"` : undefined;
     // add media when loading is media
-    const media = wyvr_file.config.loading == WyvrFileLoading.media ? `data-media="${wyvr_file.config.media}"` : undefined;
+    const media =
+        wyvr_file.config.loading == WyvrFileLoading.media ? `data-media="${wyvr_file.config.media}"` : undefined;
     // add the loading type as attribute when using this info in the FE
     const loading = `data-loading="${wyvr_file.config.loading}"`;
     // add hydrate tag
@@ -388,7 +390,7 @@ export function fix_reserved_tag_names(content) {
     return content.replace(/(<|<\/|import\s)(Nav)(\s|\/|>)/g, '$1Wyvr$2$3');
 }
 
-export function replace_imports(content, file, src_folder, scope, cache_breaker, hooks) {
+export function replace_imports(content, file, src_folder, scope, hooks) {
     if (!filled_string(content)) {
         return '';
     }
@@ -424,7 +426,7 @@ export function replace_imports(content, file, src_folder, scope, cache_breaker,
                 }
                 path = `${path}${new_ext || ''}`;
             }
-            path += cache_breaker;
+            path = append_cache_breaker(path);
         }
 
         return `import ${imported} from '${path}'`;

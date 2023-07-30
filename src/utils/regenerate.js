@@ -30,6 +30,7 @@ import { uniq_values } from './uniq.js';
 import { to_relative_path, to_single_identifier_name } from './to.js';
 import { get_test_file } from './tests.mjs';
 import { transform } from '../action/transform.js';
+import { get_cache_breaker } from './cache_breaker.mjs';
 
 /**
  * Regenerate the plugins
@@ -37,8 +38,9 @@ import { transform } from '../action/transform.js';
  * @param {string} gen_folder
  * @param {string} cache_breaker
  */
-export async function regenerate_plugins({ change, add, unlink }, gen_folder, cache_breaker) {
+export async function regenerate_plugins({ change, add, unlink }, gen_folder) {
     const modified_plugins = [].concat(change, add);
+    const cache_breaker = get_cache_breaker();
     if (modified_plugins.length > 0) {
         modified_plugins.forEach((file) => {
             write(
@@ -176,9 +178,9 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
         // transform and prefill with the existing configs
         const file_configs = get_config_cache('dependencies.config', {});
         await transform(combined_files, file_configs, true);
-        
+
         await WorkerController.process_in_workers(WorkerAction.compile, combined_files, 10, true);
-        
+
         // when doc, layout or page has changed search directly in the pages reference
         if (filled_array(main_files)) {
             const identifier_keys = Object.keys(all_identifiers).concat(Object.keys(identifier_files));

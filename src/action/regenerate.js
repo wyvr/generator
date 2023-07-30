@@ -90,14 +90,6 @@ export async function regenerate(changed_files) {
             reload_page = true;
         }
 
-        // plugins
-        if (in_array(fragments, FOLDER_PLUGINS)) {
-            await regenerate_plugins(RegenerateFragment(frag_files?.plugins), gen_folder, cache_breaker);
-
-            // reload whole page
-            reload_page = true;
-        }
-
         // routes
         const routes_reload = await regenerate_routes(RegenerateFragment(frag_files?.routes), gen_folder);
         if (routes_reload) {
@@ -114,6 +106,14 @@ export async function regenerate(changed_files) {
         let identifiers = src_result.identifiers;
         let pages = src_result.pages;
         test_files.push(...src_result.test_files);
+
+        // plugins
+        if (in_array(fragments, FOLDER_PLUGINS)) {
+            await regenerate_plugins(RegenerateFragment(frag_files?.plugins), gen_folder);
+
+            // reload whole page
+            reload_page = true;
+        }
 
         // pages
         const pages_result = await regenerate_pages(

@@ -1,9 +1,8 @@
 import Mocha from 'mocha';
-import { extname } from 'path';
 import { append_cache_breaker, get_cache_breaker } from './cache_breaker.mjs';
-import { exists } from './file.js';
 import { Logger } from './logger.js';
-import { filled_array, filled_string, in_array, is_object } from './validate.js';
+import { filled_array, filled_string, is_object } from './validate.js';
+import { uniq_values } from './uniq.js';
 const { EVENT_TEST_FAIL } = Mocha.Runner.constants; // other constants https://mochajs.org/api/runner.js.html
 
 export async function run_tests(files) {
@@ -23,13 +22,14 @@ export async function run_tests(files) {
                             Logger.color.bold(test.fullTitle()),
                             Logger.color.dim(`file:${test.file}`),
                             err.message,
+                            ''
                         ].join('\n')
                     );
                     number++;
                 });
             },
         });
-        files.forEach((file) => {
+        uniq_values(files).forEach((file) => {
             if (filled_string(file)) {
                 mocha.addFile(file);
             }

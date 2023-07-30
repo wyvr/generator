@@ -28,7 +28,6 @@ import { cache_dependencies, dependencies_from_content, get_identifiers_of_file 
 import { get_config_cache } from './config_cache.js';
 import { uniq_values } from './uniq.js';
 import { to_relative_path, to_single_identifier_name } from './to.js';
-import { get_test_file } from './tests.mjs';
 import { transform } from '../action/transform.js';
 
 /**
@@ -141,12 +140,20 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
             )
         )
             .map((file) => {
-                if (extname(file) == '.svelte') {
+                const ext = extname(file);
+                if (ext == '.svelte') {
                     return file;
                 }
                 const svelte_file = to_extension(file, '.svelte');
                 if (exists(svelte_file)) {
                     return [file, svelte_file];
+                }
+                if (ext == '.mjs' || ext == '.cjs' || ext == '.js') {
+                    const test_file = to_extension(file, '.spec' + ext);
+                    if (exists(test_file)) {
+                        return [file, test_file];
+                    }
+                    return file;
                 }
                 return file;
             })
@@ -218,7 +225,7 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
         pages.push(...data_files);
 
         // check if files have test files in place and execute them
-        test_files = combined_files.map((file) => get_test_file(file)).filter((x) => x);
+        test_files = combined_files.filter((file) => file.match(/\.spec\.[mc]js?/));
 
         // rebuild the identifiers
         if (filled_object(identifiers)) {

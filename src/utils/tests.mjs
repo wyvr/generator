@@ -30,10 +30,6 @@ export async function run_tests(files) {
             },
         });
         files.forEach((file) => {
-            if (file?.test) {
-                mocha.addFile(file.test);
-                return;
-            }
             if (filled_string(file)) {
                 mocha.addFile(file);
             }
@@ -61,16 +57,4 @@ export async function run_tests(files) {
                 });
             });
     });
-}
-
-export function get_test_file(file) {
-    const ext = extname(file);
-    if (!in_array(['.js', '.cjs', '.mjs'], ext)) {
-        return undefined;
-    }
-    const test_file = file.replace(new RegExp(`${ext}$`), `.spec${ext}`).replace(/\.spec\.spec/, '.spec');
-    if (!exists(test_file)) {
-        return undefined;
-    }
-    return { file, test: test_file };
 }

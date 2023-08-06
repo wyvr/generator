@@ -127,7 +127,7 @@ export async function run_route(request, response, uid, route) {
     let status = 200;
     let header = {};
     let customHead = false;
-    let route_object = {
+    let route_context = {
         request,
         response,
         params,
@@ -149,17 +149,18 @@ export async function run_route(request, response, uid, route) {
         },
     };
 
-    const construct_route_object = await Plugin.process('construct_route_object', route_object);
-    const { result } = await construct_route_object((route_object) => {
+    const construct_route_context = await Plugin.process('construct_route_context', route_context);
+    const { result } = await construct_route_context((route_object) => {
         return route_object;
     });
-    route_object = result;
+    route_context = result;
+
     if (is_func(code.onExec)) {
         /* c8 ignore next */
         const language = data?._wyvr?.language || 'en';
         register_i18n(get_language(language), route.path);
         try {
-            data = await code.onExec(route_object);
+            data = await code.onExec(route_context);
             if (response.writableEnded) {
                 return undefined;
             }
@@ -170,13 +171,13 @@ export async function run_route(request, response, uid, route) {
     // when onExec does not return a correct object force one
     if (!data) {
         Logger.warning('[route]', `onExec in ${route.path} should return a object`);
-        data = route_object.data;
+        data = route_context.data;
     }
 
-    route_object.returnJSON = () => {
+    route_context.returnJSON = () => {
         Logger.warning('[route]', 'returnJSON can only be used in onExec');
     };
-    route_object.data = data;
+    route_context.data = data;
 
     /* c8 ignore next */
     const language = data?._wyvr?.language || 'en';
@@ -190,7 +191,7 @@ export async function run_route(request, response, uid, route) {
             }
             if (is_func(code[key])) {
                 try {
-                    data[key] = await code[key](route_object);
+                    data[key] = await code[key](route_context);
                 } catch (e) {
                     Logger.error('[route]', error_message(key), get_error_message(e, route.path, 'route'));
                 }

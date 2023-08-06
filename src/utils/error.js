@@ -69,6 +69,10 @@ export function extract_error(e, source) {
     if (e.message) {
         object.message = e.message;
     }
+    // fetch errors
+    if(e.cause?.reason) {
+        object.message = `${object.message || ''}\n${e.cause.reason}`;
+    }
     // sass error
     if (e.formatted) {
         object.stack = e.formatted.split('\n');

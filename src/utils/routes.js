@@ -88,18 +88,19 @@ export async function run_route(request, response, uid, route) {
     const clean_url = split[0];
     const query = {};
     if (split[1]) {
-        split[1]
-            .split('&')
-            .forEach((entry) => {
-                const parts = entry.split('=');
-                parts[0] = decodeURIComponent(parts[0]).replace(/\+/g, ' ');
-                if (parts.length == 1) {
-                    query[parts[0]] = true;
-                    return;
-                }
-                query[parts[0]] = decodeURIComponent(parts[1]).replace(/\+/g, ' ');
-            });
+        split[1].split('&').forEach((entry) => {
+            const parts = entry.split('=');
+            parts[0] = decodeURIComponent(parts[0]).replace(/\+/g, ' ');
+            if (parts.length == 1) {
+                query[parts[0]] = true;
+                return;
+            }
+            query[parts[0]] = decodeURIComponent(parts[1]).replace(/\+/g, ' ');
+        });
     }
+    const body = request.body || {};
+    const files = request.files || {};
+
     const params_match = clean_url.match(route.match);
     if (!params_match) {
         Logger.error(uid, "can't extract params from url", clean_url, route);
@@ -132,6 +133,8 @@ export async function run_route(request, response, uid, route) {
         response,
         params,
         query,
+        body,
+        files,
         data,
         returnJSON: (json, status = 200, headers = {}) => {
             const response_header = Object.assign({}, headers);

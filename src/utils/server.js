@@ -38,6 +38,7 @@ export function server(host, port, on_request, on_end) {
         if (Env.is_dev()) {
             res.setHeader('Wyvr-Uid', uid);
         }
+
         // force redirect to urls with / at the end
         const url = req.url;
         let clean_url = url.replace(/\?.*/, '').replace(/#.*/, '');
@@ -57,7 +58,8 @@ export function server(host, port, on_request, on_end) {
         if (is_func(on_request)) {
             on_request(req, res, uid, start);
         }
-        const files = {};
+        let files = {};
+        let body = {};
         const data = {};
         const query = {};
         // add query parameters to the request
@@ -77,23 +79,15 @@ export function server(host, port, on_request, on_end) {
         }
         // allow sending files
         const form = formidable({ keepExtensions: true, uploadDir: tmpdir(), allowEmptyFiles: true, minFileSize: 0 });
-        form.on('field', (name, value) => {
-            data[name] = value;
-        })
-            .on('file', (name, file) => {
-                if (file.size > 0 && file.originalFilename) {
-                    if (!files[name]) {
-                        files[name] = [];
-                    }
-                    files[name].push(file);
-                }
-            })
-            .on('end', async () => {
-                req.data = data;
-                req.files = files;
-                return await final(on_end, req, res, uid, start);
-            });
-        form.parse(req);
+        try {
+            [body, files] = await form.parse(req);
+            req.body = body;
+            req.files = files;
+        } catch (err) {
+            Logger.error(get_error_message(err, clean_url, 'request body'));
+        }
+        req.data = data;
+        return await final(on_end, req, res, uid, start);
     }).listen(port, host, () => {
         const pre_text = 'server started at';
         const text = `http://${host}:${port}`;

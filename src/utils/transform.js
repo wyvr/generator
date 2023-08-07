@@ -19,7 +19,7 @@ import { WyvrFileLoading } from '../struc/wyvr_file.js';
 import { uniq_values } from './uniq.js';
 import { Env } from '../vars/env.js';
 import { Logger } from './logger.js';
-import { FOLDER_GEN_SRC } from '../constants/folder.js';
+import { FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC } from '../constants/folder.js';
 import { get_error_message } from './error.js';
 import { append_cache_breaker } from './cache_breaker.mjs';
 
@@ -244,12 +244,20 @@ export function replace_wyvr_magic(content, as_client) {
     }
     const is_server = as_client ? 'false' : 'true';
     const is_client = as_client ? 'true' : 'false';
+    const target_dir = as_client ? FOLDER_GEN_CLIENT : FOLDER_GEN_SERVER;
     // replace isServer and isClient and the imports
     return content
         .replace(/([^\w])isServer([^\w])/g, `$1${is_server}$2`)
         .replace(/([^\w])isClient([^\w])/g, `$1${is_client}$2`)
         .replace(/import \{[^}]*?\} from ["']@wyvr\/generator["'];?/g, '')
-        .replace(/(?:const|let)[^=]*?= require\(["']@wyvr\/generator["']\);?/g, '');
+        .replace(/(?:const|let)[^=]*?= require\(["']@wyvr\/generator["']\);?/g, '')
+        .replace(/from ['"]([^'"]+)['"]/g, (_, path) => {
+            if (path.indexOf(FOLDER_GEN_SRC) == -1) {
+                return _;
+            }
+
+            return path.replace(FOLDER_GEN_SRC, target_dir);
+        });
 }
 export function set_default_values(data, default_values) {
     if (!filled_object(data) && !filled_object(default_values)) {

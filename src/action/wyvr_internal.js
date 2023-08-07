@@ -1,4 +1,4 @@
-import { extname, join } from 'path';
+import { dirname, extname, join } from 'path';
 import { FOLDER_DEVTOOLS, FOLDER_GEN } from '../constants/folder.js';
 import { compile_svelte_from_code } from '../utils/compile_svelte.js';
 import { collect_files, read, remove, to_extension, write, write_json } from '../utils/file.js';
@@ -28,55 +28,60 @@ export async function wyvr_internal() {
 export async function build_wyvr_internal() {
     copy_folder(Cwd.get(FOLDER_GEN), [FOLDER_DEVTOOLS], ReleasePath.get());
     const folder = join(ReleasePath.get(), FOLDER_DEVTOOLS);
-    // create file of all available debug modules
-    const devtools_modules = collect_files(folder, '.mjs')
-        .map((file) => {
-            if (file.indexOf('svelte.mjs') > -1) {
-                return false;
-            }
-            write(file, replace_svelte_paths(read(file), folder));
-            return file;
-        })
-        .filter((x) => x)
-        .map((file) => file.replace(ReleasePath.get(), ''));
-    const modules_file = join(folder, 'modules.json');
-    remove(modules_file);
-    write_json(modules_file, devtools_modules);
-    // compile svelte components
-    await Promise.all(
-        collect_files(folder, '.svelte').map(async (file) => {
-            const prepared_content = replace_svelte_paths(replace_file_paths(read(file), folder));
-            const result = await compile_svelte_from_code(prepared_content, file, 'client', true);
-            if (!result?.js?.code) {
+    const files = collect_files(folder);
+    const devtools_modules = await Promise.all(
+        files.map(async (file) => {
+            // ignore compiled svelte files
+            if (file.match(/\.svelte\.[m]?js$/)) {
                 return undefined;
             }
-            const filename = to_extension(file, 'svelte.mjs');
-            const module = await build(result.js.code, filename, 'esm');
 
-            write(filename, module.code);
-            return result;
+            const content = read(file);
+            // compile svelte components
+            if (file.match(/\.svelte$/)) {
+                const svelte_content = replace_file_paths(content, file);
+                const result = await compile_svelte_from_code(svelte_content, file, 'client', true);
+                if (!result?.js?.code) {
+                    return undefined;
+                }
+                const filename = to_extension(file, 'svelte.js');
+                const module = await build(result.js.code, filename, 'esm');
+
+                write(filename, module.code);
+                return undefined;
+            }
+            // ignore none js files
+            if (!file.match(/\.[m]?js$/)) {
+                return undefined;
+            }
+            // create file of all available debug modules
+            const module_content = replace_svelte_paths(replace_file_paths(content, file), folder);
+            write(file, module_content);
+            return file.replace(ReleasePath.get(), '');
         })
     );
+    const modules_file = join(folder, 'modules.json');
+    remove(modules_file);
+    write_json(modules_file, devtools_modules.filter(Boolean));
 }
 
-export function replace_svelte_paths(content) {
+export function replace_svelte_paths(content, folder) {
     if (!filled_string(content)) {
         return '';
     }
-    return content.replace(/from ['"]\.\/([^'"]+)['"]/g, (_, path) => {
+    return content.replace(/from ['"]([^'"]+)['"]/g, (_, path) => {
         if (extname(path) === '.svelte') {
-            path = to_extension(path, 'svelte.mjs');
+            path = to_extension(path, 'svelte.js');
         }
-        return `from './${path}'`;
+        const new_path = `./${path.replace(/^\.\//, '').replace(folder, '').replace(/^\//, '')}`;
+        return `from '${new_path}'`;
     });
 }
 
-export function replace_file_paths(content, folder) {
+export function replace_file_paths(content, file) {
     if (!filled_string(content)) {
         return '';
     }
-    if (!filled_string(folder)) {
-        return content;
-    }
-    return content.replace(/from ['"]\.\/([^'"]+)['"]/g, `from '${folder}/$1'`);
+    const rel_path = dirname(file);
+    return content.replace(/from ['"](\.\/[^'"]+)['"]/g, (_, path) => `from '${join(rel_path, path)}'`);
 }

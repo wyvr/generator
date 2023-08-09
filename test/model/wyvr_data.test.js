@@ -225,4 +225,38 @@ describe('model/wyvr_data', () => {
             },
         ]);
     });
+    it('collection as object doubled called', () => {
+        const mtime = new Date().toISOString();
+        const result = WyvrData(
+            WyvrData(
+                {
+                    collection: { visible: false, scope: 'test', name: 'huhu' },
+                },
+                '/url2',
+                'test',
+                mtime
+            ),
+            '/url2',
+            'test',
+            mtime
+        );
+        deepStrictEqual(result.collection, [
+            {
+                name: 'huhu',
+                order: 0,
+                scope: 'all',
+                url: '/url2',
+                mtime,
+                visible: false,
+            },
+            {
+                name: 'huhu',
+                order: 0,
+                scope: 'test',
+                url: '/url2',
+                mtime,
+                visible: false,
+            },
+        ]);
+    });
 });

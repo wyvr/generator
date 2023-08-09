@@ -37,7 +37,7 @@ export function WyvrData(data, url, name, mtime_default) {
         persist: false,
         is_exec: false,
         exec_pattern: undefined,
-        mtime
+        mtime,
     };
     // when no wyvr data is set use the default values
     if (is_null(data)) {
@@ -45,11 +45,13 @@ export function WyvrData(data, url, name, mtime_default) {
     }
 
     // add simple props
-    ['extension', 'language', 'private', 'change_frequence', 'priority', 'static', 'mtime', 'persist'].forEach((key) => {
-        if (!is_null(data[key])) {
-            wyvr_prop[key] = data[key];
+    ['extension', 'language', 'private', 'change_frequence', 'priority', 'static', 'mtime', 'persist'].forEach(
+        (key) => {
+            if (!is_null(data[key])) {
+                wyvr_prop[key] = data[key];
+            }
         }
-    });
+    );
 
     // extend template data
     if (data.template) {
@@ -91,7 +93,7 @@ export function WyvrData(data, url, name, mtime_default) {
  * @returns
  */
 function merge_property(prop_value, default_value) {
-    if (is_string( prop_value)) {
+    if (is_string(prop_value)) {
         prop_value = [prop_value];
     }
     return [].concat(prop_value, default_value).filter((x, index, arr) => arr.indexOf(x) == index);
@@ -100,13 +102,18 @@ function merge_property(prop_value, default_value) {
 function build_collection(value, url, name, mtime) {
     const collections = [];
     if (filled_object(value)) {
-        const all_entry = clone(value);
-        all_entry.scope = 'all';
-        collections.push(build_collection_entry(all_entry, url, name, mtime));
+        if(value?.scope != 'all') {    
+            const all_entry = clone(value);
+            all_entry.scope = 'all';
+            collections.push(build_collection_entry(all_entry, url, name, mtime));
+        }
         collections.push(build_collection_entry(value, url, name, mtime));
     }
     if (is_array(value)) {
-        collections.push(build_collection_entry({ scope: 'all' }, url, name, mtime));
+        // search if all scope is already there and avoid adding multiple entries
+        if (!value.find((entry) => entry?.scope == 'all')) {
+            collections.push(build_collection_entry({ scope: 'all' }, url, name, mtime));
+        }
         const keys = [];
         value
             .filter((x) => filled_object(x))
@@ -144,7 +151,7 @@ function build_collection_entry(entry, url, name, mtime) {
         scope: 'none',
         visible: true,
         url: '',
-        mtime
+        mtime,
     };
     if (filled_string(url)) {
         result.url = url;

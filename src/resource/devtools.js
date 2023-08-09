@@ -61,6 +61,7 @@ async function wyvr_devtools_initialize() {
     const toolbar = document.createElement('div');
     toolbar.setAttribute('id', 'wyvr_debug_toolbar');
     toolbar.setAttribute('class', 'wyvr_debug_toolbar');
+    toolbar.setAttribute('style', 'display: none;');
     toolbar.innerHTML = `
         <span><img width="48" height="17" src="${icon}" alt="wyvr Debug toolbar"/></span>
         <nav>${modules

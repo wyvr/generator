@@ -3,7 +3,6 @@ import { FOLDER_GEN_SRC } from '../constants/folder.js';
 import { extract_wyvr_file_config } from '../model/wyvr_file.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerEmit } from '../struc/worker_emit.js';
-import { get_cache_breaker } from '../utils/cache_breaker.mjs';
 import { insert_import } from '../utils/compile.js';
 import { get_error_message } from '../utils/error.js';
 import { exists, read, write, symlink } from '../utils/file.js';

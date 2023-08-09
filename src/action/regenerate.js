@@ -27,7 +27,6 @@ import { ReleasePath } from '../vars/release_path.js';
 import { WatcherPaths } from '../vars/watcher_paths.js';
 import { WorkerController } from '../worker/controller.js';
 import { sleep } from '../utils/sleep.js';
-import { get_cache_breaker } from '../utils/cache_breaker.mjs';
 import {
     regenerate_assets,
     regenerate_routes,
@@ -46,8 +45,6 @@ import { run_tests } from '../utils/tests.mjs';
 export async function regenerate(changed_files) {
     let test_files = [];
     await measure_action('regenerate', async () => {
-        const cache_breaker = get_cache_breaker();
-
         // find all dependencies
         const dependencies_bottom = get_config_cache('dependencies.bottom');
 

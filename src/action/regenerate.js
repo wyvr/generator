@@ -122,8 +122,6 @@ export async function regenerate(changed_files) {
         if (pages_result.reload_page) {
             reload_page = true;
         }
-        // @TODO handle collections
-        //const collections = pages_result.collections;
         identifiers = pages_result.identifiers;
         pages = pages_result.pages;
 

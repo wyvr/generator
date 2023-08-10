@@ -4,5 +4,5 @@ export const MediaModelMode = {
 };
 export const MediaModelOutput = {
     path: 'path',
-    base64: 'base64', // @TODO
+    base64: 'base64', // @TODO this method is not implemented
 };

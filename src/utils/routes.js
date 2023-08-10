@@ -189,7 +189,7 @@ export async function run_route(request, response, uid, route) {
     // replace function properties
     await Promise.all(
         Object.keys(code).map(async (key) => {
-            if (key == 'onExec') {
+            if (in_array(['onExec', 'getCollection'], key)) {
                 return undefined;
             }
             if (is_func(code[key])) {

@@ -33,15 +33,16 @@ import { NoWorker } from '../no_worker.js';
 import { Event } from '../utils/event.js';
 import { modify_svelte } from './modify_svelte.mjs';
 import { get_error_message } from '../utils/error.js';
+import { collections } from './collections.js';
 
 export async function pre_initial_build(build_id, config_data) {
     try {
         await modify_svelte();
-    } catch(e) {
+    } catch (e) {
         Logger.error(get_error_message(e, undefined, 'initial build'));
         process.exit(1);
     }
-    
+
     // set release folder
     ReleasePath.set(Cwd.get(FOLDER_RELEASES, build_id));
 
@@ -125,13 +126,18 @@ export async function intial_build(build_id, config) {
     await compile(available_packages);
 
     // Execute Pages
-    const page_identifiers = await pages(package_tree, mtime);
+    const pages_result = await pages(package_tree, mtime);
+
+    await build_cache();
+
+    // Process Collections
+    await collections(pages_result.collections);
 
     // Build Pages
     const build_result = await build();
 
     // combine identifiers
-    const identifiers = to_identifiers(page_identifiers, build_result.identifiers);
+    const identifiers = to_identifiers(pages_result.identifiers, build_result.identifiers);
     set_config_cache('identifiers', identifiers);
 
     //  Inject Data into the pages
@@ -148,8 +154,6 @@ export async function intial_build(build_id, config) {
 
     // Copy wyvr internal files into release in dev mode
     await wyvr_internal();
-
-    await build_cache();
 
     // console.log(build_result)
 

@@ -4,17 +4,16 @@ import { Event } from '../utils/event.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
 import { collect_pages } from '../utils/pages.js';
-import { Storage } from '../utils/storage.js';
-import { filled_string } from '../utils/validate.js';
 import { WorkerController } from '../worker/controller.js';
 import { measure_action } from './helper.js';
+import { append_entry_to_collections } from '../utils/collections.js';
 
 export async function pages(package_tree, mtime) {
     const name = 'page';
     const identifier_name = get_name(WorkerEmit.identifier);
     const identifiers = {};
     const collection_name = get_name(WorkerEmit.collection);
-    const collections = {};
+    let collections = {};
 
     await measure_action(name, async () => {
         const identifier_id = Event.on('emit', identifier_name, (data) => {
@@ -30,26 +29,20 @@ export async function pages(package_tree, mtime) {
                 return;
             }
             data.collection.forEach((entry) => {
-                if (!filled_string(entry.url)) {
-                    return;
-                }
-                if (!collections[entry.scope]) {
-                    collections[entry.scope] = [];
-                }
-                collections[entry.scope].push(entry);
+                collections = append_entry_to_collections(collections, entry);
             });
         });
 
         const data = collect_pages(undefined, package_tree);
 
         WorkerController.set_all_workers('mtime', mtime);
-        
+
         // wrap in plugin
         const caller = await Plugin.process(name, data);
         await caller(async (data) => {
             await WorkerController.process_in_workers(WorkerAction.page, data, 10);
         });
-        
+
         WorkerController.set_all_workers('mtime', undefined);
 
         // remove listeners
@@ -63,23 +56,7 @@ export async function pages(package_tree, mtime) {
             identifier_length == 1 ? 'identifier' : 'identifiers',
             Logger.color.dim('different layout combinations')
         );
-
-        // sort the collection entries
-        Object.keys(collections).forEach((key) => {
-            collections[key] = collections[key]
-                .sort((a, b) => a.url.localeCompare(b.url))
-                .sort((a, b) => {
-                    if (a.order > b.order) {
-                        return -1;
-                    }
-                    if (a.order < b.order) {
-                        return 1;
-                    }
-                    return 0;
-                });
-        });
-        await Storage.set('collection', collections);
     });
 
-    return identifiers;
+    return { identifiers, collections };
 }

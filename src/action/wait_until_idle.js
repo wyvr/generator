@@ -17,7 +17,8 @@ export async function wait_until_idle(emergency_timeout_seconds = 1800) {
             resolve();
         };
         const interval = setInterval(() => {
-            if (worker_amount == WorkerController.get_workers_by_status(WorkerStatus.idle).length) {
+            const idle_workers_amount = WorkerController.get_workers_by_status(WorkerStatus.idle).length
+            if (worker_amount == idle_workers_amount) {
                 clearTimeout(emergency);
                 complete();
             }

@@ -40,6 +40,18 @@ describe('utils/media/get_config', () => {
             })
         );
     });
+    it('missing source', async () => {
+        deepStrictEqual(
+            await get_config('"width":100'),
+            new MediaModel({
+                format: 'jpeg',
+                width: 100,
+                src: undefined,
+                hash: undefined,
+                result: undefined,
+            })
+        );
+    });
     it('correct format external domain', async () => {
         deepStrictEqual(
             await get_config('"src":"https://wyvr.dev/favicon.png"'),

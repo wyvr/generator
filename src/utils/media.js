@@ -166,7 +166,7 @@ export async function get_config(content) {
         return config;
     }
     // convert to correct format
-    let src = config.src || '';
+    let src = config.src;
     let mod_src = to_extension(src, config.format);
     // create config hash to group different images together
     const hash = get_config_hash(config);

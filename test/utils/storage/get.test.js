@@ -66,6 +66,16 @@ describe('utils/storage/get', () => {
         deepStrictEqual(await Storage.get('test_get', 'json.unknown'), undefined);
         deepStrictEqual(log, []);
     });
+    it('get all values', async () => {
+        deepStrictEqual(await Storage.get('test_get', '*'), {
+            json: {
+                index: 0,
+                value: true,
+            },
+            key: 'value',
+        });
+        deepStrictEqual(log, []);
+    });
     it('unknown key', async () => {
         deepStrictEqual(await Storage.get('test_get', 'unknown'), undefined);
         deepStrictEqual(log, []);

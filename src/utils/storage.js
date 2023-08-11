@@ -150,26 +150,46 @@ export class Storage {
     /**
      * Get the value from the database with the given key
      * @param {string} name
-     * @param {string} key
+     * @param {string} [key]
      */
-    static async get(name, key) {
+    static async get(name, key = undefined) {
         if (!filled_string(name) || !filled_string(key)) {
             return undefined;
         }
         const db = await this.open(name);
+        const load_all = key === '*';
+        if (load_all) {
+            try {
+                const result = await this.cache[db.name].all('SELECT * FROM "data";');
+                const parsed = {};
+                result.forEach((entry) => {
+                    /* c8 ignore start */
+                    if (!entry.key || !entry.value) {
+                        return;
+                    }
+                    /* c8 ignore end */
+                    parsed[entry.key] = parse(entry.value);
+                });
+                return parsed;
+            } catch (e) {
+                Logger.error(get_error_message(e, name, 'storage'));
+            }
+            return undefined;
+        }
         const parts = key.split('.');
         const segment_key = parts.shift();
         const data_key = parts.join('.');
         try {
             const result = await this.cache[db.name].get('SELECT value FROM "data" WHERE key=?;', segment_key);
-            let parsed = parse(result?.value) || result?.value;
-            if(filled_string(data_key)) {
+            const parsed = parse(result?.value) || result?.value;
+            if (filled_string(data_key)) {
                 return search_segment(parsed, data_key);
             }
             return parsed;
         } catch (e) {
             Logger.error(get_error_message(e, name, 'storage'));
         }
+
         return undefined;
     }
     static async set(name, key_or_data, value) {

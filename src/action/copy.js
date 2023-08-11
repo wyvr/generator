@@ -50,6 +50,8 @@ export async function copy(available_packages) {
                     // transform to "./src/file.svelte" "src/file.svelte"
                     const target_key = file.target.replace(/^\.\//, '');
                     package_tree[target_key] = pkg;
+                    // @TODO sometimes @src does not get replaced
+                    // replace @src in plugins and cron jobs
                     if ([`/${FOLDER_PLUGINS}/`, `/${FOLDER_CRON}/`].find((path) => target.indexOf(path) > -1)) {
                         write(target, replace_src_path(read(target), FOLDER_GEN_SRC));
                     }

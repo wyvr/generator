@@ -8,7 +8,7 @@ import { copy_folder } from './copy.js';
 import { measure_action } from './helper.js';
 
 export async function copy_static_generated() {
-    const name = 'copy';
+    const name = 'copy generated';
 
     await measure_action(name, async () => {
         // wrap in plugin

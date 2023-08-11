@@ -327,6 +327,7 @@ export class WorkerController {
 
     static async process_in_workers(action, list, batch_size, show_name) {
         if (this.workers.length == 0) {
+            console.trace('No workers available');
             Logger.error('no worker available');
             process.exit(1);
         }

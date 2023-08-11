@@ -4,7 +4,7 @@ import { get_present_command } from '../action/present.js';
 import { FOLDER_GEN_SRC } from '../constants/folder.js';
 import { collect_files } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
-import { run_tests } from '../utils/tests.mjs';
+import { run_tests } from '../utils/tests.js';
 import { Cwd } from '../vars/cwd.js';
 import { UniqId } from '../vars/uniq_id.js';
 

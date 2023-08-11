@@ -37,7 +37,7 @@ import {
     regeneration_static_file,
 } from '../utils/regenerate.js';
 import { RegenerateFragment } from '../model/regenerate_fragment.mjs';
-import { run_tests } from '../utils/tests.mjs';
+import { run_tests } from '../utils/tests.js';
 
 /**
  * Regenerate the files and the result of the given changed files

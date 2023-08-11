@@ -1,6 +1,6 @@
 import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerEmit, get_name } from '../struc/worker_emit.js';
-import { merge_collections } from '../utils/collections.js';
+import { merge_collections, sort_collections } from '../utils/collections.js';
 import { get_config_cache } from '../utils/config_cache.js';
 import { Event } from '../utils/event.js';
 import { Logger } from '../utils/logger.js';
@@ -40,19 +40,7 @@ export async function collections(page_collections) {
         }
 
         // sort the collection entries
-        Object.keys(collections).forEach((key) => {
-            collections[key] = collections[key]
-                .sort((a, b) => a.url.localeCompare(b.url))
-                .sort((a, b) => {
-                    if (a.order > b.order) {
-                        return -1;
-                    }
-                    if (a.order < b.order) {
-                        return 1;
-                    }
-                    return 0;
-                });
-        });
+        collections = sort_collections(collections);
 
         Logger.info(
             'collected',

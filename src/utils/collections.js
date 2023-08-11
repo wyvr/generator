@@ -11,7 +11,7 @@ import { filled_array, filled_object, filled_string, in_array, is_array, is_null
  */
 
 export function append_entry_to_collections(collections, entry) {
-    if(!is_object(collections)) {
+    if (!is_object(collections)) {
         return {};
     }
     if (!entry || !filled_string(entry.url) || !filled_string(entry.scope)) {
@@ -50,28 +50,26 @@ export function build_collection(data, url, name, mtime) {
             collections.push(collection_entry({ url, name, scope: 'all', mtime }));
         }
         const keys = [];
-        data
-            .filter((x) => filled_object(x))
-            .forEach((raw_entry) => {
-                const entry = collection_entry(raw_entry, { url, name, mtime });
-                // void multiple entries of the same scope
-                if (in_array(keys, entry.scope)) {
-                    collections.find((item) => {
-                        if (item.scope == entry.scope) {
-                            Object.keys(entry).forEach((key) => {
-                                if (!is_null(raw_entry[key])) {
-                                    item[key] = raw_entry[key];
-                                }
-                            });
-                            return true;
-                        }
-                        return false;
-                    });
-                    return;
-                }
-                keys.push(entry.scope);
-                collections.push(entry);
-            });
+        data.filter((x) => filled_object(x)).forEach((raw_entry) => {
+            const entry = collection_entry(raw_entry, { url, name, mtime });
+            // void multiple entries of the same scope
+            if (in_array(keys, entry.scope)) {
+                collections.find((item) => {
+                    if (item.scope == entry.scope) {
+                        Object.keys(entry).forEach((key) => {
+                            if (!is_null(raw_entry[key])) {
+                                item[key] = raw_entry[key];
+                            }
+                        });
+                        return true;
+                    }
+                    return false;
+                });
+                return;
+            }
+            keys.push(entry.scope);
+            collections.push(entry);
+        });
     }
     if (!filled_array(collections) && filled_string(url)) {
         collections.push(collection_entry({ url, name, scope: 'all', mtime }));
@@ -101,4 +99,29 @@ export function merge_collections(...collections_list) {
         });
     });
     return result;
+}
+
+/**
+ * Sort the entries in the collections
+ * @param {import('../model/collection.js').Collections} collections
+ * @returns {import('../model/collection.js').Collections}
+ */
+export function sort_collections(collections) {
+    Object.keys(collections).forEach((key) => {
+        if (!is_array(collections[key])) {
+            return;
+        }
+        collections[key] = collections[key]
+            .sort((a, b) => a.url.localeCompare(b.url))
+            .sort((a, b) => {
+                if (a.order > b.order) {
+                    return -1;
+                }
+                if (a.order < b.order) {
+                    return 1;
+                }
+                return 0;
+            });
+    });
+    return collections;
 }

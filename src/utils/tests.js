@@ -9,6 +9,7 @@ export async function run_tests(files) {
     if (!filled_array(files)) {
         return;
     }
+    /* c8 ignore start */
     return await new Promise((resolve) => {
         let stats = null;
         const mocha = new Mocha({
@@ -22,7 +23,7 @@ export async function run_tests(files) {
                             Logger.color.bold(test.fullTitle()),
                             Logger.color.dim(`file:${test.file}`),
                             err.message,
-                            ''
+                            '',
                         ].join('\n')
                     );
                     number++;
@@ -57,4 +58,5 @@ export async function run_tests(files) {
                 });
             });
     });
+    /* c8 ignore end */
 }

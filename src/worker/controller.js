@@ -40,6 +40,7 @@ export class WorkerController {
         if (this.max_cores) {
             return this.max_cores;
         }
+        // single threaded mode
         if (this.worker_ratio <= 0) {
             return 1;
         }
@@ -251,9 +252,11 @@ export class WorkerController {
         if (!filled_string(segment)) {
             return false;
         }
-        this.workers.forEach((worker) => {
-            this.send_action(worker, WorkerAction.set_config_cache, { segment, value });
-        });
+        if (this.multi_threading) {
+            this.workers.forEach((worker) => {
+                this.send_action(worker, WorkerAction.set_config_cache, { segment, value });
+            });
+        }
         return true;
     }
 
@@ -341,6 +344,10 @@ export class WorkerController {
         }
         if (!is_int(batch_size)) {
             batch_size = 10;
+        }
+        // @NOTE @TODO batches are not correctly handled in single threaded mode, so handle all items in one batch
+        if (!this.multi_threading) {
+            batch_size = amount;
         }
         Logger.info(
             'process',

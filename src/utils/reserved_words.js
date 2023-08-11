@@ -1,19 +1,30 @@
-import { Logger } from "./logger.js";
-import { is_string } from "./validate.js";
+import { Logger } from './logger.js';
+import { is_string } from './validate.js';
 
-export function contains_reserved_words(value) {
-    if(!is_string(value)) {
+/**
+ * Checks whether the given path contains reserved words
+ * @param {string} path
+ * @returns {boolean}
+ */
+export function contains_reserved_words(path) {
+    if (!is_string(path)) {
         return false;
     }
-    return !!value.match(/^\/?(?:assets|css|devtools|i18n|js|media)\//);
+    return !!path.match(/^\/?(?:assets|css|devtools|i18n|js|media)\//);
 }
-export function is_path_valid(value) {
-    if(!is_string(value)) {
+
+/**
+ * Returns if the given path contains reserved words and print error message if it does
+ * @param {string} path
+ * @returns {boolean}
+ */
+export function is_path_valid(path) {
+    if (!is_string(path)) {
         return true;
     }
-    const contains = contains_reserved_words(value);
-    if(contains) {
-        Logger.error('path', value, 'contains reserved words');
+    const contains = contains_reserved_words(path);
+    if (contains) {
+        Logger.error('path', path, 'contains reserved words');
     }
     return !contains;
 }

@@ -15,6 +15,7 @@ import { page } from '../action_worker/page.js';
 import { scripts } from '../action_worker/scripts.js';
 import { transform } from '../action_worker/transform.js';
 import { send_status } from './communication.js';
+import { collections } from '../action_worker/collections.js';
 
 export async function process_message(msg) {
     const action = msg?.action?.key;
@@ -72,16 +73,16 @@ export async function process_message(msg) {
             await media(value);
             break;
         }
-        case WorkerAction.inject: {
-            Logger.warning('unknown action', action, 'value', value);
-            break;
-        }
         case WorkerAction.critical: {
             await critical(value);
             break;
         }
         case WorkerAction.optimize: {
             await optimize(value);
+            break;
+        }
+        case WorkerAction.collections: {
+            await collections(value);
             break;
         }
         case WorkerAction.cleanup: {

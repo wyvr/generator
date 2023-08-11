@@ -22,13 +22,14 @@ import { replace_imports } from './transform.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerController } from '../worker/controller.js';
-import { filled_array, filled_object, filled_string, in_array } from './validate.js';
+import { filled_array, filled_object, in_array } from './validate.js';
 import { Event } from './event.js';
 import { cache_dependencies, dependencies_from_content, get_identifiers_of_file } from './dependency.js';
 import { get_config_cache } from './config_cache.js';
 import { uniq_values } from './uniq.js';
 import { to_relative_path, to_single_identifier_name } from './to.js';
 import { transform } from '../action/transform.js';
+import { merge_collections } from './collections.js';
 
 /**
  * Regenerate the plugins
@@ -248,7 +249,7 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
  */
 export async function regenerate_pages({ change, add, unlink }, identifiers, pages, gen_folder) {
     let reload_page = false;
-    const collections = {};
+    let collections = {};
     const mod_pages = [].concat(change, add);
     if (mod_pages.length > 0) {
         const mod_pages_copy = mod_pages.map((file) => ({ src: file.path, target: './' + file.rel_path }));
@@ -261,7 +262,7 @@ export async function regenerate_pages({ change, add, unlink }, identifiers, pag
             });
         });
         const identifier_name = get_name(WorkerEmit.identifier);
-        const collection_name = get_name(WorkerEmit.collection);
+        const collections_name = get_name(WorkerEmit.collections);
         const pages_name = get_name(WorkerEmit.page);
         const identifier_id = Event.on('emit', identifier_name, (data) => {
             if (!data) {
@@ -270,19 +271,11 @@ export async function regenerate_pages({ change, add, unlink }, identifiers, pag
             delete data.type;
             identifiers[data.identifier] = data;
         });
-        const collection_id = Event.on('emit', collection_name, (data) => {
-            if (!data || !data.collection) {
+        const collections_id = Event.on('emit', collections_name, (data) => {
+            if (!data || !data.collections) {
                 return;
             }
-            data.collection.forEach((entry) => {
-                if (!filled_string(entry.url)) {
-                    return;
-                }
-                if (!collections[entry.scope]) {
-                    collections[entry.scope] = [];
-                }
-                collections[entry.scope].push(entry);
-            });
+            collections = merge_collections(collections, data.collections);
         });
         const pages_id = Event.on('emit', pages_name, (data) => {
             if (data && data.pages) {
@@ -294,7 +287,7 @@ export async function regenerate_pages({ change, add, unlink }, identifiers, pag
 
         // remove listeners
         Event.off('emit', identifier_name, identifier_id);
-        Event.off('emit', collection_name, collection_id);
+        Event.off('emit', collections_name, collections_id);
         Event.off('emit', pages_name, pages_id);
         reload_page = true;
     }

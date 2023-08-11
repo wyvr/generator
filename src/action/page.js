@@ -6,13 +6,14 @@ import { Plugin } from '../utils/plugin.js';
 import { collect_pages } from '../utils/pages.js';
 import { WorkerController } from '../worker/controller.js';
 import { measure_action } from './helper.js';
-import { append_entry_to_collections } from '../utils/collections.js';
+import { merge_collections } from '../utils/collections.js';
+import { filled_object } from '../utils/validate.js';
 
 export async function pages(package_tree, mtime) {
     const name = 'page';
     const identifier_name = get_name(WorkerEmit.identifier);
     const identifiers = {};
-    const collection_name = get_name(WorkerEmit.collection);
+    const collections_name = get_name(WorkerEmit.collections);
     let collections = {};
 
     await measure_action(name, async () => {
@@ -24,13 +25,11 @@ export async function pages(package_tree, mtime) {
             delete data.type;
             identifiers[data.identifier] = data;
         });
-        const collection_id = Event.on('emit', collection_name, (data) => {
-            if (!data || !data.collection) {
+        const collections_id = Event.on('emit', collections_name, (data) => {
+            if (!filled_object(data?.collections)) {
                 return;
             }
-            data.collection.forEach((entry) => {
-                collections = append_entry_to_collections(collections, entry);
-            });
+            collections = merge_collections(collections, data.collections);
         });
 
         const data = collect_pages(undefined, package_tree);
@@ -47,7 +46,7 @@ export async function pages(package_tree, mtime) {
 
         // remove listeners
         Event.off('emit', identifier_name, identifier_id);
-        Event.off('emit', collection_name, collection_id);
+        Event.off('emit', collections_name, collections_id);
 
         const identifier_length = Object.keys(identifiers).length;
         Logger.info(

@@ -1,18 +1,22 @@
-import { append_entry_to_collections, build_collection_entry } from '../utils/collections.js';
+import { WorkerAction } from '../struc/worker_action.js';
+import { WorkerEmit, get_name } from '../struc/worker_emit.js';
+import { merge_collections } from '../utils/collections.js';
 import { get_config_cache } from '../utils/config_cache.js';
-import { get_error_message } from '../utils/error.js';
+import { Event } from '../utils/event.js';
 import { Logger } from '../utils/logger.js';
-import { load_route } from '../utils/routes.js';
+import { Plugin } from '../utils/plugin.js';
 import { Storage } from '../utils/storage.js';
-import { filled_array, filled_object, is_func } from '../utils/validate.js';
+import { filled_object } from '../utils/validate.js';
+import { WorkerController } from '../worker/controller.js';
 import { measure_action } from './helper.js';
 
+// @NOTE collections are only generated at build time
 export async function collections(page_collections) {
     const name = 'collections';
-    // @TODO handle collections in rebuild
+    const collections_name = get_name(WorkerEmit.collections);
+    let collections = {};
 
     await measure_action(name, async () => {
-        let collections = {};
         if (filled_object(page_collections)) {
             collections = page_collections;
         }
@@ -20,32 +24,19 @@ export async function collections(page_collections) {
         // load routes and execute the method getCollection of them to extract the available collections
         const routes_cache = get_config_cache('route.cache')?.cache;
         if (routes_cache) {
-            // @TODO move logic to worker
-            await Promise.all(
-                routes_cache.map(async (route) => {
-                    const code = await load_route(route.path);
-                    // getCollection has to provide the complete data for the collection entry as array
-                    if (!code || !is_func(code.getCollection)) {
-                        return null;
-                    }
-                    try {
-                        const route_collections = code.getCollection({ route });
-                        if (filled_array(route_collections)) {
-                            Logger.debug('collection of route', route.rel_path, route_collections);
-                            route_collections.forEach((entry) => {
-                                collections = append_entry_to_collections(
-                                    collections,
-                                    build_collection_entry(entry, entry.url, entry.name)
-                                );
-                            });
-                        }
-                    } catch (e) {
-                        Logger.error(get_error_message(e, route.path, 'getCollection'));
-                        return null;
-                    }
-                    return null;
-                })
-            );
+            const collections_id = Event.on('emit', collections_name, (data) => {
+                if (!filled_object(data?.collections)) {
+                    return;
+                }
+                collections = merge_collections(collections, data.collections);
+            });
+
+            const caller = await Plugin.process(name, routes_cache);
+            await caller(async (routes_cache) => {
+                await WorkerController.process_in_workers(WorkerAction.collections, routes_cache, 1);
+            });
+
+            Event.off('emit', collections_name, collections_id);
         }
 
         // sort the collection entries

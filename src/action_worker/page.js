@@ -4,16 +4,18 @@ import { WorkerEmit } from '../struc/worker_emit.js';
 import { clone } from '../utils/json.js';
 import { Logger } from '../utils/logger.js';
 import { execute_page, write_pages } from '../utils/pages.js';
-import { filled_array, is_null } from '../utils/validate.js';
+import { filled_array, filled_object, is_null } from '../utils/validate.js';
 import { send_action } from '../worker/communication.js';
 import { process_page_data } from './process_page_data.js';
 import { is_path_valid } from '../utils/reserved_words.js';
+import { append_entry_to_collections } from '../utils/collections.js';
+import { collection_entry } from '../model/collection.js';
 
 export async function page(files) {
     if (!filled_array(files)) {
         return;
     }
-    const collections = [];
+    let collections = {};
     const identifiers_cache = {};
     let pages = [];
     for (const page of files) {
@@ -33,7 +35,12 @@ export async function page(files) {
                 page_data._wyvr.page = join(page.pkg.path, page.rel_path);
                 page_data._wyvr.pkg = page.pkg.name;
                 if (page_data._wyvr.collection) {
-                    collections.push(...page_data._wyvr.collection);
+                    page_data._wyvr.collection.forEach((entry) => {
+                        append_entry_to_collections(
+                            collections,
+                            collection_entry(entry)
+                        );
+                    });
                 }
                 if (page_data._wyvr.identifier && page_data._wyvr.identifier_data) {
                     if (!identifiers_cache[page_data._wyvr.identifier] && !page_data._wyvr.static) {
@@ -51,12 +58,12 @@ export async function page(files) {
         pages = write_pages(processed_pages.filter(Boolean));
     }
 
-    if (filled_array(collections)) {
-        const collection_emit = {
-            type: WorkerEmit.collection,
-            collection: collections,
+    if (filled_object(collections)) {
+        const collections_emit = {
+            type: WorkerEmit.collections,
+            collections,
         };
-        send_action(WorkerAction.emit, collection_emit);
+        send_action(WorkerAction.emit, collections_emit);
     }
     send_action(WorkerAction.emit, {
         type: WorkerEmit.page,

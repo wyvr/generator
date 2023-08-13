@@ -198,14 +198,15 @@ export function write_json(filename, data = null) {
         mkdirSync(dirname(filename), { recursive: true });
         // arrays can be inserted per entry, to avoid overflow
         const len = data.length;
-        writeFileSync(filename, '[', { flag: 'a' });
+        writeFileSync(filename, Env.is_dev() ? '[\n' : '[', { flag: 'w+' });
+        const seperator = Env.is_dev() ? ',\n' : ',';
         for (let i = 0; i < len; i++) {
-            const content = stringify(data[i], undefined, spaces) + (i + 1 < len ? ',' : '');
+            const content = stringify(data[i], spaces) + (i + 1 < len ? seperator : '');
             writeFileSync(filename, content, {
                 flag: 'a',
             });
         }
-        writeFileSync(filename, ']', { flag: 'a' });
+        writeFileSync(filename, Env.is_dev() ? '\n]' : ']', { flag: 'a' });
         return true;
     }
 

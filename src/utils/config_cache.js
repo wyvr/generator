@@ -25,15 +25,18 @@ export function get_config_cache(segment, fallback_value) {
     return Config.get(segment, fallback_value);
 }
 
-export function set_config_cache(segment, value) {
+export function set_config_cache(segment, value, send_to_workers = true) {
     if (!filled_string(segment)) {
         return;
     }
     Config.set(segment, value);
+    // is main
     if (!IsWorker.get()) {
         const path = get_config_cache_path(segment);
         write_json(path, value);
-        WorkerController.set_config_cache_all_workers(segment, value);
+        if (send_to_workers) {
+            WorkerController.set_config_cache_all_workers(segment, value);
+        }
     }
 }
 

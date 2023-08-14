@@ -32,7 +32,7 @@ export async function cron_command(config) {
     package_report(available_packages, disabled_packages);
 
     if (Env.is_dev()) {
-        Logger.warning('in dev environment no exec results gets persisted');
+        Logger.warning('in dev environment no route results gets persisted');
     }
 
     // check for specific cron calls

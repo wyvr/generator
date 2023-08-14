@@ -26,6 +26,7 @@ export async function execute_route(url, options) {
         statusMessage: null,
         headers: options?.headers || {},
         data: options?.data || {},
+        body: options?.body || {},
         files: options?.files || {},
     };
     const uid = uniq_id();

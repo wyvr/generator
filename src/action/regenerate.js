@@ -5,7 +5,6 @@ import { build_wyvr_internal } from './wyvr_internal.js';
 import {
     FOLDER_CSS,
     FOLDER_GEN,
-    FOLDER_GEN_DATA,
     FOLDER_I18N,
     FOLDER_JS,
     FOLDER_DEVTOOLS,
@@ -17,7 +16,6 @@ import { Config } from '../utils/config.js';
 import { get_config_cache, set_config_cache } from '../utils/config_cache.js';
 import { get_parents_of_file_recursive } from '../utils/dependency.js';
 import { Event } from '../utils/event.js';
-import { to_index } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { to_identifiers } from '../utils/to.js';
 import { uniq_values } from '../utils/uniq.js';
@@ -38,6 +36,7 @@ import {
 } from '../utils/regenerate.js';
 import { RegenerateFragment } from '../model/regenerate_fragment.mjs';
 import { run_tests } from '../utils/tests.js';
+import { get_page_data_path } from '../utils/pages.js';
 
 /**
  * Regenerate the files and the result of the given changed files

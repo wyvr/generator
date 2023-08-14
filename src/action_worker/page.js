@@ -3,7 +3,7 @@ import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerEmit } from '../struc/worker_emit.js';
 import { clone } from '../utils/json.js';
 import { Logger } from '../utils/logger.js';
-import { execute_page, write_pages } from '../utils/pages.js';
+import { execute_page, get_page_data_path, write_pages } from '../utils/pages.js';
 import { filled_array, filled_object, is_null } from '../utils/validate.js';
 import { send_action } from '../worker/communication.js';
 import { process_page_data } from './process_page_data.js';
@@ -18,28 +18,33 @@ export async function page(files) {
     let collections = {};
     const identifiers_cache = {};
     let pages = [];
+    let data_pages = [];
     for (const page of files) {
         Logger.debug('page', page);
-        const wyvr_pages = await execute_page(page);
-        if (is_null(wyvr_pages)) {
+
+        page.urls = [];
+
+        // used the write the data file
+        page.data_path = get_page_data_path(page);
+
+        const executed_pages = await execute_page(page);
+        if (is_null(executed_pages)) {
             continue;
         }
         const mtime = global.cache.mtime ? global.cache.mtime[page.rel_path] : undefined;
         const processed_pages = await Promise.all(
-            wyvr_pages.map(async (wyvr_page) => {
+            executed_pages.map(async (wyvr_page) => {
                 const page_data = await process_page_data(wyvr_page, mtime);
                 if (!is_path_valid(page_data.url)) {
                     return undefined;
                 }
+                page.urls.push(page_data.url);
                 // page is required to identify the correct page when rebuilding
                 page_data._wyvr.page = join(page.pkg.path, page.rel_path);
                 page_data._wyvr.pkg = page.pkg.name;
                 if (page_data._wyvr.collection) {
                     page_data._wyvr.collection.forEach((entry) => {
-                        append_entry_to_collections(
-                            collections,
-                            collection_entry(entry)
-                        );
+                        append_entry_to_collections(collections, collection_entry(entry));
                     });
                 }
                 if (page_data._wyvr.identifier && page_data._wyvr.identifier_data) {
@@ -55,7 +60,8 @@ export async function page(files) {
                 return page_data;
             })
         );
-        pages = write_pages(processed_pages.filter(Boolean));
+        data_pages.push(...write_pages(processed_pages.filter(Boolean)));
+        pages.push(page);
     }
 
     if (filled_object(collections)) {
@@ -68,5 +74,6 @@ export async function page(files) {
     send_action(WorkerAction.emit, {
         type: WorkerEmit.page,
         pages,
+        data_pages,
     });
 }

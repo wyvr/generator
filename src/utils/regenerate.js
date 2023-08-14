@@ -2,34 +2,26 @@ import { extname, join } from 'path';
 import { copy_files, copy_folder } from '../action/copy.js';
 import { clear_caches } from '../action/route.js';
 import { i18n } from '../action/i18n.js';
-import {
-    FOLDER_GEN,
-    FOLDER_GEN_CLIENT,
-    FOLDER_GEN_DATA,
-    FOLDER_GEN_SERVER,
-    FOLDER_GEN_SRC,
-    FOLDER_I18N,
-} from '../constants/folder.js';
+import { FOLDER_GEN, FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC, FOLDER_I18N } from '../constants/folder.js';
 import { Page } from '../model/page.js';
 import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { Config } from './config.js';
 import { build_cache } from './routes.js';
-import { copy, exists, read, remove, to_extension, to_index, write } from './file.js';
+import { copy, exists, read, remove, to_extension, write } from './file.js';
 import { clear_cache } from './i18n.js';
 import { Plugin } from './plugin.js';
 import { replace_imports } from './transform.js';
-import { get_name, WorkerEmit } from '../struc/worker_emit.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerController } from '../worker/controller.js';
 import { filled_array, filled_object, in_array } from './validate.js';
-import { Event } from './event.js';
 import { cache_dependencies, dependencies_from_content, get_identifiers_of_file } from './dependency.js';
 import { get_config_cache } from './config_cache.js';
 import { uniq_values } from './uniq.js';
 import { to_relative_path, to_single_identifier_name } from './to.js';
 import { transform } from '../action/transform.js';
-import { merge_collections } from './collections.js';
+import { get_data_page_path } from './pages.js';
+import { process_pages } from '../action/page.js';
 
 /**
  * Regenerate the plugins
@@ -219,9 +211,7 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
             return identifiers[identifier.identifier];
         });
         // convert the urls to data json paths
-        const data_files = []
-            .concat(...identifier_files_list)
-            .map((url) => Cwd.get(FOLDER_GEN_DATA, to_index(url, 'json')));
+        const data_files = [].concat(...identifier_files_list).map((url) => get_data_page_path(url));
         // add the json paths to be executed as pages
         pages.push(...data_files);
 
@@ -250,7 +240,8 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
 export async function regenerate_pages({ change, add, unlink }, identifiers, pages, gen_folder) {
     let reload_page = false;
     let collections = {};
-    const mod_pages = [].concat(change, add);
+    let page_objects = [];
+    const mod_pages = [].concat(change, add).filter(Boolean);
     if (mod_pages.length > 0) {
         const mod_pages_copy = mod_pages.map((file) => ({ src: file.path, target: './' + file.rel_path }));
         copy_files(mod_pages_copy, gen_folder);
@@ -261,34 +252,13 @@ export async function regenerate_pages({ change, add, unlink }, identifiers, pag
                 pkg: file.pkg,
             });
         });
-        const identifier_name = get_name(WorkerEmit.identifier);
-        const collections_name = get_name(WorkerEmit.collections);
-        const pages_name = get_name(WorkerEmit.page);
-        const identifier_id = Event.on('emit', identifier_name, (data) => {
-            if (!data) {
-                return;
-            }
-            delete data.type;
-            identifiers[data.identifier] = data;
-        });
-        const collections_id = Event.on('emit', collections_name, (data) => {
-            if (!data || !data.collections) {
-                return;
-            }
-            collections = merge_collections(collections, data.collections);
-        });
-        const pages_id = Event.on('emit', pages_name, (data) => {
-            if (data && data.pages) {
-                pages.push(...data.pages);
-            }
-        });
-
-        await WorkerController.process_in_workers(WorkerAction.page, pages_data, 10, true);
-
-        // remove listeners
-        Event.off('emit', identifier_name, identifier_id);
-        Event.off('emit', collections_name, collections_id);
-        Event.off('emit', pages_name, pages_id);
+        const result = await process_pages('page', pages_data, undefined, true);
+        if (result) {
+            collections = result.collections;
+            page_objects = result.page_objects;
+            pages.push(...result.pages);
+            Object.entries(result.identifiers).forEach(([name, value]) => (identifiers[name] = value));
+        }
         reload_page = true;
     }
     if (unlink) {
@@ -300,6 +270,7 @@ export async function regenerate_pages({ change, add, unlink }, identifiers, pag
         identifiers,
         collections,
         pages,
+        page_objects,
     };
 }
 

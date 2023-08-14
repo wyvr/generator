@@ -11,6 +11,9 @@ import { register_inject } from './global.js';
 import { Logger } from './logger.js';
 import { replace_imports } from './transform.js';
 import { filled_array, filled_string, in_array, is_array, is_func, is_null, match_interface } from './validate.js';
+import { get_config_cache, set_config_cache } from './config_cache.js';
+import { uniq_values } from './uniq.js';
+import { clone } from './json.js';
 
 export function collect_pages(dir, package_tree) {
     if (!dir) {
@@ -168,3 +171,39 @@ export function get_data_page_path(path) {
     return to_extension(to_index(raw_path, 'json'), 'json');
 }
 
+export function get_page_from_url(url) {
+    const cache = get_config_cache('page.cache');
+    if (!filled_array(cache)) {
+        return undefined;
+    }
+    const clean_url = url.split('?')[0];
+    if (!clean_url) {
+        return undefined;
+    }
+    const page = cache.find((page) => {
+        return filled_array(page?.urls) && page.urls.find((url) => clean_url == url);
+    });
+    return page;
+}
+
+export function update_pages_cache(page_objects) {
+    const cache = get_config_cache('page.cache');
+    if (!filled_array(cache)) {
+        return false;
+    }
+    if (!is_array(page_objects)) {
+        page_objects = [page_objects];
+    }
+    cache.forEach((cache_page, index) => {
+        page_objects.forEach((page) => {
+            if (cache_page.path != page.path) {
+                return;
+            }
+            const urls = uniq_values([].concat(page.urls, cache_page.urls));
+            const new_page = clone(page);
+            new_page.urls = urls;
+            cache[index] = new_page;
+        });
+    });
+    set_config_cache('page.cache', cache, false);
+}

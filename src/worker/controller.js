@@ -26,6 +26,22 @@ export class WorkerController {
         this.worker_amount = this.workers.length;
         return this.workers;
     }
+    static async single_threaded() {
+        WorkerController.set_multi_threading(false);
+        WorkerController.create_workers(1, () => {
+            return {
+                pid: process.pid,
+                on: (key, fn) => {
+                    Event.on('master', key, async (...args) => {
+                        await fn(...args);
+                    });
+                },
+            };
+        });
+        // only import when needed
+        const { NoWorker } = await import('../no_worker.js');
+        NoWorker();
+    }
     static set_worker_ratio(ratio) {
         if (!is_number(ratio) || ratio < 0 || ratio > 1) {
             Logger.warning(`invalid worker ratio ${ratio}`);
@@ -327,7 +343,6 @@ export class WorkerController {
 
     static async process_in_workers(action, list, batch_size, show_name) {
         if (this.workers.length == 0) {
-            console.trace('No workers available');
             Logger.error('no worker available');
             process.exit(1);
         }

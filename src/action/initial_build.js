@@ -29,8 +29,6 @@ import { set_config_cache } from '../utils/config_cache.js';
 import { build_cache } from '../utils/routes.js';
 import { wyvr_internal } from './wyvr_internal.js';
 import { join } from 'path';
-import { NoWorker } from '../no_worker.js';
-import { Event } from '../utils/event.js';
 import { modify_svelte } from './modify_svelte.mjs';
 import { get_error_message } from '../utils/error.js';
 import { collections } from './collections.js';
@@ -62,18 +60,8 @@ export async function pre_initial_build(build_id, config_data) {
 
     if (config_data?.cli?.flags?.single) {
         Logger.warning('running in single threaded mode, no workers will be started');
-        WorkerController.set_multi_threading(false);
-        WorkerController.create_workers(1, () => {
-            return {
-                pid: process.pid,
-                on: (key, fn) => {
-                    Event.on('master', key, async (...args) => {
-                        await fn(...args);
-                    });
-                },
-            };
-        });
-        NoWorker();
+
+        await WorkerController.single_threaded();
     } else {
         // Create the workers for the processing
         const worker_amount = WorkerController.get_worker_amount_from_ratio();

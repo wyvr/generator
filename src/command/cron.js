@@ -14,6 +14,7 @@ import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { UniqId } from '../vars/uniq_id.js';
+import { WorkerController } from '../worker/controller.js';
 
 export async function cron_command(config) {
     await check_env();
@@ -54,6 +55,9 @@ export async function cron_command(config) {
     if (non_existing_cronjobs.length > 0) {
         Logger.warning('non existing cronjobs', non_existing_cronjobs.join(' '));
     }
+
+    await WorkerController.single_threaded();
+
     let cronjobs = [];
     if (explicit_crons.length > 0) {
         cronjobs = explicit_crons;

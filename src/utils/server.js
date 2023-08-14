@@ -329,7 +329,7 @@ export function websocket_server(port, packages) {
                             let path;
                             Logger.block('rebuild', data.data);
                             // check if the url is a route
-                            const route = get_route(data.data, 'get', get_config_cache('route.cache')?.cache);
+                            const route = get_route(data.data, 'get', get_config_cache('route.cache'));
                             if (route) {
                                 const found_route = packages
                                     .map((pkg) => join(pkg.path, route.rel_path))

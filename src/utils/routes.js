@@ -39,7 +39,10 @@ export async function build_cache() {
             return file;
         })
     );
-    set_config_cache('route.cache', { cache: cache.sort((a, b) => b.weight - a.weight) });
+    set_config_cache(
+        'route.cache',
+        cache.sort((a, b) => b.weight - a.weight)
+    );
     return executed_result.filter((x) => x);
 }
 

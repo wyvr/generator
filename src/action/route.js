@@ -28,7 +28,7 @@ export function clear_caches() {
 }
 export function get_route_request(req) {
     if (!route_cache) {
-        route_cache = get_config_cache('route.cache')?.cache;
+        route_cache = get_config_cache('route.cache');
     }
     return get_route(req.url, req.method, route_cache);
 }

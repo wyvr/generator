@@ -22,7 +22,7 @@ export async function collections(page_collections) {
         }
 
         // load routes and execute the method getCollection of them to extract the available collections
-        const routes_cache = get_config_cache('route.cache')?.cache;
+        const routes_cache = get_config_cache('route.cache');
         if (routes_cache) {
             const collections_id = Event.on('emit', collections_name, (data) => {
                 if (!filled_object(data?.collections)) {

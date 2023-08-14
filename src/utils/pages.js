@@ -59,10 +59,12 @@ export async function execute_page(page) {
             let markdown;
             try {
                 markdown = compile_markdown(read(page.path));
+                /* c8 ignore start */
             } catch (e) {
                 Logger.error(get_error_message(e, page.rel_path, 'markdown compilation'));
                 Logger.debug(e);
             }
+            /* c8 ignore end */
             if (is_null(markdown)) {
                 return undefined;
             }
@@ -142,12 +144,27 @@ export function write_pages(page_entries) {
             if (is_null(page) || !filled_string(page.url)) {
                 return undefined;
             }
+            let path = page.data_path;
+            if (!path) {
+                path = get_page_data_path(page);
+            }
             // create data json for the given file
-            const raw_path = Cwd.get(FOLDER_GEN_DATA, page.url);
-            const path = to_extension(to_index(raw_path, 'json'), 'json');
             create_dir(dirname(path), { recursive: true });
             write(path, JSON.stringify(page));
             return path;
         })
         .filter((x) => x);
 }
+
+export function get_page_data_path(page) {
+    if (is_null(page) || !filled_string(page.url)) {
+        return undefined;
+    }
+    return get_data_page_path(page.url);
+}
+
+export function get_data_page_path(path) {
+    const raw_path = Cwd.get(FOLDER_GEN_DATA, path);
+    return to_extension(to_index(raw_path, 'json'), 'json');
+}
+

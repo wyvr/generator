@@ -130,7 +130,7 @@ export async function regenerate(changed_files) {
         if (watcher_paths) {
             const watcher_pages = Object.values(watcher_paths)
                 .filter((x) => x)
-                .map((path) => Cwd.get(FOLDER_GEN_DATA, to_index(path, 'json')));
+                .map((path) => get_page_data_path(path));
             Logger.debug('watcher pages', watcher_pages);
             pages = uniq_values([].concat(pages, watcher_pages));
         }

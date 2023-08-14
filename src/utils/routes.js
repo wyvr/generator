@@ -58,9 +58,11 @@ export async function load_route(file) {
         if (result && result.default) {
             result = result.default;
         }
+        /* c8 ignore start */
         if (!is_path_valid(result.url)) {
             return undefined;
         }
+        /* c8 ignore end */
     } catch (e) {
         Logger.error(get_error_message(e, file, 'route'));
     }

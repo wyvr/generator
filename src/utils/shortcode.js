@@ -3,7 +3,7 @@ import { FOLDER_CSS, FOLDER_GEN_SRC } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
 import { ReleasePath } from '../vars/release_path.js';
-import { append_cache_breaker } from './cache_breaker.mjs';
+import { append_cache_breaker } from './cache_breaker.js';
 import { compile_server_svelte } from './compile.js';
 import { render_server_compiled_svelte } from './compile_svelte.js';
 import { write_css_file } from './css.js';

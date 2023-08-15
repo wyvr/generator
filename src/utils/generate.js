@@ -2,7 +2,7 @@ import { join } from 'path';
 import { FOLDER_GEN_SERVER } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
-import { get_cache_breaker, remove_cache_breaker } from './cache_breaker.mjs';
+import { get_cache_breaker, remove_cache_breaker } from './cache_breaker.js';
 import { search_segment } from './segment.js';
 import { filled_object } from './validate.js';
 

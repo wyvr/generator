@@ -3,7 +3,7 @@ import { FOLDER_GEN_DATA, FOLDER_GEN_PAGES, FOLDER_GEN_SRC, FOLDER_PAGES } from 
 import { Page } from '../model/page.js';
 import { PageStructure } from '../struc/page.js';
 import { Cwd } from '../vars/cwd.js';
-import { append_cache_breaker } from './cache_breaker.mjs';
+import { append_cache_breaker } from './cache_breaker.js';
 import { compile_markdown } from './compile.js';
 import { get_error_message } from './error.js';
 import { collect_files, create_dir, exists, read, remove_index, to_extension, to_index, write } from './file.js';

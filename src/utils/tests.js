@@ -1,5 +1,5 @@
 import Mocha from 'mocha';
-import { append_cache_breaker, get_cache_breaker } from './cache_breaker.mjs';
+import { append_cache_breaker, get_cache_breaker } from './cache_breaker.js';
 import { Logger } from './logger.js';
 import { filled_array, filled_string, is_object } from './validate.js';
 import { uniq_values } from './uniq.js';

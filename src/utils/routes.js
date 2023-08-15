@@ -15,7 +15,7 @@ import { inject } from './build.js';
 import { replace_imports } from './transform.js';
 import { register_i18n } from './global.js';
 import { get_language } from './i18n.js';
-import { append_cache_breaker } from './cache_breaker.mjs';
+import { append_cache_breaker } from './cache_breaker.js';
 import { Plugin } from './plugin.js';
 import { is_path_valid } from './reserved_words.js';
 

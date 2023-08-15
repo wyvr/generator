@@ -14,7 +14,7 @@ import { ReleasePath } from '../vars/release_path.js';
 import { Env } from '../vars/env.js';
 import { FOLDER_GEN_PLUGINS } from '../constants/folder.js';
 import { set_config_cache } from './config_cache.js';
-import { append_cache_breaker } from './cache_breaker.mjs';
+import { append_cache_breaker } from './cache_breaker.js';
 
 export class Plugin {
     static async load(folder) {

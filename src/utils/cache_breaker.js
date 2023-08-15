@@ -10,7 +10,11 @@ export function remove_cache_breaker(file) {
     if (!filled_string(file)) {
         return '';
     }
-    return file.replace(/\?\d+$/, '');
+    file = file.replace(/\?\d+$/, '');
+    if (file.indexOf('?') > -1) {
+        file = file.replace(/&\d+$/, '');
+    }
+    return file;
 }
 export function append_cache_breaker(file, create_cache_breaker = true) {
     if (!filled_string(file)) {

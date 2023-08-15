@@ -21,7 +21,7 @@ import { Env } from '../vars/env.js';
 import { Logger } from './logger.js';
 import { FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC } from '../constants/folder.js';
 import { get_error_message } from './error.js';
-import { append_cache_breaker } from './cache_breaker.mjs';
+import { append_cache_breaker } from './cache_breaker.js';
 
 const __dirname = join(to_dirname(import.meta.url), '..');
 

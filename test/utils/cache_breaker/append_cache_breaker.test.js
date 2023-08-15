@@ -1,6 +1,6 @@
 import { strictEqual } from 'assert';
 import { describe } from 'mocha';
-import { append_cache_breaker } from '../../../src/utils/cache_breaker.mjs';
+import { append_cache_breaker } from '../../../src/utils/cache_breaker.js';
 
 describe('utils/cache_breaker/append_cache_breaker', () => {
     it('no file to append', () => {

@@ -1,6 +1,6 @@
 import { strictEqual } from 'assert';
 import { describe } from 'mocha';
-import { get_cache_breaker } from '../../../src/utils/cache_breaker.mjs';
+import { get_cache_breaker } from '../../../src/utils/cache_breaker.js';
 
 describe('utils/cache_breaker/get_cache_breaker', () => {
     it('create cache breaker', () => {

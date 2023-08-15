@@ -21,7 +21,7 @@ export async function collections(routes) {
         }
         try {
             // getCollection has to provide the data for the collection entry as array, object shortcut is not allowed
-            const route_collections = code.getCollection({ route });
+            const route_collections = await code.getCollection({ route });
             if (filled_array(route_collections)) {
                 Logger.debug('collection of route', route.rel_path, route_collections);
                 route_collections.forEach((entry) => {

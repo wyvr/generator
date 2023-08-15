@@ -103,6 +103,7 @@ export async function run_route(request, response, uid, route) {
             query[parts[0]] = decodeURIComponent(parts[1]).replace(/\+/g, ' ');
         });
     }
+    const headers = request.headers || {};
     const body = request.body || {};
     const files = request.files || {};
 
@@ -137,6 +138,7 @@ export async function run_route(request, response, uid, route) {
         request,
         response,
         params,
+        headers,
         query,
         body,
         files,

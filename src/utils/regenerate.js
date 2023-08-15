@@ -210,10 +210,24 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
             identifiers[identifier.identifier] = identifier;
             return identifiers[identifier.identifier];
         });
+        // @TODO this makes no sense, identifiers look like this
+        /*
+        {
+            identifier: 'default-default-shop_account',
+            doc: 'Default.js',
+            layout: 'Default.js',
+            page: 'shop/Account.svelte'
+        }
+        */
+        /*
         // convert the urls to data json paths
-        const data_files = [].concat(...identifier_files_list).map((url) => get_data_page_path(url));
+        const data_files = [].concat(...identifier_files_list).map((url)=>{
+            console.log(url)
+            return url;
+        }).map((url) => get_data_page_path(url));
         // add the json paths to be executed as pages
         pages.push(...data_files);
+        */
 
         // check if files have test files in place and execute them
         test_files = combined_files.filter((file) => file.match(/\.spec\.[mc]js?/));

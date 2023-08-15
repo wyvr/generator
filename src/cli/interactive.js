@@ -2,9 +2,11 @@ import inquirer from 'inquirer';
 import { Logger } from '../utils/logger.js';
 import { is_array, is_func, is_null, is_object } from '../utils/validate.js';
 
+/* c8 ignore start */
 export async function collect_data_from_cli(questions, default_data) {
     return await collect_data(questions, default_data, inquirer.prompt);
 }
+/* c8 ignore end */
 export async function collect_data(questions, default_data, get_answers_callback = () => {}) {
     if (!is_object(default_data)) {
         default_data = {};

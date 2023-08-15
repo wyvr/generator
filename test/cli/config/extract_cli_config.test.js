@@ -139,4 +139,14 @@ describe('cli/config/extract_cli_config', () => {
             })
         );
     });
+    it('special behaviour inspect', () => {
+        deepStrictEqual(
+            extract_cli_config(['node', 'script', '--inspect']),
+            Object.assign({}, default_config, {
+                interpreter: 'node',
+                script: 'script',
+                flags: { inspect: true, single: true },
+            })
+        );
+    });
 });

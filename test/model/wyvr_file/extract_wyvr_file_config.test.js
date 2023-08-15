@@ -45,4 +45,18 @@ describe('model/wyvr_file/extract_wyvr_file_config', () => {
             test:    1.23
         }`), result);
     });
+    it('auto encapsulate media', () => {
+        const result = clone(WyvrFileConfig);
+        result.media = '(min-width: 500px)';
+        deepStrictEqual(extract_wyvr_file_config(`wyvr: {
+            media: 'min-width: 500px'
+        }`), result);
+    });
+    it('avoid auto encapsulate media', () => {
+        const result = clone(WyvrFileConfig);
+        result.media = 'min-width: 500px and screen';
+        deepStrictEqual(extract_wyvr_file_config(`wyvr: {
+            media: 'min-width: 500px and screen'
+        }`), result);
+    });
 });

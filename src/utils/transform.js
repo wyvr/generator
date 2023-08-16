@@ -85,7 +85,10 @@ export function replace_src(path, replace) {
     if (!is_string(replace)) {
         return path;
     }
-    return path.replace(/^@src\//g, replace);
+    if (path.indexOf('@src') != 0) {
+        return path;
+    }
+    return path.replace(/^@src\//, replace);
 }
 
 export async function combine_splits(path, content) {

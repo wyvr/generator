@@ -251,12 +251,12 @@ export function replace_wyvr_magic(content, as_client) {
         .replace(/([^\w])isClient([^\w])/g, `$1${is_client}$2`)
         .replace(/import \{[^}]*?\} from ["']@wyvr\/generator["'];?/g, '')
         .replace(/(?:const|let)[^=]*?= require\(["']@wyvr\/generator["']\);?/g, '')
-        .replace(/from ['"]([^'"]+)['"]/g, (_, path) => {
+        .replace(/from (['"])([^'"]+)['"]/g, (_, quote, path) => {
             if (path.indexOf(FOLDER_GEN_SRC) == -1) {
                 return _;
             }
 
-            return path.replace(FOLDER_GEN_SRC, target_dir);
+            return 'from ' + quote + path.replace(FOLDER_GEN_SRC, target_dir) + quote;
         });
 }
 export function set_default_values(data, default_values) {

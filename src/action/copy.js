@@ -50,11 +50,8 @@ export async function copy(available_packages) {
                     // transform to "./src/file.svelte" "src/file.svelte"
                     const target_key = file.target.replace(/^\.\//, '');
                     package_tree[target_key] = pkg;
-                    // @TODO sometimes @src does not get replaced
-                    // replace @src in plugins and cron jobs
-                    if ([`/${FOLDER_PLUGINS}/`, `/${FOLDER_CRON}/`].find((path) => target.indexOf(path) > -1)) {
-                        write(target, replace_src_path(read(target), FOLDER_GEN_SRC));
-                    }
+                    // replace @src in plugins and cron jobs(executables)
+                    copy_executable_file(target, target);
                 });
             });
             set_config_cache('package_tree', package_tree);
@@ -101,6 +98,14 @@ export function copy_folder(source, folder, to, before) {
                 copy_files(files, to, before);
             }
         });
+        return true;
+    }
+    return false;
+}
+
+export function copy_executable_file(source, target) {
+    if (source && [`/${FOLDER_PLUGINS}/`, `/${FOLDER_CRON}/`].find((path) => source.indexOf(path) > -1)) {
+        write(target, replace_src_path(read(source), FOLDER_GEN_SRC));
         return true;
     }
     return false;

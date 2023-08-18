@@ -1,5 +1,5 @@
 import { extname, join } from 'path';
-import { copy_files, copy_folder } from '../action/copy.js';
+import { copy_executable_file, copy_files, copy_folder } from '../action/copy.js';
 import { clear_caches } from '../action/route.js';
 import { i18n } from '../action/i18n.js';
 import { FOLDER_GEN, FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC, FOLDER_I18N } from '../constants/folder.js';
@@ -20,7 +20,6 @@ import { get_config_cache } from './config_cache.js';
 import { uniq_values } from './uniq.js';
 import { to_relative_path, to_single_identifier_name } from './to.js';
 import { transform } from '../action/transform.js';
-import { get_data_page_path } from './pages.js';
 import { process_pages } from '../action/page.js';
 
 /**
@@ -342,7 +341,10 @@ function unlink_from(unlink, ...folders) {
  */
 export function regeneration_static_file({ change, add, unlink }, gen_folder) {
     [].concat(change, add).forEach((file) => {
-        copy(file.path, join(gen_folder, file.rel_path));
+        const target = join(gen_folder, file.rel_path);
+        if (!copy_executable_file(file.path, target)) {
+            copy(file.path, target);
+        }
     });
     unlink_from(unlink, gen_folder, ReleasePath.get());
 }

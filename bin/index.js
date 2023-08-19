@@ -6,8 +6,11 @@ import process from 'process';
 import { extract_cli_config, get_wyvr_version } from '../src/cli/config.js';
 import { command } from '../src/command.js';
 import { Cwd } from '../src/vars/cwd.js';
+import { Storage } from '../src/utils/storage.js';
+import { FOLDER_STORAGE } from '../src/constants/folder.js';
 
 Cwd.set(process.cwd());
+Storage.set_location(FOLDER_STORAGE);
 const cli = extract_cli_config(process.argv);
 
 const version = get_wyvr_version();
@@ -20,7 +23,7 @@ const config = {
 // console.error(config);
 (async () => {
     const { result } = await command(config);
-    if(result) {
+    if (result) {
         console.log(result);
     }
     process.exitCode = 0;

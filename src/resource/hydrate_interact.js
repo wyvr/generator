@@ -19,16 +19,20 @@ const wyvr_hydrate_interact = (path, elements, name, cls) => {
 
 const wyvr_interact_init = (e) => {
     let el = e.target;
-    while (!el.getAttribute('data-hydrate') || el.tagName == 'HTML') {
+    let last_element;
+    while (el && el.tagName != 'HTML') {
+        if (el.getAttribute('data-hydrate') && el.getAttribute('data-loading') == 'interact') {
+            last_element = el;
+        }
         el = el.parentNode;
     }
-    const path = get_dom_path(e.target, el).join('>');
-    if (el.tagName == 'HTML') {
+
+    if (!last_element) {
         return;
     }
-
-    wyvr_props(el).then((props) => {
-        const target = wyvr_portal(el, props);
+    const path = get_dom_path(e.target, last_element).join('>');
+    wyvr_props(last_element).then((props) => {
+        const target = wyvr_portal(last_element, props);
         const name = target.getAttribute('data-hydrate');
         if (name && wyvr_interact_classes[name] && !wyvr_interact_classes[name].loaded) {
             wyvr_interact_classes[name].loaded = true;
@@ -55,10 +59,10 @@ const wyvr_interact_init = (e) => {
                 }, 100);
             };
             document.body.appendChild(script);
-            el.removeEventListener('mouseover', wyvr_interact_init);
-            el.removeEventListener('mousedown', wyvr_interact_init);
-            el.removeEventListener('focusin', wyvr_interact_init);
-            el.removeEventListener('pointerover', wyvr_interact_init);
+            last_element.removeEventListener('mouseover', wyvr_interact_init);
+            last_element.removeEventListener('mousedown', wyvr_interact_init);
+            last_element.removeEventListener('focusin', wyvr_interact_init);
+            last_element.removeEventListener('pointerover', wyvr_interact_init);
         }
     });
 };

@@ -47,24 +47,34 @@ export function get_image_src_data(
         config.mode = mode;
     }
     const extension = src.match(/\.([^\.]+)$/);
-    if (!format && extension && extension[1] != config.format) {
-        format = extension[1];
+    if (extension) {
+        config.ext = extension[1];
+    }
+    if (!format && config.ext) {
+        format = config.ext;
     }
     if (format) {
-        if (format == 'jpg') {
-            format = 'jpeg';
-        }
-        config.format = format;
+        config.format = correct_image_format(format);
     }
 
-    return { src, config, width_addition };
+    return { src, config: order_config(config), width_addition };
+}
+export function order_config(config) {
+    const ordered = {};
+    ['ext', 'format', 'height', 'mode', 'quality', 'width'].forEach((key) => {
+        if (config[key] != null) {
+            ordered[key] = config[key];
+        }
+    });
+    return ordered;
 }
 export function get_image_src_shortcode(src, config) {
-    return `(media(src:'${src}', ${Object.entries(config)
+    const result = `(media(src:'${src}', ${Object.entries(config)
         .map(([key, value]) => {
             return `${key}: ${typeof value == 'string' ? `'${value}'` : JSON.stringify(value)}`;
         })
         .join(', ')}))`;
+    return result;
 }
 export function get_image_src(src, config) {
     const hash = get_image_hash(JSON.stringify(config));
@@ -75,7 +85,10 @@ export function get_image_src(src, config) {
             const domain = domain_match[1];
             const domain_hash = get_image_hash(domain);
             if (domain_hash) {
-                const src_path = src.substring(src.indexOf(domain) + domain.length).replace(/^\//, '');
+                let src_path = src.substring(src.indexOf(domain) + domain.length).replace(/^\//, '');
+                if (config.ext) {
+                    src_path = src_path.replace(new RegExp(`.${config.ext}$`), `.${config.format}`);
+                }
                 return `/media/_d/${domain_hash}/${hash}/${src_path}`;
             }
         }

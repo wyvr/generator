@@ -35,8 +35,8 @@ describe('utils/media/get_config', () => {
             new MediaModel({
                 format: 'png',
                 src: 'assets/favicon.png',
-                hash: 'eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6InBuZyIsInF1YWxpdHkiOjYwLCJzcmMiOiJhc3NldHMvZmF2aWNvbi5wbmcifQ==',
-                result: '/media/eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6InBuZyIsInF1YWxpdHkiOjYwLCJzcmMiOiJhc3NldHMvZmF2aWNvbi5wbmcifQ==/assets/favicon.png',
+                hash: 'eyJmb3JtYXQiOiJwbmciLCJoZWlnaHQiOi0xLCJtb2RlIjoiY292ZXIiLCJxdWFsaXR5Ijo2MCwid2lkdGgiOi0xfQ==',
+                result: '/media/eyJmb3JtYXQiOiJwbmciLCJoZWlnaHQiOi0xLCJtb2RlIjoiY292ZXIiLCJxdWFsaXR5Ijo2MCwid2lkdGgiOi0xfQ==/assets/favicon.png',
             })
         );
     });
@@ -58,8 +58,8 @@ describe('utils/media/get_config', () => {
             new MediaModel({
                 format: 'png',
                 src: 'https://wyvr.dev/favicon.png',
-                hash: 'eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6InBuZyIsInF1YWxpdHkiOjYwLCJzcmMiOiJodHRwczovL3d5dnIuZGV2L2Zhdmljb24ucG5nIn0=',
-                result: '/media/_d/d3l2ci5kZXY=/eyJ3aWR0aCI6LTEsImhlaWdodCI6LTEsIm1vZGUiOiJjb3ZlciIsImZvcm1hdCI6InBuZyIsInF1YWxpdHkiOjYwLCJzcmMiOiJodHRwczovL3d5dnIuZGV2L2Zhdmljb24ucG5nIn0=/favicon.png',
+                hash: 'eyJmb3JtYXQiOiJwbmciLCJoZWlnaHQiOi0xLCJtb2RlIjoiY292ZXIiLCJxdWFsaXR5Ijo2MCwid2lkdGgiOi0xfQ==',
+                result: '/media/_d/d3l2ci5kZXY=/eyJmb3JtYXQiOiJwbmciLCJoZWlnaHQiOi0xLCJtb2RlIjoiY292ZXIiLCJxdWFsaXR5Ijo2MCwid2lkdGgiOi0xfQ==/favicon.png',
             })
         );
     });

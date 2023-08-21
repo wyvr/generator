@@ -2,6 +2,7 @@ import { MediaModelMode, MediaModelOutput } from '../struc/media.js';
 
 export class MediaModel {
     constructor(config) {
+        this.ext = undefined;
         this.src = undefined;
         this.result = undefined;
         this.width = -1;

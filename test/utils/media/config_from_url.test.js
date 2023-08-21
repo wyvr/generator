@@ -53,6 +53,26 @@ describe('utils/media/config_from_url', () => {
             }
         );
     });
+    it('external media url with defined extension', async () => {
+        deepStrictEqual(
+            await config_from_url(
+                '/media/_d/d3l2ci5kZXY=/eyJleHQiOiJwbmciLCJmb3JtYXQiOiJwbmciLCJoZWlnaHQiOi0xLCJtb2RlIjoiY292ZXIiLCJxdWFsaXR5Ijo2MCwid2lkdGgiOi0xfQ==/favicon.png'
+            ),
+            {
+                domain: 'wyvr.dev',
+                ext: 'png',
+                format: 'png',
+                height: -1,
+                mode: 'cover',
+                output: 'path',
+                quality: 60,
+                result: '/media/_d/d3l2ci5kZXY=/eyJleHQiOiJwbmciLCJmb3JtYXQiOiJwbmciLCJoZWlnaHQiOi0xLCJtb2RlIjoiY292ZXIiLCJxdWFsaXR5Ijo2MCwid2lkdGgiOi0xfQ==/favicon.png',
+                result_exists: false,
+                src: 'https://wyvr.dev/favicon.png',
+                width: -1,
+            }
+        );
+    });
     it('invalid hash', async () => {
         deepStrictEqual(await config_from_url('/media/hash/assets/favicon.png'), {
             format: 'jpeg',

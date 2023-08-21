@@ -114,6 +114,9 @@ export async function config_from_url(url) {
         }
         result.domain = Buffer.from(domain_matches[1], 'base64').toString('ascii');
         result.src = `https://${result.domain}/${domain_matches[3]}`;
+        if (result.ext) {
+            result.src = result.src.replace(new RegExp(`.${result.format}$`), `.${result.ext}`);
+        }
         result.result = url;
         result.result_exists = exists(Cwd.get(result.result));
         result.output = MediaModelOutput.path;
@@ -129,7 +132,7 @@ export async function config_from_url(url) {
     } catch (e) {
         Logger.error(get_error_message(e, matches[2], 'media on demand'));
     }
-    if(!result.src) {
+    if (!result.src) {
         result.src = matches[2];
     }
     result.result = url;
@@ -162,7 +165,7 @@ export async function replace_media(content) {
 export async function get_config(content) {
     // get the config of the media
     const config = new MediaModel(get_config_from_content(content));
-    if(!filled_string(config.src))  {
+    if (!filled_string(config.src)) {
         return config;
     }
     // convert to correct format
@@ -210,7 +213,7 @@ export function get_config_hash(config) {
     if (!is_object(config)) {
         return 'undefined';
     }
-    ['width', 'height', 'mode', 'format', 'quality', 'src'].forEach((key) => {
+    ['ext', 'format', 'height', 'mode', 'quality', 'width'].forEach((key) => {
         if (config[key]) {
             hash_config[key] = config[key];
         }

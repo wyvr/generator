@@ -78,6 +78,7 @@ describe('action_worker/process_page_data', () => {
                     },
                 },
                 url: '/url',
+                isProd: true,
                 content: 'text',
             }
         );

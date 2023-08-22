@@ -75,7 +75,7 @@ export async function cron_command(config) {
             let result = true;
             Logger.block('cron job', job.name);
             try {
-                result = (await import(path)).default(job.options);
+                result = (await import(path)).default({ options: job.options, isProd: Env.is_prod() });
             } catch (e) {
                 Logger.error(get_error_message(e, path, 'cron'));
                 cronjobs[index].failed = true;

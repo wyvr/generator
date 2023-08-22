@@ -9,6 +9,7 @@ import { to_server_path } from '../utils/to.js';
 import { set_default_values } from '../utils/transform.js';
 import { is_null } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
+import { Env } from '../vars/env.js';
 
 export async function process_page_data(page_data, mtime) {
     if (is_null(page_data)) {
@@ -46,6 +47,8 @@ export async function process_page_data(page_data, mtime) {
         // add the identifier to the wyvr object
         enhanced_data._wyvr.identifier = identifier.identifier;
         enhanced_data._wyvr.identifier_data = identifier;
+
+        enhanced_data.isProd = Env.is_prod();
         return enhanced_data;
     });
 

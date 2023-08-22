@@ -18,6 +18,7 @@ import { get_language } from './i18n.js';
 import { append_cache_breaker } from './cache_breaker.js';
 import { Plugin } from './plugin.js';
 import { is_path_valid } from './reserved_words.js';
+import { Env } from '../vars/env.js';
 
 export async function build_cache() {
     const files = collect_files(Cwd.get(FOLDER_GEN_ROUTES));
@@ -143,6 +144,7 @@ export async function run_route(request, response, uid, route) {
         body,
         files,
         data,
+        isProd: Env.is_prod(),
         returnJSON: (json, status = 200, headers = {}) => {
             const response_header = Object.assign({}, headers);
             response_header['Content-Type'] = 'application/json';

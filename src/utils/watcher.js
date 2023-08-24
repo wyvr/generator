@@ -104,12 +104,9 @@ export async function process_changed_files(changed_files, packages) {
             if (!result[event]) {
                 result[event] = [];
             }
-            result[event].push({
-                path,
-                rel_path,
-                pkg,
-            });
-            // special behaviour when css or js from svelte file gets changed or edited, also edit the svelte file
+
+            // special behaviour when css or js from svelte file gets changed or edited, only the svelte file should be edited
+            let allow_edit_file = true;
             if (event == 'add' || event == 'change') {
                 const extension = extname(path);
                 if (in_array(['.css', '.scss', '.js', '.mjs', '.cjs', '.ts'], extension)) {
@@ -125,9 +122,18 @@ export async function process_changed_files(changed_files, packages) {
                             rel_path: svelte_rel_path,
                             pkg,
                         });
+                        allow_edit_file = false;
                     }
                 }
             }
+            if(allow_edit_file) {
+                result[event].push({
+                    path,
+                    rel_path,
+                    pkg,
+                });
+            }
+            
             // when a file is remove add the next file to the list of changed files
             if (event == 'unlink') {
                 const remaining_packages = packages.filter((p) => p != pkg);
@@ -147,7 +153,6 @@ export async function process_changed_files(changed_files, packages) {
             }
         });
     });
-
     await regenerate(result);
 }
 /* c8 ignore stop */

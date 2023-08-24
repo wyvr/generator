@@ -1,12 +1,13 @@
+import { extname } from 'path';
 import { FOLDER_GEN_ROUTES, FOLDER_GEN_PLUGINS, FOLDER_GEN_SRC } from '../constants/folder.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
 import { set_config_cache } from '../utils/config_cache.js';
 import { cache_dependencies } from '../utils/dependency.js';
 import { Event } from '../utils/event.js';
-import { collect_files } from '../utils/file.js';
+import { collect_files, to_extension } from '../utils/file.js';
 import { Plugin } from '../utils/plugin.js';
-import { is_array, is_null } from '../utils/validate.js';
+import { in_array, is_array, is_null } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { WorkerController } from '../worker/controller.js';
 import { measure_action } from './helper.js';
@@ -46,10 +47,18 @@ export async function dependencies() {
         });
 
         const data = [].concat(
-            collect_files(Cwd.get(FOLDER_GEN_SRC)),
+            collect_files(Cwd.get(FOLDER_GEN_SRC)).filter((path, index, list) => {
+                // ignore split files
+                const extension = extname(path);
+                if (!in_array(['.css', '.scss', '.js', '.mjs', '.cjs', '.ts'], extension)) {
+                    return true;
+                }
+                return list.indexOf(to_extension(path, 'svelte')) == -1;
+            }),
             collect_files(Cwd.get(FOLDER_GEN_PLUGINS)),
             collect_files(Cwd.get(FOLDER_GEN_ROUTES))
         );
+
         // wrap in plugin
         const caller = await Plugin.process(name, data);
         await caller(async (data) => {

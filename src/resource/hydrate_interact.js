@@ -30,7 +30,7 @@ const wyvr_interact_init = (e) => {
     if (!last_element) {
         return;
     }
-    const path = get_dom_path(e.target, last_element).join('>');
+    const path = get_dom_path(e.target, last_element);
     wyvr_props(last_element).then((props) => {
         const target = wyvr_portal(last_element, props);
         const name = target.getAttribute('data-hydrate');
@@ -38,26 +38,28 @@ const wyvr_interact_init = (e) => {
             wyvr_interact_classes[name].loaded = true;
             const script = document.createElement('script');
             script.setAttribute('src', wyvr_interact_classes[name].path);
-            script.onload = () => {
-                // restore original event
-                setTimeout(() => {
-                    let repathed_el;
-                    try {
-                        repathed_el = document.querySelector(path);
-                    } catch (e) {
-                        console.log(e, path);
-                    }
-                    if (repathed_el) {
-                        let event_name = e.type;
-                        if (event_name == 'focusin') {
-                            event_name = 'focus';
+            if (path) {
+                script.onload = () => {
+                    // restore original event
+                    setTimeout(() => {
+                        let repathed_el;
+                        try {
+                            repathed_el = document.querySelector(path);
+                        } catch (e) {
+                            console.log(e, path);
                         }
-                        if (repathed_el[event_name]) {
-                            repathed_el[event_name]();
+                        if (repathed_el) {
+                            let event_name = e.type;
+                            if (event_name == 'focusin') {
+                                event_name = 'focus';
+                            }
+                            if (repathed_el[event_name]) {
+                                repathed_el[event_name]();
+                            }
                         }
-                    }
-                }, 100);
-            };
+                    }, 100);
+                };
+            }
             document.body.appendChild(script);
             last_element.removeEventListener('mouseover', wyvr_interact_init);
             last_element.removeEventListener('mousedown', wyvr_interact_init);
@@ -70,9 +72,13 @@ const wyvr_interact_init = (e) => {
 function get_dom_path(el, parent) {
     var stack = [];
     const id = parent.getAttribute('data-hydrate-path') + '_' + new Date().getTime();
+    // set the unique value only once
+    if (parent.getAttribute('data-hydrate-id')) {
+        return undefined;
+    }
     parent.setAttribute('data-hydrate-id', id);
     while (el != parent && el != undefined) {
-        var sibCount = 0;
+        var sibCount = 1;
         var sibIndex = 0;
         for (var i = 0; i < el.parentNode.childNodes.length; i++) {
             var sib = el.parentNode.childNodes[i];
@@ -84,15 +90,17 @@ function get_dom_path(el, parent) {
                 sibCount++;
             }
         }
-        if (el.hasAttribute('id') && el.id != '') {
-            stack.unshift(el.nodeName.toLowerCase() + '#' + el.id);
-        } else if (sibCount > 1) {
-            stack.unshift(el.nodeName.toLowerCase() + ':eq(' + sibIndex + ')');
-        } else {
-            stack.unshift(el.nodeName.toLowerCase());
+        if (!el.getAttribute('data-hydrate')) {
+            if (el.hasAttribute('id') && el.id != '') {
+                stack.unshift(el.nodeName.toLowerCase() + '#' + el.id);
+            } else if (sibCount > 1) {
+                stack.unshift(el.nodeName.toLowerCase() + ':nth-child(' + sibIndex + ')');
+            } else {
+                stack.unshift(el.nodeName.toLowerCase());
+            }
         }
         el = el.parentNode;
     }
     stack.unshift(`[data-hydrate-id="${id}"]`); // add it with the id as root
-    return stack;
+    return stack.join('>');
 }

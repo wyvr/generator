@@ -22,7 +22,7 @@
         "esbuild": "0.18.11",
         "esbuild-plugin-globals": "0.2.0",
         "esbuild-svelte": "0.7.4",
-        "formidable": "3",
+        "formidable": "3.5.0",
         "front-matter": "4.0.2",
         "html-minifier": "4.0.0",
         "inquirer": "^9.2.7",

@@ -1,16 +1,10 @@
-import { filled_array, match_interface } from './validate.js';
+import { filled_array } from './validate.js';
 import { createHash as cryptoCreateHash } from 'crypto';
 import { exists, read } from './file.js';
 import { to_relative_path } from './to.js';
 import { extname } from 'path';
 import { statSync } from 'fs';
 
-export function css_hash(data) {
-    if (!match_interface(data, { hash: true, css: true, name: true, filename: true })) {
-        return 'wyvr';
-    }
-    return `wyvr-${data.hash(data.css)}`;
-}
 export function create_hash(value) {
     if (!value) {
         return '0x0';

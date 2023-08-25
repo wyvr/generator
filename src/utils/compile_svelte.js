@@ -5,7 +5,6 @@ import { in_array, filled_string, is_func, is_null, match_interface } from './va
 import { remove, to_extension, write } from './file.js';
 import { extname, join } from 'path';
 import { Env } from '../vars/env.js';
-import { css_hash } from './hash.js';
 import { uniq_id } from './uniq.js';
 import { Cwd } from '../vars/cwd.js';
 import { FOLDER_GEN, FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_TEMP } from '../constants/folder.js';
@@ -53,7 +52,6 @@ export async function compile_svelte_from_code(content, file, type, include_css 
         format: 'esm',
         immutable: true,
         hydratable: true,
-        cssHash: css_hash,
         css: 'external',
     };
     if (include_css) {

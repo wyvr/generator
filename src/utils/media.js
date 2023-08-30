@@ -4,7 +4,6 @@ import { FOLDER_GEN, FOLDER_MEDIA } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { create_dir, exists, is_file, read_buffer, to_extension, write } from './file.js';
 import { filled_object, filled_string, in_array, is_object, match_interface } from './validate.js';
-import axios from 'axios';
 import sharp from 'sharp';
 import { MediaModel } from '../model/media.js';
 import { Logger } from './logger.js';
@@ -236,14 +235,33 @@ export async function get_buffer(src) {
     // download the image and return buffer from it
     if (src.indexOf('http') == 0) {
         try {
-            const httpsAgent = new https.Agent({ rejectUnauthorized: false });
-            const res = await axios({
-                url: src,
-                method: 'GET',
-                responseType: 'arraybuffer',
-                httpsAgent,
+            const agent = new https.Agent({ rejectUnauthorized: false });
+            return new Promise((resolve, reject) => {
+                https
+                    .get(src, { agent }, (res) => {
+                        if (!res.statusCode || res.statusCode < 200 || res.statusCode >= 400) {
+                            resolve(undefined);
+                            return;
+                        }
+                        if (res.statusCode >= 300 && res.statusCode < 400) {
+                            if (!res.headers.location) {
+                                resolve(undefined);
+                                return;
+                            }
+                            get_buffer(res.headers.location).then((result) => resolve(result));
+                        }
+                        const arrayBuffer = [];
+                        res.on('data', (chunk) => {
+                            arrayBuffer.push(chunk);
+                        });
+                        res.on('end', () => {
+                            resolve(Buffer.concat(arrayBuffer));
+                        });
+                    })
+                    .on('error', (err) => {
+                        reject(err);
+                    });
             });
-            return Buffer.from(res.data);
         } catch (err) {
             Logger.error(get_error_message(err, src, 'media get_buffer'));
             return undefined;

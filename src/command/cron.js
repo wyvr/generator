@@ -38,8 +38,8 @@ export async function cron_command(config) {
     // check for specific cron calls
     const all_cronjobs = Config.get('cron');
     const non_existing_cronjobs = [];
-    const explicit_crons = (config_data?.cli?.command || ['cron'])
-        .slice(1)
+    const explicit_crons_requested = (config_data?.cli?.command || ['cron']).slice(1);
+    const explicit_crons = explicit_crons_requested
         .map((name) => {
             const cron = clone(all_cronjobs[name]);
             if (!cron) {
@@ -54,6 +54,10 @@ export async function cron_command(config) {
 
     if (non_existing_cronjobs.length > 0) {
         Logger.warning('non existing cronjobs', non_existing_cronjobs.join(' '));
+        if (explicit_crons_requested.length == non_existing_cronjobs.length) {
+            Logger.warning('no cronjob has run successfully');
+            return;
+        }
     }
 
     await WorkerController.single_threaded();

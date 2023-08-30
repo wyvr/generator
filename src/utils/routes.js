@@ -17,7 +17,7 @@ import { register_i18n } from './global.js';
 import { get_language } from './i18n.js';
 import { append_cache_breaker } from './cache_breaker.js';
 import { Plugin } from './plugin.js';
-import { is_path_valid } from './reserved_words.js';
+import { contains_reserved_words } from './reserved_words.js';
 import { Env } from '../vars/env.js';
 
 export async function build_cache() {
@@ -32,6 +32,11 @@ export async function build_cache() {
                 return undefined;
             }
             const result = await load_route(file);
+            /* c8 ignore start */
+            if (contains_reserved_words(result.url)) {
+                Logger.warning(result.url, 'contains reserved word, the route may be not executed');
+            }
+            /* c8 ignore end */
             const config = await extract_route_config(result, file);
             if (config) {
                 cache.push(config);
@@ -59,11 +64,6 @@ export async function load_route(file) {
         if (result && result.default) {
             result = result.default;
         }
-        /* c8 ignore start */
-        if (!is_path_valid(result.url)) {
-            return undefined;
-        }
-        /* c8 ignore end */
     } catch (e) {
         Logger.error(get_error_message(e, file, 'route'));
     }

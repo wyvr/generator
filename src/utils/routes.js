@@ -148,8 +148,10 @@ export async function run_route(request, response, uid, route) {
         returnJSON: (json, status = 200, headers = {}) => {
             const response_header = Object.assign({}, headers);
             response_header['Content-Type'] = 'application/json';
-            response.writeHead(status, response_header);
-            response.end(JSON.stringify(json));
+            end_response(response, JSON.stringify(json), status, response_header);
+        },
+        returnData: (data, status = 200, headers = {}) => {
+            end_response(response, data, status, headers);
         },
         setStatus: (statusCode = 200) => {
             status = statusCode;
@@ -188,6 +190,9 @@ export async function run_route(request, response, uid, route) {
 
     route_context.returnJSON = () => {
         Logger.warning('[route]', 'returnJSON can only be used in onExec');
+    };
+    route_context.returnData = () => {
+        Logger.warning('[route]', 'returnData can only be used in onExec');
     };
     route_context.data = data;
 
@@ -254,6 +259,11 @@ export async function run_route(request, response, uid, route) {
     rendered_result.result.html = injected_result.content;
 
     return rendered_result;
+}
+
+function end_response(response, data, status = 200, headers = {}) {
+    response.writeHead(status, headers);
+    response.end(data);
 }
 
 export async function extract_route_config(result, path) {

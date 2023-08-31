@@ -1,6 +1,8 @@
 /* eslint-disable no-undef*/
 /* eslint-disable no-console*/
 (function wyvr_server_communication() {
+    window.wyvr_tab_id = sessionStorage.getItem('wyvr_tab_id') || btoa(`${new Date().getTime()}${Math.random()}`);
+    sessionStorage.setItem('wyvr_tab_id', window.wyvr_tab_id);
     add_to_history();
     // build server connection
     const check_on = setInterval(() => {
@@ -57,7 +59,7 @@
                         if (!in_history(path) || window.wyvr_generate_page) {
                             wyvr_devtools_inspect_data().then(() => {
                                 send({ action: 'rebuild', data: window.data._wyvr.page });
-                                add_to_history();
+                                add_to_history(window.wyvr_tab_id);
                             });
                         }
                         break;
@@ -144,19 +146,17 @@
         }
     }
     function add_to_history() {
-        const list = get_history();
-        const updated = [get_path()]
-            .concat(list)
-            .filter((entry, index, arr) => arr.indexOf(entry) == index)
-            .slice(0, 5);
-        localStorage.setItem('wyvr_socket_history', JSON.stringify(updated));
+        const entries = get_history();
+        entries[window.wyvr_tab_id] = get_path();
+        localStorage.setItem('wyvr_socket_history', JSON.stringify(entries));
     }
     function get_history() {
-        const list = localStorage.getItem('wyvr_socket_history') || '[]';
-        return JSON.parse(list);
+        const entries = localStorage.getItem('wyvr_socket_history') || '{}';
+        return JSON.parse(entries);
     }
     function in_history(url) {
-        return get_history().indexOf(url) > -1;
+        const entries = get_history();
+        return entries[window.wyvr_tab_id].indexOf(url) > -1;
     }
     function reload(list) {
         if (Array.isArray(list) && list.length > 0) {

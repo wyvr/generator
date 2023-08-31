@@ -189,10 +189,6 @@ export async function static_server(req, res, uid, on_end) {
         });
     } else {
         await static_server_final({ message: 'Not found', status: 404 }, req, res, uid, on_end, start);
-
-        if (res.writableEnded) {
-            log_end(req, res, uid, start);
-        }
     }
 }
 

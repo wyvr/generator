@@ -71,6 +71,6 @@ export async function dependencies() {
         // cache the given dependencies
         cache_dependencies(dependencies);
 
-        set_config_cache('dependencies.i18n', i18n);
+        await set_config_cache('dependencies.i18n', i18n);
     });
 }

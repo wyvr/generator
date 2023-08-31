@@ -236,6 +236,7 @@ export function cache_dependencies(dependencies) {
         dependencies[file] = uniq_values(dependencies[file].flat(2));
     });
 
+    // @NOTE set_config_cache is asynchronous, so this step could be problematic in edge cases
     set_config_cache('dependencies.top', dependencies);
 
     set_config_cache('dependencies.bottom', flip_dependency_tree(dependencies));

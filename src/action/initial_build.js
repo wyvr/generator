@@ -126,7 +126,7 @@ export async function intial_build(build_id, config) {
 
     // combine identifiers
     const identifiers = to_identifiers(pages_result.identifiers, build_result.identifiers);
-    set_config_cache('identifiers', identifiers);
+    await set_config_cache('identifiers', identifiers);
 
     //  Inject Data into the pages
     // @TODO

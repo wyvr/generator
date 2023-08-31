@@ -42,7 +42,7 @@ export async function process_message(msg) {
             break;
         }
         case WorkerAction.set_config_cache: {
-            set_config_cache(value.segment, value.value);
+            await set_config_cache(value.segment, value.value);
             break;
         }
         case WorkerAction.transform: {

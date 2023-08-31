@@ -54,8 +54,8 @@ export async function copy(available_packages) {
                     copy_executable_file(target, target);
                 });
             });
-            set_config_cache('package_tree', package_tree);
-            set_config_cache('mtime', mtime);
+            await set_config_cache('package_tree', package_tree);
+            await set_config_cache('mtime', mtime);
             Logger.info('copied files');
 
             // Copy configured asset files

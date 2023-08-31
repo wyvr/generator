@@ -59,7 +59,7 @@ export const app_command = async (config) => {
         const plugins = await Plugin.generate(plugin_files);
         if (plugins) {
             Plugin.cache = plugins;
-            set_config_cache('plugins', plugins);
+            await set_config_cache('plugins', plugins);
         }
     }
 

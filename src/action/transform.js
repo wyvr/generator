@@ -40,7 +40,7 @@ export async function transform(data, file_configs = {}, minimize_output = false
             // remove listeners
             Event.off('emit', config_name, config_id);
 
-            set_config_cache('dependencies.config', file_configs);
+            await set_config_cache('dependencies.config', file_configs);
         },
         minimize_output
     );

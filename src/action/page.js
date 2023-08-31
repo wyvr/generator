@@ -32,7 +32,7 @@ export async function pages(package_tree, mtime) {
             Logger.color.dim('different layout combinations')
         );
     });
-    set_config_cache('page.cache', result?.page_objects, false);
+    await set_config_cache('page.cache', result?.page_objects, false);
 
     return { identifiers, collections };
 }

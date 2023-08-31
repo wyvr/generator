@@ -45,7 +45,7 @@ export async function build_cache() {
             return file;
         })
     );
-    set_config_cache(
+    await set_config_cache(
         'route.cache',
         cache.sort((a, b) => b.weight - a.weight)
     );

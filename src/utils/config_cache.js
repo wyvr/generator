@@ -4,6 +4,7 @@ import { IsWorker } from '../vars/is_worker.js';
 import { WorkerController } from '../worker/controller.js';
 import { Config } from './config.js';
 import { read_json, write_json } from './file.js';
+import { Plugin } from './plugin.js';
 import { filled_string, is_null } from './validate.js';
 
 export function get_config_cache(segment, fallback_value) {
@@ -25,13 +26,22 @@ export function get_config_cache(segment, fallback_value) {
     return Config.get(segment, fallback_value);
 }
 
-export function set_config_cache(segment, value, send_to_workers = true) {
+export async function set_config_cache(segment, value, send_to_workers = true) {
     if (!filled_string(segment)) {
         return;
     }
     Config.set(segment, value);
-    // is main
-    if (!IsWorker.get()) {
+    if (IsWorker.get()) {
+        // worker
+        if (segment == 'plugin_files') {
+            /* restore the plugins from the files,
+             * because the plugins can not be sent to the workers,
+             * because they contain functions which are not serializable
+             */
+            await Plugin.restore(value);
+        }
+    } else {
+        // is main
         const path = get_config_cache_path(segment);
         write_json(path, value);
         if (send_to_workers) {

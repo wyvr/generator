@@ -75,7 +75,7 @@ export async function build() {
         // store the identifier_files in the collection storage
         // used to create the critical files, here is the reference with identifier has which file assigned to them
         await Storage.set('collection', 'identifier_files', identifier_files);
-        set_config_cache('identifier.files', identifier_files);
+        await set_config_cache('identifier.files', identifier_files);
 
         const identifier_length = Object.keys(identifiers).length;
         Logger.info(

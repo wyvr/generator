@@ -179,11 +179,17 @@ export class Plugin {
     static async initialize() {
         this.clear();
         const plugin_files = await this.load(FOLDER_GEN_PLUGINS);
+        const plugins = await this.restore(plugin_files);
+        if (plugins) {
+            await set_config_cache('plugin_files', plugin_files);
+        }
+    }
+    static async restore(plugin_files) {
         const plugins = await this.generate(plugin_files);
         if (plugins) {
             this.cache = plugins;
-            set_config_cache('plugins', plugins);
         }
+        return plugins
     }
 }
 Plugin.cache = {};

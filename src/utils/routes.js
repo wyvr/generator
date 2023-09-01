@@ -170,10 +170,10 @@ export async function run_route(request, response, uid, route) {
     };
 
     const construct_route_context = await Plugin.process('construct_route_context', route_context);
-    const { result } = await construct_route_context((route_object) => {
+    const construct_route_context_result = await construct_route_context((route_object) => {
         return route_object;
     });
-    route_context = result;
+    route_context = construct_route_context_result.result;
 
     if (is_func(code.onExec)) {
         /* c8 ignore next */
@@ -194,13 +194,23 @@ export async function run_route(request, response, uid, route) {
         data = route_context.data;
     }
 
+    // add current data and url to the context for the next plugin
+    data.url = clean_url;
+    route_context.data = data;
+
+    // added after the onExec to allow stopping the not found routines later on and reseting the headers
+    const route_on_exec_context = await Plugin.process('route_on_exec_context', route_context);
+    const route_on_exec_context_result = await route_on_exec_context((route_object) => {
+        return route_object;
+    });
+    route_context = route_on_exec_context_result.result;
+
     route_context.returnJSON = () => {
         Logger.warning('[route]', 'returnJSON can only be used in onExec');
     };
     route_context.returnData = () => {
         Logger.warning('[route]', 'returnData can only be used in onExec');
     };
-    route_context.data = data;
 
     /* c8 ignore next */
     const language = data?._wyvr?.language || 'en';

@@ -157,9 +157,15 @@ export async function run_route(request, response, uid, route) {
             status = statusCode;
             customHead = true;
         },
+        getStatus: () => {
+            return status;
+        },
         setHeader: (key, value) => {
             header[key] = value;
             customHead = true;
+        },
+        getHeaders: () => {
+            return header;
         },
     };
 

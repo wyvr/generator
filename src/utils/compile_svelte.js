@@ -10,7 +10,7 @@ import { Cwd } from '../vars/cwd.js';
 import { FOLDER_GEN, FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_TEMP } from '../constants/folder.js';
 import { search_segment } from './segment.js';
 import { fix_reserved_tag_names, replace_imports, replace_src_path } from './transform.js';
-import { register_inject, register_i18n, register_prop } from './global.js';
+import { register_inject, register_i18n, register_prop, register_stack } from './global.js';
 import { inject } from './config.js';
 import { get_language } from './i18n.js';
 
@@ -126,27 +126,12 @@ export async function render_server_compiled_svelte(exec_result, data, file) {
     ) {
         return undefined;
     }
-    // set properties
-    // const propNames = Object.keys(data);
-    // if (Array.isArray(propNames) && Array.isArray(exec_result.compiled.vars)) {
-    //     // check for not used props
-    //     const unused_props = propNames.filter((prop) => {
-    //         return (
-    //             exec_result.compiled.vars.find((v) => {
-    //                 return v.name == prop;
-    //             }) == null
-    //         );
-    //     });
-    //     if (unused_props.length > 0) {
-    //         exec_result.notes.push({ msg: 'unused props', details: unused_props });
-    //     }
-    // }
-
     register_inject(file);
     // transform props to allow loading them from external file
     register_prop(file);
     // set the correct translations for the page
     register_i18n(get_language(data?._wyvr?.language), file);
+    register_stack();
 
     // add registering onServer
     global.onServer = async (callback) => {

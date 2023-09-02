@@ -143,6 +143,7 @@ export async function scripts(identifiers) {
             scripts.push(read(join(resouce_dir, 'events.js')));
             scripts.push(read(join(resouce_dir, 'props.js')));
             scripts.push(read(join(resouce_dir, 'portal.js')));
+            scripts.push(read(join(resouce_dir, 'stack.js')));
             scripts.push(read(join(resouce_dir, 'i18n.js')).replace(/\[lib\]/g, lib_dir));
             if (Env.is_dev()) {
                 scripts.push(read(join(resouce_dir, 'devtools.js')));
@@ -171,6 +172,7 @@ export async function scripts(identifiers) {
                     // minimal set of js
                     build_content = [
                         read(join(resouce_dir, 'events.js')),
+                        read(join(resouce_dir, 'stack.js')),
                         read(join(resouce_dir, 'i18n.js')).replace(/\[lib\]/g, lib_dir),
                     ].join('\n');
                 }

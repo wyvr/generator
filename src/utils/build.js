@@ -90,6 +90,18 @@ export function inject_translations(content, language) {
         `<script>window._translations = ${stringify(get_language(language))};</script></body>`
     );
 }
+export function inject_stack(content) {
+    const stack = global.stackExtract();
+    if (!stack) {
+        return content;
+    }
+    // after injection clear the stack to avoid population to other pages
+    global.stackClear();
+    return content.replace(
+        /<\/body>/,
+        `<script>window._stack = ${stringify(stack)};</script></body>`
+    );
+}
 
 export async function inject(rendered_result, data, file, identifier, shortcode_callback) {
     const release_path = ReleasePath.get();
@@ -139,6 +151,9 @@ export async function inject(rendered_result, data, file, identifier, shortcode_
 
             // write the html code
             content = add_devtools_code(content, path, data);
+
+            // add the current stack to the page
+            content = inject_stack(content);
 
             if (!filled_string(identifier)) {
                 identifier = shortcode_result.identifier;

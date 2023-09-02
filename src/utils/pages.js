@@ -7,7 +7,7 @@ import { append_cache_breaker } from './cache_breaker.js';
 import { compile_markdown } from './compile.js';
 import { get_error_message } from './error.js';
 import { collect_files, create_dir, exists, read, remove_index, to_extension, to_index, write } from './file.js';
-import { register_inject } from './global.js';
+import { register_inject, register_stack } from './global.js';
 import { Logger } from './logger.js';
 import { replace_imports } from './transform.js';
 import { filled_array, filled_string, in_array, is_array, is_func, is_null, match_interface } from './validate.js';
@@ -56,6 +56,7 @@ export async function execute_page(page) {
 
     const extension = extname(page.path);
     register_inject(page.rel_path);
+    register_stack();
 
     switch (extension) {
         case '.md': {

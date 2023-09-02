@@ -68,7 +68,7 @@ export function register_prop(file) {
         return;
     }
     global._prop = (prop, value) => {
-        if(value === undefined) {
+        if (value === undefined) {
             return `|${prop}|:null`;
         }
         const converted = stringify(value);
@@ -83,5 +83,33 @@ export function register_prop(file) {
             return `|${prop}|:|@(/prop/${prop}_${hash}.json)|`;
         }
         return `|${prop}|:${converted.replace(/\|/g, '§|§').replace(/"/g, '|')}`;
+    };
+}
+let stackData = {};
+/**
+ * Create the global methods to handle the stack data which can be used to transform data between server and client per page
+ * @returns void
+ */
+export function register_stack() {
+    if (is_func(global._stack)) {
+        return;
+    }
+    global.setStack = (key, value) => {
+        if (typeof key == 'string' && key) {
+            // @TODO validate to allow only syncronizable data inside here
+            stackData[key] = value;
+        }
+    };
+    global.getStack = (key) => {
+        if (typeof key == 'string' && key) {
+            return stackData[key];
+        }
+        return undefined;
+    };
+    global.stackClear = () => {
+        stackData = {};
+    };
+    global.stackExtract = () => {
+        return stackData;
     };
 }

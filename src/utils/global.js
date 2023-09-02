@@ -99,6 +99,7 @@ export function register_stack() {
             // @TODO validate to allow only syncronizable data inside here
             stackData[key] = value;
         }
+        return value;
     };
     global.getStack = (key) => {
         if (typeof key == 'string' && key) {

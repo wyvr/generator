@@ -25,7 +25,10 @@ export async function scripts(identifiers) {
         return;
     }
     const file_config = get_config_cache('dependencies.config');
+    // @TODO file_config is empty in prod
+    console.log('dependencies.config', !!file_config);
     const tree = get_config_cache('dependencies.top');
+    console.log('dependencies.top', !!tree);
     let package_tree;
     if (Env.is_dev()) {
         package_tree = get_config_cache('package_tree');
@@ -65,6 +68,8 @@ export async function scripts(identifiers) {
                     })
                 );
             }
+
+            // write dev structure
             if (Env.is_dev()) {
                 write_identifier_structure(identifier, tree, file_config, package_tree);
             }

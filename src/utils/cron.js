@@ -6,7 +6,7 @@ import { FOLDER_GEN_CRON } from '../constants/folder.js';
 import { Env } from '../vars/env.js';
 import { get_error_message } from './error.js';
 
-export function filter_cronjobs(cronjobs) {
+export function filter_cronjobs(cronjobs, event_name = undefined) {
     if (!filled_object(cronjobs)) {
         return [];
     }
@@ -30,9 +30,19 @@ export function filter_cronjobs(cronjobs) {
                 Logger.warning(`cron "${cron.name}" missing when or what properties`);
                 return false;
             }
+            // check the configured event is used in the cron.when
+            if (event_name) {
+                return cron.when.indexOf('@') == 0 && cron.when == '@' + event_name;
+            }
+
+            // ignore event based cronjobs from here on
+            if(cron.when.indexOf('@') == 0) {
+                return false;
+            }
+            // check if the when is valid
             const cron_parts = cron.when.split(' ');
             if (cron_parts.length != 5) {
-                Logger.warning(`cron "${cron.name}" has an invalid when property "${cron.when}"`);
+                    Logger.warning(`cron "${cron.name}" has an invalid when property "${cron.when}"`);
                 return false;
             }
             const execute = cron_parts.every((part, index) => {

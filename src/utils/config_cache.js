@@ -7,6 +7,17 @@ import { read_json, write_json } from './file.js';
 import { Plugin } from './plugin.js';
 import { filled_string, is_null } from './validate.js';
 
+/**
+ * Get the config value from the given segment
+ *
+ * @param {string|null} segment The specific segment of the config cache for which the data
+ *                              is needed. If not a filled string, the function will return
+ *                              fallback_value.
+ * @param {*} fallback_value A value that should be returned if no cached value could be found
+ *                           for the provided segment. It can be any type.
+ *
+ * @returns {*} The config value for the given segment
+ */
 export function get_config_cache(segment, fallback_value) {
     if (!filled_string(segment)) {
         return fallback_value;
@@ -26,6 +37,13 @@ export function get_config_cache(segment, fallback_value) {
     return Config.get(segment, fallback_value);
 }
 
+/**
+ * Set the config and persist the value and publish to the workers
+ * @param {string} segment
+ * @param {any} value
+ * @param {boolean} send_to_workers
+ * @returns {void}
+ */
 export async function set_config_cache(segment, value, send_to_workers = true) {
     if (!filled_string(segment)) {
         return;
@@ -50,6 +68,11 @@ export async function set_config_cache(segment, value, send_to_workers = true) {
     }
 }
 
+/**
+ * Retrieve the absolute path to the config file
+ * @param {string} segment
+ * @returns {string} absolute path the the config file
+ */
 export function get_config_cache_path(segment) {
     if (!filled_string(segment)) {
         return undefined;

@@ -80,3 +80,14 @@ export function get_config_cache_path(segment) {
     const main = segment.replace(/\./g, '_');
     return Cwd.get(FOLDER_CACHE, `${main}.json`);
 }
+
+/**
+ * Publish the config with the given segment to the workers
+ * @param {string} segment
+ */
+export function pub_config_cache(segment) {
+    const value = get_config_cache(segment);
+    if (value) {
+        WorkerController.set_config_cache_all_workers(segment, value);
+    }
+}

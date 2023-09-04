@@ -1,6 +1,10 @@
 import { Logger } from './logger.js';
 import { filled_object } from './validate.js';
 import { clone } from './json.js';
+import { Cwd } from '../vars/cwd.js';
+import { FOLDER_GEN_CRON } from '../constants/folder.js';
+import { Env } from '../vars/env.js';
+import { get_error_message } from './error.js';
 
 export function filter_cronjobs(cronjobs) {
     if (!filled_object(cronjobs)) {
@@ -50,4 +54,20 @@ export function filter_cronjobs(cronjobs) {
             });
             return execute;
         });
+}
+export async function execute_cronjobs(cronjobs) {
+    return await Promise.all(
+        cronjobs.map(async (job) => {
+            const path = Cwd.get(FOLDER_GEN_CRON, job.what);
+            Logger.block('cron job', job.name);
+            try {
+                job.result = (await import(path)).default({ options: job.options, isProd: Env.is_prod() });
+            } catch (e) {
+                Logger.error(get_error_message(e, path, 'cron'));
+                job.failed = true;
+                job.result = undefined;
+            }
+            return job;
+        })
+    );
 }

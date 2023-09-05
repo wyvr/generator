@@ -36,13 +36,13 @@ export function filter_cronjobs(cronjobs, event_name = undefined) {
             }
 
             // ignore event based cronjobs from here on
-            if(cron.when.indexOf('@') == 0) {
+            if (cron.when.indexOf('@') == 0) {
                 return false;
             }
             // check if the when is valid
             const cron_parts = cron.when.split(' ');
             if (cron_parts.length != 5) {
-                    Logger.warning(`cron "${cron.name}" has an invalid when property "${cron.when}"`);
+                Logger.warning(`cron "${cron.name}" has an invalid when property "${cron.when}"`);
                 return false;
             }
             const execute = cron_parts.every((part, index) => {
@@ -71,7 +71,8 @@ export async function execute_cronjobs(cronjobs) {
             const path = Cwd.get(FOLDER_GEN_CRON, job.what);
             Logger.block('cron job', job.name);
             try {
-                job.result = (await import(path)).default({ options: job.options, isProd: Env.is_prod() });
+                const cronjob = await import(path);
+                job.result = await cronjob.default({ options: job.options, isProd: Env.is_prod() });
             } catch (e) {
                 Logger.error(get_error_message(e, path, 'cron'));
                 job.failed = true;

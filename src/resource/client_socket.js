@@ -156,6 +156,9 @@
     }
     function in_history(url) {
         const entries = get_history();
+        if (!entries || !entries[window.wyvr_tab_id]) {
+            return false;
+        }
         return entries[window.wyvr_tab_id].indexOf(url) > -1;
     }
     function reload(list) {

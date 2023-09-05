@@ -41,7 +41,7 @@ export function generate_page_code(data) {
             if (typeof acc == 'object' && acc != null && !Array.isArray(acc) && acc[cur] != undefined) {
                 return acc[cur];
             }
-            return fallback_value;
+            return fallback;
         }, data);
     }
 </script>

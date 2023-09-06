@@ -336,7 +336,7 @@ export function websocket_server(port, packages) {
                     Logger.warning(get_error_message(e, undefined, 'websocket'));
                 }
             }
-            Logger.info('client message', data);
+            Logger.debug('client message', data);
             if (data.action) {
                 switch (data.action) {
                     case 'path': {

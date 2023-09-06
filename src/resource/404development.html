@@ -22,6 +22,13 @@
             .card small {
                 opacity: 0.7;
             }
+            .card button {
+                background: var(--wyvr-debug-primary);
+                border: 0;
+                padding: 10px;
+                color: var(--wyvr-debug-text);
+                margin-top: 10px;
+            }
         </style>
     </head>
     <body>
@@ -32,6 +39,7 @@
                 <small>URL:</small> <code>{url}</code><br />
                 <small>UID: <code>{uid}</code></small
                 ><br />
+                <button onclick="window.location.reload()">Reload</button>
             </div>
         </div>
     </body>

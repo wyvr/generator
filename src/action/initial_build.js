@@ -34,6 +34,7 @@ import { get_error_message } from '../utils/error.js';
 import { collections } from './collections.js';
 import { execute_cronjobs, filter_cronjobs } from '../utils/cron.js';
 import { measure_action } from './helper.js';
+import { Env } from '../vars/env.js';
 
 export async function pre_initial_build(build_id, config_data) {
     try {
@@ -130,10 +131,16 @@ export async function intial_build(build_id, config) {
     const identifiers = to_identifiers(pages_result.identifiers, build_result.identifiers);
     await set_config_cache('identifiers', identifiers);
 
-    //  Inject Data into the pages
-    // @TODO
-
     // Build Scripts
+    if (Env.is_dev()) {
+        // add custom script for the 404 development page
+        identifiers['404development'] = {
+            identifier: '404development',
+            doc: '',
+            layout: '',
+            page: '',
+        };
+    }
     await scripts(identifiers);
 
     // Generate Media/Images

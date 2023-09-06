@@ -17,7 +17,7 @@ import { LogType } from '../struc/log.js';
 import { watcher_event } from './watcher.js';
 import { wait_for } from './wait.js';
 import { WatcherPaths } from '../vars/watcher_paths.js';
-import { exists } from './file.js';
+import { exists, read } from './file.js';
 import { WorkerController } from '../worker/controller.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { tmpdir } from 'os';
@@ -25,6 +25,8 @@ import { basename, extname, join } from 'path';
 import { get_route } from './routes.js';
 import { get_config_cache } from './config_cache.js';
 import { pub_healthcheck } from './health.js';
+import { to_dirname } from './to.js';
+import { inject } from './build.js';
 
 let show_requests = true;
 
@@ -103,7 +105,7 @@ export async function final(on_end, req, res, uid, start) {
     if (is_func(on_end)) {
         return await on_end(req, res, uid, start);
     }
-    return return_not_found(req, res, uid, 'Not found', 404, start);
+    return await return_not_found(req, res, uid, 'Not found', 404, start);
 }
 
 export function log_start(req, uid) {
@@ -132,8 +134,34 @@ export function log_end(req, res, uid, start) {
 export function is_data_method(method) {
     return ['post', 'patch', 'put'].indexOf(method.toLowerCase()) > -1;
 }
-export function return_not_found(req, res, uid, message, status, start) {
+export async function return_not_found(req, res, uid, message, status, start) {
     Logger.error(req.method, req.url, ...get_done_log_infos(message, status, start, uid));
+    if (Env.is_dev()) {
+        // use full page in dev mode to add devtools, which allow autoreloading the page
+        const content = read(join(to_dirname(import.meta.url), '..', 'resource', '404development.html'));
+        if (content) {
+            const url = req.url;
+            try {
+                const result = await inject(
+                    {
+                        result: {
+                            html: content
+                                .replace(/\{message\}/g, message)
+                                .replace(/\{status\}/g, status)
+                                .replace(/\{uid\}/g, uid)
+                                .replace(/\{url\}/g, url),
+                        },
+                    },
+                    { url, message, status, uid },
+                    url,
+                    '404development'
+                );
+                message = result.content.replace(/<\/body>/, `<script src="/js/404development.js"></script></body>`);
+            } catch (e) {
+                Logger.error(get_error_message(e, url, 'return_not_found'));
+            }
+        }
+    }
     send_head(res, status, 'text/html');
     send_content(res, message);
     return;
@@ -197,7 +225,7 @@ async function static_server_final(err, req, res, uid, on_end, start) {
         await on_end(err, req, res, uid);
 
         if (!res.writableEnded) {
-            return return_not_found(req, res, uid, err.message, err.status, start);
+            return await return_not_found(req, res, uid, err.message, err.status, start);
         }
     }
     if (res.writableEnded) {
@@ -281,16 +309,11 @@ export function websocket_server(port, packages) {
             }
         });
     }
-    let avoid_reload = false;
     Event.on('client', 'reload', (data) => {
-        if (!avoid_reload) {
-            send_all_watchers({ action: 'reload', data });
-        }
-        avoid_reload = false;
+        send_all_watchers({ action: 'reload', data });
     });
     Event.on('logger', LogType.error, (data) => {
         send_all_watchers({ action: 'error', data });
-        avoid_reload = true;
     });
 
     server.on('connection', (ws) => {
@@ -313,7 +336,7 @@ export function websocket_server(port, packages) {
                     Logger.warning(get_error_message(e, undefined, 'websocket'));
                 }
             }
-            Logger.debug('client message', data);
+            Logger.info('client message', data);
             if (data.action) {
                 switch (data.action) {
                     case 'path': {

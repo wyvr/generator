@@ -1,6 +1,7 @@
 import { strictEqual, deepStrictEqual } from 'assert';
 import { describe, it } from 'mocha';
-import { get_route } from '../../../src/utils/routes.js';
+import { get_route, extract_route_config } from '../../../src/utils/routes.js';
+import { join } from 'path';
 
 describe('utils/routes/get_route', () => {
     it('undefined', () => {
@@ -104,5 +105,25 @@ describe('utils/routes/get_route', () => {
             ]),
             undefined
         );
+    });
+    it('get exact match of similar routes', async() => {
+        const dir = join(process.cwd(), 'test', 'utils', 'routes', '_tests');
+        const cache = [
+            await extract_route_config({ url: '/hu/hi/[slug]' }, join(dir, 'config/test.js')),
+            await extract_route_config({ url: '/hu/hi' }, join(dir, 'config/test.js')),
+        ];
+        const route = get_route('/hu/hi/', 'GET', cache);
+        deepStrictEqual(!!route, true);
+        deepStrictEqual(route.url, '/hu/hi');
+    });
+    it('get exact match of similar routes for parameterized url', async() => {
+        const dir = join(process.cwd(), 'test', 'utils', 'routes', '_tests');
+        const cache = [
+            await extract_route_config({ url: '/hu/hi/[slug]' }, join(dir, 'config/test.js')),
+            await extract_route_config({ url: '/hu/hi' }, join(dir, 'config/test.js')),
+        ];
+        const route = get_route('/hu/hi/test', 'GET', cache);
+        deepStrictEqual(!!route, true);
+        deepStrictEqual(route.url, '/hu/hi/[slug]');
     });
 });

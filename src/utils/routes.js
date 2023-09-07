@@ -291,10 +291,10 @@ export async function extract_route_config(result, path) {
     const url_parts = result.url.split('/');
     const match = `^${url_parts
         .map((item) => {
-            const result = item.match(/^\[([^\]]*?)\]$/);
+            const result = item.match(/^\[([^\]]+?)\]$/);
             if (result) {
                 params.push(result[1]);
-                return '([^\\]]*?)';
+                return '([^\\]]+?)';
             }
             return item;
         })

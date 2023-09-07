@@ -43,7 +43,7 @@ describe('utils/generate/generate_page_code', () => {
             if (typeof acc == 'object' && acc != null && !Array.isArray(acc) && acc[cur] != undefined) {
                 return acc[cur];
             }
-            return fallback_value;
+            return fallback;
         }, data);
     }
 </script>
@@ -95,7 +95,7 @@ describe('utils/generate/generate_page_code', () => {
             if (typeof acc == 'object' && acc != null && !Array.isArray(acc) && acc[cur] != undefined) {
                 return acc[cur];
             }
-            return fallback_value;
+            return fallback;
         }, data);
     }
 </script>

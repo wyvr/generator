@@ -10,6 +10,7 @@ import { WorkerController } from './src/worker/controller.js';
 import { filled_array } from './src/utils/validate.js';
 import { WorkerAction } from './src/struc/worker_action.js';
 import { to_index } from './src/utils/file.js';
+import { Env } from './src/vars/env.js';
 
 /**
  * Execute the route for the given url
@@ -20,6 +21,10 @@ import { to_index } from './src/utils/file.js';
  * @returns {Promise}
  */
 export async function execute_route(url, options) {
+    if (Env.is_dev()) {
+        Logger.warning('route', url, 'will not be generated in dev mode');
+        return false;
+    }
     const { get_route_request, process_route_request } = await import('./src/action/route.js');
     const request = {
         url,

@@ -9,6 +9,7 @@ import {
     rmSync,
     symlinkSync,
     lstatSync,
+    appendFileSync,
 } from 'fs';
 import { extname, dirname, join } from 'path';
 import { stringify } from './json.js';
@@ -211,6 +212,20 @@ export function write_json(filename, data = null) {
     }
 
     return write(filename, stringify(data, spaces));
+}
+/**
+ * append the content to the file
+ * @param {string} filename
+ * @param {string} content
+ * @returns {boolean}
+ */
+export function append(filename, content) {
+    if (!is_string(filename) || !is_string(content)) {
+        return false;
+    }
+    mkdirSync(dirname(filename), { recursive: true });
+    appendFileSync(filename, content);
+    return true;
 }
 /**
  * search for one file out of multiple possible files, to depict hierachy of file overrides

@@ -93,3 +93,11 @@ export async function execute_page(url) {
 export function get_config(segment, fallback_value) {
     return Config.get(segment, fallback_value);
 }
+
+/**
+ * Get logger instance
+ * @returns {Logger}
+ */
+export function get_logger() {
+    return Logger;
+}

@@ -19,6 +19,12 @@ import { WorkerAction } from '../struc/worker_action.js';
 import { to_plain } from './to.js';
 import { Event } from './event.js';
 
+/**
+ * `Logger` is a class that provides static methods for logging purposes.
+ *
+ * @class Logger
+ *
+ */
 export class Logger {
     /**
      * Create new instance of the Logger
@@ -37,6 +43,12 @@ export class Logger {
         return clone;
     }
 
+    /**
+     * Prepare messages for output. Converts all elements in the input array into strings and filters out empty values.
+     *
+     * @param values - The array containing values to prepare for output.
+     * @returns An array of prepared message strings.
+     */
     static prepare_message(values) {
         if (!is_array(values)) {
             return [];
@@ -44,6 +56,14 @@ export class Logger {
         return values.map(this.stringify).filter((x) => x);
     }
 
+    /**
+     * Output formatted logs to console or emits an event if set so. Can also handle logs from worker processes.
+     *
+     * @param type - Type of log.
+     * @param color_fn - Color function for styling the log.
+     * @param char - Leading character(s) for the log.
+     * @param {...any} messages - Messages to output in the log.
+     */
     /* eslint-disable */
     static output(type, color_fn, char, ...messages) {
         if (this.emit) {
@@ -89,6 +109,13 @@ export class Logger {
     }
     /* eslint-enable */
 
+    /**
+     * Helper method to output messages based on their type.
+     *
+     * @param type - Type of log.
+     * @param key - Key of the message.
+     * @param {...any} values - Values to be output.
+     */
     static output_type(type, key, ...values) {
         let messages = this.prepare_message(values);
         if (LogFirstValueColor[type]) {
@@ -168,7 +195,7 @@ export class Logger {
     }
 
     /**
-     * convert the element to json
+     * Converts the input data into a string representation.
      * @param {any} data
      * @returns
      */
@@ -179,6 +206,11 @@ export class Logger {
         return stringify(data);
     }
 
+    /**
+     * Starts logging group with a specified name and spinner.
+     *
+     * @param {string} name - Name of the log.
+     */
     static start(name) {
         if (this.inset != name) {
             this.output_type('start', name);
@@ -190,6 +222,13 @@ export class Logger {
             }
         }
     }
+
+    /**
+     * Stops logging group with a specified name and duration and stops any associated spinner.
+     *
+     * @param {string} name - Name of the log.
+     * @param duration - Duration of the log.
+     */
     static stop(name, duration) {
         this.inset = false;
         if (this.spinner) {
@@ -199,6 +238,12 @@ export class Logger {
             }
         }
     }
+
+    /**
+     * Sets spinner text with the provided values.
+     *
+     * @param {...any} values - Values to set as text on the spinner.
+     */
     static text(...values) {
         if (this.spinner) {
             const text = values.map(this.stringify).join(' ');
@@ -206,12 +251,14 @@ export class Logger {
         }
     }
 }
-// static properties
-Logger.pre = '';
-Logger.spinner = Spinner;
-Logger.color = kleur;
-Logger.remove_color = false;
-Logger.disable = false;
-Logger.inset = false;
-Logger.emit = false;
-Logger.report_content = [];
+/**
+ * These properties are defaults for the Logger class and can be overridden by child instances.
+ */
+Logger.pre = ''; // Prefix for the log messages
+Logger.spinner = Spinner; // Default spinner object
+Logger.color = kleur; // Default color schema
+Logger.remove_color = false; // Default flag to remove color from output
+Logger.disable = false; // Default flag to disable logging
+Logger.inset = false; // Flag to indicate if a particular log is inset or not
+Logger.emit = false; // Flag to determine if log events should be emitted
+Logger.report_content = []; // Array to store report logs

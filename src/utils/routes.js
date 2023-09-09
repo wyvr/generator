@@ -181,7 +181,7 @@ export async function run_route(request, response, uid, route) {
         register_i18n(get_language(language), route.path);
         try {
             data = await code.onExec(route_context);
-            if (response.writableEnded) {
+            if (route_context?.response?.writableEnded) {
                 return undefined;
             }
         } catch (e) {
@@ -235,7 +235,7 @@ export async function run_route(request, response, uid, route) {
         })
     );
     // when customHead is set execute it
-    if (customHead) {
+    if (customHead && response) {
         response.writeHead(status, header);
     }
 
@@ -278,8 +278,8 @@ export async function run_route(request, response, uid, route) {
 }
 
 function end_response(response, data, status = 200, headers = {}) {
-    response.writeHead(status, headers);
-    response.end(data);
+    response?.writeHead(status, headers);
+    response?.end(data);
 }
 
 export async function extract_route_config(result, path) {

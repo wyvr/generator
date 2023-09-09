@@ -9,6 +9,7 @@ import { execute_cronjobs, filter_cronjobs } from '../utils/cron.js';
 import { read_json } from '../utils/file.js';
 import { clone } from '../utils/json.js';
 import { Logger } from '../utils/logger.js';
+import { Plugin } from '../utils/plugin.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
 import { ReleasePath } from '../vars/release_path.js';
@@ -33,6 +34,8 @@ export async function cron_command(config) {
     if (Env.is_dev()) {
         Logger.warning('in dev environment no route results gets persisted');
     }
+
+    await Plugin.initialize();
 
     // check for specific cron calls
     const all_cronjobs = Config.get('cron');

@@ -1,8 +1,8 @@
 import { join } from 'path';
-import { FOLDER_CSS, FOLDER_GEN_ROUTES, FOLDER_GEN_JS, FOLDER_JS } from '../constants/folder.js';
+import { FOLDER_CSS, FOLDER_GEN_ROUTES, FOLDER_GEN_JS, FOLDER_JS, FOLDER_CACHE } from '../constants/folder.js';
 import { get_config_cache } from '../utils/config_cache.js';
 import { extract_route_config, get_route, load_route, run_route } from '../utils/routes.js';
-import { copy, exists, write, to_index } from '../utils/file.js';
+import { copy, exists, write, to_index, read } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { send_content, send_head } from '../utils/server.js';
 import { filled_string } from '../utils/validate.js';
@@ -10,6 +10,7 @@ import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { scripts } from './script.js';
+import { uniq_values } from '../utils/uniq.js';
 
 export async function route_request(req, res, uid, force_generating_of_resources) {
     const route = get_route_request(req);
@@ -88,6 +89,15 @@ export async function process_route_request(req, res, uid, route, force_generati
         const persisted_path = join(ReleasePath.get(), file);
         write(persisted_path, result.result.html);
         Logger.improve('persisted', file);
+        // if there is no response, then the page should not be marked as generated, because it was triggered from a cronjob
+        if(res) {
+            // add marker to identify which file where generated before
+            const persisted_routes_file = Cwd.get(FOLDER_CACHE, 'routes_persisted.txt');
+            const content = read(persisted_routes_file) || '';
+            const line = file + '\n';
+            const new_content = content.indexOf(line) > -1 ? content : content + line;
+            write(persisted_routes_file, new_content);
+        }
     }
     return result;
 }

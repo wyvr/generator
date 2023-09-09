@@ -9,7 +9,7 @@ import { FOLDER_GEN } from './src/constants/folder.js';
 import { WorkerController } from './src/worker/controller.js';
 import { filled_array } from './src/utils/validate.js';
 import { WorkerAction } from './src/struc/worker_action.js';
-import { to_index } from './src/utils/file.js';
+import { remove_index, to_index } from './src/utils/file.js';
 import { Env } from './src/vars/env.js';
 
 /**
@@ -27,7 +27,7 @@ export async function execute_route(url, options) {
     }
     const { get_route_request, process_route_request } = await import('./src/action/route.js');
     const request = {
-        url,
+        url: remove_index(url),
         path: url,
         method: options?.method || 'GET',
         isNotExec: true, // can indicate that the page is called from direct exec or not

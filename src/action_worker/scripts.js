@@ -128,9 +128,11 @@ export async function scripts(identifiers) {
                             }
                             // set marker for the needed hydrate methods
                             has[file.config.loading] = true;
-                            // loading none requires a trigger property
+                            // loading none requires a trigger property, but everything except instant can be triggered
                             const trigger =
-                                file.config.loading == WyvrFileLoading.none ? `, '${file.config.trigger}'` : '';
+                                file.config.loading != WyvrFileLoading.instant && file.config.trigger
+                                    ? `, '${file.config.trigger}'`
+                                    : '';
                             return `${target}
                 wyvr_hydrate_${file.config.loading}('${lazy_file_path}', ${file.name}_target, '${file.name}', '${file.name}'${trigger});`;
                         }

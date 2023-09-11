@@ -4,7 +4,7 @@
 
 const wyvr_interact_classes = {};
 
-const wyvr_hydrate_interact = (path, elements, name, cls) => {
+const wyvr_hydrate_interact = (path, elements, name, cls, trigger) => {
     wyvr_interact_classes[name] = { cls, path, loaded: false };
 
     Array.from(elements).forEach((el) => {
@@ -15,6 +15,16 @@ const wyvr_hydrate_interact = (path, elements, name, cls) => {
         el.addEventListener('interact', wyvr_interact_init);
         el.setAttribute('data-bind-interact', 'true');
     });
+    if (trigger) {
+        if (!window.wyvr) {
+            window.wyvr = {};
+        }
+        window.wyvr[trigger] = () => {
+            Array.from(elements).forEach((el) => {
+                wyvr_interact_init({ target: el, type: 'mouseover' });
+            });
+        };
+    }
 };
 
 const wyvr_interact_init = (e) => {

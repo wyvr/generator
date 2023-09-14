@@ -5,13 +5,13 @@ import { to_relative_path } from './to.js';
 import { extname } from 'path';
 import { statSync } from 'fs';
 
-export function create_hash(value) {
+export function create_hash(value, length) {
     if (!value) {
         return '0x0';
     }
     const hash = cryptoCreateHash('sha256');
     hash.update(value);
-    return hash.digest('hex').substring(0, 16);
+    return hash.digest('hex').substring(0, !isNaN(length) ? length : 16);
 }
 export function get_files_hashes(files) {
     const result = {};

@@ -81,7 +81,6 @@ export function get_translations_script(language) {
     }
     return `window._translations = ${stringify(get_language(language))};`;
 }
-}
 export function get_stack_script() {
     const stack = global.stackExtract();
     if (!stack) {

@@ -64,7 +64,7 @@
     $: srcset = Array.isArray(ordered_widths)
         ? ordered_widths
               .map((src_width) => {
-                  return get_src(src, src_width, cor_height, mode, quality, cor_format, true);
+                  return get_src(src, src_width, cor_height, mode, quality, cor_format, fixed, true);
               })
               .join(', ')
         : null;
@@ -74,7 +74,7 @@
                   return {
                       format,
                       srcset: ordered_widths
-                          .map((src_width) => get_src(src, src_width, cor_height, mode, quality, format, true))
+                          .map((src_width) => get_src(src, src_width, cor_height, mode, quality, format, fixed, true))
                           .join(', '),
                   };
               })
@@ -87,7 +87,7 @@
             <source {sizes} srcset={entry.srcset} type="image/{entry.format}" />
         {/each}
         <img
-            src={get_src(src, width, cor_height, mode, quality, format, false)}
+            src={get_src(src, width, cor_height, mode, quality, format, fixed, false)}
             {width}
             height={cor_height}
             {loading}

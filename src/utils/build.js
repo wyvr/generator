@@ -7,7 +7,6 @@ import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { insert_import } from './compile.js';
-import { Config } from './config.js';
 import { write_css_file } from './css.js';
 import { add_devtools_code } from './devtools.js';
 import { get_error_message } from './error.js';
@@ -18,9 +17,8 @@ import { Logger } from './logger.js';
 import { replace_media } from './media.js';
 import { search_segment } from './segment.js';
 import { replace_shortcode } from './shortcode.js';
-import { to_dirname } from './to.js';
 import { uniq_id } from './uniq.js';
-import { filled_string, is_func } from './validate.js';
+import { filled_array, filled_string, is_func } from './validate.js';
 
 export async function build(content, file, format = 'iife') {
     if (!filled_string(content) || !filled_string(content)) {
@@ -68,39 +66,30 @@ export async function build(content, file, format = 'iife') {
     return { code, sourcemap };
 }
 
-const lib_dir = join(to_dirname(import.meta.url), '..');
 
-export function inject_client_socket(content) {
-    const wsport = Config.get('wsport');
-    if (Env.is_prod() || !wsport) {
+export function inject_script(content, scripts) {
+    if (!filled_array(scripts)) {
         return content;
     }
-    const script = read(join(lib_dir, 'resource', 'client_socket.js')).replace(/\{port\}/g, wsport + '');
-    const socket_script = `<script id="wyvr_client_socket">${script}</script></body>`;
-
-    return content.replace(/<\/body>/, socket_script);
+    const code = scripts.filter(Boolean).join('\n');
+    return content.replace(/<\/body>/, '<script>' + code + '</script></body>');
 }
 
-export function inject_translations(content, language) {
+export function get_translations_script(language) {
     if (!filled_string(language)) {
-        return content;
+        return '';
     }
-    return content.replace(
-        /<\/body>/,
-        `<script>window._translations = ${stringify(get_language(language))};</script></body>`
-    );
+    return `window._translations = ${stringify(get_language(language))};`;
 }
-export function inject_stack(content) {
+}
+export function get_stack_script() {
     const stack = global.stackExtract();
     if (!stack) {
-        return content;
+        return '';
     }
     // after injection clear the stack to avoid population to other pages
     global.stackClear();
-    return content.replace(
-        /<\/body>/,
-        `<script>window._stack = ${stringify(stack)};</script></body>`
-    );
+    return `window._stack = ${stringify(stack)};`;
 }
 
 export async function inject(rendered_result, data, file, identifier, shortcode_callback) {
@@ -145,15 +134,14 @@ export async function inject(rendered_result, data, file, identifier, shortcode_
                 content = media_result.content;
             }
 
-            // inject translations
-            // inject websocket connection
-            content = inject_translations(inject_client_socket(content), data?._wyvr?.language);
-
-            // write the html code
-            content = add_devtools_code(content, path, data);
-
-            // add the current stack to the page
-            content = inject_stack(content);
+            content = inject_script(content, [
+                // inject translations
+                get_translations_script(data?._wyvr?.language),
+                // add the current stack to the page
+                get_stack_script(),
+                // add the devtools
+                add_devtools_code(path, data)
+            ]);
 
             if (!filled_string(identifier)) {
                 identifier = shortcode_result.identifier;
@@ -169,11 +157,7 @@ export async function inject(rendered_result, data, file, identifier, shortcode_
                 css_code = rendered_result.result.css.code;
             }
             if (!exists(css_file_path) || global.cache.force_media_query_files) {
-                media_query_files = write_css_file(
-                    css_file_path,
-                    css_code,
-                    media_query_files
-                );
+                media_query_files = write_css_file(css_file_path, css_code, media_query_files);
             }
         }
     } catch (e) {

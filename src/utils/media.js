@@ -44,7 +44,7 @@ export async function process(media) {
     Logger.debug(media.src, JSON.stringify(options));
     let modified_image;
     try {
-        modified_image = await sharp(buffer).resize(options);
+        modified_image = await sharp(buffer).pipelineColourspace('rgb16').resize(options);
     } catch (e) {
         Logger.error(get_error_message(e, media.src, 'sharp'));
         return undefined;
@@ -72,7 +72,12 @@ export async function process(media) {
             output_buffer = await modified_image.webp().toBuffer();
             break;
         case 'png':
-            output_buffer = await modified_image.png().toBuffer();
+            /* @TODO sharp does not provide a method to get the gamma value of an image,
+             * some systems add a wrong gamma value to it,
+             * the solution for this images wolud be `.gamma(1, 2.2)`,
+             * but can not be applied to all png images, because most get to bright because of this correction
+             */
+            output_buffer = await modified_image.gamma().png().toBuffer();
             break;
         case 'gif':
             output_buffer = await modified_image.png().toBuffer();

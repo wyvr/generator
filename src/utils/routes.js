@@ -167,6 +167,13 @@ export async function run_route(request, response, uid, route) {
         getHeaders: () => {
             return header;
         },
+        returnRedirect: (url, statusCode = 301, headers = {}) => {
+            const response_header = Object.assign({ Location: url }, headers);
+            if (Env.is_dev()) {
+                Logger.info('Redirect to', url, response_header);
+            }
+            end_response(response, `Redirect to ${url}`, statusCode, response_header);
+        },
     };
 
     const construct_route_context = await Plugin.process('construct_route_context', route_context);
@@ -210,6 +217,9 @@ export async function run_route(request, response, uid, route) {
     };
     route_context.returnData = () => {
         Logger.warning('[route]', 'returnData can only be used in onExec');
+    };
+    route_context.returnRedirect = () => {
+        Logger.warning('[route]', 'returnRedirect can only be used in onExec');
     };
 
     /* c8 ignore next */

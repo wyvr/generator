@@ -151,10 +151,14 @@ export async function scripts(identifiers) {
             scripts.push(read(join(resouce_dir, 'i18n.js')).replace(/\[lib\]/g, lib_dir));
             if (Env.is_dev()) {
                 scripts.push(read(join(resouce_dir, 'devtools.js')));
-                scripts.push(`const identifier = ${stringify(identifier)};
-                console.log('wyvr identifier', identifier);
+                scripts.push(`
+                const identifier = ${stringify(identifier)};
                 const dependencies = ${stringify(dependencies)};
-                console.log('wyvr dependencies', dependencies);`);
+                console.group('wyvr');
+                console.log('identifier', identifier);
+                console.log('dependencies', dependencies);
+                console.groupEnd('wyvr');
+                `);
             }
 
             identifier_file = Cwd.get(FOLDER_GEN_JS, `${identifier.identifier}.js`);

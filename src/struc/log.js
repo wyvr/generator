@@ -1,18 +1,19 @@
 import kleur from 'kleur';
 
 export const LogType = {
-    log: 1,
-    debug: 2,
-    success: 3,
-    info: 4,
-    warning: 5,
-    error: 6,
-    present: 7,
+    debug: 1,
+    report: 2,
+    start: 3,
+    block: 4,
+    present: 5,
+    info: 6,
+    log: 7,
     improve: 8,
-    report: 9,
-    block: 10,
-    start: 11,
+    success: 9,
+    warning: 10,
+    error: 11,
 };
+
 export function get_type_name(type) {
     return Object.keys(LogType).find((key) => LogType[key] == type);
 }
@@ -41,7 +42,7 @@ export const LogColor = {
     improve: kleur.magenta,
     report: kleur.cyan,
     block: kleur.blue,
-    start: kleur.dim, 
+    start: kleur.dim,
 };
 export const LogFirstValueColor = {
     log: undefined,

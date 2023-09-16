@@ -1,3 +1,4 @@
+import { LogType } from '../struc/log.js';
 import { Logger } from '../utils/logger.js';
 import { is_array } from '../utils/validate.js';
 
@@ -99,7 +100,7 @@ export const global_flags = [
     },
     {
         key: 'silent',
-        desc: 'the logger does not print messages',
+        desc: 'the logger does not print messages to stdout',
     },
     {
         key: 'single',
@@ -108,6 +109,14 @@ export const global_flags = [
     {
         key: 'worker',
         desc: 'set the worker ratio, value from 0-1, use 0.5 for 50% of the available threads',
+    },
+    {
+        key: 'log_file',
+        desc: 'write log output to get given file',
+    },
+    {
+        key: 'log_level',
+        desc: 'set the log level when writing log file, available options ' + Object.keys(LogType).join(','),
     },
 ];
 

@@ -1,5 +1,5 @@
 import kleur from 'kleur';
-import { LogColor, LogFirstValueColor, LogIcon, LogType } from '../struc/log.js';
+import { LogColor, LogFirstValueColor, LogIcon, LogType, get_type_name } from '../struc/log.js';
 import {
     filled_array,
     filled_string,
@@ -18,6 +18,7 @@ import { IsWorker } from '../vars/is_worker.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { to_plain } from './to.js';
 import { Event } from './event.js';
+import { append } from './file.js';
 
 /**
  * `Logger` is a class that provides static methods for logging purposes.
@@ -69,6 +70,17 @@ export class Logger {
         if (this.emit) {
             Event.emit('logger', type, { char: to_plain(char), message: messages.map(to_plain) });
         }
+        /* c8 ignore start */
+        // write messages to log file
+        if (this.log_file) {
+            if (type >= this.log_level) {
+                append(
+                    this.log_file,
+                    `[${this.get_time_stamp()}] ${this.get_log_name(type)}: ${to_plain(messages.join(' '))}\n`
+                );
+            }
+        }
+        /* c8 ignore end */
         if (this.disable) {
             return;
         }
@@ -250,6 +262,31 @@ export class Logger {
             this.spinner.update(text);
         }
     }
+
+    static get_log_name(type) {
+        const name = get_type_name(type);
+        if (!name) {
+            return '<?>';
+        }
+        return name.substring(0, 4).toUpperCase().padEnd(4, ' ');
+    }
+
+    static get_time_stamp() {
+        const date = new Date();
+        return (
+            date.getFullYear().toString().substring(2) +
+            '-' +
+            (date.getMonth() + 1).toString().padStart(2, '0') +
+            '-' +
+            date.getDate().toString().padStart(2, '0') +
+            ' ' +
+            date.getHours().toString().padStart(2, '0') +
+            ':' +
+            date.getMinutes().toString().padStart(2, '0') +
+            ':' +
+            date.getSeconds().toString().padStart(2, '0')
+        );
+    }
 }
 /**
  * These properties are defaults for the Logger class and can be overridden by child instances.
@@ -262,3 +299,5 @@ Logger.disable = false; // Default flag to disable logging
 Logger.inset = false; // Flag to indicate if a particular log is inset or not
 Logger.emit = false; // Flag to determine if log events should be emitted
 Logger.report_content = []; // Array to store report logs
+Logger.log_level = LogType.log; // min log level
+Logger.log_file = undefined; // log file

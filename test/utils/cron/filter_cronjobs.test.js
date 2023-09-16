@@ -32,6 +32,10 @@ describe('utils/cron/filter_cronjobs', () => {
         deepStrictEqual(filter_cronjobs({ a: {} }), []);
         deepStrictEqual(log, [['⚠', 'cron "a" missing when or what properties']]);
     });
+    it('invalid when', () => {
+        deepStrictEqual(filter_cronjobs({ a: { when: 'test', what: 'a' } }), []);
+        deepStrictEqual(log, [['⚠', 'cron "a" has an invalid when property "test"']]);
+    });
 
     it('returns only jobs that should be executed now', () => {
         const cronjobs = {
@@ -61,6 +65,19 @@ describe('utils/cron/filter_cronjobs', () => {
         const date = new Date();
         const when = `${date.getMinutes()} ${date.getHours()} * * *`;
         deepStrictEqual(filter_cronjobs({ a: { when, what: 'a' } }), [{ name: 'a', when, what: 'a', failed: false }]);
+        deepStrictEqual(log, []);
+    });
+    it('ignore trigger based cronjobs', () => {
+        const date = new Date();
+        deepStrictEqual(filter_cronjobs({ a: { when: '@build', what: 'a' } }), []);
+        deepStrictEqual(log, []);
+    });
+    it('get trigger based cronjobs, when provide event name', () => {
+        const date = new Date();
+        deepStrictEqual(
+            filter_cronjobs({ a: { when: '@build', what: 'a' }, b: { when: '* * * * *', what: 'b' } }, 'build'),
+            [{ name: 'a', when: '@build', what: 'a', failed: false }]
+        );
         deepStrictEqual(log, []);
     });
     it('match the current time', () => {

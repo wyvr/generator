@@ -53,4 +53,22 @@ describe('utils/css/write_css_file', () => {
         deepStrictEqual(result, test);
         deepStrictEqual(files, ['write.css', 'write_0.css']);
     });
+    it('empty code', () => {
+        const file = join(__dirname, 'write.css');
+        write(file, '');
+        const result = write_css_file(file, '', {});
+        const files = readdirSync(__dirname);
+        const test = {};
+        deepStrictEqual(result, test);
+        deepStrictEqual(files, ['write.css']);
+    });
+    it('empty media queires', () => {
+        const file = join(__dirname, 'write.css');
+        write(file, '');
+        const result = write_css_file(file, 'a {color: red;} @media(min-width:1000px) {a {color:blue}}');
+        const files = readdirSync(__dirname);
+        const test = {};
+        deepStrictEqual(result, test);
+        deepStrictEqual(files, ['write.css']);
+    });
 });

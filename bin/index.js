@@ -8,6 +8,7 @@ import { command } from '../src/command.js';
 import { Cwd } from '../src/vars/cwd.js';
 import { Storage } from '../src/utils/storage.js';
 import { FOLDER_STORAGE } from '../src/constants/folder.js';
+import { Logger } from '../src/utils/logger.js';
 
 Cwd.set(process.cwd());
 Storage.set_location(FOLDER_STORAGE);
@@ -22,9 +23,13 @@ const config = {
 
 // console.error(config);
 (async () => {
-    const { result } = await command(config);
-    if (result) {
-        console.log(result);
+    try {
+        const { result } = await command(config);
+        if (result) {
+            console.log(result);
+        }
+    } catch (e) {
+        Logger.error('Fatal error', e);
     }
     process.exitCode = 0;
     process.exit(0);

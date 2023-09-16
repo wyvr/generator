@@ -10,7 +10,6 @@ import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { scripts } from './script.js';
-import { uniq_values } from '../utils/uniq.js';
 
 export async function route_request(req, res, uid, force_generating_of_resources) {
     const route = get_route_request(req);

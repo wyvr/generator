@@ -62,7 +62,6 @@ export function server(host, port, on_request, on_end) {
         }
         let files = {};
         let body = {};
-        const data = {};
         const query = {};
         // add query parameters to the request
         if (question_mark > -1) {
@@ -75,7 +74,7 @@ export function server(host, port, on_request, on_end) {
         req.query = query;
         // stop without parsing the body when not post, patch, put
         if (!is_data_method(req.method)) {
-            req.data = data;
+            req.body = body;
             req.files = files;
             return await final(on_end, req, res, uid, start);
         }
@@ -88,7 +87,6 @@ export function server(host, port, on_request, on_end) {
         } catch (err) {
             Logger.error(get_error_message(err, clean_url, 'request body'));
         }
-        req.data = data;
         return await final(on_end, req, res, uid, start);
     }).listen(port, host, () => {
         const pre_text = 'server started at';

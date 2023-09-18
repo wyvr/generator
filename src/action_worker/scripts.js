@@ -6,7 +6,6 @@ import { get_config_cache } from '../utils/config_cache.js';
 import { get_hydrate_dependencies } from '../utils/dependency.js';
 import { get_error_message } from '../utils/error.js';
 import { exists, read, to_extension, write } from '../utils/file.js';
-import { get_file_time_hash } from '../utils/hash.js';
 import { stringify } from '../utils/json.js';
 import { Logger } from '../utils/logger.js';
 import { write_identifier_structure } from '../utils/structure.js';
@@ -15,6 +14,7 @@ import { filled_array, filled_string, in_array, is_null } from '../utils/validat
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
 import { ReleasePath } from '../vars/release_path.js';
+import { get_instant_code, get_target } from '../utils/script.js';
 
 const __dirname = to_dirname(import.meta.url);
 const lib_dir = join(__dirname, '..');
@@ -76,14 +76,10 @@ export async function scripts(identifiers) {
             content = (
                 await Promise.all(
                     dependencies.map(async (file) => {
-                        const target = `const ${file.name}_target = document.querySelectorAll('[data-hydrate="${file.name}"]');`;
+                        const target = get_target(file.name);
                         const import_path = Cwd.get(FOLDER_GEN_CLIENT, to_relative_path(file.path));
-                        const cache_breaker = Env.is_dev() ? `?${get_file_time_hash(import_path)}` : '';
-
-                        const instant_code = `
-                import ${file.name} from '${import_path}${cache_breaker}';
-                ${target}
-                wyvr_hydrate_instant(${file.name}_target, ${file.name});`;
+                        // code to instant execute the dependency
+                        const instant_code = get_instant_code(file.name, import_path, target);
                         // loading=instant
                         if (file.config.loading == WyvrFileLoading.instant) {
                             has.instant = true;

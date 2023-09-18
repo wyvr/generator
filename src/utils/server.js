@@ -27,6 +27,7 @@ import { get_config_cache } from './config_cache.js';
 import { pub_healthcheck } from './health.js';
 import { to_dirname } from './to.js';
 import { inject } from './build.js';
+import { register_stack } from './global.js';
 
 let show_requests = true;
 
@@ -135,6 +136,7 @@ export function is_data_method(method) {
 export async function return_not_found(req, res, uid, message, status, start) {
     Logger.error(req.method, req.url, ...get_done_log_infos(message, status, start, uid));
     if (Env.is_dev()) {
+        register_stack();
         // use full page in dev mode to add devtools, which allow autoreloading the page
         const content = read(join(to_dirname(import.meta.url), '..', 'resource', '404development.html'));
         if (content) {

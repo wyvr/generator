@@ -26,14 +26,12 @@ export function get_config_cache(segment, fallback_value) {
     if (!is_null(value)) {
         return value;
     }
-    if (!IsWorker.get()) {
-        const path = get_config_cache_path(segment);
-        const cache = read_json(path);
-        if (is_null(cache)) {
-            return fallback_value;
-        }
-        Config.set(segment, cache);
+    const path = get_config_cache_path(segment);
+    const cache = read_json(path);
+    if (is_null(cache)) {
+        return fallback_value;
     }
+    Config.set(segment, cache);
     return Config.get(segment, fallback_value);
 }
 

@@ -260,8 +260,9 @@ async function generate_server(host, port, force_generating_of_resources, onEnd,
         const name = basename(req.url);
         const media_config = await config_from_url(req.url);
         if (media_config && !media_config.result_exists) {
-            const buffer = await get_buffer(media_config.src);
+            let buffer = await get_buffer(media_config.src);
             if (buffer) {
+                buffer = undefined;
                 const start = process.hrtime.bigint();
                 // generate media on demand
                 await WorkerController.process_data(WorkerAction.media, [media_config]);

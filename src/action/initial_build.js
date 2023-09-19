@@ -144,6 +144,7 @@ export async function intial_build(build_id, config) {
     await scripts(identifiers);
 
     // Generate Media/Images
+    // @TODO currently there are never medias returned from build
     await media(build_result.media);
 
     // Copy static and generated files into release

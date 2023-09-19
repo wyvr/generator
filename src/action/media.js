@@ -13,7 +13,7 @@ export async function media(files, minimize_output) {
             // wrap in plugin
             const caller = await Plugin.process(name, media_files);
             await caller(async (files) => {
-                await WorkerController.process_in_workers(WorkerAction.media, files, 10);
+                await WorkerController.process_in_workers(WorkerAction.media, files, 10, true);
             });
         },
         minimize_output

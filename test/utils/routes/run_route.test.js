@@ -38,23 +38,21 @@ describe('utils/routes/run_route', () => {
     });
     it('undefined', async () => {
         Cwd.set(join(dir, 'empty'));
-        deepStrictEqual(await run_route(), undefined);
+        deepStrictEqual(await run_route(), [undefined, undefined]);
         deepStrictEqual(log, []);
     });
     it('not matching', async () => {
         Cwd.set(join(dir, 'empty'));
-        deepStrictEqual(
-            await run_route({ url: '/huhu', method: 'GET' }, {}, '0000', {
-                match: '^\\/test$',
-                methods: ['get'],
-                mtime: 0,
-                params: [],
-                path: join(dir, 'run/test.js'),
-                rel_path: join(dir, 'run/test.js'),
-                url: '/test',
-            }),
-            undefined
-        );
+        const [result] = await run_route({ url: '/huhu', method: 'GET' }, {}, '0000', {
+            match: '^\\/test$',
+            methods: ['get'],
+            mtime: 0,
+            params: [],
+            path: join(dir, 'run/test.js'),
+            rel_path: join(dir, 'run/test.js'),
+            url: '/test',
+        });
+        deepStrictEqual(result, undefined);
         deepStrictEqual(log, [
             [
                 '✖',
@@ -67,7 +65,7 @@ describe('utils/routes/run_route', () => {
     });
     it('matching', async () => {
         Cwd.set(join(dir, 'run'));
-        const result = await run_route({ url: '/test/10', method: 'GET' }, {}, '0000', {
+        const [result] = await run_route({ url: '/test/10', method: 'GET' }, {}, '0000', {
             match: '^\\/test/([^\\]]*)$',
             methods: ['get'],
             mtime: 0,
@@ -82,7 +80,7 @@ describe('utils/routes/run_route', () => {
     });
     it('onExec does not return a object', async () => {
         Cwd.set(join(dir, 'run'));
-        const result = await run_route({ url: '/test/10', method: 'GET' }, {}, '0000', {
+        const [result] = await run_route({ url: '/test/10', method: 'GET' }, {}, '0000', {
             match: '^\\/test/([^\\]]*)$',
             methods: ['get'],
             mtime: 0,
@@ -104,7 +102,7 @@ describe('utils/routes/run_route', () => {
     });
     it('matching but not exstiting', async () => {
         Cwd.set(join(dir, 'run'));
-        const result = await run_route({ url: '/test/10', method: 'GET' }, {}, '0000', {
+        const [result] = await run_route({ url: '/test/10', method: 'GET' }, {}, '0000', {
             match: '^\\/test/([^\\]]*)$',
             methods: ['get'],
             mtime: 0,
@@ -118,7 +116,7 @@ describe('utils/routes/run_route', () => {
     });
     it('error in onExec and function property', async () => {
         Cwd.set(join(dir, 'run'));
-        const result = await run_route({ url: '/test/10', method: 'GET' }, {}, '0000', {
+        const [result] = await run_route({ url: '/test/10', method: 'GET' }, {}, '0000', {
             match: '^\\/test/([^\\]]*)$',
             methods: ['get'],
             mtime: 0,
@@ -136,7 +134,7 @@ describe('utils/routes/run_route', () => {
     });
     it('false return instead of object', async () => {
         Cwd.set(join(dir, 'run'));
-        const result = await run_route({ url: '/test/10', method: 'GET' }, {}, '0000', {
+        const [result] = await run_route({ url: '/test/10', method: 'GET' }, {}, '0000', {
             match: '^\\/test/([^\\]]*)$',
             methods: ['get'],
             mtime: 0,
@@ -148,13 +146,16 @@ describe('utils/routes/run_route', () => {
         const html = result?.result?.html;
         deepStrictEqual(html, '');
         deepStrictEqual(log, [
-            ['⚠', '[route] onExec in /home/p/wyvr/generator/test/utils/routes/_tests/run/false.js should return a object'],
+            [
+                '⚠',
+                '[route] onExec in /home/p/wyvr/generator/test/utils/routes/_tests/run/false.js should return a object',
+            ],
         ]);
     });
     it('returnJson', async () => {
         Cwd.set(join(dir, 'run'));
         let head, json;
-        const result = await run_route(
+        const [result] = await run_route(
             { url: '/test/10', method: 'GET' },
             {
                 writeHead: (...args) => {
@@ -179,6 +180,7 @@ describe('utils/routes/run_route', () => {
         deepStrictEqual(result, undefined);
         deepStrictEqual(head, [
             404,
+            undefined,
             {
                 'Content-Type': 'application/json',
             },
@@ -187,7 +189,7 @@ describe('utils/routes/run_route', () => {
     });
     it('show all data', async () => {
         Cwd.set(join(dir, 'run'));
-        const result = await run_route({ url: '/test/10?a=b&c', method: 'GET' }, {}, '0000', {
+        const [result] = await run_route({ url: '/test/10?a=b&c', method: 'GET' }, {}, '0000', {
             match: '^\\/test/([^\\]]*)$',
             methods: ['get'],
             mtime: 0,
@@ -203,18 +205,26 @@ describe('utils/routes/run_route', () => {
         );
         deepStrictEqual(log, [['⚠', '[route] returnJSON can only be used in onExec']]);
     });
-   
+
     it('JSON in query parameters', async () => {
         Cwd.set(join(dir, 'run'));
-        const result = await run_route({ url: '/test/10?conditions=%5B%7B%22attribute%22%3A%22sale%22%2C%22operator%22%3A%22%3D%3D%22%2C%22value%22%3A%221%22%7D%5D&amount=10', method: 'GET' }, {}, '0000', {
-            match: '^\\/test/([^\\]]*)$',
-            methods: ['get'],
-            mtime: 0,
-            params: ['id'],
-            path: join(dir, 'run/show_all.js'),
-            rel_path: join(dir, 'run/show_all.js'),
-            url: '/test',
-        });
+        const [result] = await run_route(
+            {
+                url: '/test/10?conditions=%5B%7B%22attribute%22%3A%22sale%22%2C%22operator%22%3A%22%3D%3D%22%2C%22value%22%3A%221%22%7D%5D&amount=10',
+                method: 'GET',
+            },
+            {},
+            '0000',
+            {
+                match: '^\\/test/([^\\]]*)$',
+                methods: ['get'],
+                mtime: 0,
+                params: ['id'],
+                path: join(dir, 'run/show_all.js'),
+                rel_path: join(dir, 'run/show_all.js'),
+                url: '/test',
+            }
+        );
         const html = result?.result?.html;
         deepStrictEqual(
             html,
@@ -225,7 +235,7 @@ describe('utils/routes/run_route', () => {
     it('custom header', async () => {
         Cwd.set(join(dir, 'run'));
         let head, json;
-        const result = await run_route(
+        const [result] = await run_route(
             { url: '/test/10', method: 'GET' },
             {
                 writeHead: (...args) => {
@@ -247,6 +257,7 @@ describe('utils/routes/run_route', () => {
         deepStrictEqual(html, '');
         deepStrictEqual(head, [
             201,
+            undefined,
             {
                 'Custom-Head1': 'ch1',
                 'Custom-Head2': ['ch2', 'ch3'],

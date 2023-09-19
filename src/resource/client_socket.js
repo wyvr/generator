@@ -191,7 +191,9 @@
             const value = ref.getAttribute(attribute);
             if (value) {
                 // @see https://stackoverflow.com/questions/2024486/is-there-an-easy-way-to-reload-css-without-reloading-the-page
-                ref.setAttribute(attribute, value + '');
+                // add cache breaker to the resource
+                const cb = new Date().getTime().toString();
+                ref.setAttribute(attribute, value + (value.indexOf('?') > -1 ? '&' : '?') + cb);
             }
         });
     }

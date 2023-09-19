@@ -134,6 +134,7 @@ export async function regenerate(changed_files) {
             pages = uniq_values([].concat(pages, watcher_pages));
         }
 
+        pages = pages.filter(Boolean);
         Logger.debug('pages', pages);
         if (filled_array(pages)) {
             const identifier_name = get_name(WorkerEmit.identifier);

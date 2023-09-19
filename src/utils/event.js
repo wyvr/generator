@@ -12,6 +12,7 @@ export class Event {
             this.listeners[_scope][_name] = [];
         }
 
+        // theoretically possible to overflow the number type
         const id = this.auto_increment++;
         this.listeners[_scope][_name].push({ id, fn });
         return id;

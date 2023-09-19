@@ -35,7 +35,10 @@ export async function route_request(req, res, uid, force_generating_of_resources
         if (!data) {
             return;
         }
-        response = data?.response;
+        // set the response only when the url is equal to the requested
+        if (data?.response?.url === req.url) {
+            response = data?.response;
+        }
     });
     // wrap in plugin
     const caller = await Plugin.process(name, [ser_req]);

@@ -40,6 +40,8 @@ export async function route(requests) {
             type: WorkerEmit.route,
             response: response?.serialize() || response,
         };
+        // append url, to identify the routes in the event
+        route_emit.response.url = request.url;
         send_action(WorkerAction.emit, route_emit);
     }
 }

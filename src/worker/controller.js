@@ -352,7 +352,9 @@ export class WorkerController {
             return false;
         }
         // wait some time that the events can catch up
-        await sleep(50);
+        if (!this.multi_threading) {
+            await sleep(10);
+        }
         const amount = list.length;
         if (amount == 0) {
             Logger.improve('no items to process, batch size', Logger.color.cyan(batch_size.toString()));
@@ -400,7 +402,9 @@ export class WorkerController {
                 if (this.tick(this.queue)) {
                     Event.off('worker_status', WorkerStatus.idle, listener_id);
                     // wait some time that the events can catch up
-                    await sleep(50);
+                    if (!this.multi_threading) {
+                        await sleep(10);
+                    }
                     resolve(true);
                 }
             });

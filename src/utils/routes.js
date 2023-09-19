@@ -3,7 +3,7 @@ import { FOLDER_GEN_ROUTES, FOLDER_GEN_SRC, FOLDER_ROUTES } from '../constants/f
 import { Cwd } from '../vars/cwd.js';
 import { compile_server_svelte } from './compile.js';
 import { render_server_compiled_svelte } from './compile_svelte.js';
-import { set_config_cache } from './config_cache.js';
+import { get_config_cache, set_config_cache } from './config_cache.js';
 import { get_error_message } from './error.js';
 import { collect_files, exists, read, write } from './file.js';
 import { generate_page_code } from './generate.js';
@@ -86,7 +86,7 @@ export function get_route(url, method, route_cache) {
 
 export async function run_route(request, response, uid, route) {
     if (!match_interface(request, { url: true })) {
-        return undefined;
+        return [undefined, response];
     }
 
     // remove the get parameter from the url
@@ -111,7 +111,7 @@ export async function run_route(request, response, uid, route) {
     const params_match = clean_url.match(route.match);
     if (!params_match) {
         Logger.error(uid, "can't extract params from url", clean_url, route);
-        return undefined;
+        return [undefined, response];
     }
     // get parameters from url
     const params = {};
@@ -123,7 +123,7 @@ export async function run_route(request, response, uid, route) {
     const code = await load_route(route.path);
 
     if (is_null(code)) {
-        return undefined;
+        return [undefined, response];
     }
 
     const error_message = (key) => `error in ${key} function`;
@@ -148,10 +148,10 @@ export async function run_route(request, response, uid, route) {
         returnJSON: (json, status = 200, headers = {}) => {
             const response_header = Object.assign({}, headers);
             response_header['Content-Type'] = 'application/json';
-            end_response(response, JSON.stringify(json), status, response_header);
+            response = end_response(response, JSON.stringify(json), status, response_header);
         },
         returnData: (data, status = 200, headers = {}) => {
-            end_response(response, data, status, headers);
+            response = end_response(response, data, status, headers);
         },
         setStatus: (statusCode = 200) => {
             status = statusCode;
@@ -172,7 +172,7 @@ export async function run_route(request, response, uid, route) {
             if (Env.is_dev()) {
                 Logger.info('Redirect to', url, response_header);
             }
-            end_response(response, `Redirect to ${url}`, statusCode, response_header);
+            response = end_response(response, `Redirect to ${url}`, statusCode, response_header);
         },
     };
 
@@ -189,7 +189,7 @@ export async function run_route(request, response, uid, route) {
         try {
             data = await code.onExec(route_context);
             if (route_context?.response?.writableEnded) {
-                return undefined;
+                return [undefined, response];
             }
         } catch (e) {
             Logger.error('[route]', error_message('onExec'), get_error_message(e, route.path, 'route'));
@@ -246,7 +246,7 @@ export async function run_route(request, response, uid, route) {
     );
     // when customHead is set execute it
     if (customHead && response) {
-        response.writeHead(status, header);
+        response.writeHead(status, undefined, header);
     }
 
     data.url = clean_url;
@@ -263,7 +263,7 @@ export async function run_route(request, response, uid, route) {
     /* c8 ignore start */
     // safeguard
     if (!rendered_result) {
-        return undefined;
+        return [undefined, response];
     }
     /* c8 ignore end */
 
@@ -284,12 +284,13 @@ export async function run_route(request, response, uid, route) {
 
     rendered_result.result.html = injected_result.content;
 
-    return rendered_result;
+    return [rendered_result, response];
 }
 
 function end_response(response, data, status = 200, headers = {}) {
-    response?.writeHead(status, headers);
+    response?.writeHead(status, undefined, headers);
     response?.end(data);
+    return response;
 }
 
 export async function extract_route_config(result, path) {
@@ -341,4 +342,32 @@ export async function extract_route_config(result, path) {
         methods,
         weight,
     };
+}
+
+let fallback_route_cache;
+let route_cache;
+export function clear_caches() {
+    route_cache = undefined;
+    fallback_route_cache = undefined;
+}
+export function get_route_request(req) {
+    if (!route_cache) {
+        route_cache = get_config_cache('route.cache');
+    }
+    return get_route(req.url, req.method, route_cache);
+}
+export async function get_fallback_route() {
+    if (fallback_route_cache) {
+        return fallback_route_cache;
+    }
+    // @TODO check if this should be removed
+    const fallback_file = Cwd.get(FOLDER_GEN_ROUTES, '_fallback.js');
+    if (!exists(fallback_file)) {
+        return false;
+    }
+    const result = await load_route(fallback_file);
+    fallback_route_cache = await extract_route_config(result, fallback_file);
+    fallback_route_cache.match = '.*';
+
+    return fallback_route_cache;
 }

@@ -1,102 +1,91 @@
-import { join } from 'path';
-import { FOLDER_CSS, FOLDER_GEN_ROUTES, FOLDER_GEN_JS, FOLDER_JS, FOLDER_CACHE } from '../constants/folder.js';
-import { get_config_cache } from '../utils/config_cache.js';
-import { extract_route_config, get_route, load_route, run_route } from '../utils/routes.js';
-import { copy, exists, write, to_index, read } from '../utils/file.js';
+import { get_fallback_route } from '../utils/routes.js';
 import { Logger } from '../utils/logger.js';
-import { send_content, send_head } from '../utils/server.js';
-import { filled_string } from '../utils/validate.js';
-import { Cwd } from '../vars/cwd.js';
-import { Env } from '../vars/env.js';
-import { ReleasePath } from '../vars/release_path.js';
-import { scripts } from './script.js';
+import { match_interface } from '../utils/validate.js';
 
+import { WorkerAction } from '../struc/worker_action.js';
+import { Plugin } from '../utils/plugin.js';
+import { WorkerController } from '../worker/controller.js';
+import { SerializableRequest } from '../model/serializable/request.js';
+import { WorkerEmit, get_name } from '../struc/worker_emit.js';
+import { Event } from '../utils/event.js';
+import { send_process_route_request } from '../action_worker/route.js';
+
+const route_name = get_name(WorkerEmit.route);
+
+/**
+ *
+ * @param {IncomingMessage} req
+ * @param {Response} res
+ * @param {string} uid
+ * @param {boolean} force_generating_of_resources
+ * @returns
+ */
 export async function route_request(req, res, uid, force_generating_of_resources) {
-    const route = get_route_request(req);
-    if (route) {
-        Logger.debug('route', req.url, route.url);
-        const result = await send_process_route_request(req, res, uid, route, force_generating_of_resources);
-        return result;
+    const name = 'route';
+
+    let response;
+
+    // create serializable request object
+    const ser_req = SerializableRequest(req, {
+        uid,
+        force_generating_of_resources,
+    });
+
+    const route_id = Event.on('emit', route_name, (data) => {
+        if (!data) {
+            return;
+        }
+        response = data?.response;
+    });
+    // wrap in plugin
+    const caller = await Plugin.process(name, [ser_req]);
+    await caller(async (requests) => {
+        await WorkerController.process_in_workers(WorkerAction.route, requests, 1, true);
+    });
+    Event.off('emit', route_name, route_id);
+
+    if (!response) {
+        return false;
     }
-    return false;
+
+    return apply_response(res, response);
 }
 
-let route_cache;
-export function clear_caches() {
-    route_cache = undefined;
-    fallback_route_cache = undefined;
-}
-export function get_route_request(req) {
-    if (!route_cache) {
-        route_cache = get_config_cache('route.cache');
-    }
-    return get_route(req.url, req.method, route_cache);
-}
-
-let fallback_route_cache;
 export async function fallback_route_request(req, res, uid) {
-    if (!fallback_route_cache) {
-        const fallback_file = Cwd.get(FOLDER_GEN_ROUTES, '_fallback.js');
-        if (!exists(fallback_file)) {
-            return false;
-        }
-        const result = await load_route(fallback_file);
-        fallback_route_cache = await extract_route_config(result, fallback_file);
-        fallback_route_cache.match = '.*';
+    // @TODO move to the worker
+    const fallback_route = await get_fallback_route();
+    if (!fallback_route) {
+        return res;
     }
-    return await send_process_route_request(req, res, uid, fallback_route_cache, false);
+    const response = await send_process_route_request(req, res, uid, fallback_route, false);
+    return apply_response(res, response);
 }
 
-export async function send_process_route_request(req, res, uid, route, force_generating_of_resources) {
-    const result = await process_route_request(req, res, uid, route, force_generating_of_resources);
-    if (result?.result?.html && !res.writableEnded) {
-        send_head(res, 200, 'text/html');
-        send_content(res, result.result.html);
-        return true;
-    }
-    return false;
-}
-
-export async function process_route_request(req, res, uid, route, force_generating_of_resources) {
-    const result = await run_route(req, res, uid, route);
-    // write css
-    if (filled_string(result?.data?._wyvr?.identifier) && result?.result?.css?.code) {
-        const css_file_path = join(ReleasePath.get(), FOLDER_CSS, `${result.data._wyvr.identifier}.css`);
-        if (!exists(css_file_path) || force_generating_of_resources) {
-            write(css_file_path, result.result.css.code);
-        }
-    }
-    const js_path = join(ReleasePath.get(), FOLDER_JS, `${result?.data?._wyvr?.identifier || 'default'}.js`);
-    const identifiers = result?.shortcode || {};
-    const generate_identifier =
-        result?.data?._wyvr?.identifier_data && (!exists(js_path) || force_generating_of_resources);
-    if (generate_identifier) {
-        // script only accepts an object
-        identifiers[result.data._wyvr.identifier_data.identifier] = result?.data._wyvr.identifier_data;
-        // save the file to gen
-    }
-    if (Object.keys(identifiers).length > 0) {
-        await scripts(identifiers, true);
-    }
-    if (generate_identifier) {
-        copy(Cwd.get(FOLDER_GEN_JS, `${result.data._wyvr.identifier}.js`), js_path);
+/**
+ * Apply the changes from the serializeable response to the given response
+ * @param {Response} response
+ * @param {SerializableResponse} ser_response
+ * @returns {Response}
+ */
+export function apply_response(response, ser_response) {
+    if (!ser_response) {
+        return response;
     }
 
-    // persist the result
-    if (result?.result?.html && result?.data?._wyvr?.persist && Env.is_prod()) {
-        const file = to_index(req.url, 'html');
-        const persisted_path = join(ReleasePath.get(), file);
-        write(persisted_path, result.result.html);
-        Logger.improve('persisted', file);
-        // if there is no response, then the page should not be marked as generated, because it was triggered from a cronjob
-        if(res) {
-            // add marker to identify which file where generated before
-            const persisted_routes_file = Cwd.get(FOLDER_CACHE, 'routes_persisted.txt');
-            const content = read(persisted_routes_file) || '';
-            const line = file + '\n';
-            const new_content = content.indexOf(line) > -1 ? content : content + line;
-            write(persisted_routes_file, new_content);
-        }
+    response.writeHead(ser_response.statusCode, ser_response.headers);
+
+    if (!ser_response.complete) {
+        return response;
     }
-    return result;
+    // convert serialized buffer back to buffer
+    if (match_interface(ser_response.data, { type: true, data: true })) {
+        response.end(Buffer.from(ser_response.data));
+        return response;
+    }
+    if (typeof ser_response.data === 'string') {
+        response.end(ser_response.data);
+        return response;
+    }
+    Logger.warning('Response data has unknown format', typeof ser_response.data);
+    return response;
 }

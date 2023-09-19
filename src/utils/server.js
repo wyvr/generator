@@ -52,7 +52,7 @@ export function server(host, port, on_request, on_end) {
                 question_mark > -1 ? question_mark : Number.MAX_SAFE_INTEGER,
                 hash > -1 ? hash : Number.MAX_SAFE_INTEGER
             );
-            res.writeHead(Env.is_dev() ? 302 : 301, {
+            res.writeHead(Env.is_dev() ? 302 : 301, undefined, {
                 location: clean_url + '/' + url.substring(params_pos),
             });
             res.end();
@@ -180,22 +180,22 @@ export function get_time_log_infos(start = undefined, uid = undefined) {
 }
 
 export function send_head(res, status, content_type) {
-    if (!res.headersSent && status) {
-        const headers = {};
-        if (content_type) {
-            headers['Content-Type'] = content_type;
-        }
-        res.writeHead(status, headers);
-        return true;
+    if (res.complete || res.writableEnded) {
+        return res;
     }
-    return false;
+    const headers = {};
+    if (content_type) {
+        headers['Content-Type'] = content_type;
+    }
+    res.writeHead(status, undefined, headers);
+    return res;
 }
 export function send_content(res, content) {
-    if (!res.writableEnded) {
-        res.end(content);
-        return true;
+    if (res.complete || res.writableEnded) {
+        return res;
     }
-    return false;
+    res.end(content);
+    return res;
 }
 
 let static_server_instance;
@@ -276,17 +276,18 @@ async function generate_server(host, port, force_generating_of_resources, onEnd,
         }
         await static_server(req, res, uid, async (err) => {
             if (err) {
-                const route_result = await route_request(req, res, uid, force_generating_of_resources);
-                if (route_result) {
+                const route_response = await route_request(req, res, uid, force_generating_of_resources);
+                if (route_response) {
                     return;
                 }
-                if (!res.writableEnded) {
+                if (!route_response.writableEnded) {
                     if (is_func(fallback)) {
                         await fallback(req, res, uid, err);
                         return false;
                     }
-                    const fallback_result = await fallback_route_request(req, res, uid);
-                    if (fallback_result) {
+                    // fallback_route_request returns an response
+                    const fallback_route_response = await fallback_route_request(req, res, uid);
+                    if (fallback_route_response) {
                         return;
                     }
                 }

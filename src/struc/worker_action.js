@@ -17,6 +17,7 @@ export const WorkerAction = {
     set_config_cache: 15,
     critical: 16,
     collections: 17,
+    route: 18,
 };
 export function get_name(action) {
     return Object.keys(WorkerAction).find((key) => WorkerAction[key] == action);

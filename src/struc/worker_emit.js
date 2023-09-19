@@ -14,7 +14,8 @@ export const WorkerEmit = {
     media_query_files: 13,
     identifier_files: 14,
     critical: 15,
-    collections: 16
+    collections: 16,
+    route: 17,
 };
 
 export function get_name(emit) {

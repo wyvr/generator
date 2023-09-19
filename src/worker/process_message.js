@@ -16,6 +16,7 @@ import { scripts } from '../action_worker/scripts.js';
 import { transform } from '../action_worker/transform.js';
 import { send_status } from './communication.js';
 import { collections } from '../action_worker/collections.js';
+import { route } from '../action_worker/route.js';
 
 export async function process_message(msg) {
     const action = msg?.action?.key;
@@ -79,6 +80,10 @@ export async function process_message(msg) {
         }
         case WorkerAction.optimize: {
             await optimize(value);
+            break;
+        }
+        case WorkerAction.route: {
+            await route(value);
             break;
         }
         case WorkerAction.collections: {

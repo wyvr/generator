@@ -1,13 +1,12 @@
 import { extname, join } from 'path';
 import { copy_executable_file, copy_files, copy_folder } from '../action/copy.js';
-import { clear_caches } from '../action/route.js';
 import { i18n } from '../action/i18n.js';
 import { FOLDER_GEN, FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC, FOLDER_I18N } from '../constants/folder.js';
 import { Page } from '../model/page.js';
 import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { Config } from './config.js';
-import { build_cache } from './routes.js';
+import { build_cache, clear_caches } from './routes.js';
 import { copy, exists, read, remove, to_extension, write } from './file.js';
 import { clear_cache } from './i18n.js';
 import { Plugin } from './plugin.js';

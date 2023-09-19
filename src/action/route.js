@@ -13,12 +13,12 @@ import { send_process_route_request } from '../action_worker/route.js';
 const route_name = get_name(WorkerEmit.route);
 
 /**
- *
+ * Process route from an request
  * @param {IncomingMessage} req
  * @param {Response} res
  * @param {string} uid
  * @param {boolean} force_generating_of_resources
- * @returns
+ * @returns {Response|false} response
  */
 export async function route_request(req, res, uid, force_generating_of_resources) {
     const name = 'route';

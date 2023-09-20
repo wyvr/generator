@@ -9,6 +9,7 @@ import { SerializableRequest } from '../model/serializable/request.js';
 import { WorkerEmit, get_name } from '../struc/worker_emit.js';
 import { Event } from '../utils/event.js';
 import { send_process_route_request } from '../action_worker/route.js';
+import { STATUS_CODES } from 'http';
 
 const route_name = get_name(WorkerEmit.route);
 
@@ -51,17 +52,17 @@ export async function route_request(req, res, uid, force_generating_of_resources
         return false;
     }
 
-    return apply_response(res, response);
+    return response;
 }
 
 export async function fallback_route_request(req, res, uid) {
     // @TODO move to the worker
     const fallback_route = await get_fallback_route();
     if (!fallback_route) {
-        return res;
+        return false;
     }
     const response = await send_process_route_request(req, res, uid, fallback_route, false);
-    return apply_response(res, response);
+    return response;
 }
 
 /**
@@ -74,12 +75,14 @@ export function apply_response(response, ser_response) {
     if (!ser_response) {
         return response;
     }
-
-    response.writeHead(ser_response.statusCode, ser_response.headers);
+    response.statusCode = ser_response.statusCode;
+    response.statusText = STATUS_CODES[ser_response.statusCode];
+    response.setHeaders(new Headers(ser_response.headers));
 
     if (!ser_response.complete) {
         return response;
     }
+    response.writeHead(response.statusCode, response.headers);
     // convert serialized buffer back to buffer
     if (match_interface(ser_response.data, { type: true, data: true })) {
         response.end(Buffer.from(ser_response.data));
@@ -87,6 +90,10 @@ export function apply_response(response, ser_response) {
     }
     if (typeof ser_response.data === 'string') {
         response.end(ser_response.data);
+        return response;
+    }
+    if (ser_response.data === undefined) {
+        response.end();
         return response;
     }
     Logger.warning('Response data has unknown format', typeof ser_response.data);

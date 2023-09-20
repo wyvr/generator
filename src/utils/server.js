@@ -9,7 +9,7 @@ import { Cwd } from '../vars/cwd.js';
 import { get_error_message } from './error.js';
 import { nano_to_milli } from './convert.js';
 import { Env } from '../vars/env.js';
-import { route_request, fallback_route_request } from '../action/route.js';
+import { route_request, fallback_route_request, apply_response } from '../action/route.js';
 import { config_from_url, get_buffer } from './media.js';
 import { Event } from './event.js';
 import { stringify } from './json.js';
@@ -279,9 +279,10 @@ async function generate_server(host, port, force_generating_of_resources, onEnd,
             if (err) {
                 const route_response = await route_request(req, res, uid, force_generating_of_resources);
                 if (route_response) {
+                    res = apply_response(res, route_response);
                     return;
                 }
-                if (!route_response.writableEnded) {
+                if (!route_response.complete) {
                     if (is_func(fallback)) {
                         await fallback(req, res, uid, err);
                         return false;
@@ -289,6 +290,7 @@ async function generate_server(host, port, force_generating_of_resources, onEnd,
                     // fallback_route_request returns an response
                     const fallback_route_response = await fallback_route_request(req, res, uid);
                     if (fallback_route_response) {
+                        res = apply_response(res, fallback_route_response);
                         return;
                     }
                 }

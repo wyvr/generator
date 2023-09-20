@@ -15,6 +15,23 @@ import { get_configure_data } from '../action/configure.js';
 import { sleep } from '../utils/sleep.js';
 
 export class WorkerController {
+    static async initialize(ratio = 1, single_threaded = false) {
+        // ratio=Config.get('worker.ratio', 1)
+        // single_threaded=config_data?.cli?.flags?.single
+        // set worker ratio
+        WorkerController.set_worker_ratio(ratio);
+
+        if (single_threaded) {
+            Logger.warning('running in single threaded mode, no workers will be started');
+
+            await WorkerController.single_threaded();
+        } else {
+            // Create the workers for the processing
+            const worker_amount = WorkerController.get_worker_amount_from_ratio();
+            Logger.present('worker', worker_amount, Logger.color.dim(`of ${cpus().length} threads`));
+            WorkerController.create_workers(worker_amount);
+        }
+    }
     static create_workers(amount, fork_fn) {
         this.workers = [];
         for (let i = amount; i > 0; i--) {

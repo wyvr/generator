@@ -16,6 +16,7 @@ import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
 import { app_server } from '../utils/server.js';
 import { UniqId } from '../vars/uniq_id.js';
+import { WorkerController } from '../worker/controller.js';
 
 export const app_command = async (config) => {
     await check_env();
@@ -30,9 +31,14 @@ export const app_command = async (config) => {
     }
     UniqId.set(build_id);
 
+    const config_data = get_config_data(config, build_id);
+
     if (build_needed) {
         Logger.warning('no build id or pub folder found, build is required');
-        const { media_query_files } = await intial_build(build_id, config);
+        
+        await WorkerController.initialize(Config.get('worker.ratio', 1), config_data?.cli?.flags?.single)
+
+        const { media_query_files } = await intial_build(build_id, config_data);
 
         // Generate critical css
         const critical_result = await critical();
@@ -48,8 +54,6 @@ export const app_command = async (config) => {
 
         await clear_releases(build_id);
     } else {
-        const config_data = get_config_data(config, build_id);
-
         present(config_data);
 
         await pre_initial_build(build_id, config_data);
@@ -69,6 +73,9 @@ export const app_command = async (config) => {
         pub_config_cache('route.cache');
         pub_config_cache('page.cache');
     }
+
+    
+
 
 
     app_server('localhost', port);

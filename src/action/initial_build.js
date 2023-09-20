@@ -58,20 +58,6 @@ export async function pre_initial_build(build_id, config_data) {
 
     await Storage.set('config', Config.get());
 
-    // set worker ratio
-    WorkerController.set_worker_ratio(Config.get('worker.ratio', 1));
-
-    if (config_data?.cli?.flags?.single) {
-        Logger.warning('running in single threaded mode, no workers will be started');
-
-        await WorkerController.single_threaded();
-    } else {
-        // Create the workers for the processing
-        const worker_amount = WorkerController.get_worker_amount_from_ratio();
-        Logger.present('worker', worker_amount, Logger.color.dim(`of ${cpus().length} threads`));
-        WorkerController.create_workers(worker_amount);
-    }
-
     // Create required symlinks
     symlink(Cwd.get(FOLDER_MEDIA), join(ReleasePath.get(), FOLDER_MEDIA));
 
@@ -82,9 +68,7 @@ export async function pre_initial_build(build_id, config_data) {
     };
 }
 
-export async function intial_build(build_id, config) {
-    const config_data = get_config_data(config, build_id);
-
+export async function intial_build(build_id, config_data) {
     present(config_data);
 
     // clear gen folder

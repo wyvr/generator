@@ -15,6 +15,7 @@ import { Config } from '../utils/config.js';
 import { get_ports } from '../action/port.js';
 import { publish } from '../action/publish.js';
 import { Plugin } from '../utils/plugin.js';
+import { WorkerController } from '../worker/controller.js';
 
 export async function dev_command(config) {
     // dev command has forced dev state, when nothing is defined
@@ -36,8 +37,11 @@ export async function dev_command(config) {
     if (!is_fast && config?.cli?.flags?.fast) {
         Logger.warning('fast build is not available');
     }
+    const config_data = get_config_data(config, build_id);
+
+    await WorkerController.initialize(Config.get('worker.ratio', 1), config_data?.cli?.flags?.single);
+
     if (is_fast) {
-        const config_data = get_config_data(config, build_id);
         present(config_data);
         const { available_packages } = await pre_initial_build(build_id, config_data);
 
@@ -45,7 +49,7 @@ export async function dev_command(config) {
 
         packages = available_packages;
     } else {
-        const result = await intial_build(build_id, config);
+        const result = await intial_build(build_id, config_data);
         packages = result.packages;
     }
     await publish();

@@ -8,8 +8,9 @@ import { WorkerController } from '../worker/controller.js';
 import { SerializableRequest } from '../model/serializable/request.js';
 import { WorkerEmit, get_name } from '../struc/worker_emit.js';
 import { Event } from '../utils/event.js';
-import { send_process_route_request } from '../action_worker/route.js';
+import { route, send_process_route_request } from '../action_worker/route.js';
 import { STATUS_CODES } from 'http';
+import { IsWorker } from '../vars/is_worker.js';
 
 const route_name = get_name(WorkerEmit.route);
 
@@ -32,21 +33,26 @@ export async function route_request(req, res, uid, force_generating_of_resources
         force_generating_of_resources,
     });
 
-    const route_id = Event.on('emit', route_name, (data) => {
-        if (!data) {
-            return;
-        }
-        // set the response only when the url is equal to the requested
-        if (data?.response?.url === req.url) {
-            response = data?.response;
-        }
-    });
     // wrap in plugin
     const caller = await Plugin.process(name, [ser_req]);
     await caller(async (requests) => {
-        await WorkerController.process_in_workers(WorkerAction.route, requests, 1, true);
+        if (IsWorker.get()) {
+            const responses = await route(requests);
+            response = responses.find(Boolean);
+        } else {
+            const route_id = Event.on('emit', route_name, (data) => {
+                if (!data) {
+                    return;
+                }
+                // set the response only when the url is equal to the requested
+                if (data?.response?.url === req.url) {
+                    response = data?.response;
+                }
+            });
+            await WorkerController.process_in_workers(WorkerAction.route, requests, 1, true);
+            Event.off('emit', route_name, route_id);
+        }
     });
-    Event.off('emit', route_name, route_id);
 
     if (!response) {
         return false;
@@ -75,6 +81,7 @@ export function apply_response(response, ser_response) {
     if (!ser_response) {
         return response;
     }
+    response.wyvr = true;
     response.statusCode = ser_response.statusCode;
     response.statusText = STATUS_CODES[ser_response.statusCode];
     response.setHeaders(new Headers(ser_response.headers));

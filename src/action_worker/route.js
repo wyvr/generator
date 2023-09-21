@@ -17,9 +17,9 @@ import { Env } from '../vars/env.js';
 
 export async function route(requests) {
     if (!filled_array(requests)) {
-        return;
+        return [];
     }
-
+    const responses = [];
     for (const request of requests) {
         const route = get_route_request(request);
         if (!route) {
@@ -36,6 +36,7 @@ export async function route(requests) {
             route,
             force_generating_of_resources
         );
+        responses.push(response?.serialize() || response);
         const route_emit = {
             type: WorkerEmit.route,
             response: response?.serialize() || response,
@@ -44,16 +45,17 @@ export async function route(requests) {
         route_emit.response.url = request.url;
         send_action(WorkerAction.emit, route_emit);
     }
+    return responses;
 }
 
 /**
  * Process and set the response headers so that the result can be displayed in the browser
- * @param {IncomingMessage} req 
- * @param {SerializableResponse} res 
- * @param {string} uid 
- * @param {any} route 
- * @param {boolean} force_generating_of_resources 
- * @returns 
+ * @param {IncomingMessage} req
+ * @param {SerializableResponse} res
+ * @param {string} uid
+ * @param {any} route
+ * @param {boolean} force_generating_of_resources
+ * @returns {SerializableResponse}
  */
 export async function send_process_route_request(req, res, uid, route, force_generating_of_resources) {
     let [result, response] = await process_route_request(req, res, uid, route, force_generating_of_resources);
@@ -66,11 +68,11 @@ export async function send_process_route_request(req, res, uid, route, force_gen
 
 /**
  * Process the given request as the found route and return the generated result and the response, because routes can alter the response
- * @param {IncomingMessage} req 
- * @param {SerializableResponse} res 
- * @param {string} uid 
- * @param {any} route 
- * @param {boolean} force_generating_of_resources 
+ * @param {IncomingMessage} req
+ * @param {SerializableResponse} res
+ * @param {string} uid
+ * @param {any} route
+ * @param {boolean} force_generating_of_resources
  * @returns {[any, SerializableResponse]}
  */
 export async function process_route_request(req, res, uid, route, force_generating_of_resources) {

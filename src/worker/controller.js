@@ -16,8 +16,6 @@ import { sleep } from '../utils/sleep.js';
 
 export class WorkerController {
     static async initialize(ratio = 1, single_threaded = false) {
-        // ratio=Config.get('worker.ratio', 1)
-        // single_threaded=config_data?.cli?.flags?.single
         // set worker ratio
         WorkerController.set_worker_ratio(ratio);
 
@@ -269,10 +267,20 @@ export class WorkerController {
         if (!filled_string(key)) {
             return false;
         }
-        this.workers.forEach((worker) => {
-            this.send_action(worker, WorkerAction.set, { key, value });
-        });
+        this.send_action_all_workers(WorkerAction.set, { key, value });
         return true;
+    }
+
+    /**
+     * send action to all workers
+     * @param {string} segment
+     * @param {any} value
+     * @returns whether the value was sent to the workers or not
+     */
+    static send_action_all_workers(action, data) {
+        this.workers.forEach((worker) => {
+            this.send_action(worker, action, data);
+        });
     }
 
     /**
@@ -286,9 +294,7 @@ export class WorkerController {
             return false;
         }
         if (this.multi_threading) {
-            this.workers.forEach((worker) => {
-                this.send_action(worker, WorkerAction.set_config_cache, { segment, value });
-            });
+            this.send_action_all_workers(WorkerAction.set_config_cache, { segment, value });
         }
         return true;
     }

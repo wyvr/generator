@@ -1,4 +1,4 @@
-import { cpus } from 'os';
+import { availableParallelism } from 'os';
 import { Worker } from '../model/worker.js';
 import { Logger } from '../utils/logger.js';
 import { filled_array, filled_string, is_null, is_number, is_object, is_int } from '../utils/validate.js';
@@ -28,7 +28,7 @@ export class WorkerController {
         } else {
             // Create the workers for the processing
             const worker_amount = WorkerController.get_worker_amount_from_ratio();
-            Logger.present('worker', worker_amount, Logger.color.dim(`of ${cpus().length} threads`));
+            Logger.present('worker', worker_amount, Logger.color.dim(`of ${availableParallelism()} threads`));
             WorkerController.create_workers(worker_amount);
         }
     }
@@ -79,7 +79,7 @@ export class WorkerController {
         }
         // get amount of cores
         // at least one and left 1 core for the main worker
-        const cpu_cores = cpus().length;
+        const cpu_cores = availableParallelism();
         const cpu_cores_ratio = Math.round(cpu_cores * this.worker_ratio);
         const max_cores = Math.max(1, cpu_cores_ratio - 1);
 

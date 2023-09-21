@@ -18,6 +18,7 @@ export const WorkerAction = {
     critical: 16,
     collections: 17,
     route: 18,
+    mode: 19,
 };
 export function get_name(action) {
     return Object.keys(WorkerAction).find((key) => WorkerAction[key] == action);

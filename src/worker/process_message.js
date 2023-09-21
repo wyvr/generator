@@ -98,6 +98,10 @@ export async function process_message(msg) {
             Logger.warning('setting status from outside is not allowed');
             break;
         }
+        case WorkerAction.mode: {
+            Logger.warning('setting mode is only possible for cluster worker not child_process worker');
+            break;
+        }
         default:
             Logger.warning('unknown message action from outside', msg);
             break;

@@ -1,4 +1,4 @@
-import { availableParallelism } from 'os';
+import os from 'os';
 import { Worker } from '../model/worker.js';
 import { Logger } from '../utils/logger.js';
 import { filled_array, filled_string, is_null, is_number, is_object, is_int } from '../utils/validate.js';
@@ -15,7 +15,7 @@ import { get_configure_data } from '../action/configure.js';
 import { sleep } from '../utils/sleep.js';
 
 export class WorkerController {
-    static async initialize(ratio = 1, single_threaded = false) {
+    static async initialize(ratio = 1, single_threaded = false, fork_fn) {
         // set worker ratio
         WorkerController.set_worker_ratio(ratio);
 
@@ -26,8 +26,9 @@ export class WorkerController {
         } else {
             // Create the workers for the processing
             const worker_amount = WorkerController.get_worker_amount_from_ratio();
-            Logger.present('worker', worker_amount, Logger.color.dim(`of ${availableParallelism()} threads`));
-            WorkerController.create_workers(worker_amount);
+            this.worker_amount = worker_amount;
+            Logger.present('worker', worker_amount, Logger.color.dim(`of ${this.get_cpu_cores()} threads`));
+            WorkerController.create_workers(worker_amount, fork_fn);
         }
     }
     static create_workers(amount, fork_fn) {
@@ -36,6 +37,8 @@ export class WorkerController {
             const worker = this.create(fork_fn);
             if (this.is_worker(worker)) {
                 this.workers.push(worker);
+            } else {
+                Logger.warning('worker is invalid', worker);
             }
         }
         this.worker_amount = this.workers.length;
@@ -64,6 +67,12 @@ export class WorkerController {
         }
         this.worker_ratio = ratio;
     }
+    static get_cpu_cores() {
+        if (typeof os.availableParallelism == 'function') {
+            return os.availableParallelism();
+        }
+        return os.cpus().length;
+    }
     static get_worker_amount_from_ratio() {
         if (this.worker_amount) {
             return this.worker_amount;
@@ -77,7 +86,7 @@ export class WorkerController {
         }
         // get amount of cores
         // at least one and left 1 core for the main worker
-        const cpu_cores = availableParallelism();
+        const cpu_cores = this.get_cpu_cores();
         const cpu_cores_ratio = Math.round(cpu_cores * this.worker_ratio);
         const max_cores = Math.max(1, cpu_cores_ratio - 1);
 
@@ -134,6 +143,11 @@ export class WorkerController {
         this.workers.forEach((worker) => {
             process.kill(worker.pid);
         });
+        this.worker_amount = undefined;
+        this.max_cores = undefined;
+
+        this.workers = [];
+        this.worker_ratio = 0;
     }
     static remove_worker(pid) {
         this.workers = this.workers.filter((worker) => worker.pid != pid);

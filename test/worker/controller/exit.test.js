@@ -25,8 +25,8 @@ describe('worker/controller/exit', () => {
     });
     it('create worker', () => {
         WorkerController.create_workers(1);
-        WorkerController.exit();
         strictEqual(WorkerController.workers.length, 1);
+        WorkerController.exit();
         deepStrictEqual(logger_messages, []);
     });
 });

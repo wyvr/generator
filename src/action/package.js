@@ -4,14 +4,18 @@ import { exists } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { filled_array } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
+import { WyvrConfig } from '../model/wyvr_config.js';
 
 export async function collect_packages(package_json) {
+    // clear persisted config cache
+    Config.clear();
+
     Logger.debug('package.json', package_json);
 
     // read & validate package.json
     // read packages from wyvr.js
     const root_config = await Config.load(Cwd.get());
-    const new_base_config = Config.merge(Config.get(), root_config);
+    const new_base_config = Config.merge(WyvrConfig, root_config);
     Config.replace(new_base_config);
 
     let packages = Config.get('packages');
@@ -59,7 +63,9 @@ export async function collect_packages(package_json) {
     // update the packages in the config
     merged_config.packages = result.available_packages;
 
+    // set config with package values
     Config.replace(merged_config);
+    Config.persist(merged_config);
 
     return result;
 }

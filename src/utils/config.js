@@ -1,15 +1,16 @@
 import merge from 'deepmerge';
-import { WyvrConfig } from '../model/wyvr_config.js';
 import { get_error_message } from './error.js';
-import { is_file, find_file } from './file.js';
+import { is_file, find_file, write_json, read_json, remove } from './file.js';
 import { register_inject } from './global.js';
 import { Logger } from './logger.js';
 import { search_segment } from './segment.js';
 import { filled_string, is_string } from './validate.js';
+import { FOLDER_CACHE } from '../constants/folder.js';
+import { Cwd } from '../vars/cwd.js';
 
-// function get() {}
-// function set() {}
-// function replace() {}
+// location of the persisted config cache
+const config_cache_path = Cwd.get(FOLDER_CACHE, 'config.json');
+
 function merge_config(config1, config2) {
     if (config1 === undefined && config2 === undefined) {
         return undefined;
@@ -28,10 +29,13 @@ function config() {
     let cache;
 
     return {
+        clear: () => {
+            remove(config_cache_path);
+        },
         get: (segment, fallback_value) => {
             // fill cache when empty
             if (!cache) {
-                cache = Object.assign({}, WyvrConfig);
+                cache = read_json(config_cache_path) || {};
             }
             // when nothing is specified as segment return whole config
             if (!is_string(segment)) {
@@ -41,7 +45,7 @@ function config() {
         },
         set: (segment, value) => {
             if (!cache) {
-                cache = Object.assign({}, WyvrConfig);
+                cache = read_json(config_cache_path) || {};
             }
             let path = cache;
             const segments = segment.split('.');
@@ -81,6 +85,9 @@ function config() {
                 Logger.error(get_error_message(e, filepath, 'config'));
             }
             return {};
+        },
+        persist: (config) => {
+            write_json(config_cache_path, config);
         },
     };
 }

@@ -11,6 +11,7 @@ import { Event } from '../utils/event.js';
 import { route, send_process_route_request } from '../action_worker/route.js';
 import { STATUS_CODES } from 'http';
 import { IsWorker } from '../vars/is_worker.js';
+import { stringify } from '../utils/json.js';
 
 const route_name = get_name(WorkerEmit.route);
 
@@ -90,6 +91,11 @@ export function apply_response(response, ser_response) {
         return response;
     }
     response.writeHead(response.statusCode, response.headers);
+
+    if (Buffer.isBuffer(ser_response.data)) {
+        response.end(ser_response.data);
+        return response;
+    }
     // convert serialized buffer back to buffer
     if (match_interface(ser_response.data, { type: true, data: true })) {
         response.end(Buffer.from(ser_response.data));
@@ -103,6 +109,11 @@ export function apply_response(response, ser_response) {
         response.end();
         return response;
     }
-    Logger.warning('Response data has unknown format', typeof ser_response.data);
+    const data = stringify(ser_response.data);
+    Logger.warning(
+        'Response data has unknown format',
+        typeof ser_response.data,
+        Logger.color.dim(data.length > 100 ? data.substring(0, 100) + '...' : data)
+    );
     return response;
 }

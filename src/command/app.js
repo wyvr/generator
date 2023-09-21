@@ -10,7 +10,6 @@ import { publish } from '../action/publish.js';
 import { sitemap } from '../action/sitemap.js';
 import { FOLDER_GEN_PLUGINS } from '../constants/folder.js';
 import { WorkerAction } from '../struc/worker_action.js';
-import { Config } from '../utils/config.js';
 import { pub_config_cache, set_config_cache } from '../utils/config_cache.js';
 import { is_pub_valid } from '../utils/health.js';
 import { Logger } from '../utils/logger.js';
@@ -21,7 +20,6 @@ import { WorkerController } from '../worker/controller.js';
 export const app_command = async (config) => {
     await check_env();
     const { port } = await get_ports(config);
-    Config.set('port', port);
 
     let build_id = UniqId.load();
     let build_needed = false;

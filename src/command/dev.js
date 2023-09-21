@@ -11,11 +11,9 @@ import { package_watcher } from '../utils/watcher.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
 import { UniqId } from '../vars/uniq_id.js';
-import { Config } from '../utils/config.js';
 import { get_ports } from '../action/port.js';
 import { publish } from '../action/publish.js';
 import { Plugin } from '../utils/plugin.js';
-import { WorkerController } from '../worker/controller.js';
 
 export async function dev_command(config) {
     // dev command has forced dev state, when nothing is defined
@@ -25,8 +23,6 @@ export async function dev_command(config) {
 
     await check_env();
     const { port, wsport } = await get_ports(config);
-    Config.set('port', port);
-    Config.set('wsport', wsport);
 
     const build_id = UniqId.load();
     UniqId.set(build_id || UniqId.get());
@@ -51,6 +47,7 @@ export async function dev_command(config) {
         const result = await intial_build(build_id, config);
         packages = result.packages;
     }
+    
     await publish();
 
     watch_server('localhost', port, wsport, packages);

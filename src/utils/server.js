@@ -28,6 +28,8 @@ import { pub_healthcheck } from './health.js';
 import { to_dirname } from './to.js';
 import { inject } from './build.js';
 import { register_stack } from './global.js';
+import { media } from '../action_worker/media.js';
+import { IsWorker } from '../vars/is_worker.js';
 
 let show_requests = true;
 
@@ -233,8 +235,14 @@ async function static_server_final(err, req, res, uid, on_end, start) {
     }
 }
 
-export function app_server(host, port) {
-    generate_server(host, port, false, undefined, undefined);
+// @NOTE: will be started in the workers
+export async function app_server(host, port) {
+    return new Promise((resolve, reject) => {
+        generate_server(host, port, false, undefined, undefined).catch((e) => {
+            Logger.error(get_error_message(e, undefined, 'worker error ' + process.pid));
+            reject();
+        });
+    });
 }
 
 export function watch_server(host, port, wsport, packages, fallback) {

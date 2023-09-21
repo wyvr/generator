@@ -1,3 +1,4 @@
+import cluster from 'cluster';
 import { check_env } from '../action/check_env.js';
 import { clear_releases } from '../action/clear_releases.js';
 import { critical } from '../action/critical.js';
@@ -16,6 +17,7 @@ import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
 import { UniqId } from '../vars/uniq_id.js';
 import { WorkerController } from '../worker/controller.js';
+import { WorkerStatus } from '../struc/worker_status.js';
 
 export const app_command = async (config) => {
     if (config?.cli?.flags?.single) {
@@ -73,12 +75,43 @@ export const app_command = async (config) => {
         pub_config_cache('route.cache');
         pub_config_cache('page.cache');
     }
+    // kill all workers from the initial generation
+    WorkerController.exit();
 
-    
+    // start all possible workers
+    Logger.debug('start cluster forks');
+    await WorkerController.initialize(1, false, () => {
+        const instance = cluster.fork();
+        instance.pid = instance.process.pid;
+        return instance;
+    });
 
+    Logger.debug('done cluster forks');
 
+    await new Promise((resolve, reject) => {
+        const amount = WorkerController.get_worker_amount();
+        Logger.debug('worker amount', amount);
+        const safe_guard = setTimeout(() => {
+            clearInterval(interval);
+            reject('creating cluster worker timeout');
+        }, 30000);
+        const interval = setInterval(() => {
+            const busy = WorkerController.get_workers_by_status(WorkerStatus.busy).length;
+            Logger.debug('busy', busy);
+            // when a single worker come active end safe guard
+            if (busy > 0) {
+                clearTimeout(safe_guard);
+            }
+            if (busy == amount) {
+                clearInterval(interval);
+                Logger.info('all worker started');
+                resolve();
+            }
+        }, 250);
+    });
 
-    app_server('localhost', port);
+    // @TODO wait for the workers to start
+    WorkerController.send_action_all_workers(WorkerAction.mode, { mode: 'app', port });
 
     // keep command open, otherwise the workers will get killed
     return new Promise(() => {});

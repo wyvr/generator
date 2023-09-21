@@ -1,4 +1,3 @@
-import { cpus } from 'os';
 import { get_config_data } from './get_config_data.js';
 import { collect_packages } from './package.js';
 import { present } from './present.js';

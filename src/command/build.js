@@ -16,11 +16,7 @@ export async function build_command(config) {
     const build_id = UniqId.get();
     UniqId.set(build_id);
 
-    const config_data = get_config_data(config, build_id);
-
-    await WorkerController.initialize(Config.get('worker.ratio', 1), config_data?.cli?.flags?.single)
-
-    const { media_query_files } = await intial_build(build_id, config_data);
+    const { media_query_files } = await intial_build(build_id, config);
 
     // Generate critical css
     const critical_result = await critical();

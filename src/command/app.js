@@ -9,12 +9,12 @@ import { present } from '../action/present.js';
 import { publish } from '../action/publish.js';
 import { sitemap } from '../action/sitemap.js';
 import { FOLDER_GEN_PLUGINS } from '../constants/folder.js';
+import { WorkerAction } from '../struc/worker_action.js';
 import { Config } from '../utils/config.js';
 import { pub_config_cache, set_config_cache } from '../utils/config_cache.js';
 import { is_pub_valid } from '../utils/health.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
-import { app_server } from '../utils/server.js';
 import { UniqId } from '../vars/uniq_id.js';
 import { WorkerController } from '../worker/controller.js';
 
@@ -31,14 +31,10 @@ export const app_command = async (config) => {
     }
     UniqId.set(build_id);
 
-    const config_data = get_config_data(config, build_id);
-
     if (build_needed) {
         Logger.warning('no build id or pub folder found, build is required');
-        
-        await WorkerController.initialize(Config.get('worker.ratio', 1), config_data?.cli?.flags?.single)
 
-        const { media_query_files } = await intial_build(build_id, config_data);
+        const { media_query_files } = await intial_build(build_id, config);
 
         // Generate critical css
         const critical_result = await critical();
@@ -65,7 +61,7 @@ export const app_command = async (config) => {
             Plugin.cache = plugins;
             await set_config_cache('plugins', plugins);
         }
-        
+
         // set config cache for the workers to operate correctly
         pub_config_cache('dependencies.config');
         pub_config_cache('dependencies.top');

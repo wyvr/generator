@@ -9,6 +9,7 @@ import { Cwd } from '../src/vars/cwd.js';
 import { Storage } from '../src/utils/storage.js';
 import { FOLDER_STORAGE } from '../src/constants/folder.js';
 import { Logger } from '../src/utils/logger.js';
+import { get_error_message } from '../src/utils/error.js';
 
 Cwd.set(process.cwd());
 Storage.set_location(FOLDER_STORAGE);
@@ -29,7 +30,7 @@ const config = {
             console.log(result);
         }
     } catch (e) {
-        Logger.error('Fatal error', e);
+        Logger.error(get_error_message(e, undefined, 'Fatal error'));
     }
     process.exitCode = 0;
     process.exit(0);

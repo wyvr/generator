@@ -73,4 +73,7 @@ describe('utils/validate/match_interface', () => {
     it('undefined interface values', () => {
         strictEqual(match_interface({ a: undefined, b: undefined }, { a: true }), true);
     });
+    it('Buffer does not match, event they have type and data', () => {
+        strictEqual(match_interface(Buffer.from([0, 1, 2, 3, 4, 5, 6]), { type: true, data: true }), false);
+    });
 });

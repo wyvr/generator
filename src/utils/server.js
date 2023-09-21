@@ -265,7 +265,11 @@ async function generate_server(host, port, force_generating_of_resources, onEnd,
                 buffer = undefined;
                 const start = process.hrtime.bigint();
                 // generate media on demand
-                await WorkerController.process_data(WorkerAction.media, [media_config]);
+                if (IsWorker.get()) {
+                    await media([media_config]);
+                } else {
+                    await WorkerController.process_data(WorkerAction.media, [media_config]);
+                }
                 // the file needs some time to be available after generation started
                 const success = await wait_for(() => {
                     return exists(Cwd.get(media_config.result));

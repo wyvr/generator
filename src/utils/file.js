@@ -303,7 +303,7 @@ export function collect_svelte_files(dir) {
 /**
  * check if a given path exists
  * @param path path to a file
- * @returns
+ * @returns {boolean}
  */
 export function exists(path) {
     if (!path || typeof path != 'string' || !existsSync(path)) {

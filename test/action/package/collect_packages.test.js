@@ -67,8 +67,8 @@ describe('action/package/collect_packages', () => {
             available_packages: [],
             disabled_packages: [].concat(
                 [
-                    { name: 'local', path: join(Cwd.get(), 'local') },
-                    { name: '#1', path: join(Cwd.get(), 'path') },
+                    { name: 'local', path: 'local' },
+                    { name: '#1', path: 'path' },
                 ],
                 empty_disabled_packages(Cwd.get())
             ),

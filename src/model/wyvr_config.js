@@ -6,7 +6,7 @@ export const WyvrConfig = Object.freeze({
     i18n: {
         fallback: 'en',
     },
-    packages: undefined, // list of the packages which should be used
+    packages: [], // list of the packages which should be used
     releases: {
         keep: 0,
     },

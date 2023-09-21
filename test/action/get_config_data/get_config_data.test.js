@@ -42,7 +42,7 @@ describe('action/get_config_data/get_config_data', () => {
             i18n: {
                 fallback: 'en',
             },
-            packages: undefined,
+            packages: [],
             releases: {
                 keep: 0,
             },
@@ -83,7 +83,7 @@ describe('action/get_config_data/get_config_data', () => {
                 i18n: {
                     fallback: 'en',
                 },
-                packages: undefined,
+                packages: [],
                 releases: {
                     keep: 0,
                 },
@@ -108,7 +108,7 @@ describe('action/get_config_data/get_config_data', () => {
             i18n: {
                 fallback: 'en',
             },
-            packages: undefined,
+            packages: [],
             releases: {
                 keep: 0,
             },
@@ -132,7 +132,7 @@ describe('action/get_config_data/get_config_data', () => {
             i18n: {
                 fallback: 'en',
             },
-            packages: undefined,
+            packages: [],
             releases: {
                 keep: 0,
             },
@@ -156,7 +156,7 @@ describe('action/get_config_data/get_config_data', () => {
             i18n: {
                 fallback: 'en',
             },
-            packages: undefined,
+            packages: [],
             releases: {
                 keep: 0,
             },

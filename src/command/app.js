@@ -50,6 +50,8 @@ export const app_command = async (config) => {
 
         await clear_releases(build_id);
     } else {
+        const config_data = get_config_data(config, build_id);
+
         present(config_data);
 
         await pre_initial_build(build_id, config_data);

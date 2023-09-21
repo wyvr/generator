@@ -92,12 +92,27 @@ async function process_package(pkg, index, package_json) {
     }
     let config = {};
     if (pkg.path) {
+        let pkg_exists = false;
         // use absolute path
         if (pkg.path.indexOf(sep) != 0) {
-            pkg.path = Cwd.get(pkg.path);
+            const root_path = Cwd.get(pkg.path);
+            pkg_exists = exists(root_path);
+            if (pkg_exists) {
+                pkg.path = root_path;
+            }
         }
-        // load the package config
-        config = await Config.load(pkg.path);
+        // try search the package in node_modules
+        if (!pkg_exists) {
+            const modules_path = Cwd.get('node_modules', pkg.path);
+            pkg_exists = exists(modules_path);
+            if (pkg_exists) {
+                pkg.path = modules_path;
+            }
+        }
+        if (pkg_exists) {
+            // load the package config
+            config = await Config.load(pkg.path);
+        }
     }
 
     return { pkg, config };

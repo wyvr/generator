@@ -18,6 +18,10 @@ import { UniqId } from '../vars/uniq_id.js';
 import { WorkerController } from '../worker/controller.js';
 
 export const app_command = async (config) => {
+    if (config?.cli?.flags?.single) {
+        Logger.error('app is not available in single threaded mode');
+        return;
+    }
     await check_env();
     const { port } = await get_ports(config);
 

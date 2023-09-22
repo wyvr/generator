@@ -13,4 +13,8 @@ describe('model/worker', () => {
         const worker = Worker(() => undefined);
         deepStrictEqual(worker, undefined);
     });
+    it('custom_fork is no function', () => {
+        const worker = Worker('string');
+        deepStrictEqual(worker, undefined);
+    });
 });

@@ -80,7 +80,16 @@ export function get_image_src_shortcode(src, config) {
     return result;
 }
 export function get_image_src(src, config, domain = undefined) {
-    const hash = to_media_hash(config) || '_';
+    let hash = typeof config == 'string' ? config : to_media_hash(config);
+    if(!hash) {
+        hash = '_';
+    } else {
+        if(typeof btoa == 'function') {
+            hash = btoa(hash);
+        } else {
+            hash = Buffer.from(hash).toString('base64')
+        }
+    }
 
     if (src.indexOf('http') == 0) {
         const domain_match = src.match(/^https?:\/\/([^\/]*?)\//);

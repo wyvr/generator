@@ -66,7 +66,7 @@
         }
         // get the corrected values
         const cor_height = height <= 0 ? null : height;
-        const cor_format = correct_image_format(format);
+        const cor_format = correct_image_format(format, src);
         const cor_formats = ['webp'].filter((x, i, arr) => arr.indexOf(x) == i).filter((x) => x != cor_format);
         // build image data, to avoid passing a lot of parameters around
         const data = {

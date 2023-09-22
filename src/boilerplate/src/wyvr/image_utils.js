@@ -101,9 +101,16 @@ export function get_image_src(src, config, domain = undefined) {
     }
     return `/media/${hash}/${src.replace(/^\//, '')}`;
 }
-export function correct_image_format(format) {
+export function correct_image_format(format, src) {
     if (!format) {
-        return null;
+        if(!src) {
+            return null;
+        }
+        const src_format = src.match(/\.(?<format>[^./]*?)$/)?.groups?.format;
+        if(!src_format) {
+            return null;
+        }
+        format = src_format;
     }
     format = format.toLowerCase();
     switch (format) {

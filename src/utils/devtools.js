@@ -4,7 +4,6 @@ import { ReleasePath } from '../vars/release_path.js';
 import { read, to_extension, write_json } from './file.js';
 import { to_dirname } from './to.js';
 import { filled_string } from './validate.js';
-import { Config } from './config.js';
 
 const resource_dir = join(to_dirname(import.meta.url), '..', 'resource');
 
@@ -24,11 +23,7 @@ export function add_devtools_code(path, data) {
         .replace(/\{shortcode_path\}/g, path.replace(ReleasePath.get(), ''))
         .replace(/\{identifier\}/g, data._wyvr?.identifier);
 
-    const wsport = Config.get('wsport');
-    let ws_content = '';
-    if (wsport) {
-        ws_content = read(join(resource_dir, 'client_socket.js')).replace(/\{port\}/g, wsport + '');
-    }
+    const ws_content = read(join(resource_dir, 'client_socket.js'));
 
     return debug_code_content + ws_content;
 }

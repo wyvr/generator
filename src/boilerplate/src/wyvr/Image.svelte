@@ -130,6 +130,8 @@
         }
         return formats
             .map((format) => {
+                const new_data = {...data};
+                new_data.format = format;
                 const srcset = to_srcset(ordered_widths, data);
                 if (!srcset) {
                     return undefined;

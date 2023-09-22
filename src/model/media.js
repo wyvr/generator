@@ -18,6 +18,10 @@ export class MediaModel {
             Object.keys(this).forEach((key) => {
                 if (config[key]) {
                     if (key == 'src') {
+                        const domain_match = config[key].match(/^(?<domain>https?:\/\/[^/]*?)\//);
+                        if(domain_match) {
+                            this.domain = domain_match.groups?.domain
+                        }
                         config[key] = config[key].replace(/^\//, '');
                     }
                     this[key] = config[key];

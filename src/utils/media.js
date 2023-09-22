@@ -3,15 +3,68 @@ import replaceAsync from 'string-replace-async';
 import { FOLDER_GEN, FOLDER_MEDIA } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { create_dir, exists, is_file, read_buffer, to_extension, write } from './file.js';
-import { filled_object, filled_string, in_array, is_object, match_interface } from './validate.js';
+import { filled_string, in_array, match_interface } from './validate.js';
 import sharp from 'sharp';
 import { MediaModel } from '../model/media.js';
 import { Logger } from './logger.js';
 import { get_error_message } from './error.js';
 import { MediaModelMode, MediaModelOutput } from '../struc/media.js';
-import { clone } from './json.js';
 import https from 'https';
 import { Plugin } from './plugin.js';
+import { create_hash } from './hash.js';
+import { Config } from './config.js';
+import { get_config_cache, set_config_cache } from './config_cache.js';
+import { IsWorker } from '../vars/is_worker.js';
+import { to_media_config, to_media_hash } from '../boilerplate/src/wyvr/media.js';
+
+let cache;
+export function build_cache() {
+    // workers are only allowed to load the cache
+    if (IsWorker.get()) {
+        const load_cache = get_config_cache('media.domain_cache', {});
+        cache = load_cache;
+        return;
+    }
+    const allowed_domains = Config.get('media.allowed_domains', {});
+    // the main allways generates the cache
+    cache = {};
+    Object.values(allowed_domains).forEach((domain) => {
+        // create short hash of the domain
+        const clean_domain = domain.replace(/\/$/, '');
+        const hash = get_domain_hash(clean_domain);
+        cache[hash] = clean_domain;
+    });
+    set_config_cache('media.domain_cache', cache, false);
+}
+export function clear_cache() {
+    cache = undefined;
+    cache_keys = undefined;
+}
+
+export function get_domain_hash(domain) {
+    return create_hash(domain, 8);
+}
+
+export function get_cache(hash) {
+    if (!cache) {
+        build_cache();
+    }
+    return cache[hash];
+}
+
+let cache_keys;
+export function get_cache_keys() {
+    if (cache_keys) {
+        return cache_keys;
+    }
+    const allowed_domains = Config.get('media.allowed_domains', {});
+    const result = {};
+    Object.entries(allowed_domains).forEach(([key, domain]) => {
+        result[key] = get_domain_hash(domain);
+    });
+    cache_keys = result;
+    return result;
+}
 
 export async function process(media) {
     if (!match_interface(media, { src: true, result: true })) {
@@ -97,53 +150,68 @@ export async function config_from_url(url) {
     if (!filled_string(url)) {
         return undefined;
     }
-    const matches = url.match(/^\/media\/([^/]+)\/(.*)/);
-    if (!matches) {
+    if (url.indexOf('/media/') !== 0) {
+        return undefined;
+    }
+    const clean_url = url.replace(/\?.*$/, '').replace(/#.*$/, '');
+
+    let media_model = { result: clean_url, result_exists: exists(Cwd.get(clean_url)), output: MediaModelOutput.path };
+
+    const contains_domain = clean_url.indexOf('/media/_d') === 0;
+
+    // get the hashes and values from the url
+    let groups;
+    let media_scope = 'local';
+    if (contains_domain) {
+        groups = clean_url.match(/^\/media\/_d\/(?<domain_hash>[^/]+)\/(?<config_hash>[^/]+)\/(?<rel_path>.*)/)?.groups;
+        if (!groups?.domain_hash) {
+            return undefined;
+        }
+        // check if the domain is in the cache
+        const domain = get_cache(groups.domain_hash);
+        if (!domain) {
+            Logger.warning('unknown domain, hash', groups.domain_hash);
+            return undefined;
+        }
+        media_model.domain = domain;
+        media_scope = domain.replace(/^https?:\/\//, '');
+    } else {
+        groups = clean_url.match(/^\/media\/(?<config_hash>[^/]+)\/(?<rel_path>.*)/)?.groups;
+    }
+    if (!groups) {
         return undefined;
     }
 
-    let result = clone(new MediaModel({}));
-    // check for domain matches
-    if (matches[1] == '_d') {
-        const domain_matches = matches[2].match(/^([^/]+)\/([^/]+)\/(.*)/);
-        if (!domain_matches) {
-            return undefined;
-        }
-        try {
-            const config_string = Buffer.from(domain_matches[2], 'base64').toString('ascii');
-            result = JSON.parse(config_string);
-            result.format = correct_format(result.format, url);
-        } catch (e) {
-            Logger.error(get_error_message(e, domain_matches[3], 'media on demand'));
-        }
-        result.domain = Buffer.from(domain_matches[1], 'base64').toString('ascii');
-        result.src = `https://${result.domain}/${domain_matches[3]}`;
-        if (result.ext) {
-            result.src = result.src.replace(new RegExp(`.${result.format}$`), `.${result.ext}`);
-        }
-        result.result = url;
-        result.result_exists = exists(Cwd.get(result.result));
-        result.output = MediaModelOutput.path;
-        const media_config = await Plugin.process('media_config', result);
-        const media_config_result = await media_config((result) => result);
-        return media_config_result.result;
+    // get the relative path to the domain or cwd for local
+    if (!groups?.rel_path) {
+        Logger.error('media missing rel_path', clean_url);
+        return undefined;
     }
-    // extract local file
-    try {
-        const config_string = Buffer.from(matches[1], 'base64').toString('ascii');
-        result = JSON.parse(config_string);
-        result.format = correct_format(result.format, url);
-    } catch (e) {
-        Logger.error(get_error_message(e, matches[2], 'media on demand'));
-    }
-    if (!result.src) {
-        result.src = matches[2];
-    }
-    result.result = url;
-    result.result_exists = exists(Cwd.get(result.result));
-    result.output = MediaModelOutput.path;
 
-    return result;
+    media_model.src = groups.rel_path;
+    if (contains_domain) {
+        media_model.src = `${media_model.domain}/${groups.rel_path.replace(/^\//, '')}`;
+    }
+
+    // extract the config
+    try {
+        const config_string = Buffer.from(groups.config_hash, 'base64').toString('ascii');
+        media_model = Object.assign(media_model, to_media_config(config_string));
+        media_model.format = correct_format(media_model.format, groups.basename);
+    } catch (e) {
+        Logger.error(get_error_message(e, clean_url, `media config, ${media_scope}`));
+    }
+
+    // correct the src
+    if (media_model.ext && media_model.ext != media_model.format) {
+        media_model.src = media_model.src.replace(new RegExp(`.${media_model.format}$`), `.${media_model.ext}`);
+    }
+
+    const result = new MediaModel(media_model);
+
+    const media_config = await Plugin.process('media_config', result);
+    const media_config_result = await media_config((result) => result);
+    return media_config_result.result;
 }
 
 export async function replace_media(content) {
@@ -169,27 +237,36 @@ export async function replace_media(content) {
 export async function get_config(content) {
     // get the config of the media
     const config = new MediaModel(get_config_from_content(content));
+    return get_config_with_results(config);
+}
+
+export function get_config_with_results(config) {
     if (!filled_string(config.src)) {
         return config;
     }
     // convert to correct format
-    let src = config.src;
-    let mod_src = to_extension(src, config.format);
+    let src = config.src.replace(/\?.*$/, '').replace(/#.*$/, '');
+    let rel_path = to_extension(src, config.format);
     // create config hash to group different images together
-    const hash = get_config_hash(config);
-    config.hash = hash;
+    const config_hash = get_config_hash(config);
+    // try load domain to get the hash
+    config.hash = config_hash;
     let domain = null;
     if (src.indexOf('http') == 0) {
-        const domain_match = mod_src.match(/^https?:\/\/([^/]*?)\//);
+        const domain_match = src.match(/^(?<domain>https?:\/\/[^/]*?)\//)?.groups?.domain;
         if (domain_match) {
-            domain = get_hash(domain_match[1]);
-            mod_src = mod_src.substring(src.indexOf(domain_match[1]) + domain_match[1].length).replace(/^\//, '');
+            domain = get_domain_hash(domain_match);
+            rel_path = src.substring(domain_match.length).replace(/^\//, '');
         }
     }
+    if (config.domain) {
+        domain = get_domain_hash(config.domain);
+    }
+    // build the url
     if (domain) {
-        config.result = `/${FOLDER_MEDIA}/_d/${domain}/${hash}/${mod_src}`;
+        config.result = `/${FOLDER_MEDIA}/_d/${domain}/${config_hash}/${rel_path}`;
     } else {
-        config.result = `/${FOLDER_MEDIA}/${hash}/${mod_src}`;
+        config.result = `/${FOLDER_MEDIA}/${config_hash}/${rel_path}`;
     }
     // return the newly combined path
     return config;
@@ -213,19 +290,11 @@ export function get_config_from_content(content) {
 }
 
 export function get_config_hash(config) {
-    const hash_config = {};
-    if (!is_object(config)) {
-        return 'undefined';
+    const hash = to_media_hash(config);
+    if (!hash) {
+        return '_';
     }
-    ['ext', 'format', 'height', 'mode', 'quality', 'width'].forEach((key) => {
-        if (config[key]) {
-            hash_config[key] = config[key];
-        }
-    });
-    if (!filled_object(hash_config)) {
-        return 'empty';
-    }
-    return get_hash(JSON.stringify(hash_config));
+    return get_hash(hash);
 }
 export function get_hash(value) {
     if (!filled_string(value)) {

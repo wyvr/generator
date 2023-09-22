@@ -27,17 +27,17 @@ describe('utils/media/replace_media', () => {
     it('content with media', async () => {
         deepStrictEqual(await replace_media(`<img src="(media(src: '/assets/favicon.png'))" />`), {
             content:
-                '<img src="/media/eyJmb3JtYXQiOiJwbmciLCJoZWlnaHQiOi0xLCJtb2RlIjoiY292ZXIiLCJxdWFsaXR5Ijo2MCwid2lkdGgiOi0xfQ==/assets/favicon.png" />',
+                '<img src="/media/Zjpwbmc=/assets/favicon.png" />',
             media: {
-                '/media/eyJmb3JtYXQiOiJwbmciLCJoZWlnaHQiOi0xLCJtb2RlIjoiY292ZXIiLCJxdWFsaXR5Ijo2MCwid2lkdGgiOi0xfQ==/assets/favicon.png':
+                '/media/Zjpwbmc=/assets/favicon.png':
                     new MediaModel({
                         domain: undefined,
                         format: 'png',
-                        hash: 'eyJmb3JtYXQiOiJwbmciLCJoZWlnaHQiOi0xLCJtb2RlIjoiY292ZXIiLCJxdWFsaXR5Ijo2MCwid2lkdGgiOi0xfQ==',
+                        hash: 'Zjpwbmc=',
                         mode: 'cover',
                         output: 'path',
                         quality: 60,
-                        result: '/media/eyJmb3JtYXQiOiJwbmciLCJoZWlnaHQiOi0xLCJtb2RlIjoiY292ZXIiLCJxdWFsaXR5Ijo2MCwid2lkdGgiOi0xfQ==/assets/favicon.png',
+                        result: '/media/Zjpwbmc=/assets/favicon.png',
                         result_exists: false,
                         src: 'assets/favicon.png',
                         width: -1,

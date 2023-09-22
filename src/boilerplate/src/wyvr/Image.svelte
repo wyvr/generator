@@ -16,14 +16,13 @@
         />
     */
 
-    import { isClient, isServer } from '@wyvr/generator';
     import {
         get_image_src_data,
         get_image_src,
-        get_image_src_shortcode,
         correct_image_format,
     } from '@src/wyvr/image_utils.js';
     export let src = null;
+    export let domain = null;
     export let width = 0;
     export let height = 0;
     export let alt = '';
@@ -37,64 +36,118 @@
     export let mode = 'cover';
     export let fixed = false;
 
+    let domain_hash;
+
+    onServer(async () => {
+        // if a domain hash is present, use it
+        if (domain) {
+            domain_hash = domain;
+            return;
+        }
+        // try to extract the domain from the src
+        const domain_url = src.match(/^(?<domain>https?:\/\/[^/]*?)\//)?.groups?.domain;
+        if (!domain_url) {
+            return;
+        }
+        // convert to domain hash
+        const { get_domain_hash } = await import('@wyvr/generator/src/utils/media.js');
+        domain_hash = get_domain_hash(domain_url);
+        // remove domain from the source
+        src = src.replace(domain_url, '');
+    });
+
+    $: loading = lazy ? 'lazy' : null;
+    // update the media if something changes which has effect on the image urls or the used sources
+    $: media = update_media(src, domain, width, height, format, quality, widths, mode, fixed);
+
+    function update_media(src, domain, width, height, format, quality, widths, mode, fixed) {
+        if (domain) {
+            domain_hash = domain;
+        }
+        // get the corrected values
+        const cor_height = height <= 0 ? null : height;
+        const cor_format = correct_image_format(format);
+        const cor_formats = ['webp'].filter((x, i, arr) => arr.indexOf(x) == i).filter((x) => x != cor_format);
+        // build image data, to avoid passing a lot of parameters around
+        const data = {
+            src: src,
+            width,
+            height: cor_height,
+            format: cor_format,
+            quality,
+            mode,
+        };
+        // order the widths from highest to lowest
+        const ordered_widths = Array.isArray(widths)
+            ? widths
+                  .filter((x, i, arr) => arr.indexOf(x) == i)
+                  .sort()
+                  .reverse()
+            : undefined;
+        // get the srcset for the main image
+        const srcset = to_srcset(ordered_widths, data);
+        // get the srcsets for the other formats
+        const formats = to_srcsets(cor_formats, ordered_widths, data);
+
+        return {
+            src: get_src(src, width, cor_height, mode, quality, cor_format, fixed, false),
+            height: cor_height,
+            format: cor_format,
+            formats,
+            srcset,
+        };
+    }
+
     function get_src(src, w, h, m, q, f, use_width) {
         const data = get_image_src_data(src, w, h, m, q, f, fixed, use_width, width);
         if (!data) {
             return '';
         }
-        if (isServer) {
-            return get_image_src_shortcode(data.src, data.config) + data.width_addition;
-        }
-        if (isClient) {
-            return get_image_src(data.src, data.config) + data.width_addition;
-        }
-        return src;
+        return get_image_src(data.src, data.config, domain_hash) + data.width_addition;
     }
-
-    $: cor_format = correct_image_format(format);
-    $: cor_formats = ['webp'].filter((x, i, arr) => arr.indexOf(x) == i).filter((x) => x != cor_format);
-    $: loading = lazy ? 'lazy' : null;
-    $: ordered_widths = Array.isArray(widths)
-        ? widths
-              .filter((x, i, arr) => arr.indexOf(x) == i)
-              .sort()
-              .reverse()
-        : null;
-    $: cor_height = height <= 0 ? null : height;
-    $: srcset = Array.isArray(ordered_widths)
-        ? ordered_widths
-              .map((src_width) => {
-                  return get_src(src, src_width, cor_height, mode, quality, cor_format, fixed, true);
-              })
-              .join(', ')
-        : null;
-    $: srcset_formats =
-        Array.isArray(cor_formats) && Array.isArray(ordered_widths)
-            ? cor_formats.map((format) => {
-                  return {
-                      format,
-                      srcset: ordered_widths
-                          .map((src_width) => get_src(src, src_width, cor_height, mode, quality, format, fixed, true))
-                          .join(', '),
-                  };
-              })
-            : [];
+    function to_srcset(ordered_widths, data) {
+        if (!Array.isArray(ordered_widths)) {
+            return undefined;
+        }
+        return ordered_widths
+            .map((src_width) => {
+                return get_src(
+                    data.src,
+                    src_width,
+                    data.height,
+                    data.mode,
+                    data.quality,
+                    data.format,
+                    data.fixed,
+                    true
+                );
+            })
+            .join(', ');
+    }
+    function to_srcsets(formats, ordered_widths, data) {
+        if (!Array.isArray(formats)) {
+            return [];
+        }
+        return formats
+            .map((format) => {
+                const srcset = to_srcset(ordered_widths, data);
+                if (!srcset) {
+                    return undefined;
+                }
+                return {
+                    format,
+                    srcset,
+                };
+            })
+            .filter(Boolean);
+    }
 </script>
 
-{#if src && width}
+{#if media}
     <picture class={css}>
-        {#each srcset_formats as entry}
-            <source {sizes} srcset={entry.srcset} type="image/{entry.format}" />
+        {#each media.formats as format}
+            <source {sizes} srcset={format.srcset} type="image/{format.format}" />
         {/each}
-        <img
-            src={get_src(src, width, cor_height, mode, quality, format, fixed, false)}
-            {width}
-            height={cor_height}
-            {loading}
-            {sizes}
-            {srcset}
-            {alt}
-            {style}
-        />
+        <img src={media.src} {width} height={media.height} {loading} {sizes} srcset={media.srcset} {alt} {style} />
     </picture>
 {/if}

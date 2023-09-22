@@ -14,7 +14,7 @@ import { exists, read, remove, to_index, write } from './file.js';
 import { get_language } from './i18n.js';
 import { stringify } from './json.js';
 import { Logger } from './logger.js';
-import { replace_media } from './media.js';
+import { get_cache_keys, replace_media } from './media.js';
 import { search_segment } from './segment.js';
 import { replace_shortcode } from './shortcode.js';
 import { uniq_id } from './uniq.js';
@@ -66,7 +66,6 @@ export async function build(content, file, format = 'iife') {
     return { code, sourcemap };
 }
 
-
 export function inject_script(content, scripts) {
     if (!filled_array(scripts)) {
         return content;
@@ -81,6 +80,12 @@ export function get_translations_script(language) {
     }
     return `window._translations = ${stringify(get_language(language))};`;
 }
+
+export function get_media_script() {
+    const cache = get_cache_keys();
+    return `window._media = ${stringify(cache)};`;
+}
+
 export function get_stack_script() {
     const stack = global.stackExtract();
     if (!stack) {
@@ -136,10 +141,12 @@ export async function inject(rendered_result, data, file, identifier, shortcode_
             content = inject_script(content, [
                 // inject translations
                 get_translations_script(data?._wyvr?.language),
+                // add the media cache keys to avoid using the domains
+                get_media_script(),
                 // add the current stack to the page
                 get_stack_script(),
                 // add the devtools
-                add_devtools_code(path, data)
+                add_devtools_code(path, data),
             ]);
 
             if (!filled_string(identifier)) {

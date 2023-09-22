@@ -77,6 +77,14 @@ describe('model/media', () => {
         key = 'width';
         strictEqual(media[key], result[key], 'prop ' + key);
     });
+    it('extract domain from source', () => {
+        const result = {
+            src: 'https://wyvr.dev/assets/favicon.png',
+        };
+        const media = new MediaModel(result);
+        strictEqual(media.domain, 'https://wyvr.dev');
+        strictEqual(media.src, 'https://wyvr.dev/assets/favicon.png');
+    });
     it('set invalid values', () => {
         const media = new MediaModel({invalid: true});
         strictEqual(media.invalid, undefined);

@@ -1,3 +1,5 @@
+import { to_media_hash } from '@src/wyvr/media.js';
+
 export function get_image_src_data(
     src,
     width,
@@ -57,7 +59,7 @@ export function get_image_src_data(
         config.format = correct_image_format(format);
     }
 
-    return { src, config: order_config(config), width_addition };
+    return { src, config: to_media_hash(config), width_addition };
 }
 export function order_config(config) {
     const ordered = {};
@@ -68,6 +70,7 @@ export function order_config(config) {
     });
     return ordered;
 }
+// @TODO check if obsolete
 export function get_image_src_shortcode(src, config) {
     const result = `(media(src:'${src}', ${Object.entries(config)
         .map(([key, value]) => {
@@ -76,8 +79,8 @@ export function get_image_src_shortcode(src, config) {
         .join(', ')}))`;
     return result;
 }
-export function get_image_src(src, config) {
-    const hash = get_image_hash(JSON.stringify(config));
+export function get_image_src(src, config, domain = undefined) {
+    const hash = to_media_hash(config) || '_';
 
     if (src.indexOf('http') == 0) {
         const domain_match = src.match(/^https?:\/\/([^\/]*?)\//);
@@ -92,6 +95,9 @@ export function get_image_src(src, config) {
                 return `/media/_d/${domain_hash}/${hash}/${src_path}`;
             }
         }
+    }
+    if (domain) {
+        return `/media/_d/${domain}/${hash}/${src.replace(/^\//, '')}`;
     }
     return `/media/${hash}/${src.replace(/^\//, '')}`;
 }

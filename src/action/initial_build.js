@@ -34,6 +34,7 @@ import { collections } from './collections.js';
 import { execute_cronjobs, filter_cronjobs } from '../utils/cron.js';
 import { measure_action } from './helper.js';
 import { Env } from '../vars/env.js';
+import { build_cache as build_media_cache } from '../utils/media.js';
 
 export async function pre_initial_build(build_id, config_data) {
     try {
@@ -57,10 +58,12 @@ export async function pre_initial_build(build_id, config_data) {
 
     await Storage.set('config', Config.get());
 
-    await WorkerController.initialize(Config.get('worker.ratio', 1), config_data?.cli?.flags?.single)
+    await WorkerController.initialize(Config.get('worker.ratio', 1), config_data?.cli?.flags?.single);
 
     // Create required symlinks
     symlink(Cwd.get(FOLDER_MEDIA), join(ReleasePath.get(), FOLDER_MEDIA));
+    // build media cache
+    build_media_cache();
 
     return {
         package_json,
@@ -71,7 +74,7 @@ export async function pre_initial_build(build_id, config_data) {
 
 export async function intial_build(build_id, config) {
     const config_data = get_config_data(config, build_id);
-    
+
     present(config_data);
 
     // clear gen folder

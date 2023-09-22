@@ -66,6 +66,9 @@ export function filter_cronjobs(cronjobs, event_name = undefined) {
         });
 }
 export async function execute_cronjobs(cronjobs) {
+    if (!Array.isArray(cronjobs)) {
+        return [];
+    }
     return await Promise.all(
         cronjobs.map(async (job) => {
             let scripts = [];
@@ -77,19 +80,24 @@ export async function execute_cronjobs(cronjobs) {
             }
             if (scripts.length == 0) {
                 Logger.warning('cron job', job.name, 'has no script assigned');
-                return undefined;
+                job.failed = true;
+                job.result = undefined;
+                return job;
             }
             Logger.block('cron job', job.name, scripts.length > 1 ? `with ${scripts.length} scripts` : '');
+            job.result = [];
             for (const script of scripts) {
                 const path = Cwd.get(FOLDER_GEN_CRON, script);
                 try {
                     const cronjob = await import(path);
-                    job.result = await cronjob.default({ options: job.options, isProd: Env.is_prod() });
+                    job.result.push(await cronjob.default({ options: job.options, isProd: Env.is_prod() }));
                 } catch (e) {
                     Logger.error(get_error_message(e, path, `cron ${job.name}`));
                     job.failed = true;
-                    job.result = undefined;
                 }
+            }
+            if (job.result.length == 0) {
+                job.result = undefined;
             }
             return job;
         })

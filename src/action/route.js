@@ -85,7 +85,11 @@ export function apply_response(response, ser_response) {
     response.wyvr = true;
     response.statusCode = ser_response.statusCode;
     response.statusText = STATUS_CODES[ser_response.statusCode];
-    response.setHeaders(new Headers(ser_response.headers));
+    if(typeof response.setHeaders == 'function') {
+        response.setHeaders(new Headers(ser_response.headers));
+    } else {
+        response.headers = ser_response.headers;
+    }
 
     if (!ser_response.complete) {
         return response;

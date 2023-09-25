@@ -11,6 +11,8 @@ import { filled_array } from './src/utils/validate.js';
 import { WorkerAction } from './src/struc/worker_action.js';
 import { remove_index, to_index } from './src/utils/file.js';
 import { Env } from './src/vars/env.js';
+import { get_route_request } from './src/utils/routes.js';
+import { process_route_request } from './src/action_worker/route.js';
 
 /**
  * Execute the route for the given url
@@ -25,7 +27,6 @@ export async function execute_route(url, options) {
         Logger.warning('route', url, 'will not be generated in dev mode');
         return false;
     }
-    const { get_route_request, process_route_request } = await import('./src/action/route.js');
     const request = {
         url: remove_index(url),
         path: url,

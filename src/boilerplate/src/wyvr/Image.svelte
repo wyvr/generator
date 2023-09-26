@@ -16,11 +16,7 @@
         />
     */
 
-    import {
-        get_image_src_data,
-        get_image_src,
-        correct_image_format,
-    } from '@src/wyvr/image_utils.js';
+    import { get_image_src_data, get_image_src, correct_image_format } from '@src/wyvr/image_utils.js';
     export let src = null;
     export let domain = null;
     export let width = 0;
@@ -43,6 +39,9 @@
         if (domain) {
             domain_hash = domain;
             return;
+        }
+        if (!src) {
+            return undefined;
         }
         // try to extract the domain from the src
         const domain_url = src.match(/^(?<domain>https?:\/\/[^/]*?)\//)?.groups?.domain;
@@ -130,7 +129,7 @@
         }
         return formats
             .map((format) => {
-                const new_data = {...data};
+                const new_data = { ...data };
                 new_data.format = format;
                 const srcset = to_srcset(ordered_widths, data);
                 if (!srcset) {

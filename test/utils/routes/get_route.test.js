@@ -18,7 +18,7 @@ describe('utils/routes/get_route', () => {
                     path: './huhu.js',
                     rel_path: 'huhu.js',
                     params: [],
-                    match: '^\\/huhu$',
+                    match: '^\\/huhu\\/?$',
                     mtime: 0.0,
                     methods: ['get'],
                 },
@@ -34,7 +34,7 @@ describe('utils/routes/get_route', () => {
                     path: './huhu.js',
                     rel_path: 'huhu.js',
                     params: [],
-                    match: '^\\/huhu$',
+                    match: '^\\/huhu\\/?$',
                     mtime: 0.0,
                     methods: ['get'],
                 },
@@ -44,7 +44,7 @@ describe('utils/routes/get_route', () => {
                 path: './huhu.js',
                 rel_path: 'huhu.js',
                 params: [],
-                match: '^\\/huhu$',
+                match: '^\\/huhu\\/?$',
                 mtime: 0.0,
                 methods: ['get'],
             }
@@ -58,13 +58,13 @@ describe('utils/routes/get_route', () => {
                     path: './huhu.js',
                     rel_path: 'huhu.js',
                     params: [],
-                    match: '^\\/huhu$',
+                    match: '^\\/huhu\\/?$',
                     mtime: 0.0,
                     methods: ['post'],
                 },
             ]),
             {
-                match: '^\\/huhu$',
+                match: '^\\/huhu\\/?$',
                 methods: ['post'],
                 mtime: 0,
                 params: [],
@@ -82,7 +82,7 @@ describe('utils/routes/get_route', () => {
                     path: './huhu.js',
                     rel_path: 'huhu.js',
                     params: [],
-                    match: '^\\/huhu$',
+                    match: '^\\/huhu\\/?$',
                     mtime: 0.0,
                     methods: ['get'],
                 },
@@ -98,7 +98,7 @@ describe('utils/routes/get_route', () => {
                     path: './huhu.js',
                     rel_path: 'huhu.js',
                     params: [],
-                    match: '^\\/huhu$',
+                    match: '^\\/huhu\\/?$',
                     mtime: 0.0,
                     methods: ['get'],
                 },
@@ -106,7 +106,7 @@ describe('utils/routes/get_route', () => {
             undefined
         );
     });
-    it('get exact match of similar routes', async() => {
+    it('get exact match of similar routes', async () => {
         const dir = join(process.cwd(), 'test', 'utils', 'routes', '_tests');
         const cache = [
             await extract_route_config({ url: '/hu/hi/[slug]' }, join(dir, 'config/test.js')),
@@ -116,7 +116,7 @@ describe('utils/routes/get_route', () => {
         deepStrictEqual(!!route, true);
         deepStrictEqual(route.url, '/hu/hi');
     });
-    it('get exact match of similar routes for parameterized url', async() => {
+    it('get exact match of similar routes for parameterized url', async () => {
         const dir = join(process.cwd(), 'test', 'utils', 'routes', '_tests');
         const cache = [
             await extract_route_config({ url: '/hu/hi/[slug]' }, join(dir, 'config/test.js')),
@@ -125,5 +125,35 @@ describe('utils/routes/get_route', () => {
         const route = get_route('/hu/hi/test', 'GET', cache);
         deepStrictEqual(!!route, true);
         deepStrictEqual(route.url, '/hu/hi/[slug]');
+    });
+    it('match when index.html is appended', () => {
+        const route = get_route('/huhu/index.html', 'GET', [
+            {
+                url: '/huhu',
+                path: './huhu.js',
+                rel_path: 'huhu.js',
+                params: [],
+                match: '^\\/huhu\\/?$',
+                mtime: 0.0,
+                methods: ['get'],
+            },
+        ]);
+        deepStrictEqual(!!route, true);
+        deepStrictEqual(route.url, '/huhu');
+    });
+    it('match when index.htm is appended', () => {
+        const route = get_route('/huhu/index.htm', 'GET', [
+            {
+                url: '/huhu',
+                path: './huhu.js',
+                rel_path: 'huhu.js',
+                params: [],
+                match: '^\\/huhu\\/?$',
+                mtime: 0.0,
+                methods: ['get'],
+            },
+        ]);
+        deepStrictEqual(!!route, true);
+        deepStrictEqual(route.url, '/huhu');
     });
 });

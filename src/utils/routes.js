@@ -76,7 +76,9 @@ export function get_route(url, method, route_cache) {
     }
 
     // remove the get parameter from the url
-    const clean_url = url.split('?')[0];
+    let [clean_url] = url.split('?');
+    // remove index.html from the url to avoid mismatches
+    clean_url = clean_url.replace(/\/index\.html?$/, '/');
     const normalized_method = is_string(method) ? method.trim().toLowerCase() : '';
     const found_cache_item = route_cache.find((item) => {
         return clean_url.match(new RegExp(item.match)) && in_array(item.methods, normalized_method);
@@ -309,7 +311,7 @@ export async function extract_route_config(result, path) {
             }
             return item;
         })
-        .join('\\/')}/?$`;
+        .join('\\/')}\\/?$`.replace('\\/\\/?$', '\\/?$');
     let methods = ['get', 'head', 'post', 'put', 'delete', 'connect', 'options', 'trace', 'patch'];
     // execute _wyvr to get insights into the executable
     if (typeof result?._wyvr == 'function') {

@@ -22,12 +22,27 @@ describe('utils/routes/extract_route_config', () => {
         const result = await extract_route_config({ url: '/test' }, join(dir, 'config/test.js'));
         result.mtime = 0;
         deepStrictEqual(result, {
-            match: '^\\/test/?$',
+            match: '^\\/test\\/?$',
             methods: ['get', 'head', 'post', 'put', 'delete', 'connect', 'options', 'trace', 'patch'],
             mtime: 0,
             params: [],
             path: join(dir, 'config/test.js'),
             rel_path: join(dir, 'config/test.js'),
+            url: '/test',
+            weight: 1015,
+        });
+    });
+    it('avoid double slashes at the end', async () => {
+        Cwd.set(join(dir, 'config'));
+        const result = await extract_route_config({ url: '/test' }, join(dir, 'config/slash.js'));
+        result.mtime = 0;
+        deepStrictEqual(result, {
+            match: '^\\/test\\/?$',
+            methods: ['get', 'head', 'post', 'put', 'delete', 'connect', 'options', 'trace', 'patch'],
+            mtime: 0,
+            params: [],
+            path: join(dir, 'config/slash.js'),
+            rel_path: join(dir, 'config/slash.js'),
             url: '/test',
             weight: 1015,
         });
@@ -45,7 +60,7 @@ describe('utils/routes/extract_route_config', () => {
         );
         result.mtime = 0;
         deepStrictEqual(result, {
-            match: '^\\/methods/?$',
+            match: '^\\/methods\\/?$',
             methods: ['post'],
             mtime: 0,
             params: [],

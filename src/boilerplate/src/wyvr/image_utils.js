@@ -131,6 +131,7 @@ export function correct_image_format(format, src) {
         case 'webp':
         case 'avif':
         case 'heif':
+        case 'svg':
             return format;
     }
     return null;

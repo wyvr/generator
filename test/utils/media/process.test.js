@@ -221,4 +221,20 @@ describe('utils/media/process', () => {
         deepStrictEqual(exists(Cwd.get(file.result)), false);
         deepStrictEqual(log, [['✖', '@sharp\n[] no buffer available\nsource favicon.png']]);
     });
+    it('create svg media', async () => {
+        const file = {
+            src: 'circle.svg',
+            result: '/media/hash/circle.svg',
+            width: 300,
+            height: 150,
+            mode: 'cover',
+            format: 'svg',
+            hash: 'hash',
+            quality: 60,
+            output: 'path',
+        };
+        await process_media(file);
+        deepStrictEqual(exists(Cwd.get(file.result)), true);
+        deepStrictEqual(log, []);
+    });
 });

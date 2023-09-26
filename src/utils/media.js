@@ -83,6 +83,12 @@ export async function process(media) {
         return undefined;
     }
     create_dir(dirname(output));
+    // svgs should not be processed
+    if (media.format == 'svg' || media.ext == 'svg') {
+        write(output, Buffer.from(buffer));
+
+        return undefined;
+    }
     const options = { fit: media.mode, position: 'centre' };
     if (media.width != null && media.width > -1) {
         options.width = Math.ceil(media.width);

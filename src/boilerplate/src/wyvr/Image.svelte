@@ -44,7 +44,7 @@
             return undefined;
         }
         // try to extract the domain from the src
-        const domain_url = src.match(/^(?<domain>https?:\/\/[^/]*?)\//)?.groups?.domain;
+        const domain_url = get_domain(src);
         if (!domain_url) {
             return;
         }
@@ -63,9 +63,28 @@
         if (!src) {
             return undefined;
         }
-        if (domain) {
+        if (domain && !domain_hash) {
             domain_hash = domain;
         }
+        if (!domain_hash) {
+            const domain_url = get_domain(src);
+            if (domain_url) {
+                domain = domain_url;
+                if (typeof window !== 'undefined' && window._media) {
+                    const media_key = Object.keys(window._media).find((key) => window._media[key].domain == domain_url);
+                    if (media_key) {
+                        domain_hash = window._media[media_key].hash;
+                    } else {
+                        console.error(src, domain_url);
+                    }
+                } else {
+                    console.log('ERROR', src)
+                }
+                // remove domain from the source
+                src = src.replace(domain_url, '');
+            }
+        }
+
         // get the corrected values
         const cor_height = height <= 0 ? null : height;
         const cor_format = correct_image_format(format, src);
@@ -144,6 +163,9 @@
                 };
             })
             .filter(Boolean);
+    }
+    function get_domain(src) {
+        return src.match(/^(?<domain>https?:\/\/[^/]*?)\//)?.groups?.domain;
     }
 </script>
 

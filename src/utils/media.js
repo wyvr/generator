@@ -60,7 +60,11 @@ export function get_cache_keys() {
     const allowed_domains = Config.get('media.allowed_domains', {});
     const result = {};
     Object.entries(allowed_domains).forEach(([key, domain]) => {
-        result[key] = get_domain_hash(domain);
+        const hash = get_domain_hash(domain);
+        result[key] = {
+            hash,
+            domain,
+        };
     });
     cache_keys = result;
     return result;

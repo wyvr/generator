@@ -23,5 +23,12 @@ export function SerializableRequest(request, default_values = {}) {
     for (const key of ['files']) {
         ser_req[key] = request[key] || [];
     }
+    ser_req.headers = {};
+    if(request.headers) {
+        for (const header in request.headers) {
+            ser_req.headers[header.toLowerCase()] = request.headers[header];
+        }
+    }
+    
     return ser_req;
 }

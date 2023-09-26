@@ -60,6 +60,9 @@
     $: media = update_media(src, domain, width, height, format, quality, widths, mode, fixed);
 
     function update_media(src, domain, width, height, format, quality, widths, mode, fixed) {
+        if (!src) {
+            return undefined;
+        }
         if (domain) {
             domain_hash = domain;
         }

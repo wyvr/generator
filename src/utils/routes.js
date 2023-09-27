@@ -94,6 +94,8 @@ export async function run_route(request, response, uid, route) {
     // remove the get parameter from the url
     let [clean_url, query_params] = request.url.split('?');
 
+    // replace the url of the request
+    clean_url = clean_url.replace(/index\.html?/, '');
 
     // convert query parameters
     const query = {};

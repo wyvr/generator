@@ -92,18 +92,20 @@ export async function run_route(request, response, uid, route) {
     }
 
     // remove the get parameter from the url
-    const split = request.url.split('?');
-    const clean_url = split[0];
+    let [clean_url, query_params] = request.url.split('?');
+
+
+    // convert query parameters
     const query = {};
-    if (split[1]) {
-        split[1].split('&').forEach((entry) => {
-            const parts = entry.split('=');
-            parts[0] = decodeURIComponent(parts[0]).replace(/\+/g, ' ');
-            if (parts.length == 1) {
-                query[parts[0]] = true;
+    if (query_params) {
+        query_params.split('&').forEach((entry) => {
+            let [key, value] = entry.split('=');
+            key = decodeURIComponent(key).replace(/\+/g, ' ');
+            if (value == undefined) {
+                query[key] = true;
                 return;
             }
-            query[parts[0]] = decodeURIComponent(parts[1]).replace(/\+/g, ' ');
+            query[key] = decodeURIComponent(value).replace(/\+/g, ' ');
         });
     }
     const headers = request.headers || {};

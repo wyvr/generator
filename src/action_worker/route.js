@@ -105,9 +105,12 @@ export async function process_route_request(req, res, uid, route, force_generati
         copy(Cwd.get(FOLDER_GEN_JS, `${result.data._wyvr.identifier}.js`), js_path);
     }
 
+    // remove query parameters to avoid generating wrong files
+    const [url] = req.url.split('?');
+
     // persist the result
     if (result?.result?.html && result?.data?._wyvr?.persist && Env.is_prod()) {
-        const file = to_index(req.url, 'html');
+        const file = to_index(url, 'html');
         const persisted_path = join(ReleasePath.get(), file);
         write(persisted_path, result.result.html);
         Logger.improve('persisted', file);

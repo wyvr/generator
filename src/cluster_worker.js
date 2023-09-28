@@ -10,6 +10,7 @@ import { UniqId } from './vars/uniq_id.js';
 import { FOLDER_RELEASES } from './constants/folder.js';
 import { Plugin } from './utils/plugin.js';
 import { Logger } from './utils/logger.js';
+import { register_stack } from './utils/global.js';
 
 export async function ClusterWorker() {
     IsWorker.set(true);
@@ -20,6 +21,8 @@ export async function ClusterWorker() {
     ReleasePath.set(Cwd.get(FOLDER_RELEASES, build_id));
 
     process.title = `wyvr cluster worker ${process.pid}`;
+
+    register_stack();
 
     await Plugin.initialize();
 

@@ -17,7 +17,7 @@ import { LogType } from '../struc/log.js';
 import { watcher_event } from './watcher.js';
 import { wait_for } from './wait.js';
 import { WatcherPaths } from '../vars/watcher_paths.js';
-import { exists, read } from './file.js';
+import { exists, read, to_extension } from './file.js';
 import { WorkerController } from '../worker/controller.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { tmpdir } from 'os';
@@ -30,6 +30,8 @@ import { inject } from './build.js';
 import { register_stack } from './global.js';
 import { media } from '../action_worker/media.js';
 import { IsWorker } from '../vars/is_worker.js';
+import { WyvrFile } from '../model/wyvr_file.js';
+import { build_hydrate_file_from_url } from './script.js';
 
 let show_requests = true;
 
@@ -289,6 +291,16 @@ async function generate_server(host, port, force_generating_of_resources, onEnd,
         }
         await static_server(req, res, uid, async (err) => {
             if (err) {
+                // check if css or js files should be generated
+                if (req.url.indexOf('/js') == 0) {
+                    const file_content = await build_hydrate_file_from_url(req.url);
+                    if (file_content) {
+                        res = send_head(res, 200, 'application/javascript');
+                        res.end(file_content);
+                        return;
+                    }
+                }
+
                 const route_response = await route_request(req, res, uid, force_generating_of_resources);
                 if (route_response) {
                     res = apply_response(res, route_response);

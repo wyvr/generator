@@ -1,20 +1,19 @@
 import { join } from 'path';
-import { FOLDER_GEN, FOLDER_GEN_CLIENT, FOLDER_GEN_JS, FOLDER_JS } from '../constants/folder.js';
-import { WyvrFileLoading } from '../struc/wyvr_file.js';
+import { FOLDER_GEN_JS, FOLDER_JS } from '../constants/folder.js';
 import { build } from '../utils/build.js';
 import { get_config_cache } from '../utils/config_cache.js';
 import { get_hydrate_dependencies } from '../utils/dependency.js';
 import { get_error_message } from '../utils/error.js';
-import { exists, read, to_extension, write } from '../utils/file.js';
+import { read, to_extension, write } from '../utils/file.js';
 import { stringify } from '../utils/json.js';
 import { Logger } from '../utils/logger.js';
 import { write_identifier_structure } from '../utils/structure.js';
-import { to_dirname, to_relative_path, to_relative_path_of_gen } from '../utils/to.js';
-import { filled_array, filled_string, in_array, is_null } from '../utils/validate.js';
+import { to_dirname, to_relative_path_of_gen } from '../utils/to.js';
+import { filled_array, filled_string, is_null } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
 import { ReleasePath } from '../vars/release_path.js';
-import { get_instant_code, get_target } from '../utils/script.js';
+import { build_hydrate_file, write_hydrate_file } from '../utils/script.js';
 import { UniqId } from '../vars/uniq_id.js';
 
 const __dirname = to_dirname(import.meta.url);
@@ -79,66 +78,24 @@ export async function scripts(identifiers) {
             content = (
                 await Promise.all(
                     dependencies.map(async (file) => {
-                        const target = get_target(file.name);
-                        const import_path = Cwd.get(FOLDER_GEN_CLIENT, to_relative_path(file.path));
-                        // code to instant execute the dependency
-                        const instant_code = get_instant_code(file.name, import_path, target);
-                        // loading=instant
-                        if (file.config.loading == WyvrFileLoading.instant) {
-                            has.instant = true;
-                            return instant_code;
+                        const file_result = await build_hydrate_file(file, resouce_dir);
+                        if (!file_result) {
+                            return undefined;
                         }
-                        // build seperate file for the component
-                        if (
-                            in_array(
-                                [
-                                    WyvrFileLoading.lazy,
-                                    WyvrFileLoading.idle,
-                                    WyvrFileLoading.interact,
-                                    WyvrFileLoading.media,
-                                    WyvrFileLoading.none,
-                                ],
-                                file.config.loading
-                            )
-                        ) {
-                            const lazy_file_path = `/${FOLDER_JS}/${to_extension(file.path, 'js')}`;
-                            const real_lazy_file_path = Cwd.get(FOLDER_GEN, lazy_file_path);
-                            // write the lazy file from the component
-                            if (!exists(real_lazy_file_path) || Env.is_dev()) {
-                                const content = [
-                                    read(join(resouce_dir, 'hydrate_instant.js')),
-                                    read(join(resouce_dir, 'props.js')),
-                                    read(join(resouce_dir, 'portal.js')),
-                                    instant_code,
-                                ].join('\n');
-
-                                const result = await build(content, real_lazy_file_path);
-
-                                const code = result.code.replace(
-                                    '%sourcemap%',
-                                    `# sourceMappingURL=${to_extension(file.path, 'js')}.map`
-                                );
-
-                                write(real_lazy_file_path, code);
-                                write(join(ReleasePath.get(), lazy_file_path), code);
-
-                                write(real_lazy_file_path + '.map', result.sourcemap);
-                                write(join(ReleasePath.get(), lazy_file_path + '.map'), result.sourcemap);
-                            }
-                            // set marker for the needed hydrate methods
-                            has[file.config.loading] = true;
-                            // loading none requires a trigger property, but everything except instant can be triggered
-                            const trigger =
-                                file.config.loading != WyvrFileLoading.instant && file.config.trigger
-                                    ? `, '${file.config.trigger}'`
-                                    : '';
-                            return `${target}
-                wyvr_hydrate_${file.config.loading}('${lazy_file_path}', ${file.name}_target, '${file.name}', '${file.name}'${trigger});`;
+                        // write files
+                        write_hydrate_file(file_result);
+                        // apply additive has values
+                        if (file_result.has) {
+                            Object.keys(file_result.has).forEach((key) => {
+                                if (file_result.has[key]) {
+                                    has[key] = file_result.has[key];
+                                }
+                            });
                         }
-                        return '';
+                        return file_result.include_code;
                     })
                 )
-            ).filter((x) => x);
+            ).filter(Boolean);
             Object.keys(has).forEach((key) => {
                 const script_path = join(resouce_dir, `hydrate_${key}.js`);
                 scripts.push(read(script_path));

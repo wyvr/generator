@@ -47,7 +47,7 @@ const wyvr_interact_init = (e) => {
         if (name && wyvr_interact_classes[name] && !wyvr_interact_classes[name].loaded) {
             wyvr_interact_classes[name].loaded = true;
             const script = document.createElement('script');
-            script.setAttribute('src', wyvr_interact_classes[name].path);
+            script.setAttribute('src', wyvr_interact_classes[name].path + '?bid=' + window.build_id);
             if (path) {
                 script.onload = () => {
                     // restore original event

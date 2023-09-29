@@ -18,7 +18,7 @@ const wyvr_hydrate_none = (path, elements, name, cls, trigger) => {
                 if (name && !wyvr_none_classes[name].loaded) {
                     wyvr_none_classes[name].loaded = true;
                     const script = document.createElement('script');
-                    script.setAttribute('src', wyvr_none_classes[name].path);
+                    script.setAttribute('src', wyvr_none_classes[name].path + '?bid=' + window.build_id);
                     document.body.appendChild(script);
                 }
             });

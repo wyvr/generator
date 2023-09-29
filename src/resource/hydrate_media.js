@@ -44,7 +44,7 @@ const wyvr_media_checker = () => {
 const wyvr_media_init = (name) => {
     wyvr_media_classes[name].loaded = true;
     const script = document.createElement('script');
-    script.setAttribute('src', wyvr_media_classes[name].path);
+    script.setAttribute('src', wyvr_media_classes[name].path + '?bid=' + window.build_id);
     document.body.appendChild(script);
 };
 

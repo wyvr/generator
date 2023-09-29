@@ -15,6 +15,7 @@ import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { get_instant_code, get_target } from '../utils/script.js';
+import { UniqId } from '../vars/uniq_id.js';
 
 const __dirname = to_dirname(import.meta.url);
 const lib_dir = join(__dirname, '..');
@@ -30,6 +31,8 @@ export async function scripts(identifiers) {
     if (Env.is_dev()) {
         package_tree = get_config_cache('package_tree');
     }
+    const build_id = UniqId.get();
+    const build_id_var = `window.build_id = '${build_id ? build_id.substr(0, 8) : '_'}';console.log(window.build_id);`;
     for (const identifier of identifiers) {
         if (is_null(identifier)) {
             Logger.warning('empty identifier found');
@@ -39,7 +42,7 @@ export async function scripts(identifiers) {
         let identifier_file;
         let dependencies = [];
         let content;
-        const scripts = [];
+        const scripts = [build_id_var];
 
         try {
             const is_shortcode = !!identifier.imports;
@@ -175,6 +178,7 @@ export async function scripts(identifiers) {
                 } else {
                     // minimal set of js
                     build_content = [
+                        build_id_var,
                         read(join(resouce_dir, 'events.js')),
                         read(join(resouce_dir, 'stack.js')),
                         read(join(resouce_dir, 'i18n.js')).replace(/\[lib\]/g, lib_dir),

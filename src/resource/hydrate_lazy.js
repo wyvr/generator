@@ -35,7 +35,7 @@ const wyvr_lazy_init = (element) => {
     if (name && !wyvr_lazy_classes[name].loaded) {
         wyvr_lazy_classes[name].loaded = true;
         const script = document.createElement('script');
-        script.setAttribute('src', wyvr_lazy_classes[name].path);
+        script.setAttribute('src', wyvr_lazy_classes[name].path + '?bid=' + window.build_id);
         document.body.appendChild(script);
     }
 };

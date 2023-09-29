@@ -151,7 +151,11 @@ export async function process(media) {
         return undefined;
     }
     // output_buffer is arraybuffer and has to be converter
-    write(output, Buffer.from(output_buffer));
+    try {
+        write(output, Buffer.from(output_buffer));
+    } catch(e) {
+        Logger.error(get_error_message(e, media.src, 'save media'));
+    }
 
     return undefined;
 }

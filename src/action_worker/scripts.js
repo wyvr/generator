@@ -32,7 +32,7 @@ export async function scripts(identifiers) {
         package_tree = get_config_cache('package_tree');
     }
     const build_id = UniqId.get();
-    const build_id_var = `window.build_id = '${build_id ? build_id.substr(0, 8) : '_'}';console.log(window.build_id);`;
+    const build_id_var = `window.build_id = '${build_id ? build_id.substr(0, 8) : '_'}';`;
     for (const identifier of identifiers) {
         if (is_null(identifier)) {
             Logger.warning('empty identifier found');

@@ -192,6 +192,13 @@ export class Storage {
 
         return undefined;
     }
+    /**
+     * Set the value into the database with the given name with either a given key value pair or when an Object with key value pair is set
+     * @param {string} name
+     * @param {string|any} key_or_data
+     * @param {any} value
+     * @returns {boolean}
+     */
     static async set(name, key_or_data, value) {
         if (!filled_string(name) || is_null(key_or_data)) {
             return false;
@@ -231,7 +238,6 @@ export class Storage {
         // check if at least one value is true or false
         return filled_array(results) && results.find((r) => !is_null(r)) != undefined;
     }
-    // static async merge(name, key_or_data, value) {}
     /**
      * Remove the entries in the database
      * @param {string} name

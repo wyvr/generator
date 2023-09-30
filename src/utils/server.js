@@ -1,7 +1,7 @@
 import { createServer } from 'http';
-import formidable from 'formidable';
+import formidable, { errors as formidableErrors } from 'formidable';
 import { Logger } from './logger.js';
-import { filled_string, is_func, is_number } from './validate.js';
+import { filled_string, in_array, is_func, is_number } from './validate.js';
 import { uniq_id } from './uniq.js';
 import ServeStatic from 'serve-static';
 import { WebSocketServer } from 'ws';
@@ -17,7 +17,7 @@ import { LogType } from '../struc/log.js';
 import { watcher_event } from './watcher.js';
 import { wait_for } from './wait.js';
 import { WatcherPaths } from '../vars/watcher_paths.js';
-import { exists, read, to_extension } from './file.js';
+import { exists, read } from './file.js';
 import { WorkerController } from '../worker/controller.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { tmpdir } from 'os';
@@ -30,7 +30,6 @@ import { inject } from './build.js';
 import { register_stack } from './global.js';
 import { media } from '../action_worker/media.js';
 import { IsWorker } from '../vars/is_worker.js';
-import { WyvrFile } from '../model/wyvr_file.js';
 import { build_hydrate_file_from_url } from './script.js';
 
 let show_requests = true;
@@ -90,7 +89,9 @@ export function server(host, port, on_request, on_end) {
             req.body = body;
             req.files = files;
         } catch (err) {
-            Logger.error(get_error_message(err, clean_url, 'request body'));
+            if (!in_array([formidableErrors.noParser], err.code)) {
+                Logger.error(get_error_message(err, clean_url, 'request body'));
+            }
         }
         return await final(on_end, req, res, uid, start);
     }).listen(port, host, () => {

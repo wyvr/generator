@@ -20,43 +20,61 @@ describe('model/wyvr_file/extract_wyvr_file_config', () => {
     it('override prop', () => {
         const result = clone(WyvrFileConfig);
         result.display = 'inline';
-        deepStrictEqual(extract_wyvr_file_config(`wyvr: {
+        deepStrictEqual(
+            extract_wyvr_file_config(`wyvr: {
             display: 'inline'
-        }`), result);
+        }`),
+            result
+        );
     });
     it('without space', () => {
         const result = clone(WyvrFileConfig);
         result.display = 'inline';
-        deepStrictEqual(extract_wyvr_file_config(`wyvr:{
+        deepStrictEqual(
+            extract_wyvr_file_config(`wyvr:{
             display:'inline'
-        }`), result);
+        }`),
+            result
+        );
     });
     it('add bool', () => {
         const result = clone(WyvrFileConfig);
         result.test = true;
-        deepStrictEqual(extract_wyvr_file_config(`wyvr: {
+        deepStrictEqual(
+            extract_wyvr_file_config(`wyvr: {
             test:    true
-        }`), result);
+        }`),
+            result
+        );
     });
     it('add number', () => {
         const result = clone(WyvrFileConfig);
         result.test = 1.23;
-        deepStrictEqual(extract_wyvr_file_config(`wyvr: {
+        deepStrictEqual(
+            extract_wyvr_file_config(`wyvr: {
             test:    1.23
-        }`), result);
+        }`),
+            result
+        );
     });
     it('auto encapsulate media', () => {
         const result = clone(WyvrFileConfig);
         result.media = '(min-width: 500px)';
-        deepStrictEqual(extract_wyvr_file_config(`wyvr: {
+        deepStrictEqual(
+            extract_wyvr_file_config(`wyvr: {
             media: 'min-width: 500px'
-        }`), result);
+        }`),
+            result
+        );
     });
     it('avoid auto encapsulate media', () => {
         const result = clone(WyvrFileConfig);
         result.media = 'min-width: 500px and screen';
-        deepStrictEqual(extract_wyvr_file_config(`wyvr: {
+        deepStrictEqual(
+            extract_wyvr_file_config(`wyvr: {
             media: 'min-width: 500px and screen'
-        }`), result);
+        }`),
+            result
+        );
     });
 });

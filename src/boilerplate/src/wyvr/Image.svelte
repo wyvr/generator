@@ -31,6 +31,7 @@
     export let mode = 'cover';
     export let fixed = false;
 
+    let domain;
     let domain_hash;
 
     onServer(async () => {
@@ -45,8 +46,9 @@
         // convert to domain hash
         const { get_domain_hash } = await import('@wyvr/generator/src/utils/media.js');
         const hash = get_domain_hash(domain_url);
-        if(hash.length === 8) {
-            domain_hash = hash
+        if (hash.length === 8) {
+            domain = domain_url;
+            domain_hash = hash;
         } else {
             Logger.error('wrong media infos', 'hash', domain_hash, 'domain', domain_url, 'src', src);
         }
@@ -62,8 +64,8 @@
         if (!src) {
             return undefined;
         }
+        const domain_url = get_domain(src);
         if (!domain_hash) {
-            const domain_url = get_domain(src);
             if (domain_url) {
                 if (typeof window !== 'undefined' && window._media) {
                     const media_key = Object.keys(window._media).find((key) => window._media[key].domain == domain_url);
@@ -73,11 +75,17 @@
                         console.error(src, domain_url);
                     }
                 } else {
-                    console.log('ERROR', src)
+                    Logger.error('domain could not detected on server', src);
                 }
-                // remove domain from the source
-                src = src.replace(domain_url, '');
             }
+        }
+        if (domain_url) {
+            // remove domain from the source
+            src = src.replace(domain_url, '');
+        }
+        if (domain && src.indexOf('http') > -1) {
+            // something went terrible wrong
+            Logger.error('domain could not be removed from the media', src);
         }
 
         // get the corrected values

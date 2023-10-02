@@ -19,6 +19,7 @@ import { append_cache_breaker } from './cache_breaker.js';
 import { Plugin } from './plugin.js';
 import { contains_reserved_words } from './reserved_words.js';
 import { Env } from '../vars/env.js';
+import { stringify } from './json.js';
 
 export async function build_cache() {
     const files = collect_files(Cwd.get(FOLDER_GEN_ROUTES));
@@ -154,7 +155,8 @@ export async function run_route(request, response, uid, route) {
         returnJSON: (json, status = 200, headers = {}) => {
             const response_header = Object.assign({}, headers);
             response_header['Content-Type'] = 'application/json';
-            response = end_response(response, JSON.stringify(json), status, response_header);
+            const returned_json = json === undefined ? 'null' : stringify(json);
+            response = end_response(response, returned_json, status, response_header);
         },
         returnData: (data, status = 200, headers = {}) => {
             response = end_response(response, data, status, headers);

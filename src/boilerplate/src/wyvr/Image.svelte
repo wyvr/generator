@@ -18,7 +18,6 @@
 
     import { get_image_src_data, get_image_src, correct_image_format } from '@src/wyvr/image_utils.js';
     export let src = null;
-    export let domain = null;
     export let width = 0;
     export let height = 0;
     export let alt = '';
@@ -35,11 +34,6 @@
     let domain_hash;
 
     onServer(async () => {
-        // if a domain hash is present, use it
-        if (domain) {
-            domain_hash = domain;
-            return;
-        }
         if (!src) {
             return undefined;
         }
@@ -50,26 +44,27 @@
         }
         // convert to domain hash
         const { get_domain_hash } = await import('@wyvr/generator/src/utils/media.js');
-        domain_hash = get_domain_hash(domain_url);
+        const hash = get_domain_hash(domain_url);
+        if(hash.length === 8) {
+            domain_hash = hash
+        } else {
+            Logger.error('wrong media infos', 'hash', domain_hash, 'domain', domain_url, 'src', src);
+        }
         // remove domain from the source
         src = src.replace(domain_url, '');
     });
 
     $: loading = lazy ? 'lazy' : null;
     // update the media if something changes which has effect on the image urls or the used sources
-    $: media = update_media(src, domain, width, height, format, quality, widths, mode, fixed);
+    $: media = update_media(src, width, height, format, quality, widths, mode, fixed);
 
-    function update_media(src, domain, width, height, format, quality, widths, mode, fixed) {
+    function update_media(src, width, height, format, quality, widths, mode, fixed) {
         if (!src) {
             return undefined;
-        }
-        if (domain && !domain_hash) {
-            domain_hash = domain;
         }
         if (!domain_hash) {
             const domain_url = get_domain(src);
             if (domain_url) {
-                domain = domain_url;
                 if (typeof window !== 'undefined' && window._media) {
                     const media_key = Object.keys(window._media).find((key) => window._media[key].domain == domain_url);
                     if (media_key) {

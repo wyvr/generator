@@ -15,11 +15,10 @@ describe('model/wyvr_file/extract_wyvr_file_config', () => {
     });
     it('empty config', () => {
         const result = clone(WyvrFileConfig);
-        deepStrictEqual(extract_wyvr_file_config('wyvr: {}'), result);
+        deepStrictEqual(extract_wyvr_file_config('<script>wyvr: {}</script>'), result);
     });
-    it('override prop', () => {
+    it('not in script tags', () => {
         const result = clone(WyvrFileConfig);
-        result.display = 'inline';
         deepStrictEqual(
             extract_wyvr_file_config(`wyvr: {
             display: 'inline'
@@ -27,13 +26,50 @@ describe('model/wyvr_file/extract_wyvr_file_config', () => {
             result
         );
     });
+    it('override prop', () => {
+        const result = clone(WyvrFileConfig);
+        result.display = 'inline';
+        deepStrictEqual(
+            extract_wyvr_file_config(`<script>wyvr: {
+            display: 'inline'
+        }</script>`),
+            result
+        );
+    });
+    it('missing script start', () => {
+        const result = clone(WyvrFileConfig);
+        deepStrictEqual(
+            extract_wyvr_file_config(`wyvr: {
+            display: 'inline'
+        }</script>`),
+            result
+        );
+    });
+    it('missing script end', () => {
+        const result = clone(WyvrFileConfig);
+        deepStrictEqual(
+            extract_wyvr_file_config(`<script>wyvr: {
+            display: 'inline'
+        }`),
+            result
+        );
+    });
+    it('out of balance script tags', () => {
+        const result = clone(WyvrFileConfig);
+        deepStrictEqual(
+            extract_wyvr_file_config(`</script>wyvr: {
+            display: 'inline'
+        }<script>`),
+            result
+        );
+    });
     it('without space', () => {
         const result = clone(WyvrFileConfig);
         result.display = 'inline';
         deepStrictEqual(
-            extract_wyvr_file_config(`wyvr:{
+            extract_wyvr_file_config(`<script>wyvr:{
             display:'inline'
-        }`),
+        }</script>`),
             result
         );
     });
@@ -41,9 +77,9 @@ describe('model/wyvr_file/extract_wyvr_file_config', () => {
         const result = clone(WyvrFileConfig);
         result.test = true;
         deepStrictEqual(
-            extract_wyvr_file_config(`wyvr: {
+            extract_wyvr_file_config(`<script>wyvr: {
             test:    true
-        }`),
+        }</script>`),
             result
         );
     });
@@ -51,9 +87,9 @@ describe('model/wyvr_file/extract_wyvr_file_config', () => {
         const result = clone(WyvrFileConfig);
         result.test = 1.23;
         deepStrictEqual(
-            extract_wyvr_file_config(`wyvr: {
+            extract_wyvr_file_config(`<script>wyvr: {
             test:    1.23
-        }`),
+        }</script>`),
             result
         );
     });
@@ -61,9 +97,9 @@ describe('model/wyvr_file/extract_wyvr_file_config', () => {
         const result = clone(WyvrFileConfig);
         result.media = '(min-width: 500px)';
         deepStrictEqual(
-            extract_wyvr_file_config(`wyvr: {
+            extract_wyvr_file_config(`<script>wyvr: {
             media: 'min-width: 500px'
-        }`),
+        }</script>`),
             result
         );
     });
@@ -71,9 +107,9 @@ describe('model/wyvr_file/extract_wyvr_file_config', () => {
         const result = clone(WyvrFileConfig);
         result.media = 'min-width: 500px and screen';
         deepStrictEqual(
-            extract_wyvr_file_config(`wyvr: {
+            extract_wyvr_file_config(`<script>wyvr: {
             media: 'min-width: 500px and screen'
-        }`),
+        }</script>`),
             result
         );
     });

@@ -48,29 +48,78 @@ export function extract_wyvr_file_config(content) {
     if (!filled_string(content)) {
         return config;
     }
-    const rows = content.match(/wyvr:\s*?(?<rows>\{[^}]*\})/)?.groups?.rows;
-    if (rows) {
-        rows.split('\n').forEach((row) => {
+    // search content inside the script tag
+    const script_start = content.indexOf('<script');
+    const script_end = content.indexOf('</script>');
+    if (script_start === -1 || script_end === -1 || script_start > script_end) {
+        return config;
+    }
+
+    const script_content = content.substr(script_start, script_end - script_start).replace(/<script[^>]*?>/, '');
+
+    // search content inside the wyvr instructions
+    const wyvr_index = script_content.indexOf('wyvr');
+    if (wyvr_index == -1) {
+        return config;
+    }
+    const wyvr_content = script_content.substr(wyvr_index + 4);
+
+    let index = 0;
+    let brackets = 0;
+    let started = false;
+    const wyvr_inner_indexes = { start: -1, end: -1 };
+
+    for (const len = wyvr_content.length; index <= len; index++) {
+        let char = wyvr_content[index];
+        if (char == '{') {
+            if (!started) {
+                wyvr_inner_indexes.start = index + 1;
+            }
+            started = true;
+            brackets++;
+            continue;
+        }
+        if (char == '}') {
+            brackets--;
+            if (started && brackets == 0) {
+                wyvr_inner_indexes.end = index - 1;
+                break;
+            }
+            continue;
+        }
+    }
+    if (wyvr_inner_indexes.start == -1 || wyvr_inner_indexes.end == -1) {
+        return config;
+    }
+
+    const wyvr_inner = wyvr_content.substr(wyvr_inner_indexes.start, wyvr_inner_indexes.end - wyvr_inner_indexes.start);
+
+    // parse the properties
+    wyvr_inner
+        .split('\n')
+        .map((row) => row.trim())
+        .filter(Boolean)
+        .forEach((row) => {
             // search string
-            const cfg_string = row.match(/(?<key>\w+):\s*?['"](?<value>[^'"]*)['"]/)?.groups;
+            const cfg_string = row.match(/(?<key>\w+)\s*?:\s*?['"](?<value>[^'"]*)['"]/)?.groups;
             if (cfg_string) {
                 config[cfg_string.key] = cfg_string.value;
                 return;
             }
             // search bool
-            const cfg_bool = row.match(/(?<key>\w+):\s*?(?<value>true|false)/)?.groups;
+            const cfg_bool = row.match(/(?<key>\w+)\s*?:\s*?(?<value>true|false)/)?.groups;
             if (cfg_bool) {
                 config[cfg_bool.key] = cfg_bool.value === 'true';
                 return;
             }
             // search number
-            const cfg_number = row.match(/(?<key>\w+):\s*?(?<value>[\d,.]+)/)?.groups;
+            const cfg_number = row.match(/(?<key>\w+)\s*?:\s*?(?<value>[\d,.]+)/)?.groups;
             if (cfg_number) {
                 config[cfg_number.key] = parseFloat(cfg_number.value);
                 return;
             }
         });
-    }
+
     // auto encapsulte media queries
     if (config.media != 'all' && !config.media.match(/\sand\s|\sor\s/)) {
         config.media = `(${config.media})`;

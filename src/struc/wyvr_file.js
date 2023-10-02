@@ -22,4 +22,5 @@ export const WyvrFileConfig = {
     portal: undefined,
     trigger: undefined,
     media: 'all',
+    condition: undefined,
 };

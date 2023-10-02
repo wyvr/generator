@@ -113,4 +113,17 @@ describe('model/wyvr_file/extract_wyvr_file_config', () => {
             result
         );
     });
+
+    it('extract condition', () => {
+        const result = clone(WyvrFileConfig);
+        result.condition = "\nreturn JSON.parse(localStorage.getItem('key') ?? 'false');";
+        deepStrictEqual(
+            extract_wyvr_file_config(`<script>wyvr: {
+                condition: () => {
+                return JSON.parse(localStorage.getItem('key') ?? 'false');
+            }
+        }</script>`),
+            result
+        );
+    });
 });

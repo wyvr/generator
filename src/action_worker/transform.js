@@ -1,6 +1,6 @@
 import { extname } from 'path';
 import { FOLDER_GEN_SRC } from '../constants/folder.js';
-import { extract_wyvr_file_config } from '../model/wyvr_file.js';
+import { extract_wyvr_file_config, search_wyvr_content } from '../model/wyvr_file.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerEmit } from '../struc/worker_emit.js';
 import { insert_import } from '../utils/compile.js';
@@ -16,7 +16,7 @@ export async function transform(files) {
     if (!filled_array(files)) {
         return false;
     }
-    
+
     for (const file of files) {
         if (!exists(file)) {
             continue;
@@ -30,7 +30,7 @@ export async function transform(files) {
                     continue;
                 }
                 content = combined.content;
-                
+
                 // extract wyvr file config and send the data
                 const dependency_emit = {
                     type: WorkerEmit.wyvr_config,
@@ -38,10 +38,11 @@ export async function transform(files) {
                     config: extract_wyvr_file_config(content),
                 };
                 send_action(WorkerAction.emit, dependency_emit);
-                
+
                 // override the content
+                // const wyvr_details = search_wyvr_content(content);
                 write(file, content);
-                
+
                 continue;
             }
             // replace import in text files
@@ -55,13 +56,13 @@ export async function transform(files) {
                 write(file, expanded_content);
 
                 // write client and server versions of scripts
-                if(in_array(['.mjs', '.cjs', '.js', '.ts'], extension)) {
+                if (in_array(['.mjs', '.cjs', '.js', '.ts'], extension)) {
                     write(to_server_path(file), replace_wyvr_magic(expanded_content, false));
                     write(to_client_path(file), replace_wyvr_magic(expanded_content, true));
                     continue;
                 }
             }
-            
+
             // link static files
             symlink(file, to_server_path(file));
             symlink(file, to_client_path(file));

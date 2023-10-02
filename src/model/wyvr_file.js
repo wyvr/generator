@@ -48,25 +48,25 @@ export function extract_wyvr_file_config(content) {
     if (!filled_string(content)) {
         return config;
     }
-    const match = content.match(/wyvr:\s*?(\{[^}]*\})/);
-    if (match) {
-        match[1].split('\n').forEach((row) => {
+    const rows = content.match(/wyvr:\s*?(?<rows>\{[^}]*\})/)?.groups?.rows;
+    if (rows) {
+        rows.split('\n').forEach((row) => {
             // search string
-            const cfg_string = row.match(/(\w+):\s*?['"]([^'"]*)['"]/);
+            const cfg_string = row.match(/(?<key>\w+):\s*?['"](?<value>[^'"]*)['"]/)?.groups;
             if (cfg_string) {
-                config[cfg_string[1]] = cfg_string[2];
+                config[cfg_string.key] = cfg_string.value;
                 return;
             }
             // search bool
-            const cfg_bool = row.match(/(\w+):\s*?(true|false)/);
+            const cfg_bool = row.match(/(?<key>\w+):\s*?(?<value>true|false)/)?.groups;
             if (cfg_bool) {
-                config[cfg_bool[1]] = cfg_bool[2] === 'true';
+                config[cfg_bool.key] = cfg_bool.value === 'true';
                 return;
             }
             // search number
-            const cfg_number = row.match(/(\w+):\s*?([\d,.]+)/);
+            const cfg_number = row.match(/(?<key>\w+):\s*?(?<value>[\d,.]+)/)?.groups;
             if (cfg_number) {
-                config[cfg_number[1]] = parseFloat(cfg_number[2]);
+                config[cfg_number.key] = parseFloat(cfg_number.value);
                 return;
             }
         });

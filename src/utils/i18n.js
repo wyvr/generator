@@ -7,6 +7,12 @@ import { stringify } from './json.js';
 
 let language_cache = {};
 
+/**
+ * Collect the translations from packages and generate the languages
+ * @param {array} packages the packages have to be ordered in ascending order of weight, to process the translations correctly
+ * @param {*} fallback_language
+ * @returns {any}
+ */
 export function collect_i18n(packages, fallback_language) {
     if (!filled_array(packages)) {
         return {};
@@ -60,7 +66,7 @@ export function collect_i18n(packages, fallback_language) {
         });
     }
     // when no translations are set avoid that the file will not be generated
-    if(fallback_language && !translations[fallback_language]) {
+    if (fallback_language && !translations[fallback_language]) {
         translations[fallback_language] = {};
     }
     return translations;

@@ -35,8 +35,8 @@ describe('action/i18n/collect_i18n', () => {
     });
     it('override simple + count', () => {
         const result = collect_i18n([
-            { path: join(__dirname, '_tests/count') },
             { path: join(__dirname, '_tests/simple') },
+            { path: join(__dirname, '_tests/count') },
         ]);
         deepStrictEqual(result, {
             en: {

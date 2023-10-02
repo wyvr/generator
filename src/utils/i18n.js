@@ -12,7 +12,7 @@ export function collect_i18n(packages, fallback_language) {
         return {};
     }
     const translations = {};
-    packages.reverse().forEach((pkg) => {
+    packages.filter(Boolean).forEach((pkg) => {
         if (!pkg || !pkg.path) {
             return;
         }

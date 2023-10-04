@@ -25,7 +25,7 @@ export async function route(requests) {
         if (!route) {
             continue;
         }
-        const uid = request.uid || uniq_id();
+        const uid = request.uid ?? uniq_id();
         const force_generating_of_resources = request.force_generating_of_resources || false;
         Logger.debug('route', request.url, route.url);
 

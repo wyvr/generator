@@ -286,7 +286,7 @@ describe('model/serializable/response', () => {
             encoding: undefined,
         });
     });
-    it('writeHead to complete response', () => {
+    it('writeHead to complete response, suppress message', () => {
         const response = new SerializableResponse();
         response.end();
         response.writeHead(400, 'message', { a: 'test' });
@@ -295,6 +295,24 @@ describe('model/serializable/response', () => {
             complete: true,
             statusCode: 200,
             statusMessage: undefined,
+            uid: undefined,
+            data: undefined,
+            encoding: 'utf-8',
+        });
+        deepStrictEqual(log, []);
+    });
+    it('writeHead to complete response in dev mode', () => {
+        Env.set(EnvType.dev)
+        const response = new SerializableResponse();
+        response.end();
+        response.writeHead(400, 'message', { a: 'test' });
+        Env.set(EnvType.prod)
+        deepStrictEqual(response.serialize(), {
+            headers: {},
+            complete: true,
+            statusCode: 200,
+            statusMessage: undefined,
+            uid: undefined,
             data: undefined,
             encoding: 'utf-8',
         });

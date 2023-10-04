@@ -1,4 +1,5 @@
 import { Logger } from '../../utils/logger.js';
+import { Env } from '../../vars/env.js';
 
 /**
  * @class
@@ -155,7 +156,9 @@ export class SerializableResponse {
      */
     writeHead(statusCode, statusMessage, headers) {
         if (this.complete) {
-            Logger.error('Response is already complete, can not write head');
+            if (Env.is_dev()) {
+                Logger.error('Response is already complete, can not write head');
+            }
             return;
         }
         if (statusCode !== undefined) {

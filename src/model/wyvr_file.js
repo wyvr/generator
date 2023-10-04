@@ -65,19 +65,19 @@ export function extract_wyvr_file_config(content) {
         const cfg_string = row.match(/(?<key>\w+)\s*?:\s*?['"](?<value>[^'"]*)['"]/)?.groups;
         if (cfg_string) {
             config[cfg_string.key] = cfg_string.value;
-            break;
+            continue;
         }
         // search bool
         const cfg_bool = row.match(/(?<key>\w+)\s*?:\s*?(?<value>true|false)/)?.groups;
         if (cfg_bool) {
             config[cfg_bool.key] = cfg_bool.value === 'true';
-            break;
+            continue;
         }
         // search number
         const cfg_number = row.match(/(?<key>\w+)\s*?:\s*?(?<value>[\d,.]+)/)?.groups;
         if (cfg_number) {
             config[cfg_number.key] = parseFloat(cfg_number.value);
-            break;
+            continue;
         }
         // search conditions
         if (row.match(/condition\s*?:\s*?\(\s*?\)\s*?=>\s*?\{/)) {
@@ -112,7 +112,7 @@ export function search_wyvr_content(content) {
     const script_content = content.substr(script_start, script_end - script_start).replace(/<script[^>]*?>/, '');
 
     // search content inside the wyvr instructions
-    const wyvr_index = script_content.indexOf('wyvr');
+    const wyvr_index = Math.max(script_content.indexOf('wyvr:'), script_content.indexOf('wyvr :'));
     if (wyvr_index == -1) {
         return undefined;
     }

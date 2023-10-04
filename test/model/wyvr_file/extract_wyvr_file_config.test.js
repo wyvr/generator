@@ -126,4 +126,78 @@ describe('model/wyvr_file/extract_wyvr_file_config', () => {
             result
         );
     });
+    it('multiple', () => {
+        const result = clone(WyvrFileConfig);
+        result.render = 'hydrate';
+        result.loading = 'interact';
+        result.trigger = 'found_product_tab_hash';
+        deepStrictEqual(
+            extract_wyvr_file_config(`<script>wyvr: {
+        render: 'hydrate'
+        loading: 'interact'
+        trigger: 'found_product_tab_hash'
+            }
+        }</script>`),
+            result
+        );
+    });
+    it('with ; at the end', () => {
+        const result = clone(WyvrFileConfig);
+        result.render = 'hydrate';
+        result.loading = 'interact';
+        result.trigger = 'trigger_name';
+        deepStrictEqual(
+            extract_wyvr_file_config(`<script>wyvr: {
+        render: 'hydrate';
+        loading: 'interact';
+        trigger: 'trigger_name';
+            }
+        }</script>`),
+            result
+        );
+    });
+    it('loading none and trigger', () => {
+        const result = clone(WyvrFileConfig);
+        result.render = 'hydrate';
+        result.loading = 'none';
+        result.trigger = 'trigger_name';
+        deepStrictEqual(
+            extract_wyvr_file_config(`<script>wyvr: {
+                render: 'hydrate';
+                loading: 'none';
+                trigger: 'trigger_name';
+            }</script>`),
+            result
+        );
+    });
+    it('more content', () => {
+        const result = clone(WyvrFileConfig);
+        result.render = 'hydrate';
+        result.loading = 'none';
+        result.trigger = 'trigger_name';
+        deepStrictEqual(
+            extract_wyvr_file_config(`<script>import Image from '@src/wyvr/Image.svelte';
+            import { onMount } from 'svelte';
+        
+            export let brands;
+        
+            wyvr: {
+                render: 'hydrate';
+                loading: 'none';
+                trigger: 'trigger_name';
+            }
+        
+            let selected;
+        
+            $: allowed_brands = brands.filter((brand) => !brand.parent_brand && brand.is_active);
+            $: filtered_brands = get_brands(allowed_brands, selected);
+        
+            onMount(() => {
+                if (window.selected_brand) {
+                    selected = window.selected_brand;
+                }
+            });</script>`),
+            result
+        );
+    });
 });

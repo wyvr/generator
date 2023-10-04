@@ -3,6 +3,8 @@ import { describe, it } from 'mocha';
 import { SerializableResponse } from '../../../src/model/serializable/response.js';
 import { to_plain } from '../../../src/utils/to.js';
 import Sinon from 'sinon';
+import { Env } from '../../../src/vars/env.js';
+import { EnvType } from '../../../src/struc/env.js';
 
 describe('model/serializable/response', () => {
     let sandbox,
@@ -27,6 +29,20 @@ describe('model/serializable/response', () => {
             complete: false,
             statusCode: 200,
             statusMessage: undefined,
+            uid: undefined,
+            data: undefined,
+            encoding: undefined,
+        });
+    });
+    it('set uid', () => {
+        const response = new SerializableResponse();
+        response.uid = '0000';
+        deepStrictEqual(response.serialize(), {
+            headers: {},
+            complete: false,
+            statusCode: 200,
+            statusMessage: undefined,
+            uid: '0000',
             data: undefined,
             encoding: undefined,
         });
@@ -57,6 +73,7 @@ describe('model/serializable/response', () => {
             complete: true,
             statusCode: 200,
             statusMessage: undefined,
+            uid: undefined,
             data: undefined,
             encoding: 'utf-8',
         });
@@ -69,6 +86,7 @@ describe('model/serializable/response', () => {
             complete: true,
             statusCode: 200,
             statusMessage: undefined,
+            uid: undefined,
             data: 'test',
             encoding: 'utf-8',
         });
@@ -81,6 +99,7 @@ describe('model/serializable/response', () => {
             complete: true,
             statusCode: 200,
             statusMessage: undefined,
+            uid: undefined,
             data: undefined,
             encoding: 'ascii',
         });
@@ -94,6 +113,7 @@ describe('model/serializable/response', () => {
             complete: true,
             statusCode: 200,
             statusMessage: undefined,
+            uid: undefined,
             data: undefined,
             encoding: 'ascii',
         });
@@ -149,6 +169,7 @@ describe('model/serializable/response', () => {
             complete: false,
             statusCode: 200,
             statusMessage: undefined,
+            uid: undefined,
             data: undefined,
             encoding: undefined,
         });
@@ -163,6 +184,7 @@ describe('model/serializable/response', () => {
             complete: true,
             statusCode: 200,
             statusMessage: undefined,
+            uid: undefined,
             data: undefined,
             encoding: 'utf-8',
         });
@@ -176,6 +198,7 @@ describe('model/serializable/response', () => {
             complete: false,
             statusCode: 200,
             statusMessage: undefined,
+            uid: undefined,
             data: undefined,
             encoding: undefined,
         });
@@ -189,6 +212,7 @@ describe('model/serializable/response', () => {
             complete: false,
             statusCode: 200,
             statusMessage: undefined,
+            uid: undefined,
             data: undefined,
             encoding: undefined,
         });
@@ -201,6 +225,7 @@ describe('model/serializable/response', () => {
             complete: false,
             statusCode: 200,
             statusMessage: undefined,
+            uid: undefined,
             data: undefined,
             encoding: undefined,
         });
@@ -214,6 +239,7 @@ describe('model/serializable/response', () => {
             complete: true,
             statusCode: 200,
             statusMessage: undefined,
+            uid: undefined,
             data: undefined,
             encoding: 'utf-8',
         });
@@ -227,6 +253,7 @@ describe('model/serializable/response', () => {
             complete: false,
             statusCode: 200,
             statusMessage: undefined,
+            uid: undefined,
             data: 'test',
             encoding: 'utf-8',
         });
@@ -240,6 +267,7 @@ describe('model/serializable/response', () => {
             complete: true,
             statusCode: 200,
             statusMessage: undefined,
+            uid: undefined,
             data: undefined,
             encoding: 'utf-8',
         });
@@ -253,6 +281,7 @@ describe('model/serializable/response', () => {
             complete: false,
             statusCode: 400,
             statusMessage: 'message',
+            uid: undefined,
             data: undefined,
             encoding: undefined,
         });

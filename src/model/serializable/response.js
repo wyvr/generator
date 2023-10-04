@@ -26,6 +26,9 @@ export class SerializableResponse {
 
         /** @type {string|undefined} */
         this.encoding = undefined;
+
+        /** @type {string|undefined} */
+        this.uid = undefined;
     }
 
     /**
@@ -172,6 +175,7 @@ export class SerializableResponse {
      */
     serialize() {
         return {
+            uid: this.uid,
             headers: this.headers,
             complete: this.complete,
             statusCode: this.statusCode,

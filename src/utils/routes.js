@@ -88,6 +88,9 @@ export function get_route(url, method, route_cache) {
 }
 
 export async function run_route(request, response, uid, route) {
+    if (response && typeof response == 'object') {
+        response.uid = uid;
+    }
     if (!match_interface(request, { url: true })) {
         return [undefined, response];
     }

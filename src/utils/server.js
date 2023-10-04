@@ -44,6 +44,7 @@ export function server(host, port, on_request, on_end) {
         if (Env.is_dev()) {
             res.setHeader('Wyvr-Uid', uid);
         }
+        req.uid = uid;
 
         // force redirect to urls with / at the end
         const url = req.url;

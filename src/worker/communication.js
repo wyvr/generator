@@ -8,6 +8,7 @@ let communicate_by_ipc = true;
 
 export function useIPC(value) {
     communicate_by_ipc = !!value;
+    return communicate_by_ipc;
 }
 
 export function send(data) {

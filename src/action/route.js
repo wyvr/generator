@@ -1,19 +1,11 @@
 import { get_fallback_route } from '../utils/routes.js';
 import { Logger } from '../utils/logger.js';
 import { match_interface } from '../utils/validate.js';
-
-import { WorkerAction } from '../struc/worker_action.js';
 import { Plugin } from '../utils/plugin.js';
-import { WorkerController } from '../worker/controller.js';
 import { SerializableRequest } from '../model/serializable/request.js';
-import { WorkerEmit, get_name } from '../struc/worker_emit.js';
-import { Event } from '../utils/event.js';
 import { route, send_process_route_request } from '../action_worker/route.js';
 import { STATUS_CODES } from 'http';
-import { IsWorker } from '../vars/is_worker.js';
 import { stringify } from '../utils/json.js';
-
-const route_name = get_name(WorkerEmit.route);
 
 /**
  * Process route from an request
@@ -37,22 +29,8 @@ export async function route_request(req, res, uid, force_generating_of_resources
     // wrap in plugin
     const caller = await Plugin.process(name, [ser_req]);
     await caller(async (requests) => {
-        if (IsWorker.get()) {
-            const responses = await route(requests);
-            response = responses.find(Boolean);
-        } else {
-            const route_id = Event.on('emit', route_name, (data) => {
-                if (!data) {
-                    return;
-                }
-                // set the response only when the url is equal to the requested
-                if (data?.response?.url === req.url) {
-                    response = data?.response;
-                }
-            });
-            await WorkerController.process_in_workers(WorkerAction.route, requests, 1, true);
-            Event.off('emit', route_name, route_id);
-        }
+        const responses = await route(requests);
+        response = responses.find(Boolean);
     });
 
     if (!response) {
@@ -85,7 +63,7 @@ export function apply_response(response, ser_response) {
     response.wyvr = true;
     response.statusCode = ser_response.statusCode;
     response.statusText = STATUS_CODES[ser_response.statusCode];
-    if(typeof response.setHeaders == 'function') {
+    if (typeof response.setHeaders == 'function') {
         response.setHeaders(new Headers(ser_response.headers));
     } else {
         response.headers = ser_response.headers;

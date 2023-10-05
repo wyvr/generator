@@ -43,6 +43,7 @@ describe('action/check_env/check_env', () => {
         await check_env();
         deepStrictEqual(log, [
             ['✖', 'current directory is wyvr root folder, please start wyvr in another directory'],
+            ['✖', 'wyvr config file is not present'],
             ['✖', 'terminated wyvr because of critical errors'],
         ]);
         strictEqual(exit_value, 1);

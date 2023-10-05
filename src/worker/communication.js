@@ -12,7 +12,7 @@ export function useIPC(value) {
 }
 
 export function send(data) {
-    if (communicate_by_ipc) {
+    if (communicate_by_ipc && typeof process?.send === 'function') {
         process.send({
             pid: process.pid,
             data,

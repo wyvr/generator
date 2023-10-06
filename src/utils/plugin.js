@@ -100,7 +100,7 @@ export class Plugin {
                 };
             };
         }
-        const plugins = search_segment(this.cache, `${name}.${type}`);
+        const plugins = search_segment(this.cache, `${name}.${type}`)?.filter(Boolean);
         if (is_null(plugins)) {
             return async (result, ...args) => {
                 return {
@@ -189,7 +189,7 @@ export class Plugin {
         if (plugins) {
             this.cache = plugins;
         }
-        return plugins
+        return plugins;
     }
 }
 Plugin.cache = {};

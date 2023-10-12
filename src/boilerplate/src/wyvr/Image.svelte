@@ -68,7 +68,9 @@
         if (!domain_hash) {
             if (domain_url) {
                 if (typeof window !== 'undefined' && window._media) {
-                    const media_key = Object.keys(window._media).find((key) => window._media[key].domain == domain_url);
+                    const media_key = Object.keys(window._media).find(
+                        (key) => window._media[key].domain.indexOf(domain_url) == 0 // allow that a domain contains a path
+                    );
                     if (media_key) {
                         domain_hash = window._media[media_key].hash;
                     } else {

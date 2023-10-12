@@ -142,7 +142,6 @@ export function is_data_method(method) {
 export async function return_not_found(req, res, uid, message, status, start) {
     Logger.error(req.method, req.url, ...get_done_log_infos(message, status, start, uid));
     if (Env.is_dev()) {
-        register_stack();
         // use full page in dev mode to add devtools, which allow autoreloading the page
         const content = read(join(to_dirname(import.meta.url), '..', 'resource', '404development.html'));
         if (content) {
@@ -265,6 +264,7 @@ export function watch_server(host, port, wsport, packages, fallback) {
 }
 
 async function generate_server(host, port, force_generating_of_resources, onEnd, fallback) {
+    register_stack();
     server(host, port, undefined, async (req, res, uid) => {
         // check if pub is available
         pub_healthcheck();

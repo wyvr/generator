@@ -91,7 +91,7 @@ let stackData = {};
  * @returns void
  */
 export function register_stack() {
-    if (is_func(global._stack)) {
+    if (is_func(global.setStack)) {
         return;
     }
     global.setStack = (key, value) => {

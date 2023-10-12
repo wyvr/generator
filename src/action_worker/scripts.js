@@ -41,7 +41,14 @@ export async function scripts(identifiers) {
         let identifier_file;
         let dependencies = [];
         let content;
-        const scripts = [build_id_var];
+        const scripts = [
+            build_id_var,
+            read(join(resouce_dir, 'events.js')),
+            read(join(resouce_dir, 'props.js')),
+            read(join(resouce_dir, 'portal.js')),
+            read(join(resouce_dir, 'stack.js')),
+            read(join(resouce_dir, 'i18n.js')).replace(/\[lib\]/g, lib_dir),
+        ];
 
         try {
             const is_shortcode = !!identifier.imports;
@@ -69,9 +76,9 @@ export async function scripts(identifiers) {
             }
 
             // write dev structure
-            if (Env.is_dev()) {
-                write_identifier_structure(identifier, tree, file_config, package_tree);
-            }
+            //if (Env.is_dev()) {
+            write_identifier_structure(identifier, tree, file_config, package_tree);
+            //}
 
             const has = { instant: false };
             // build file content
@@ -100,19 +107,17 @@ export async function scripts(identifiers) {
                 const script_path = join(resouce_dir, `hydrate_${key}.js`);
                 scripts.push(read(script_path));
             });
-            scripts.push(read(join(resouce_dir, 'events.js')));
-            scripts.push(read(join(resouce_dir, 'props.js')));
-            scripts.push(read(join(resouce_dir, 'portal.js')));
-            scripts.push(read(join(resouce_dir, 'stack.js')));
-            scripts.push(read(join(resouce_dir, 'i18n.js')).replace(/\[lib\]/g, lib_dir));
+            scripts.push(`
+                const wyvr_identifier = ${stringify(identifier)};
+                const wyvr_dependencies = ${stringify(dependencies)};
+            `);
+
             if (Env.is_dev()) {
                 scripts.push(read(join(resouce_dir, 'devtools.js')));
                 scripts.push(`
-                const identifier = ${stringify(identifier)};
-                const dependencies = ${stringify(dependencies)};
                 console.group('wyvr');
-                console.log('identifier', identifier);
-                console.log('dependencies', dependencies);
+                console.log('identifier', wyvr_identifier);
+                console.log('dependencies', wyvr_dependencies);
                 console.groupEnd('wyvr');
                 `);
             }

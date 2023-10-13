@@ -34,7 +34,7 @@ export async function copy(available_packages) {
             // Copy static files from packages
             // Copy files from packages and override in the reversed package order
             // Build Tree of files and packages
-            packages.reverse().forEach((pkg) => {
+            packages.filter(Boolean).reverse().forEach((pkg) => {
                 copy_folder(pkg.path, FOLDER_LIST_PACKAGE_COPY, Cwd.get(FOLDER_GEN), (file, target) => {
                     const rel_path = to_relative_path_of_gen(target);
                     // get file modify time of page files

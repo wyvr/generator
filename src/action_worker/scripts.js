@@ -26,10 +26,7 @@ export async function scripts(identifiers) {
     }
     const file_config = get_config_cache('dependencies.config');
     const tree = get_config_cache('dependencies.top');
-    let package_tree;
-    if (Env.is_dev()) {
-        package_tree = get_config_cache('package_tree');
-    }
+    const package_tree = Env.is_dev() ? get_config_cache('package_tree') : undefined;
     const build_id = UniqId.get();
     const build_id_var = `window.build_id = '${build_id ? build_id.substr(0, 8) : '_'}';`;
     for (const identifier of identifiers) {
@@ -76,9 +73,7 @@ export async function scripts(identifiers) {
             }
 
             // write dev structure
-            //if (Env.is_dev()) {
             write_identifier_structure(identifier, tree, file_config, package_tree);
-            //}
 
             const has = { instant: false };
             // build file content

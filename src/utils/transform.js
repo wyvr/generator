@@ -22,6 +22,7 @@ import { Logger } from './logger.js';
 import { FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC } from '../constants/folder.js';
 import { get_error_message } from './error.js';
 import { append_cache_breaker } from './cache_breaker.js';
+import { Config } from './config.js';
 
 const __dirname = join(to_dirname(import.meta.url), '..');
 
@@ -260,6 +261,13 @@ export function replace_wyvr_magic(content, as_client) {
             }
 
             return 'from ' + quote + path.replace(FOLDER_GEN_SRC, target_dir) + quote;
+        })
+        .replace(/(\W)injectConfig\(['"]([^'"]+)['"](?:\s?,\s([^)]+)?)?\)/g, (_, pre, path, fallback) => {
+            const value = Config.get(path);
+            if (is_null(value)) {
+                return pre + fallback;
+            }
+            return pre + JSON.stringify(value);
         });
 }
 export function set_default_values(data, default_values) {

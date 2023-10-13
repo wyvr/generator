@@ -5,6 +5,7 @@ import { set_config_cache } from '../utils/config_cache.js';
 import { Event } from '../utils/event.js';
 import { collect_files } from '../utils/file.js';
 import { Plugin } from '../utils/plugin.js';
+import { sleep } from '../utils/sleep.js';
 import { is_array, is_null, is_object, match_interface } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { WorkerController } from '../worker/controller.js';
@@ -37,6 +38,9 @@ export async function transform(data, file_configs = {}, minimize_output = false
             await caller(async (data) => {
                 await WorkerController.process_in_workers(WorkerAction.transform, data, 10, minimize_output);
             });
+            // @TODO buggy
+            // fix that too much dependencies gets processed, error in process_in_workers
+            await sleep(1000);
             // remove listeners
             Event.off('emit', config_name, config_id);
 

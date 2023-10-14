@@ -17,6 +17,7 @@
     */
 
     import { get_image_src_data, get_image_src, correct_image_format } from '@src/wyvr/image_utils.js';
+    import { onMount } from 'svelte';
     export let src = null;
     export let width = 0;
     export let height = 0;
@@ -31,78 +32,64 @@
     export let mode = 'cover';
     export let fixed = false;
 
-    let domain;
-    let domain_hash;
+    let domain_config;
+    let media;
+    let media_cache;
+    let show_image = true;
 
     onServer(async () => {
-        if (!src) {
-            return undefined;
-        }
-        // try to extract the domain from the src
-        const domain_url = get_domain(src);
-        if (!domain_url) {
-            return;
-        }
-        // convert to domain hash
-        const { get_domain_hash } = await import('@wyvr/generator/src/utils/media.js');
-        const hash = get_domain_hash(domain_url);
-        if (hash.length === 8) {
-            domain = domain_url;
-            domain_hash = hash;
-        } else {
-            Logger.error('wrong media infos', 'hash', domain_hash, 'domain', domain_url, 'src', src);
-        }
-        // remove domain from the source
-        src = src.replace(domain_url, '');
+        const { get_cache_keys } = await import('@wyvr/generator/src/utils/media.js');
+        media_cache = get_cache_keys();
+        set_media();
+    });
+
+    onMount(() => {
+        media_cache = window?._media;
+        set_media();
     });
 
     $: loading = lazy ? 'lazy' : null;
-    // update the media if something changes which has effect on the image urls or the used sources
-    $: media = update_media(src, width, height, format, quality, widths, mode, fixed);
 
-    function update_media(src, width, height, format, quality, widths, mode, fixed) {
-        if (!src) {
+    // update the media if something changes which has effect on the image urls or the used sources
+    $: set_media(src, width, height, format, quality, widths, mode, fixed);
+
+    function set_media() {
+        // avoid images without source or without extensionless source
+        if (!src || !src.match(/\.[^.]{3,5}$/)) {
+            show_image = false;
             return undefined;
         }
-        const domain_url = get_domain(src);
-        if (!domain_hash) {
-            if (domain_url) {
-                if (typeof window !== 'undefined' && window._media) {
-                    const media_key = Object.keys(window._media).find(
-                        (key) => window._media[key].domain.indexOf(domain_url) == 0 // allow that a domain contains a path
-                    );
-                    if (media_key) {
-                        domain_hash = window._media[media_key].hash;
-                    } else {
-                        console.error(src, domain_url);
-                    }
-                } else {
-                    Logger.error('domain could not detected on server', src);
-                }
-            }
+        if (!media_cache) {
+            return;
         }
-        if (domain_url) {
-            // remove domain from the source
-            src = src.replace(domain_url, '');
+        domain_config = Object.values(media_cache).find((value) => src.indexOf(value.domain) == 0);
+        if (domain_config) {
+            media = get_media(src, width, height, format, quality, widths, mode, fixed);
         }
-        if (domain && src.indexOf('http') > -1) {
-            // something went terrible wrong
-            Logger.error('domain could not be removed from the media', src);
-        }
+    }
 
+    function get_media(src, width, height, format, quality, widths, mode, fixed) {
         // get the corrected values
         const cor_height = height <= 0 ? null : height;
         const cor_format = correct_image_format(format, src);
         const cor_formats = ['webp'].filter((x, i, arr) => arr.indexOf(x) == i).filter((x) => x != cor_format);
         // build image data, to avoid passing a lot of parameters around
         const data = {
-            src: src,
+            src: undefined,
             width,
             height: cor_height,
             format: cor_format,
             quality,
             mode,
         };
+        if (domain_config) {
+            // remove domain from the source
+            data.src = src.replace(domain_config.domain, '');
+        }
+        if (domain_config && data.src.indexOf('http') > -1) {
+            // something went terrible wrong
+            Logger.error('domain could not be removed from the media', src);
+        }
         // order the widths from highest to lowest
         const ordered_widths = Array.isArray(widths)
             ? widths
@@ -116,7 +103,7 @@
         const formats = to_srcsets(cor_formats, ordered_widths, data);
 
         return {
-            src: get_src(src, width, cor_height, mode, quality, cor_format, fixed, false),
+            src: get_src(data.src, width, cor_height, mode, quality, cor_format, fixed, false),
             height: cor_height,
             format: cor_format,
             formats,
@@ -129,7 +116,7 @@
         if (!data) {
             return '';
         }
-        return get_image_src(data.src, data.config, domain_hash) + data.width_addition;
+        return get_image_src(data.src, data.config, domain_config?.hash) + data.width_addition;
     }
     function to_srcset(ordered_widths, data) {
         if (!Array.isArray(ordered_widths)) {
@@ -169,16 +156,17 @@
             })
             .filter(Boolean);
     }
-    function get_domain(src) {
-        return src.match(/^(?<domain>https?:\/\/[^/]*?)\//)?.groups?.domain;
-    }
 </script>
 
-{#if media}
-    <picture class={css}>
-        {#each media.formats as format}
-            <source {sizes} srcset={format.srcset} type="image/{format.format}" />
-        {/each}
-        <img src={media.src} {width} height={media.height} {loading} {sizes} srcset={media.srcset} {alt} {style} />
-    </picture>
+{#if show_image}
+    {#if media}
+        <picture class={css}>
+            {#each media.formats as format}
+                <source {sizes} srcset={format.srcset} type="image/{format.format}" />
+            {/each}
+            <img src={media.src} {width} height={media.height} {loading} {sizes} srcset={media.srcset} {alt} {style} />
+        </picture>
+    {:else}
+        <img {src} {width} {height} {loading} {alt} style="border:1px solid red;{style}" />
+    {/if}
 {/if}

@@ -1,4 +1,4 @@
-import { get_error_message } from './src/utils/error.js';
+import { get_error_message as gem } from './src/utils/error.js';
 import { Logger } from './src/utils/logger.js';
 import { uniq_id } from './src/utils/uniq.js';
 import { Config } from './src/utils/config.js';
@@ -53,7 +53,7 @@ export async function execute_route(url, options) {
             return await process_route_request(request, undefined, uid, exec, false);
         }
     } catch (e) {
-        Logger.error(get_error_message(e, url, 'cron route'));
+        Logger.error(gem(e, url, 'cron route'));
     }
     return false;
 }
@@ -107,3 +107,5 @@ export function get_config(segment, fallback_value) {
 export function get_logger() {
     return Logger;
 }
+
+export const get_error_message = gem;

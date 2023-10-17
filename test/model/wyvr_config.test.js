@@ -8,6 +8,7 @@ describe('model/wyvr_config', () => {
             'assets',
             'cron',
             'default_values',
+            'env',
             'https',
             'i18n',
             'packages',

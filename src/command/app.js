@@ -8,7 +8,6 @@ import { optimize } from '../action/optimize.js';
 import { get_ports } from '../action/port.js';
 import { present } from '../action/present.js';
 import { publish } from '../action/publish.js';
-import { sitemap } from '../action/sitemap.js';
 import { FOLDER_GEN_PLUGINS } from '../constants/folder.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { pub_config_cache, set_config_cache } from '../utils/config_cache.js';
@@ -45,9 +44,6 @@ export const app_command = async (config) => {
 
         // Optimize Pages
         await optimize(media_query_files, critical_result);
-
-        // Create sitemap
-        await sitemap();
 
         // Publish the new release
         await publish();

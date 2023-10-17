@@ -4,7 +4,6 @@ import { critical } from '../action/critical.js';
 import { intial_build } from '../action/initial_build.js';
 import { optimize } from '../action/optimize.js';
 import { publish } from '../action/publish.js';
-import { sitemap } from '../action/sitemap.js';
 import { UniqId } from '../vars/uniq_id.js';
 
 export async function build_command(config) {
@@ -20,9 +19,6 @@ export async function build_command(config) {
 
     // Optimize Pages
     await optimize(media_query_files, critical_result);
-
-    // Create sitemap
-    await sitemap();
 
     // Publish the new release
     await publish();

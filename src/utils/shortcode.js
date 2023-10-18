@@ -219,7 +219,7 @@ export function parse_tag(content) {
     data.attributes = {};
     for (let i = 0; i < len; i++) {
         const char = content[i];
-        if (char == '=') {
+        if (char == '=' && !opened_value) {
             no_quotes = content[i+1] != '"';
             found_equal = true;
             continue;

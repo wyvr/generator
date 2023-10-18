@@ -92,4 +92,14 @@ describe('utils/shortcode/parse_tag', () => {
             },
         });
     });
+    it('tag with = in value', () => {
+        const content = `tag key="value = 'yeah'"`;
+        const result = parse_tag(content);
+        deepStrictEqual(result, {
+            tag: 'tag',
+            attributes: {
+                key: "value = 'yeah'",
+            },
+        });
+    });
 });

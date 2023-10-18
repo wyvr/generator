@@ -18,7 +18,7 @@ export function collect_i18n(packages, fallback_language) {
         return {};
     }
     const translations = {};
-    packages.filter(Boolean).forEach((pkg) => {
+    packages.filter(Boolean).reverse().forEach((pkg) => {
         if (!pkg || !pkg.path) {
             return;
         }

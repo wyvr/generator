@@ -60,7 +60,7 @@ export async function route(requests) {
 export async function send_process_route_request(req, res, uid, route, force_generating_of_resources) {
     let [result, response] = await process_route_request(req, res, uid, route, force_generating_of_resources);
     if (result?.result?.html && !response.complete) {
-        response = send_head(response, 200, 'text/html');
+        response = send_head(response, response.statusCode ?? 200, 'text/html');
         response = send_content(response, result.result.html);
     }
     return response;

@@ -259,6 +259,11 @@ export async function run_route(request, response, uid, route) {
     if (customHead && response) {
         response.writeHead(status, undefined, header);
     }
+    // set the statusCode
+    if(status != 200) {
+        response.statusCode = status;
+    }
+
 
     data.url = clean_url;
     const page_data = await process_page_data(data, route.mtime);

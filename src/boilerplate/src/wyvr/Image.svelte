@@ -167,6 +167,6 @@
             <img src={media.src} {width} height={media.height} {loading} {sizes} srcset={media.srcset} {alt} {style} />
         </picture>
     {:else}
-        <img {src} {width} {height} {loading} {alt} style="border:1px solid red;{style}" />
+        <img {src} {width} {height} {loading} {alt} style="{style}" />
     {/if}
 {/if}

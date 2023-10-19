@@ -116,6 +116,11 @@ export async function scripts(identifiers) {
                 console.groupEnd('wyvr');
                 `);
             }
+            // trigger ready event
+            scripts.push(`if(!window.ready) {
+                window.ready = true;
+                window.trigger('ready');
+            }`);
 
             identifier_file = Cwd.get(FOLDER_GEN_JS, `${identifier.identifier}.js`);
         } catch (e) {

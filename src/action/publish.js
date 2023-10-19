@@ -5,6 +5,7 @@ import { Plugin } from '../utils/plugin.js';
 import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { UniqId } from '../vars/uniq_id.js';
+import { cronjobs } from './cronjobs.js';
 import { measure_action } from './helper.js';
 
 export async function publish() {
@@ -19,11 +20,13 @@ export async function publish() {
         await caller(async () => {
             const pub = Cwd.get(FOLDER_PUBLISH);
             const created = symlink(release_path, pub);
-            if(!created) {
+            if (!created) {
                 process.exit(1);
             }
         });
 
         Logger.info('published', build_id);
     });
+
+    await cronjobs('publish');
 }

@@ -73,6 +73,20 @@ export function inject_script(content, scripts) {
     const code = scripts.filter(Boolean).join('\n');
     return content.replace(/<\/body>/, '<script>' + code + '</script></body>');
 }
+export function inject_events(content) {
+    return content.replace(
+        /<head([^>]*)>/,
+        `<head$1><script>window.on = (event_name, callback) => {
+        if (!event_name || !callback) {
+            return;
+        }
+        document.addEventListener(event_name, (e) => {
+            const data = e && e.detail ? e.detail : null;
+            callback(data);
+        });
+    };</script>`
+    );
+}
 
 export function get_translations_script(language) {
     if (!filled_string(language)) {
@@ -138,16 +152,18 @@ export async function inject(rendered_result, data, file, identifier, shortcode_
                 content = media_result.content;
             }
 
-            content = inject_script(content, [
-                // inject translations
-                get_translations_script(data?._wyvr?.language),
-                // add the media cache keys to avoid using the domains
-                get_media_script(),
-                // add the current stack to the page
-                get_stack_script(),
-                // add the devtools
-                add_devtools_code(path, data),
-            ]);
+            content = inject_events(
+                inject_script(content, [
+                    // inject translations
+                    get_translations_script(data?._wyvr?.language),
+                    // add the media cache keys to avoid using the domains
+                    get_media_script(),
+                    // add the current stack to the page
+                    get_stack_script(),
+                    // add the devtools
+                    add_devtools_code(path, data),
+                ])
+            );
 
             if (!filled_string(identifier)) {
                 identifier = shortcode_result.identifier;

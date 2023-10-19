@@ -15,7 +15,7 @@ import { inject } from './build.js';
 import { replace_imports } from './transform.js';
 import { register_i18n } from './global.js';
 import { get_language } from './i18n.js';
-import { append_cache_breaker } from './cache_breaker.js';
+import { dev_cache_breaker } from './cache_breaker.js';
 import { Plugin } from './plugin.js';
 import { contains_reserved_words } from './reserved_words.js';
 import { Env } from '../vars/env.js';
@@ -58,7 +58,7 @@ export async function load_route(file) {
         return undefined;
     }
     let result;
-    const uniq_path = append_cache_breaker(file);
+    const uniq_path = dev_cache_breaker(file);
     write(file, replace_imports(read(file), file, FOLDER_GEN_SRC, FOLDER_ROUTES));
     try {
         result = await import(uniq_path);
@@ -260,10 +260,9 @@ export async function run_route(request, response, uid, route) {
         response.writeHead(status, undefined, header);
     }
     // set the statusCode
-    if(status != 200) {
+    if (status != 200) {
         response.statusCode = status;
     }
-
 
     data.url = clean_url;
     const page_data = await process_page_data(data, route.mtime);

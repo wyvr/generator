@@ -1,5 +1,5 @@
 import Mocha from 'mocha';
-import { append_cache_breaker, get_cache_breaker } from './cache_breaker.js';
+import { dev_cache_breaker } from './cache_breaker.js';
 import { Logger } from './logger.js';
 import { filled_array, filled_string, is_object } from './validate.js';
 import { uniq_values } from './uniq.js';
@@ -39,10 +39,7 @@ export async function run_tests(files) {
             .loadFilesAsync({
                 // needed to avoid caching of resources
                 esmDecorator: (path) => {
-                    if (is_object(path) && path.pathname) {
-                        return append_cache_breaker(path.pathname);
-                    }
-                    return path + get_cache_breaker();
+                    return dev_cache_breaker(is_object(path) && path.pathname ? path.pathname : path);
                 },
             })
             .then(() => {

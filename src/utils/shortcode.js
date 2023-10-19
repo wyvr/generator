@@ -3,7 +3,7 @@ import { FOLDER_CSS, FOLDER_GEN_SRC } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
 import { ReleasePath } from '../vars/release_path.js';
-import { append_cache_breaker } from './cache_breaker.js';
+import { dev_cache_breaker } from './cache_breaker.js';
 import { compile_server_svelte } from './compile.js';
 import { render_server_compiled_svelte } from './compile_svelte.js';
 import { write_css_file } from './css.js';
@@ -64,13 +64,7 @@ export async function replace_shortcode(html, data, file) {
         const keys = Object.keys(shortcode_imports);
         const identifier = create_hash(keys.join('|'));
         const shortcode_content = `<script>${keys
-            .map(
-                (key) =>
-                    `import ${key} from '${append_cache_breaker(
-                        to_extension(shortcode_imports[key], 'js'),
-                        Env.is_dev()
-                    )}';`
-            )
+            .map((key) => `import ${key} from '${dev_cache_breaker(to_extension(shortcode_imports[key], 'js'))}';`)
             .join('\n')}</script>${replaced_content}`;
         const exec_result = await compile_server_svelte(shortcode_content, file);
 
@@ -220,7 +214,7 @@ export function parse_tag(content) {
     for (let i = 0; i < len; i++) {
         const char = content[i];
         if (char == '=' && !opened_value) {
-            no_quotes = content[i+1] != '"';
+            no_quotes = content[i + 1] != '"';
             found_equal = true;
             continue;
         }

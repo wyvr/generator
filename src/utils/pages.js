@@ -3,7 +3,7 @@ import { FOLDER_GEN_DATA, FOLDER_GEN_PAGES, FOLDER_GEN_SRC, FOLDER_PAGES } from 
 import { Page } from '../model/page.js';
 import { PageStructure } from '../struc/page.js';
 import { Cwd } from '../vars/cwd.js';
-import { append_cache_breaker } from './cache_breaker.js';
+import { dev_cache_breaker } from './cache_breaker.js';
 import { compile_markdown } from './compile.js';
 import { get_error_message } from './error.js';
 import { collect_files, create_dir, exists, read, remove_index, to_extension, to_index, write } from './file.js';
@@ -94,7 +94,7 @@ export async function execute_page(page) {
         case '.mjs':
         case '.cjs':
         case '.js':
-            const uniq_path = append_cache_breaker(page.path);
+            const uniq_path = dev_cache_breaker(page.path);
             let page_module, result;
             write(page.path, replace_imports(read(page.path), page.rel_path, FOLDER_GEN_SRC, 'page'));
             try {

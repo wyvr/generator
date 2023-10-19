@@ -1,3 +1,4 @@
+import { Env } from '../vars/env.js';
 import { filled_string } from './validate.js';
 
 export function get_cache_breaker(create_cache_breaker = true) {
@@ -21,4 +22,13 @@ export function append_cache_breaker(file, create_cache_breaker = true) {
         return '';
     }
     return remove_cache_breaker(file) + get_cache_breaker(create_cache_breaker);
+}
+export function dev_cache_breaker(file, create_cache_breaker = true) {
+    if (Env.is_prod()) {
+        if (!filled_string(file)) {
+            return '';
+        }
+        return file;
+    }
+    return append_cache_breaker(file, create_cache_breaker);
 }

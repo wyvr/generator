@@ -32,6 +32,11 @@ export async function build_cache() {
             if (last.match(/^_/)) {
                 return undefined;
             }
+            // replace the imports only once
+            const content = read(file);
+            if (content) {
+                write(file, replace_imports(content, file, FOLDER_GEN_SRC, FOLDER_ROUTES));
+            }
             const result = await load_route(file);
             /* c8 ignore start */
             if (contains_reserved_words(result.url)) {
@@ -59,7 +64,6 @@ export async function load_route(file) {
     }
     let result;
     const uniq_path = dev_cache_breaker(file);
-    write(file, replace_imports(read(file), file, FOLDER_GEN_SRC, FOLDER_ROUTES));
     try {
         result = await import(uniq_path);
         if (result && result.default) {

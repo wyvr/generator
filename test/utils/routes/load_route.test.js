@@ -34,4 +34,18 @@ describe('utils/routes/load_route', () => {
         deepStrictEqual(await load_route(join(dir, 'load/error.js')), undefined);
         deepStrictEqual(log, [['✖', '@route\n[ReferenceError] value is not defined\nsource error.js']]);
     });
+    it('contains not replaced src', async () => {
+        Cwd.set(join(dir, 'load'));
+        deepStrictEqual(await load_route(join(dir, 'load/contains_src.js')), undefined);
+        deepStrictEqual(log, [
+            [
+                '✖',
+                '@route\n' +
+                    "[Error] Cannot find package '@src/url.mjs' imported from " +
+                    dir +
+                    '/load/contains_src.js\n' +
+                    'source contains_src.js',
+            ],
+        ]);
+    });
 });

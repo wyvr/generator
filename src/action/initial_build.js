@@ -31,10 +31,9 @@ import { join } from 'path';
 import { modify_svelte } from './modify_svelte.mjs';
 import { get_error_message } from '../utils/error.js';
 import { collections } from './collections.js';
-import { execute_cronjobs, filter_cronjobs } from '../utils/cron.js';
-import { measure_action } from './helper.js';
 import { Env } from '../vars/env.js';
 import { build_cache as build_media_cache } from '../utils/media.js';
+import { cronjobs } from './cronjobs.js';
 
 export async function pre_initial_build(build_id, config_data) {
     try {
@@ -143,11 +142,7 @@ export async function intial_build(build_id, config) {
     // Copy wyvr internal files into release in dev mode
     await wyvr_internal();
 
-    // execute cronjobs with event '@build'
-    await measure_action('cronjobs', async () => {
-        const build_cronjobs = filter_cronjobs(Config.get('cron'), 'build');
-        await execute_cronjobs(build_cronjobs);
-    });
+    await cronjobs('build');
 
     return {
         packages: available_packages,

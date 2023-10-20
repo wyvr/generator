@@ -28,17 +28,19 @@ if (!window.bind_events) {
         const evt = new CustomEvent(event_name, params);
         document.dispatchEvent(evt);
     };
-    if (!window.on) {
-        window.on = (event_name, callback) => {
-            if (!event_name || !callback) {
-                return;
-            }
-            document.addEventListener(event_name, (e) => {
-                const data = e && e.detail ? e.detail : null;
-                callback(data);
-            });
-        };
-    }
+    window.on = (event_name, callback) => {
+        if (!event_name || !callback) {
+            return;
+        }
+        // if after start ready events are used, call them
+        if (event_name == 'ready') {
+            setTimeout(callback(), 0);
+        }
+        document.addEventListener(event_name, (e) => {
+            const data = e && e.detail ? e.detail : null;
+            callback(data);
+        });
+    };
     window.off = (event_name, callback) => {
         if (!event_name) {
             return;

@@ -105,11 +105,11 @@ export function register_stack() {
         }
         return value;
     };
-    global.getStack = (key) => {
+    global.getStack = (key, fallback) => {
         if (typeof key == 'string' && key) {
-            return stackData[key];
+            return stackData[key] ?? fallback;
         }
-        return undefined;
+        return fallback;
     };
     global.stackClear = () => {
         stackData = {};

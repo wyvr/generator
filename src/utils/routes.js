@@ -130,7 +130,7 @@ export async function run_route(request, response, uid, route) {
     // get parameters from url
     const params = {};
     route.params.forEach((param, idx) => {
-        params[param] = params_match[idx + 1].replace(/\/$/, '').trim();
+        params[param] = decodeURIComponent(params_match[idx + 1].replace(/\/$/, '').trim());
     });
     params.isExec = !request.isNotExec;
     // get the route result

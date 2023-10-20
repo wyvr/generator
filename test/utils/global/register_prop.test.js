@@ -67,9 +67,13 @@ describe('utils/global/register_prop', () => {
             new Array(1000).fill((_, index) => index)
         );
         const prop_files = readdirSync(folder);
+        const release_folder = join(__dirname, 'release', 'prop');
+        const release_files = readdirSync(release_folder);
         remove(folder);
+        remove(release_folder);
         deepStrictEqual(result, '|test|:|@(/prop/test_e15dc02d8f0f4320.json)|');
         deepStrictEqual(prop_files, ['test_e15dc02d8f0f4320.json']);
+        deepStrictEqual(release_files, ['test_e15dc02d8f0f4320.json']);
     });
     // it('missing translations with file', () => {
     //     register_prop(undefined, 'file');

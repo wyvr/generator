@@ -3,9 +3,9 @@ import { Storage } from './storage.js';
 import { get_error_message } from './error.js';
 import { Logger } from './logger.js';
 import { filled_string, is_func, is_null } from './validate.js';
-import { FOLDER_GEN_PROP, FOLDER_PROP, FOLDER_STORAGE } from '../constants/folder.js';
+import { FOLDER_GEN, FOLDER_PROP, FOLDER_STORAGE } from '../constants/folder.js';
 import { create_hash } from './hash.js';
-import { write } from './file.js';
+import { exists, write } from './file.js';
 import { stringify } from './json.js';
 import { Cwd } from '../vars/cwd.js';
 import { join } from 'path';
@@ -74,13 +74,17 @@ export function register_prop(file) {
         const converted = stringify(value);
         if (converted.length > 1000) {
             const hash = create_hash(converted);
-            const file_name = `${prop}_${hash}.json`;
-            const path = Cwd.get(FOLDER_GEN_PROP, file_name);
-            const release_path = join(ReleasePath.get(), FOLDER_PROP, file_name);
+            const file_name = `/${FOLDER_PROP}/${prop}_${hash}.json`;
+            const path = Cwd.get(FOLDER_GEN, file_name);
             Logger.debug('extract prop', prop, 'from', file, 'to', path);
-            write(path, converted);
-            write(release_path, converted);
-            return `|${prop}|:|@(/prop/${prop}_${hash}.json)|`;
+            if (!exists(path)) {
+                write(path, converted);
+            }
+            const release_path = join(ReleasePath.get(), file_name);
+            if (!exists(release_path)) {
+                write(release_path, converted);
+            }
+            return `|${prop}|:|@(${file_name})|`;
         }
         return `|${prop}|:${converted.replace(/\|/g, '§|§').replace(/"/g, '|')}`;
     };

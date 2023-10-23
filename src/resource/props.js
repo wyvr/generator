@@ -53,39 +53,40 @@ window.wyvr_props = (el) => {
         };
         // load the "hugh" props
         load_props.forEach((item) => {
-            const cache_prop = window.wyvr_props_cache[item.url];
-            // when cache object a promise is, then the property is loading
-            if (cache_prop instanceof WyvrDeferred) {
-                cache_prop.promise.then((json) => {
-                    window.wyvr_props_cache[item.url] = json;
-                    final(true);
-                });
-                return;
-            }
-            // otherwise it is already in cache and can be used
-            if (cache_prop) {
-                props[item.prop] = cache_prop;
-                final(true);
-                return;
-            }
-            // request the prop
-            window.wyvr_props_cache[item.url] = new WyvrDeferred();
+            // const cache_prop = window.wyvr_props_cache[item.url];
+            // // when cache object a promise is, then the property is loading
+            // if (cache_prop instanceof WyvrDeferred) {
+            //     cache_prop.promise.then((json) => {
+            //         window.wyvr_props_cache[item.url] = json;
+            //         final(true);
+            //     });
+            //     return;
+            // }
+            // // otherwise it is already in cache and can be used
+            // if (cache_prop) {
+            //     props[item.prop] = cache_prop;
+            //     final(true);
+            //     return;
+            // }
+            // // request the prop
+            // window.wyvr_props_cache[item.url] = new WyvrDeferred();
             fetch(item.url)
                 .then((val) => val.json())
                 .then((json) => {
+                    // console.log(window.wyvr_props_cache[item.url])
                     props[item.prop] = json;
                     // resolve the deferred promise
-                    if (window.wyvr_props_cache[item.url] && window.wyvr_props_cache[item.url].resolve) {
-                        window.wyvr_props_cache[item.url].resolve(json);
-                    }
+                    // if (window.wyvr_props_cache[item.url] && window.wyvr_props_cache[item.url].resolve) {
+                    //     window.wyvr_props_cache[item.url].resolve(json);
+                    // }
                     // write to cache
-                    window.wyvr_props_cache[item.url] = json;
+                    // window.wyvr_props_cache[item.url] = json;
                     final(true);
                 })
                 .catch((e) => {
                     console.warn('prop error', item, e);
                     // in case of an error remove the entry
-                    delete window.wyvr_props_cache[item.url];
+                    // delete window.wyvr_props_cache[item.url];
                     final(false);
                 });
         });

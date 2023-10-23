@@ -34,7 +34,7 @@ if (!window.bind_events) {
         }
         // if after start ready events are used, call them
         if (event_name == 'ready') {
-            setTimeout(callback(), 0);
+            setTimeout(callback(), 10);
         }
         document.addEventListener(event_name, (e) => {
             const data = e && e.detail ? e.detail : null;

@@ -75,9 +75,11 @@ window.wyvr_props = (el) => {
                 .then((json) => {
                     props[item.prop] = json;
                     // resolve the deferred promise
-                    window.wyvr_props_cache[item.url].resolve(json);
+                    if (window.wyvr_props_cache[item.url] && window.wyvr_props_cache[item.url].resolve) {
+                        window.wyvr_props_cache[item.url].resolve(json);
+                    }
                     // write to cache
-                    window.wyvr_props_cache[item.url] = json
+                    window.wyvr_props_cache[item.url] = json;
                     final(true);
                 })
                 .catch((e) => {

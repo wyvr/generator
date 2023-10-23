@@ -80,7 +80,6 @@ export function inject_events(content) {
         if (!event_name || !callback) {
             return;
         }
-        console.log('build', event_name)
         document.addEventListener(event_name, (e) => {
             const data = e && e.detail ? e.detail : null;
             callback(data);

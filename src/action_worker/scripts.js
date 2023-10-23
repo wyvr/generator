@@ -119,7 +119,9 @@ export async function scripts(identifiers) {
             // trigger ready event
             scripts.push(`if(!window.ready) {
                 window.ready = true;
-                window.trigger('ready');
+                window.setTimeout(()=> {
+                    window.trigger('ready');
+                }, 500);
             }`);
 
             identifier_file = Cwd.get(FOLDER_GEN_JS, `${identifier.identifier}.js`);

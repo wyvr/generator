@@ -255,7 +255,7 @@ export function find_file(in_dir, possible_files) {
  * @param extension optional extension
  * @returns list of the paths
  */
-export function collect_files(dir, extension) {
+export function collect_files(dir, extension, forbidden_folder) {
     if (!exists(dir)) {
         return [];
     }
@@ -275,6 +275,9 @@ export function collect_files(dir, extension) {
             return;
         }
         if (!stat) {
+            return;
+        }
+        if (Array.isArray(forbidden_folder) && forbidden_folder.indexOf(entry) > -1) {
             return;
         }
         if (stat.isDirectory()) {

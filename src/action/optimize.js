@@ -14,7 +14,7 @@ export async function optimize(media_query_files, critical) {
     }
     const name = 'optimize';
     await measure_action(name, async () => {
-        const files = collect_files(ReleasePath.get());
+        const files = collect_files(ReleasePath.get(), undefined, ['media', 'node_modules', 'shop']);
         const optimize_files = files.filter((file) => file.match(/\.(html|htm|css|[mc]?js)$/));
         const hashes = get_files_hashes(files.filter((file) => file.match(/\.(css|[mc]?js)$/)));
         WorkerController.set_all_workers('hashes', hashes);

@@ -13,6 +13,9 @@ import { remove_index, to_index } from './src/utils/file.js';
 import { Env } from './src/vars/env.js';
 import { get_route_request } from './src/utils/routes.js';
 import { process_route_request } from './src/action_worker/route.js';
+import { register_stack } from './src/utils/global.js';
+
+register_stack();
 
 /**
  * Execute the route for the given url

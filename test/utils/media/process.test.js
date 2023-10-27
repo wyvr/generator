@@ -237,4 +237,20 @@ describe('utils/media/process', () => {
         deepStrictEqual(exists(Cwd.get(file.result)), true);
         deepStrictEqual(log, []);
     });
+    it('media is directory', async () => {
+        const file = {
+            src: 'folder/',
+            result: '/media/hash/folder/',
+            width: 300,
+            height: 150,
+            mode: 'cover',
+            format: 'svg',
+            hash: 'hash',
+            quality: 60,
+            output: 'path',
+        };
+        await process_media(file);
+        deepStrictEqual(exists(Cwd.get(file.result)), false);
+        deepStrictEqual(log, [['✖', `@media input file "folder/" doesn't exist`]]);
+    });
 });

@@ -1,4 +1,4 @@
-import { dirname } from 'path';
+import { dirname, extname } from 'path';
 import replaceAsync from 'string-replace-async';
 import { FOLDER_GEN, FOLDER_MEDIA } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
@@ -87,8 +87,12 @@ export async function process(media) {
         return undefined;
     }
     create_dir(dirname(output));
-    // svgs should not be processed
-    if (media.format == 'svg' || media.ext == 'svg') {
+    const real_ext = extname(media.src)?.toLowerCase().replace(/^\./, '');
+    if (!real_ext) {
+        return undefined;
+    }
+    // unknown extensions will not be processed, inclusive svg, because it is text
+    if (!in_array(['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif', 'ico'], real_ext)) {
         write(output, Buffer.from(buffer));
 
         return undefined;
@@ -153,7 +157,7 @@ export async function process(media) {
     // output_buffer is arraybuffer and has to be converter
     try {
         write(output, Buffer.from(output_buffer));
-    } catch(e) {
+    } catch (e) {
         Logger.error(get_error_message(e, media.src, 'save media'));
     }
 

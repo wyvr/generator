@@ -23,6 +23,7 @@
         "esbuild-svelte": "0.7.4",
         "formidable": "3.5.0",
         "front-matter": "4.0.2",
+        "gm": "^1.25.0",
         "html-minifier": "4.0.0",
         "inquirer": "^9.2.7",
         "intl": "1.2.5",

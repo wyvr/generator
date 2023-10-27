@@ -16,6 +16,7 @@ import { Config } from './config.js';
 import { get_config_cache, set_config_cache } from './config_cache.js';
 import { IsWorker } from '../vars/is_worker.js';
 import { to_media_config, to_media_hash } from '../boilerplate/src/wyvr/media.js';
+import gm from 'gm';
 
 let cache;
 export function build_cache() {
@@ -122,6 +123,7 @@ export async function process(media) {
             `${media.src} output "${media.output}" is not implemented at the moment, falling back to path`
         );
     }
+    const image_magick = Config.get('media.image_magick');
     let output_buffer;
     switch (media.format) {
         case 'jpg':
@@ -138,14 +140,34 @@ export async function process(media) {
         case 'webp':
             output_buffer = await modified_image.webp().toBuffer();
             break;
-        case 'png':
+        case 'png': {
             /* @TODO sharp does not provide a method to get the gamma value of an image,
-             * some systems add a wrong gamma value to it,
-             * the solution for this images wolud be `.gamma(1, 2.2)`,
-             * but can not be applied to all png images, because most get to bright because of this correction
+             * some systems add a "wrong" gamma value to it which makes the images darker,
+             * the solution for this images wolud be `.gamma(1, 2.2)` otherwise `.gamma(2.2, 2.2)`
              */
-            output_buffer = await modified_image.gamma().png().toBuffer();
+            let magick = gm;
+            if (match_interface(image_magick, { version: true })) {
+                const im_config = {
+                    imageMagick: '7+',
+                };
+                // legacy mode
+                if (image_magick.version < 7) {
+                    im_config.imageMagick = true;
+                }
+                magick = gm.subClass(im_config);
+            }
+            const gamma = await new Promise((resolve) => {
+                magick(buffer, 'image.png').identify(async (err, data) => {
+                    // in case of an error or when no gamma value is set on the png ignore it
+                    if (err || data?.Gamma != '1') {
+                        resolve(2.2);
+                    }
+                    resolve(1);
+                });
+            });
+            output_buffer = await modified_image.gamma(gamma, 2.2).png().toBuffer();
             break;
+        }
         case 'gif':
             output_buffer = await modified_image.png().toBuffer();
             break;

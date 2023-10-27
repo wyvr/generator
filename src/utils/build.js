@@ -19,6 +19,7 @@ import { search_segment } from './segment.js';
 import { replace_shortcode } from './shortcode.js';
 import { uniq_id } from './uniq.js';
 import { filled_array, filled_string, is_func } from './validate.js';
+import { Config } from './config.js';
 
 export async function build(content, file, format = 'iife') {
     if (!filled_string(content) || !filled_string(content)) {
@@ -43,6 +44,9 @@ export async function build(content, file, format = 'iife') {
                 sveltePlugin({
                     compilerOptions: { css: true, dev: Env.is_dev() },
                     filterWarnings: (warning) => {
+                        if(!Config.get('svelte.warnings', true)) {
+                            return false;
+                        }
                         // ignore some warnings
                         if (warning.code == 'css-unused-selector' && warning.message.indexOf('[data-slot=') > -1) {
                             return false;

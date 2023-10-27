@@ -4,6 +4,9 @@ module.exports = {
         ratio: 0,
         force_initial_build: false
     },
+    svelte: {
+        warning: true
+    },
     releases: {
         keep: 0,
     },

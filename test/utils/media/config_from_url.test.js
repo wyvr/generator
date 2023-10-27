@@ -83,7 +83,7 @@ describe('utils/media/config_from_url', () => {
         deepStrictEqual(
             await config_from_url('/media/hash/assets/favicon.png'),
             new MediaModel({
-                format: 'jpeg',
+                format: 'png',
                 height: -1,
                 mode: 'cover',
                 output: 'path',

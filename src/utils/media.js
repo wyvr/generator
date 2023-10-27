@@ -215,7 +215,7 @@ export async function config_from_url(url) {
     try {
         const config_string = Buffer.from(groups.config_hash, 'base64').toString('ascii');
         media_model = Object.assign(media_model, to_media_config(config_string));
-        media_model.format = correct_format(media_model.format, groups.basename);
+        media_model.format = correct_format(media_model.format, groups.rel_path);
     } catch (e) {
         Logger.error(get_error_message(e, clean_url, `media config, ${media_scope}`));
     }

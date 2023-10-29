@@ -9,6 +9,7 @@ import { measure_action } from './helper.js';
 import { merge_collections } from '../utils/collections.js';
 import { filled_object } from '../utils/validate.js';
 import { set_config_cache } from '../utils/config_cache.js';
+import { sleep } from '../utils/sleep.js';
 
 export async function pages(package_tree, mtime) {
     const name = 'page';
@@ -84,6 +85,8 @@ export async function process_pages(name, data, mtime = undefined, show_name = f
     if (mtime) {
         WorkerController.set_all_workers('mtime', undefined);
     }
+    // @TODO events gets triggered after the message arives at the main thread
+    await sleep(1000);
 
     // remove listeners
     Event.off('emit', identifier_name, identifier_id);

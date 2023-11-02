@@ -1,4 +1,5 @@
 import { WorkerAction } from '../struc/worker_action.js';
+import { Config } from '../utils/config.js';
 import { collect_files } from '../utils/file.js';
 import { get_files_hashes } from '../utils/hash.js';
 import { Plugin } from '../utils/plugin.js';
@@ -14,7 +15,8 @@ export async function optimize(media_query_files, critical) {
     }
     const name = 'optimize';
     await measure_action(name, async () => {
-        const files = collect_files(ReleasePath.get(), undefined, ['media', 'node_modules', 'shop']);
+        const ignored_folder = Config.get('optimize.ignore_folder');
+        const files = collect_files(ReleasePath.get(), undefined, ignored_folder);
         const optimize_files = files.filter((file) => file.match(/\.(html|htm|css|[mc]?js)$/));
         const hashes = get_files_hashes(files.filter((file) => file.match(/\.(css|[mc]?js)$/)));
         WorkerController.set_all_workers('hashes', hashes);

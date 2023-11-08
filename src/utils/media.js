@@ -141,7 +141,7 @@ export async function process(media) {
             output_buffer = await modified_image.heif({ quality: media.quality }).toBuffer();
             break;
         case 'webp':
-            output_buffer = await modified_image.webp().toBuffer();
+            output_buffer = await modified_image.webp({ quality: media.quality }).toBuffer();
             break;
         case 'png': {
             /* @TODO sharp does not provide a method to get the gamma value of an image,

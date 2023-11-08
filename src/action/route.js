@@ -6,6 +6,7 @@ import { SerializableRequest } from '../model/serializable/request.js';
 import { route, send_process_route_request } from '../action_worker/route.js';
 import { STATUS_CODES } from 'http';
 import { stringify } from '../utils/json.js';
+import { get_error_message } from '../utils/error.js';
 
 /**
  * Process route from an request
@@ -50,6 +51,22 @@ export async function fallback_route_request(req, res, uid) {
     return response;
 }
 
+export function clean_header_text(value, allow_spaces = true) {
+    /*
+    @SEE https://github.com/nodejs/node/issues/17390
+        token          = 1*tchar
+        tchar          = "!" / "#" / "$" / "%" / "&" / "'" / "*"
+                        / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
+                        / DIGIT / ALPHA
+                        ; any VCHAR, except delimiters
+    */
+    // Replace any non-allowed characters with a percent-encoded value
+    const regexp = new RegExp(`[^${allow_spaces ? ' ' : ''}\\w"'!#$%&*+-/.:,;^=\`|]+`, 'g');
+    return value.replace(/\n\t\r/g, '').replace(regexp, (match) => {
+        return encodeURIComponent(match);
+    });
+}
+
 /**
  * Apply the changes from the serializeable response to the given response
  * @param {Response} response
@@ -63,8 +80,30 @@ export function apply_response(response, ser_response) {
     response.wyvr = true;
     response.statusCode = ser_response.statusCode;
     response.statusText = STATUS_CODES[ser_response.statusCode];
+    // try fix headers
+    try {
+        if (ser_response.headers) {
+            const cleaned_headers = {};
+            Object.entries(ser_response.headers).forEach(([key, value]) => {
+                const clean_key = clean_header_text(key, false);
+                const clean_value = clean_header_text(value);
+                if (clean_key != key || clean_value != value) {
+                    Logger.warning(`cleaned response header entry ${clean_key}: ${clean_value}`);
+                }
+
+                cleaned_headers[clean_key] = clean_value;
+            });
+            ser_response.headers = cleaned_headers;
+        }
+    } catch (e) {
+        Logger.error(get_error_message(e, ser_response.url, 'response clean header'));
+    }
     if (typeof response.setHeaders == 'function') {
-        response.setHeaders(new Headers(ser_response.headers));
+        try {
+            response.setHeaders(new Headers(ser_response.headers));
+        } catch (e) {
+            Logger.error(get_error_message(e, ser_response.url, 'response set header'));
+        }
     } else {
         response.headers = ser_response.headers;
     }
@@ -72,7 +111,11 @@ export function apply_response(response, ser_response) {
     if (!ser_response.complete) {
         return response;
     }
-    response.writeHead(response.statusCode, response.headers);
+    try {
+        response.writeHead(response.statusCode, response.headers);
+    } catch (e) {
+        Logger.error(get_error_message(e, response.url, 'response write header'));
+    }
 
     if (Buffer.isBuffer(ser_response.data)) {
         response.end(ser_response.data);

@@ -79,6 +79,27 @@ describe('utils/media/config_from_url', () => {
             })
         );
     });
+    it('transform images by adding new extension', async () => {
+        //btoa('m:cover,q:60,x:png')
+        deepStrictEqual(
+            await config_from_url(
+                '/media/_d/c255e313/bTpjb3ZlcixxOjYwLHg6cG5n/favicon.png.webp'
+            ),
+            new MediaModel({
+                domain: 'https://wyvr.dev',
+                ext: 'png',
+                format: 'webp',
+                height: -1,
+                mode: 'cover',
+                output: 'path',
+                quality: 60,
+                result: '/media/_d/c255e313/bTpjb3ZlcixxOjYwLHg6cG5n/favicon.png.webp',
+                result_exists: false,
+                src: 'https://wyvr.dev/favicon.png',
+                width: -1,
+            })
+        );
+    });
     it('invalid hash', async () => {
         deepStrictEqual(
             await config_from_url('/media/hash/assets/favicon.png'),

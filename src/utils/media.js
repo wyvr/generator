@@ -109,6 +109,9 @@ export async function process(media) {
     if (in_array(['jpg', 'jpe', 'jpeg'], media.format) && media.mode != MediaModelMode.cover) {
         options.background = { r: 255, g: 255, b: 255 };
     }
+    if (in_array(['jpg', 'jpe', 'jpeg'], media.ext) && in_array(['webp', 'png'], media.format)) {
+        options.background = { r: 255, g: 255, b: 255 };
+    }
     Logger.debug(media.src, JSON.stringify(options));
     let modified_image;
     try {
@@ -241,10 +244,27 @@ export async function config_from_url(url) {
     } catch (e) {
         Logger.error(get_error_message(e, clean_url, `media config, ${media_scope}`));
     }
+    // when multiple extensions are present, try to fill the missing ext
+    if (!media_model.ext) {
+        const multi_ext_regexp = /\.(?<ext>png|jpe?g?|gif|webp|avif|heif)\.(?<format>png|jpe?g?|gif|webp|avif|heif)$/;
+        const multi_ext = groups.rel_path.match(multi_ext_regexp);
+        if (multi_ext) {
+            media_model.ext = multi_ext.groups?.ext;
+        }
+    }
 
     // correct the src
     if (media_model.ext && media_model.ext != media_model.format) {
-        media_model.src = media_model.src.replace(new RegExp(`.${media_model.format}$`), `.${media_model.ext}`);
+        // transform when multiple extensions are set
+        let source;
+        const regexp = new RegExp(`.${media_model.ext}.${media_model.format}$`);
+        const source_ext = `.${media_model.ext}`;
+        if (media_model.src.match(regexp)) {
+            source = media_model.src.replace(regexp, source_ext);
+        } else {
+            source = media_model.src.replace(new RegExp(`.${media_model.format}$`), source_ext);
+        }
+        media_model.src = source;
     }
 
     const result = new MediaModel(media_model);

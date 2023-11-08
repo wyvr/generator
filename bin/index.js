@@ -35,6 +35,9 @@ if (isPrimary) {
             }
         } catch (e) {
             Logger.error(get_error_message(e, undefined, 'Fatal error'));
+            process.exitCode = 1;
+            process.exit(1);
+            return;
         }
         process.exitCode = 0;
         process.exit(0);

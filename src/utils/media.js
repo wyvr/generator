@@ -126,7 +126,34 @@ export async function process(media) {
             `${media.src} output "${media.output}" is not implemented at the moment, falling back to path`
         );
     }
-    const image_magick = Config.get('media.image_magick');
+    /* @TODO sharp does not provide a method to get the gamma value of an image,
+    * some systems add a "wrong" gamma value to it which makes the images darker,
+    * the solution for this images wolud be `.gamma(1, 2.2)` otherwise `.gamma(2.2, 2.2)`
+    */
+   if (media.format == 'png' || media.ext == 'png') {
+       let magick = gm;
+       const image_magick = Config.get('media.image_magick');
+        if (match_interface(image_magick, { version: true })) {
+            const im_config = {
+                imageMagick: '7+',
+            };
+            // legacy mode
+            if (image_magick.version < 7) {
+                im_config.imageMagick = true;
+            }
+            magick = gm.subClass(im_config);
+        }
+        const gamma = await new Promise((resolve) => {
+            magick(buffer, 'image.png').identify(async (err, data) => {
+                // in case of an error or when no gamma value is set on the png ignore it
+                if (err || data?.Gamma != '1') {
+                    resolve(2.2);
+                }
+                resolve(1);
+            });
+        });
+        modified_image = await modified_image.gamma(gamma, 2.2);
+    }
     let output_buffer;
     switch (media.format) {
         case 'jpg':
@@ -144,31 +171,7 @@ export async function process(media) {
             output_buffer = await modified_image.webp({ quality: media.quality }).toBuffer();
             break;
         case 'png': {
-            /* @TODO sharp does not provide a method to get the gamma value of an image,
-             * some systems add a "wrong" gamma value to it which makes the images darker,
-             * the solution for this images wolud be `.gamma(1, 2.2)` otherwise `.gamma(2.2, 2.2)`
-             */
-            let magick = gm;
-            if (match_interface(image_magick, { version: true })) {
-                const im_config = {
-                    imageMagick: '7+',
-                };
-                // legacy mode
-                if (image_magick.version < 7) {
-                    im_config.imageMagick = true;
-                }
-                magick = gm.subClass(im_config);
-            }
-            const gamma = await new Promise((resolve) => {
-                magick(buffer, 'image.png').identify(async (err, data) => {
-                    // in case of an error or when no gamma value is set on the png ignore it
-                    if (err || data?.Gamma != '1') {
-                        resolve(2.2);
-                    }
-                    resolve(1);
-                });
-            });
-            output_buffer = await modified_image.gamma(gamma, 2.2).png().toBuffer();
+            output_buffer = await modified_image.png().toBuffer();
             break;
         }
         case 'gif':

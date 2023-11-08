@@ -19,7 +19,7 @@ export function present(config_data) {
     Logger.present('id', formatted_id);
     Logger.present('environment', Env.name());
     const { command, flags } = get_present_command(config_data?.cli?.command, config_data?.cli?.flags);
-    process.title = `wyvr ${command} ${process.pid}`;
+    process.title = `wyvr ${command}`;
     Logger.present('command', command, Logger.color.dim(flags));
 }
 export function get_present_command(command_array, flags_array) {

@@ -17,7 +17,7 @@ import { create_ddev } from '../utils/create/ddev.js';
 
 export async function create_command(config) {
     const { command, flags } = get_present_command(config?.cli?.command, config?.cli?.flags);
-    process.title = `wyvr ${command} ${process.pid}`;
+    process.title = `wyvr ${command}`;
     Logger.present('command', command, Logger.color.dim(flags));
 
     Logger.info('current directory', Cwd.get());

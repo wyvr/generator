@@ -17,7 +17,7 @@ export async function test_command(config) {
     const config_data = get_config_data(config, build_id);
 
     const { command, flags } = get_present_command(config_data?.cli?.command, config_data?.cli?.flags);
-    process.title = `wyvr ${command} ${process.pid}`;
+    process.title = `wyvr ${command}`;
     Logger.present('command', command, Logger.color.dim(flags));
 
     const test_files = collect_files(Cwd.get(FOLDER_GEN_SRC)).filter((file) => file.match(/\.spec\.[mc]?js$/));

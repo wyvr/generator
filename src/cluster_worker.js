@@ -42,10 +42,7 @@ export async function ClusterWorker() {
             return;
         }
     });
-    // catch when master exited and kill the worker
-    process.on('exit', function () {
-        setTimeout(() => process.exit(), 500);
-    });
-
+    
+    // create cache
     global.cache = {};
 }

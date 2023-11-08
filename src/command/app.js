@@ -17,6 +17,7 @@ import { Plugin } from '../utils/plugin.js';
 import { UniqId } from '../vars/uniq_id.js';
 import { WorkerController } from '../worker/controller.js';
 import { WorkerStatus } from '../struc/worker_status.js';
+import { Event } from '../utils/event.js';
 
 export const app_command = async (config) => {
     if (config?.cli?.flags?.single) {
@@ -76,6 +77,12 @@ export const app_command = async (config) => {
 
     // start all possible workers
     Logger.debug('start cluster forks');
+
+    // provision the new workers as app server
+    Event.on('worker_status', WorkerStatus.exists, (worker) => {
+        WorkerController.send_action(worker, WorkerAction.mode, { mode: 'app', port });
+    });
+
     await WorkerController.initialize(1, false, () => {
         const instance = cluster.fork();
         instance.pid = instance.process.pid;
@@ -106,8 +113,8 @@ export const app_command = async (config) => {
         }, 250);
     });
 
-    // @TODO wait for the workers to start
-    WorkerController.send_action_all_workers(WorkerAction.mode, { mode: 'app', port });
+    // reset the exiting state
+    WorkerController.exiting = false;
 
     // keep command open, otherwise the workers will get killed
     return new Promise(() => {});

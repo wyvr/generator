@@ -122,13 +122,18 @@ export class WorkerController {
         });
         worker.process.on('exit', (code) => {
             Logger.debug('process', worker.pid, 'exit', code);
+            if (this.exiting) {
+                return;
+            }
+            Logger.warning('create new worker because of exit from', worker.pid, code);
+            this.remove_worker(worker.pid);
+            this.workers.push(this.create(fork_fn));
         });
         worker.process.on('close', () => {
             if (this.exiting) {
                 return;
             }
-            Logger.warning('worker died PID', worker.pid);
-            Logger.info('create new worker');
+            Logger.info('create new worker because of close from', worker.pid);
             this.remove_worker(worker.pid);
             this.workers.push(this.create(fork_fn));
         });

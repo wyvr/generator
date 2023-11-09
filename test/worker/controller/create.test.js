@@ -113,7 +113,10 @@ describe('worker/controller/create', () => {
         Env.set(EnvType.debug);
         events.exit(111);
         Env.set(EnvType.prod);
-        deepStrictEqual(logger_messages, [['\x1B[2m~\x1B[22m', '\x1B[2mprocess 1000 exit 111\x1B[22m']]);
+        deepStrictEqual(logger_messages, [
+            ['\x1B[2m~\x1B[22m', '\x1B[2mprocess 1000 exit 111\x1B[22m'],
+            ['\x1B[33m⚠\x1B[39m', '\x1B[33mcreate new worker because of exit from 1000 111\x1B[39m'],
+        ]);
     });
     it('worker event close', () => {
         const events = {};

@@ -82,10 +82,7 @@ export async function execute_page(url) {
         update_pages_cache(page_objects);
         await WorkerController.process_in_workers(WorkerAction.build, pages, 100, true);
 
-        Logger.improve(
-            'persisted',
-            page_objects.map((page) => page.urls.map((url) => to_index(url, 'html')).join(' ')).join(' ')
-        );
+        Logger.improve('persisted', page_objects.map((page) => page.urls.join(' ')).join(' '));
         return page_objects;
     } catch (e) {
         Logger.error(get_error_message(e, url, 'cron page'));

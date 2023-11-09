@@ -114,15 +114,12 @@ export async function process_route_request(req, res, uid, route, force_generati
         const persisted_path = join(ReleasePath.get(), file);
         write(persisted_path, result.result.html);
         Logger.improve('persisted', file);
-        // if there is no response, then the page should not be marked as generated, because it was triggered from a cronjob
-        if (res) {
-            // add marker to identify which file where generated before
-            const persisted_routes_file = Cwd.get(FOLDER_CACHE, 'routes_persisted.txt');
-            const content = read(persisted_routes_file) || '';
-            const line = file + '\n';
-            const new_content = content.indexOf(line) > -1 ? content : content + line;
-            write(persisted_routes_file, new_content);
-        }
+        // add marker to identify which file where generated before
+        const persisted_routes_file = Cwd.get(FOLDER_CACHE, 'routes_persisted.txt');
+        const content = read(persisted_routes_file) || '';
+        const line = file + '\n';
+        const new_content = content.indexOf(line) > -1 ? content : content + line;
+        write(persisted_routes_file, new_content);
     }
     return [result, response];
 }

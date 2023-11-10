@@ -61,7 +61,7 @@ export function clean_header_text(value, allow_spaces = true) {
                         ; any VCHAR, except delimiters
     */
     // Replace any non-allowed characters with a percent-encoded value
-    const regexp = new RegExp(`[^${allow_spaces ? ' ' : ''}\\w"'!#$%&*+-/.:,;^=\`|]+`, 'g');
+    const regexp = new RegExp(`[^${allow_spaces ? ' ' : ''}\\w"'!#$%&*+-/.:,;^=\`|?]+`, 'g');
     return value.replace(/\n\t\r/g, '').replace(regexp, (match) => {
         return encodeURIComponent(match);
     });

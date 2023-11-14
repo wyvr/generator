@@ -20,6 +20,7 @@ import { Plugin } from './plugin.js';
 import { contains_reserved_words } from './reserved_words.js';
 import { Env } from '../vars/env.js';
 import { stringify } from './json.js';
+import { SerializableResponse } from '../model/serializable/response.js';
 
 export async function build_cache() {
     const files = collect_files(Cwd.get(FOLDER_GEN_ROUTES));
@@ -92,6 +93,9 @@ export function get_route(url, method, route_cache) {
 }
 
 export async function run_route(request, response, uid, route) {
+    if(response === undefined) {
+        response = new SerializableResponse();
+    }
     if (response && typeof response == 'object') {
         response.uid = uid;
     }

@@ -9,7 +9,7 @@ import { FOLDER_GEN } from './src/constants/folder.js';
 import { WorkerController } from './src/worker/controller.js';
 import { filled_array } from './src/utils/validate.js';
 import { WorkerAction } from './src/struc/worker_action.js';
-import { remove_index, to_index } from './src/utils/file.js';
+import { remove_index } from './src/utils/file.js';
 import { Env } from './src/vars/env.js';
 import { get_route_request } from './src/utils/routes.js';
 import { process_route_request } from './src/action_worker/route.js';

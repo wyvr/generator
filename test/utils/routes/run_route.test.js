@@ -9,6 +9,7 @@ import { exists, find_file, read, write } from '../../../src/utils/file.js';
 import { to_plain } from '../../../src/utils/to.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 import { ReleasePath } from '../../../src/vars/release_path.js';
+import { SerializableResponse } from '../../../src/model/serializable/response.js';
 
 describe('utils/routes/run_route', () => {
     const dir = join(process.cwd(), 'test', 'utils', 'routes', '_tests');
@@ -38,7 +39,7 @@ describe('utils/routes/run_route', () => {
     });
     it('undefined', async () => {
         Cwd.set(join(dir, 'empty'));
-        deepStrictEqual(await run_route(), [undefined, undefined]);
+        deepStrictEqual(await run_route(), [undefined, new SerializableResponse()]);
         deepStrictEqual(log, []);
     });
     it('not matching', async () => {

@@ -6,10 +6,12 @@ import { filled_array } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { WyvrConfig } from '../model/wyvr_config.js';
 
-export async function collect_packages(package_json) {
-    // clear persisted config cache
-    Config.clear();
-
+export async function collect_packages(package_json, update_config = true) {
+    if(update_config) {
+        // clear persisted config cache
+        Config.clear();
+    }
+        
     Logger.debug('package.json', package_json);
 
     // read & validate package.json
@@ -65,7 +67,9 @@ export async function collect_packages(package_json) {
 
     // set config with package values
     Config.replace(merged_config);
-    Config.persist(merged_config);
+    if (update_config) {
+        Config.persist(merged_config);
+    }
 
     return result;
 }

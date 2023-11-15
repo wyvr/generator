@@ -24,17 +24,17 @@ describe('action/package/collect_packages', () => {
     });
     it('empty', async () => {
         Cwd.set(join(__dirname, '_tests/empty'));
-        const result = await collect_packages();
+        const result = await collect_packages(undefined, false);
         deepStrictEqual(result, { available_packages: [], disabled_packages: empty_disabled_packages(Cwd.get()) });
     });
     it('empty with package.json', async () => {
         Cwd.set(join(__dirname, '_tests/empty'));
-        const result = await collect_packages({ dependencies: { nope: '0.0.0' } });
+        const result = await collect_packages({ dependencies: { nope: '0.0.0' } }, false);
         deepStrictEqual(result, { available_packages: [], disabled_packages: empty_disabled_packages(Cwd.get()) });
     });
     it('simple', async () => {
         Cwd.set(join(__dirname, '_tests/simple'));
-        const result = await collect_packages();
+        const result = await collect_packages(undefined, false);
         deepStrictEqual(result, {
             available_packages: [{ name: 'local', path: join(Cwd.get(), 'local') }],
             disabled_packages: empty_disabled_packages(Cwd.get()),
@@ -43,7 +43,7 @@ describe('action/package/collect_packages', () => {
     });
     it('symlinked', async () => {
         Cwd.set(join(__dirname, '_tests/symlinked'));
-        const result = await collect_packages({ dependencies: { local: '0.0.0', file2: 'file:./node_modules/file' } });
+        const result = await collect_packages({ dependencies: { local: '0.0.0', file2: 'file:./node_modules/file' } }, false);
         deepStrictEqual(result, {
             available_packages: [
                 { name: 'local', path: join(Cwd.get(), 'node_modules/local') },
@@ -54,7 +54,7 @@ describe('action/package/collect_packages', () => {
     });
     it('symlinked without package.json', async () => {
         Cwd.set(join(__dirname, '_tests/symlinked'));
-        const result = await collect_packages({});
+        const result = await collect_packages({}, false);
         deepStrictEqual(result, {
             available_packages: [{ name: 'local', path: join(Cwd.get(), 'node_modules/local') }],
             disabled_packages: [].concat([{ name: 'file2' }], empty_disabled_packages(Cwd.get())),
@@ -62,7 +62,7 @@ describe('action/package/collect_packages', () => {
     });
     it('disabled', async () => {
         Cwd.set(join(__dirname, '_tests/disabled'));
-        const result = await collect_packages();
+        const result = await collect_packages(undefined, false);
         deepStrictEqual(result, {
             available_packages: [],
             disabled_packages: [].concat(

@@ -231,6 +231,12 @@ export async function run_route(request, response, uid, route) {
     });
     route_context = route_on_exec_context_result.result;
 
+    // end request when is marked as complete
+    if(response?.complete) {
+        return [undefined, response];
+    }
+
+    // remove return helper, only allowed in onExec
     route_context.returnJSON = () => {
         Logger.warning('[route]', 'returnJSON can only be used in onExec');
     };
@@ -313,6 +319,9 @@ export async function run_route(request, response, uid, route) {
 function end_response(response, data, status = 200, headers = {}) {
     response?.writeHead(status, undefined, headers);
     response?.end(data);
+    if(response) {
+        response.complete = true;
+    }
     return response;
 }
 

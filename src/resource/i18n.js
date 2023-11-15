@@ -4,7 +4,7 @@ window._i18n = new I18N(window._translations || {});
 
 // load the language
 const language = document.querySelector('html').getAttribute('lang') || 'en';
-fetch(`/i18n/${language}.json`)
+fetch(`/i18n/${language}.json?${window.build_id || '_'}`)
     .then((response) => response.json())
     .then((data) => window._i18n.set(data));
 

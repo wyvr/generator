@@ -12,7 +12,11 @@ export async function test_command(config) {
     await check_env();
 
     const build_id = UniqId.load();
-    UniqId.set(build_id || UniqId.get());
+    if(!build_id) {
+        Logger.error('no id available in', UniqId.file());
+        return;
+    }
+    UniqId.set(build_id);
 
     const config_data = get_config_data(config, build_id);
 

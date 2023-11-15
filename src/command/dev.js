@@ -26,14 +26,15 @@ export async function dev_command(config) {
 
     const build_id = UniqId.load();
     UniqId.set(build_id || UniqId.get());
-    // check if fast build is available
+    UniqId.persist();
 
-    let packages;
+    // check if fast build is available
     const is_fast = is_fast_build(config, build_id);
     if (!is_fast && config?.cli?.flags?.fast) {
         Logger.warning('fast build is not available');
     }
-
+    
+    let packages;
     if (is_fast) {
         const config_data = get_config_data(config, build_id);
         present(config_data);

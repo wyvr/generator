@@ -2,6 +2,7 @@ import { get_config_data } from '../action/get_config_data.js';
 import { Logger } from '../utils/logger.js';
 import { search_segment } from '../utils/segment.js';
 import { Cwd } from '../vars/cwd.js';
+import { UniqId } from '../vars/uniq_id.js';
 
 export async function info_command(config) {
     get_config_data(config);
@@ -11,5 +12,6 @@ export async function info_command(config) {
     Logger.present('wyvr', wyvr_version);
     Logger.present('node', node_version);
     Logger.present('cwd', cwd);
+    Logger.present('id', UniqId.load());
     return '';
 }

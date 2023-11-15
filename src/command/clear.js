@@ -14,6 +14,7 @@ export const clear_command = async (config) => {
 
     const build_id = UniqId.load();
     UniqId.set(build_id || UniqId.get());
+    UniqId.persist();
     ReleasePath.set(Cwd.get(FOLDER_RELEASES, UniqId.get()));
 
     const config_data = get_config_data(config, build_id);

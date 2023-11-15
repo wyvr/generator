@@ -20,7 +20,9 @@ export class UniqId {
     }
     static set(value) {
         this.value = value;
-        write(this.file(), value);
+    }
+    static persist() {
+        write(this.file(), this.value);
     }
 
     static file() {

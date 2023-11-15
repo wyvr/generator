@@ -36,6 +36,7 @@ export const app_command = async (config) => {
     UniqId.set(build_id);
 
     if (build_needed) {
+        UniqId.persist();
         Logger.warning('no build id or pub folder found, build is required');
 
         const { media_query_files } = await intial_build(build_id, config);

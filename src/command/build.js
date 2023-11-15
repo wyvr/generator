@@ -11,6 +11,7 @@ export async function build_command(config) {
 
     const build_id = UniqId.get();
     UniqId.set(build_id);
+    UniqId.persist();
 
     const { media_query_files } = await intial_build(build_id, config);
 

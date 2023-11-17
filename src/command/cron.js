@@ -20,12 +20,12 @@ export async function cron_command(config) {
     await check_env();
 
     const build_id = UniqId.load();
-    if(!build_id) {
+    if (!build_id) {
         Logger.error('no id available in', UniqId.file());
         return;
     }
     UniqId.set(build_id);
-    
+
     ReleasePath.set(Cwd.get(FOLDER_RELEASES, UniqId.get()));
 
     const config_data = get_config_data(config, build_id);
@@ -65,6 +65,24 @@ export async function cron_command(config) {
             Logger.warning('no cronjob has run successfully');
             return;
         }
+    }
+
+    // list cron jobs
+    if (config_data?.cli?.flags.list) {
+        Logger.log('');
+        Logger.present('List of all cronjobs');
+
+        const found_cron_names = explicit_crons.map((cron) => cron.name);
+        Object.keys(all_cronjobs).forEach((name) => {
+            const when = Logger.color.dim(all_cronjobs[name]?.when ?? '');
+            if (found_cron_names.indexOf(name) > -1) {
+                Logger.log(Logger.color.green('*'), Logger.color.green(name), when);
+                return;
+            }
+            Logger.log(Logger.color.dim('-'), name, when);
+        });
+
+        return found_cron_names.join(' ');
     }
 
     await WorkerController.single_threaded();

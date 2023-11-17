@@ -68,7 +68,7 @@ export async function cron_command(config) {
     }
 
     // list cron jobs
-    if (config_data?.cli?.flags.list) {
+    if (config_data?.cli?.flags?.list) {
         Logger.log('');
         Logger.present('List of all cronjobs');
 

@@ -10,10 +10,11 @@ import { get_route_request, run_route } from '../utils/routes.js';
 import { join } from 'path';
 import { ReleasePath } from '../vars/release_path.js';
 import { FOLDER_CACHE, FOLDER_CSS, FOLDER_GEN_JS, FOLDER_JS } from '../constants/folder.js';
-import { copy, exists, read, write, to_index } from '../utils/file.js';
+import { copy, exists, write, to_index } from '../utils/file.js';
 import { scripts } from './scripts.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
+import { appendFileSync } from 'fs';
 
 export async function route(requests) {
     if (!filled_array(requests)) {
@@ -116,10 +117,7 @@ export async function process_route_request(req, res, uid, route, force_generati
         Logger.improve('persisted', file);
         // add marker to identify which file where generated before
         const persisted_routes_file = Cwd.get(FOLDER_CACHE, 'routes_persisted.txt');
-        const content = read(persisted_routes_file) || '';
-        const line = file + '\n';
-        const new_content = content.indexOf(line) > -1 ? content : content + line;
-        write(persisted_routes_file, new_content);
+        appendFileSync(persisted_routes_file, file + '\n', { flag: 'a+' });
     }
     return [result, response];
 }

@@ -17,6 +17,7 @@
         "document": true,
         "__I18N__": true,
         "fetch": true,
-        "CustomEvent": true
+        "CustomEvent": true,
+        "getStack": true
     }
 }

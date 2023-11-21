@@ -106,5 +106,7 @@ export async function cron_command(config) {
         Logger.warning('no cronjob has run successfully');
         return '-';
     }
-    return successfull_cronjobs.map((cron) => cron.name).join(' ');
+    const result = successfull_cronjobs.map((cron) => cron.name).join(', ');
+    Logger.success('succeeded cronjobs', result);
+    return result;
 }

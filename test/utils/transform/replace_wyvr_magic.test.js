@@ -34,49 +34,42 @@ describe('utils/transform/replace_wyvr_magic', () => {
         );
     });
     it('injectConfig without fallback and value not found', () => {
-        strictEqual(
-            replace_wyvr_magic(`<script>const a = injectConfig('a')</script>`, false),
-            `<script>const a = undefined</script>`
-        );
+        strictEqual(replace_wyvr_magic(`<script>const a = injectConfig('a')</script>`, false), `<script>const a = undefined</script>`);
     });
     it('injectConfig without fallback and value found', () => {
         Config.replace({ a: true });
-        strictEqual(
-            replace_wyvr_magic(`<script>const a = injectConfig('a')</script>`, false),
-            `<script>const a = true</script>`
-        );
+        strictEqual(replace_wyvr_magic(`<script>const a = injectConfig('a')</script>`, false), `<script>const a = true</script>`);
     });
     it('injectConfig with fallback and value not found', () => {
-        strictEqual(
-            replace_wyvr_magic(`<script>const a = injectConfig('a', false)</script>`, false),
-            `<script>const a = false</script>`
-        );
+        strictEqual(replace_wyvr_magic(`<script>const a = injectConfig('a', false)</script>`, false), `<script>const a = false</script>`);
     });
     it('injectConfig with fallback and value found', () => {
         Config.replace({ a: true });
-        strictEqual(
-            replace_wyvr_magic(`<script>const a = injectConfig('a', false)</script>`, false),
-            `<script>const a = true</script>`
-        );
+        strictEqual(replace_wyvr_magic(`<script>const a = injectConfig('a', false)</script>`, false), `<script>const a = true</script>`);
     });
     it('injectConfig with string fallback and value not found', () => {
-        strictEqual(
-            replace_wyvr_magic(`<script>const a = injectConfig('a', 'false')</script>`, false),
-            `<script>const a = 'false'</script>`
-        );
+        strictEqual(replace_wyvr_magic(`<script>const a = injectConfig('a', 'false')</script>`, false), `<script>const a = 'false'</script>`);
     });
     it('injectConfig with string fallback and value found', () => {
         Config.replace({ a: true });
-        strictEqual(
-            replace_wyvr_magic(`<script>const a = injectConfig('a', 'false')</script>`, false),
-            `<script>const a = true</script>`
-        );
+        strictEqual(replace_wyvr_magic(`<script>const a = injectConfig('a', 'false')</script>`, false), `<script>const a = true</script>`);
     });
     it('injectConfig multiple times', () => {
         Config.replace({ a: true });
+        strictEqual(replace_wyvr_magic(`<script>const a = injectConfig('a', false) || injectConfig('b', false)</script>`, false), `<script>const a = true || false</script>`);
+    });
+    it('replace imports', () => {
+        Config.replace({ a: true });
         strictEqual(
-            replace_wyvr_magic(`<script>const a = injectConfig('a', false) || injectConfig('b', false)</script>`, false),
-            `<script>const a = true || false</script>`
+            replace_wyvr_magic(`<script>import a from "gen/src/file"; import b from "somewhere";</script>`),
+            `<script>import a from "gen/server/file"; import b from "somewhere";</script>`
+        );
+    });
+    it('replace imports as client', () => {
+        Config.replace({ a: true });
+        strictEqual(
+            replace_wyvr_magic(`<script>import a from "gen/src/file"; import b from "somewhere";</script>`, true),
+            `<script>import a from "gen/client/file"; import b from "somewhere";</script>`
         );
     });
 });

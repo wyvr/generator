@@ -105,6 +105,13 @@ export async function process(media) {
     if (media.height != null && media.height > -1) {
         options.height = Math.ceil(media.height);
     }
+    // normalize the formats
+    if (typeof media.format == 'string') {
+        media.format = media.format.toLowerCase();
+    }
+    if (typeof media.ext == 'string') {
+        media.ext = media.ext.toLowerCase();
+    }
     // add white background when empty space can be added and format is not transparent able
     if (in_array(['jpg', 'jpe', 'jpeg'], media.format) && media.mode != MediaModelMode.cover) {
         options.background = { r: 255, g: 255, b: 255 };
@@ -121,18 +128,15 @@ export async function process(media) {
         return undefined;
     }
     if (media.output != MediaModelOutput.path) {
-        Logger.warning(
-            'media',
-            `${media.src} output "${media.output}" is not implemented at the moment, falling back to path`
-        );
+        Logger.warning('media', `${media.src} output "${media.output}" is not implemented at the moment, falling back to path`);
     }
     /* @TODO sharp does not provide a method to get the gamma value of an image,
-    * some systems add a "wrong" gamma value to it which makes the images darker,
-    * the solution for this images wolud be `.gamma(1, 2.2)` otherwise `.gamma(2.2, 2.2)`
-    */
-   if (media.format == 'png' || media.ext == 'png') {
-       let magick = gm;
-       const image_magick = Config.get('media.image_magick');
+     * some systems add a "wrong" gamma value to it which makes the images darker,
+     * the solution for this images wolud be `.gamma(1, 2.2)` otherwise `.gamma(2.2, 2.2)`
+     */
+    if (media.format == 'png' || media.ext == 'png') {
+        let magick = gm;
+        const image_magick = Config.get('media.image_magick');
         if (match_interface(image_magick, { version: true })) {
             const im_config = {
                 imageMagick: '7+',

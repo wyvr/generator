@@ -519,5 +519,5 @@ export function replace_imports(content, file, src_folder, scope, hooks) {
 
         return `import ${imported} from '${path}'`;
     };
-    return content.replace(/import (.*?) from ['"]([^'"]+)['"]/g, replacer);
+    return content.replace(/import ([\w\W]+?) from ['"]([^'"]+)['"]/g, replacer);
 }

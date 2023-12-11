@@ -41,7 +41,7 @@ export async function health_command(config) {
     if (defined_port == port) {
         Logger.present('port', defined_port);
     } else {
-        Logger.warning('port', defined_port, 'already in use');
+        Logger.warning('port', defined_port, 'already in use, maybe you have another instance of wyvr running');
     }
 
     // check ws port
@@ -50,7 +50,7 @@ export async function health_command(config) {
     if (defined_wsport == wsport) {
         Logger.present('port', defined_wsport);
     } else {
-        Logger.warning('port', defined_wsport, 'already in use');
+        Logger.warning('port', defined_wsport, 'already in use, maybe you have another instance of wyvr running');
     }
 
     const pub = Cwd.get(FOLDER_PUBLISH);

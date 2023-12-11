@@ -36,20 +36,25 @@ export function add_devtools_code(path, data) {
  * @returns {string}
  */
 export function add_dev_note(file, content) {
-    if (!filled_string(file)) {
+    if (!filled_string(file) || Env.is_prod()) {
         return content;
     }
     const ptree = get_config_cache('package_tree');
     const file_info = ptree[file]
-        ? `package: ${ptree[file].name}\n   path: ${join(
-              ptree[file].path,
-              file
-          )}`
-        : `source: ${file}`;
-    const dev_node = Env.is_dev()
-        ? `changes made in this file will not processed by the dev command\n   `
-        : '';
-    const note = `/*\n   wyvr generated file\n   ${dev_node}${file_info}\n*/\n`;
+        ? [
+              `package: ${ptree[file].name}`,
+              `path: ${join(ptree[file].path, file)}`,
+          ]
+        : [`source: ${file}`];
+    const note =
+        '/*' +
+        [
+            '',
+            'wyvr generated file',
+            'changes made in this file will not processed by the dev command',
+            ...file_info,
+        ].join('\n   ') +
+        '\n*/\n';
     const extension = extname(file);
     switch (extension) {
         case '.svelte':

@@ -4,6 +4,7 @@ import { ReleasePath } from '../vars/release_path.js';
 import { read, to_extension, write_json } from './file.js';
 import { to_dirname } from './to.js';
 import { filled_string } from './validate.js';
+import { get_config_cache } from './config_cache.js';
 
 const resource_dir = join(to_dirname(import.meta.url), '..', 'resource');
 
@@ -26,4 +27,40 @@ export function add_devtools_code(path, data) {
     const ws_content = read(join(resource_dir, 'client_socket.js'));
 
     return debug_code_content + ws_content;
+}
+
+/**
+ *  Add dev note to the content
+ * @param {string} file
+ * @param {string} content
+ * @returns {string}
+ */
+export function add_dev_note(file, content) {
+    if (!filled_string(file)) {
+        return content;
+    }
+    const ptree = get_config_cache('package_tree');
+    const file_info = ptree[file]
+        ? `package: ${ptree[file].name}\n   path: ${join(
+              ptree[file].path,
+              file
+          )}`
+        : `source: ${file}`;
+    const dev_node = Env.is_dev()
+        ? `changes made in this file will not processed by the dev command\n   `
+        : '';
+    const note = `/*\n   wyvr generated file\n   ${dev_node}${file_info}\n*/\n`;
+    const extension = extname(file);
+    switch (extension) {
+        case '.svelte':
+            return content.replace(/<script[^>]*>/, `$&\n${note}`);
+        case '.js':
+        case '.mjs':
+        case '.cjs':
+        case '.ts':
+        case '.css':
+        case '.scss':
+            return note + content;
+    }
+    return content;
 }

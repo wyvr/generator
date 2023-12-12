@@ -40,8 +40,8 @@ export async function build_cache() {
             }
             const result = await load_route(file);
             /* c8 ignore start */
-            if (contains_reserved_words(result.url)) {
-                Logger.warning(result.url, 'contains reserved word, the route may be not executed');
+            if (contains_reserved_words(result?.url)) {
+                Logger.warning(result?.url, 'contains reserved word, the route may be not executed');
             }
             /* c8 ignore end */
             const config = await extract_route_config(result, file);

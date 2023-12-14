@@ -72,4 +72,17 @@ describe('utils/transform/replace_wyvr_magic', () => {
             `<script>import a from "gen/client/file"; import b from "somewhere";</script>`
         );
     });
+
+    it('avoid replace universal on client', () => {
+        strictEqual(
+            replace_wyvr_magic(`import * as universal from "@wyvr/generator/universal.js";`, true),
+            `import * as universal from "@wyvr/generator/universal.js";`
+        );
+    });
+    it('replace universal on server', () => {
+        strictEqual(
+            replace_wyvr_magic(`import * as universal from "@wyvr/generator/universal.js";`, false),
+            `import * as universal from "@wyvr/generator/universal_server.js";`
+        );
+    });
 });

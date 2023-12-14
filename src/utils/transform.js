@@ -284,6 +284,13 @@ export function replace_wyvr_magic(content, as_client) {
     const is_server = as_client ? 'false' : 'true';
     const is_client = as_client ? 'true' : 'false';
     const target_dir = as_client ? FOLDER_GEN_CLIENT : FOLDER_GEN_SERVER;
+    // use server implementation on the server
+    if (!as_client) {
+        content = content.replace(
+            /(['"])@wyvr\/generator\/universal.js(['"])/g,
+            '$1@wyvr/generator/universal_server.js$2'
+        );
+    }
     // replace isServer and isClient and the imports
     return content
         .replace(/([^\w])isServer([^\w])/g, `$1${is_server}$2`)

@@ -30,4 +30,10 @@ describe('utils/transform/replace_imports', () => {
             `import { \nget,\nset\n } from '${join(cwd, FOLDER_GEN_SERVER)}/bla/bla.js';`
         );
     });
+    it('replace ts files as js', () => {
+        strictEqual(
+            replace_imports("import { \nget,\nset\n } from '@src/bla/bla.ts';", 'file.js', FOLDER_GEN_SERVER).replace(/\?\d+/g, ''),
+            `import { \nget,\nset\n } from '${join(cwd, FOLDER_GEN_SERVER)}/bla/bla.js';`
+        );
+    });
 });

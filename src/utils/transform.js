@@ -488,9 +488,10 @@ export function replace_imports(content, file, src_folder, scope, hooks) {
             if (is_func(hooks?.modify_path)) {
                 path = hooks.modify_path(path, ext);
             }
-            // if (type === 'server' && ext == '.svelte') {
-            //     path = to_extension(path, 'js');
-            // }
+            // transform to js from ts
+            if (ext == '.ts') {
+                path = to_extension(path, 'js');
+            }
 
             // force file ending when nothing is specified
             if (!ext) {
@@ -519,5 +520,8 @@ export function replace_imports(content, file, src_folder, scope, hooks) {
 
         return `import ${imported} from '${path}'`;
     };
-    return content.replace(/import ([\w\W]+?) from ['"]([^'"]+)['"]/g, replacer);
+    return content.replace(
+        /import ([\w\W]+?) from ['"]([^'"]+)['"]/g,
+        replacer
+    );
 }

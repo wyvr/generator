@@ -3,7 +3,7 @@ import { FOLDER_GEN_SRC } from '../constants/folder.js';
 import { extract_wyvr_file_config } from '../model/wyvr_file.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerEmit } from '../struc/worker_emit.js';
-import { insert_import } from '../utils/compile.js';
+import { compile_typescript, insert_import } from '../utils/compile.js';
 import { get_error_message } from '../utils/error.js';
 import { exists, read, write, symlink } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
@@ -26,7 +26,7 @@ export async function transform(files) {
         return false;
     }
 
-    for (const file of files) {
+    for (let file of files) {
         if (!exists(file)) {
             continue;
         }
@@ -50,7 +50,10 @@ export async function transform(files) {
 
                 // override the content
                 // const wyvr_details = search_wyvr_content(content);
-                write(file, add_dev_note(to_relative_path_of_gen(file), content));
+                write(
+                    file,
+                    add_dev_note(to_relative_path_of_gen(file), content)
+                );
 
                 continue;
             }
@@ -62,6 +65,15 @@ export async function transform(files) {
                 )
             ) {
                 let content = read(file);
+                // compile typescript and change output file
+                if (extension == '.ts') {
+                    const ts_content = await compile_typescript(content, file);
+
+                    if (ts_content) {
+                        content = ts_content;
+                        file = file.replace('.ts', '.js');
+                    }
+                }
                 // replace @src in source files
                 if (in_array(['.mjs', '.cjs', '.js', '.ts'], extension)) {
                     content = replace_imports(

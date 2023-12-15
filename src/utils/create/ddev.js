@@ -38,13 +38,4 @@ export function create_ddev(templates) {
         );
         Logger.info('modified', Cwd.get('.ddev', '.gitignore'));
     }
-
-    const config = read(Cwd.get('.ddev', 'config.yaml'));
-    if (config) {
-        write(
-            Cwd.get('.ddev', 'config.yaml'),
-            config.replace('#hooks:', read(join(templates, 'ddev', 'config_hooks.yaml')))
-        );
-        Logger.info('modified', Cwd.get('.ddev', 'config.yaml'));
-    }
 }

@@ -1,3 +1,0 @@
-hooks:
-  post-start:
-    - exec-host: WNV={{version}} && ddev nvm ls $WNV || ddev nvm install $WNV && ddev nvm use $WNV && ddev nvm alias default $WNV

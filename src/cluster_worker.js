@@ -11,6 +11,7 @@ import { FOLDER_RELEASES } from './constants/folder.js';
 import { Plugin } from './utils/plugin.js';
 import { Logger } from './utils/logger.js';
 import { register_stack } from './utils/global.js';
+import { create_heap_snapshot } from './action_worker/heap.js';
 
 export async function ClusterWorker() {
     IsWorker.set(true);
@@ -37,12 +38,20 @@ export async function ClusterWorker() {
         }
 
         send_status(WorkerStatus.busy);
-        if (action === WorkerAction.mode && value?.mode == 'app' && !isNaN(value?.port)) {
+        if (
+            action === WorkerAction.mode &&
+            value?.mode == 'app' &&
+            !isNaN(value?.port)
+        ) {
             await app_server('localhost', value?.port);
             return;
         }
+        if (action === WorkerAction.heap) {
+            create_heap_snapshot();
+            return;
+        }
     });
-    
+
     // create cache
     global.cache = {};
 }

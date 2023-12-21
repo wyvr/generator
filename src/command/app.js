@@ -18,6 +18,7 @@ import { UniqId } from '../vars/uniq_id.js';
 import { WorkerController } from '../worker/controller.js';
 import { WorkerStatus } from '../struc/worker_status.js';
 import { Event } from '../utils/event.js';
+import { chat_start } from '../utils/chat.js';
 
 export const app_command = async (config) => {
     if (config?.cli?.flags?.single) {
@@ -116,6 +117,9 @@ export const app_command = async (config) => {
 
     // reset the exiting state
     WorkerController.exiting = false;
+    
+    // start the chat
+    chat_start();
 
     // keep command open, otherwise the workers will get killed
     return new Promise(() => {});

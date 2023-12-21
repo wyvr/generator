@@ -17,6 +17,7 @@ import { transform } from '../action_worker/transform.js';
 import { send_status } from './communication.js';
 import { collections } from '../action_worker/collections.js';
 import { route } from '../action_worker/route.js';
+import { create_heap_snapshot } from '../action_worker/heap.js';
 
 export async function process_message(msg) {
     const action = msg?.action?.key;
@@ -99,7 +100,13 @@ export async function process_message(msg) {
             break;
         }
         case WorkerAction.mode: {
-            Logger.warning('setting mode is only possible for cluster worker not child_process worker');
+            Logger.warning(
+                'setting mode is only possible for cluster worker not child_process worker'
+            );
+            break;
+        }
+        case WorkerAction.heap: {
+            create_heap_snapshot();
             break;
         }
         default:

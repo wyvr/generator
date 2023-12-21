@@ -14,6 +14,7 @@ import { UniqId } from '../vars/uniq_id.js';
 import { get_ports } from '../action/port.js';
 import { publish } from '../action/publish.js';
 import { Plugin } from '../utils/plugin.js';
+import { chat_start } from '../utils/chat.js';
 
 export async function dev_command(config) {
     // dev command has forced dev state, when nothing is defined
@@ -50,6 +51,8 @@ export async function dev_command(config) {
     }
     
     await publish();
+
+    chat_start();
 
     watch_server('localhost', port, wsport, packages);
 

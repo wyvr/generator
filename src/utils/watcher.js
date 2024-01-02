@@ -4,7 +4,7 @@ import { filled_array, in_array } from './validate.js';
 import { watch } from 'chokidar';
 import { uniq_values } from './uniq.js';
 import { regenerate } from '../action/regenerate.js';
-import { get_config_cache } from './config_cache.js';
+import { get_config_cache, set_config_cache } from './config_cache.js';
 import { extname, join } from 'path';
 import { exists, to_extension } from './file.js';
 import { get_config_path } from './config.js';
@@ -69,6 +69,7 @@ export async function process_changed_files(changed_files, packages) {
 
     const changed_config_files = [];
     const result = [];
+    let changed_tree = false;
     events.forEach((event) => {
         changed_files[event].forEach((path) => {
             const pkg = packages.find((pkg) => path.indexOf(pkg.path) == 0);
@@ -86,15 +87,21 @@ export async function process_changed_files(changed_files, packages) {
                 const current_index = packages.findIndex((p) => p == pkg);
                 if (current_index > -1 && current_index >= used_index) {
                     Logger.warning(
-                        `ignoring ${event} of ${rel_path} from ${pkg.name}, it is used from ${
-                            used_pkg.name
-                        } ${Logger.color.dim(used_pkg.path)}`
+                        `ignoring ${event} of ${rel_path} from ${
+                            pkg.name
+                        }, it is used from ${used_pkg.name} ${Logger.color.dim(
+                            used_pkg.path
+                        )}`
                     );
                     return;
                 }
             }
 
-            Logger.info('detect', event, Logger.color.dim(pkg_path + '/') + rel_path);
+            Logger.info(
+                'detect',
+                event,
+                Logger.color.dim(pkg_path + '/') + rel_path
+            );
 
             // when config file is changed restart
             if (path.match(/wyvr\.[mc]?js$/)) {
@@ -108,7 +115,12 @@ export async function process_changed_files(changed_files, packages) {
             // special behaviour when css or js from svelte file gets changed or edited, only the svelte file should be edited
             if (event == 'add' || event == 'change') {
                 const extension = extname(path);
-                if (in_array(['.css', '.scss', '.js', '.mjs', '.cjs', '.ts'], extension)) {
+                if (
+                    in_array(
+                        ['.css', '.scss', '.js', '.mjs', '.cjs', '.ts'],
+                        extension
+                    )
+                ) {
                     const svelte_rel_path = to_extension(rel_path, '.svelte');
                     const pkg = package_tree[svelte_rel_path];
                     if (pkg) {
@@ -124,6 +136,11 @@ export async function process_changed_files(changed_files, packages) {
                     }
                 }
             }
+            // update the entry in the package tree
+            if (event == 'add') {
+                changed_tree = true;
+                package_tree[rel_path] = pkg;
+            }
             result[event].push({
                 path,
                 rel_path,
@@ -132,13 +149,21 @@ export async function process_changed_files(changed_files, packages) {
 
             // when a file is remove add the next file to the list of changed files
             if (event == 'unlink') {
+                // force deletion of the file from the tree
+                changed_tree = true;
+                package_tree[rel_path] = undefined;
+
                 const remaining_packages = packages.filter((p) => p != pkg);
                 if (remaining_packages) {
-                    const fallback_package = remaining_packages.find((p) => exists(join(p.path, rel_path)));
+                    const fallback_package = remaining_packages.find((p) =>
+                        exists(join(p.path, rel_path))
+                    );
                     if (fallback_package) {
                         if (!result.change) {
                             result.change = [];
                         }
+                        // update the tree with the next relevant file
+                        package_tree[rel_path] = fallback_package;
                         result.change.push({
                             path: join(fallback_package.path, rel_path),
                             rel_path,
@@ -149,6 +174,10 @@ export async function process_changed_files(changed_files, packages) {
             }
         });
     });
+    if (changed_tree) {
+        await set_config_cache('package_tree', package_tree);
+    }
+
     await regenerate(result);
 }
 /* c8 ignore stop */

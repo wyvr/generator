@@ -39,24 +39,6 @@ async function wyvr_devtools_inspect_data() {
     console.groupEnd();
     return window.data;
 }
-async function wyvr_devtools_inspect_global_data() {
-    console.group('wyvr: Inspect global data');
-    if (window.global_data) {
-        console.log(window.global_data);
-        console.groupEnd();
-        return window.global_data;
-    }
-    window.global_data = await wyvr_fetch('/_global.json');
-    if (!window.global_data) {
-        console.warn('global data not available');
-        console.groupEnd();
-        return undefined;
-    }
-    console.log(window.global_data);
-    console.info('now available inside "global_data"');
-    console.groupEnd();
-    return window.global_data;
-}
 async function wyvr_devtools_inspect_structure_data() {
     console.group('wyvr: Inspect structure');
     if (window.structure) {

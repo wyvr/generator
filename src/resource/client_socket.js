@@ -1,7 +1,9 @@
 /* eslint-disable no-undef*/
 /* eslint-disable no-console*/
 (function wyvr_server_communication() {
-    window.wyvr_tab_id = sessionStorage.getItem('wyvr_tab_id') || btoa(`${new Date().getTime()}${Math.random()}`);
+    window.wyvr_tab_id =
+        sessionStorage.getItem('wyvr_tab_id') ||
+        btoa(`${new Date().getTime()}${Math.random()}`);
     sessionStorage.setItem('wyvr_tab_id', window.wyvr_tab_id);
     add_to_history();
     // build server connection
@@ -11,6 +13,12 @@
             on('wyvr_devtools_rebuild', () => {
                 const path = get_path();
                 send({ action: 'rebuild', data: path });
+            });
+            on('wyvr_devtools_get_config_cache', (data) => {
+                send({ action: 'get_config_cache', data });
+            });
+            on('wyvr_devtools_file_system', (data) => {
+                send({ action: 'file_system', data });
             });
         }
     }, 1000);
@@ -41,7 +49,12 @@
     function connect() {
         const connected = check_state();
         if (!connected) {
-            const socket_url = 'ws' + (location.protocol === 'https:' ? 's' : '') + '://' + location.hostname + '/ws';
+            const socket_url =
+                'ws' +
+                (location.protocol === 'https:' ? 's' : '') +
+                '://' +
+                location.hostname +
+                '/ws';
             socket = new WebSocket(socket_url);
             socket.onmessage = function (event) {
                 check_state();
@@ -58,7 +71,10 @@
                         if (!in_history(path) || window.wyvr_generate_page) {
                             wyvr_devtools_inspect_data().then(() => {
                                 if (window.data?._wyvr?.page) {
-                                    send({ action: 'rebuild', data: window.data._wyvr.page });
+                                    send({
+                                        action: 'rebuild',
+                                        data: window.data._wyvr.page,
+                                    });
                                 }
                                 add_to_history(window.wyvr_tab_id);
                             });
@@ -80,6 +96,13 @@
                         if (!wyvr_update_errors()) {
                             console.error(data.data.char, ...data.data.message);
                         }
+                        break;
+                    }
+                    case 'get_config_cache': {
+                        trigger(
+                            'wyvr_devtools_get_config_cache_result',
+                            data.data
+                        );
                         break;
                     }
                 }
@@ -186,13 +209,18 @@
         }
     }
     function reload_resource(file_path, tag, attribute) {
-        Array.from(document.querySelectorAll(`${tag}[${attribute}*="${file_path}"]`)).forEach((ref) => {
+        Array.from(
+            document.querySelectorAll(`${tag}[${attribute}*="${file_path}"]`)
+        ).forEach((ref) => {
             const value = ref.getAttribute(attribute);
             if (value) {
                 // @see https://stackoverflow.com/questions/2024486/is-there-an-easy-way-to-reload-css-without-reloading-the-page
                 // add cache breaker to the resource
                 const cb = new Date().getTime().toString();
-                ref.setAttribute(attribute, value + (value.indexOf('?') > -1 ? '&' : '?') + cb);
+                ref.setAttribute(
+                    attribute,
+                    value + (value.indexOf('?') > -1 ? '&' : '?') + cb
+                );
             }
         });
     }

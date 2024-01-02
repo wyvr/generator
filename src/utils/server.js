@@ -491,6 +491,46 @@ export function websocket_server(port, packages) {
                         }
                         break;
                     }
+                    case 'get_config_cache': {
+                        if (typeof data.data == 'string') {
+                            ws.send(
+                                stringify({
+                                    action: 'get_config_cache',
+                                    data: {
+                                        key: data.data,
+                                        value: get_config_cache(data.data),
+                                    },
+                                })
+                            );
+                        }
+                        break;
+                    }
+                    case 'file_system': {
+                        const cwd = Cwd.get();
+                        console.log(data.data, cwd);
+                        if (data.data?.action == 'delete' && data.data?.path) {
+                            if (!data.data?.path.startsWith(cwd)) {
+                                return;
+                            }
+                            remove(data.data.path);
+                            return;
+                        }
+                        if (
+                            data.data?.action == 'copy' &&
+                            data.data?.path &&
+                            data.data?.to
+                        ) {
+                            if (
+                                !data.data?.path.startsWith(cwd) ||
+                                !data.data.to.startsWith(cwd)
+                            ) {
+                                return;
+                            }
+                            copy(data.data.path, data.data.to);
+                            return;
+                        }
+                        break;
+                    }
                 }
             }
         });

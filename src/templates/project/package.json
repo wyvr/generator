@@ -1,6 +1,6 @@
 {
     "name": "{{name}}",
-    "description": "wyvr project created with wyvr {{version}}",
+    "description": "project '{{name}}' generated with wyvr {{version}}",
     "type": "module",
     "keywords": [
         "wyvr",

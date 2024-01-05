@@ -6,6 +6,16 @@
         "wyvr",
         "generator"
     ],
+    "scripts": {
+        "start": "wyvr app",
+        "app": "wyvr app",
+        "build": "wyvr build",
+        "clear": "wyvr clear",
+        "cron": "wyvr cron",
+        "create": "wyvr create",
+        "dev": "wyvr dev",
+        "health": "wyvr health"
+    },
     "dependencies": {
         "@wyvr/generator": "^{{version}}"
     }

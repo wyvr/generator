@@ -18,5 +18,11 @@
     },
     "dependencies": {
         "@wyvr/generator": "^{{version}}"
+    },
+    "prettier": {
+        "tabWidth": 4,
+        "singleQuote": true,
+        "useTabs": false,
+        "prettier.printWidth": 120
     }
 }

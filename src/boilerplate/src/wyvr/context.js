@@ -7,8 +7,5 @@ export function context() {
     if (typeof window !== 'undefined') {
         return window;
     }
-    // Check for 'global' in a safe way.
-    else if (typeof global !== 'undefined') {
-        return global;
-    }
+    return global;
 }

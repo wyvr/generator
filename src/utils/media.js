@@ -10,6 +10,7 @@ import { Logger } from './logger.js';
 import { get_error_message } from './error.js';
 import { MediaModelMode, MediaModelOutput } from '../struc/media.js';
 import https from 'https';
+import http from 'http';
 import { Plugin } from './plugin.js';
 import { create_hash } from './hash.js';
 import { Config } from './config.js';
@@ -374,11 +375,14 @@ export async function get_buffer(src) {
         return undefined;
     }
     // download the image and return buffer from it
-    if (src.indexOf('http') == 0) {
+    if (src.indexOf('http') === 0) {
         try {
-            const agent = new https.Agent({ rejectUnauthorized: false });
+            const is_https = src.indexOf('https') === 0;
+            const protocol = is_https ? https : http;
+            const agent = is_https ? new protocol.Agent({ rejectUnauthorized: false }) : new http.Agent();
+
             return new Promise((resolve, reject) => {
-                https
+                protocol
                     .get(src, { agent }, (res) => {
                         if (!res.statusCode || res.statusCode < 200 || res.statusCode >= 400) {
                             resolve(undefined);

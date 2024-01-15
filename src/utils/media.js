@@ -30,12 +30,12 @@ export function build_cache() {
     const allowed_domains = Config.get('media.allowed_domains', {});
     // the main allways generates the cache
     cache = {};
-    Object.values(allowed_domains).forEach((domain) => {
+    for (const domain of Object.values(allowed_domains)) {
         // create short hash of the domain
         const clean_domain = domain.replace(/\/$/, '');
         const hash = get_domain_hash(clean_domain);
         cache[hash] = clean_domain;
-    });
+    }
     set_config_cache('media.domain_cache', cache, false);
 }
 export function clear_cache() {
@@ -61,13 +61,13 @@ export function get_cache_keys() {
     }
     const allowed_domains = Config.get('media.allowed_domains', {});
     const result = {};
-    Object.entries(allowed_domains).forEach(([key, domain]) => {
+    for (const [key, domain] of Object.entries(allowed_domains)) {
         const hash = get_domain_hash(domain);
         result[key] = {
             hash,
             domain,
         };
-    });
+    }
     cache_keys = result;
     return result;
 }
@@ -107,14 +107,14 @@ export async function process(media) {
         options.height = Math.ceil(media.height);
     }
     // normalize the formats
-    if (typeof media.format == 'string') {
+    if (typeof media.format === 'string') {
         media.format = media.format.toLowerCase();
     }
-    if (typeof media.ext == 'string') {
+    if (typeof media.ext === 'string') {
         media.ext = media.ext.toLowerCase();
     }
     // add white background when empty space can be added and format is not transparent able
-    if (in_array(['jpg', 'jpe', 'jpeg'], media.format) && media.mode != MediaModelMode.cover) {
+    if (in_array(['jpg', 'jpe', 'jpeg'], media.format) && media.mode !== MediaModelMode.cover) {
         options.background = { r: 255, g: 255, b: 255 };
     }
     if (in_array(['jpg', 'jpe', 'jpeg'], media.ext) && in_array(['webp', 'png'], media.format)) {
@@ -128,14 +128,14 @@ export async function process(media) {
         Logger.error(get_error_message(e, media.src, 'sharp'));
         return undefined;
     }
-    if (media.output != MediaModelOutput.path) {
+    if (media.output !== MediaModelOutput.path) {
         Logger.warning('media', `${media.src} output "${media.output}" is not implemented at the moment, falling back to path`);
     }
     /* @TODO sharp does not provide a method to get the gamma value of an image,
      * some systems add a "wrong" gamma value to it which makes the images darker,
      * the solution for this images wolud be `.gamma(1, 2.2)` otherwise `.gamma(2.2, 2.2)`
      */
-    if (media.format == 'png' || media.ext == 'png') {
+    if (media.format === 'png' || media.ext === 'png') {
         let magick = gm;
         const image_magick = Config.get('media.image_magick');
         if (match_interface(image_magick, { version: true })) {
@@ -151,7 +151,7 @@ export async function process(media) {
         const gamma = await new Promise((resolve) => {
             magick(buffer, 'image.png').identify(async (err, data) => {
                 // in case of an error or when no gamma value is set on the png ignore it
-                if (err || data?.Gamma != '1') {
+                if (err || data?.Gamma !== '1') {
                     resolve(2.2);
                 }
                 resolve(1);
@@ -262,7 +262,7 @@ export async function config_from_url(url) {
     }
 
     // correct the src
-    if (media_model.ext && media_model.ext != media_model.format) {
+    if (media_model.ext && media_model.ext !== media_model.format) {
         // transform when multiple extensions are set
         let source;
         const regexp = new RegExp(`.${media_model.ext}.${media_model.format}$`);
@@ -313,14 +313,14 @@ export function get_config_with_results(config) {
         return config;
     }
     // convert to correct format
-    let src = config.src.replace(/\?.*$/, '').replace(/#.*$/, '');
+    const src = config.src.replace(/\?.*$/, '').replace(/#.*$/, '');
     let rel_path = to_extension(src, config.format);
     // create config hash to group different images together
     const config_hash = get_config_hash(config);
     // try load domain to get the hash
     config.hash = config_hash;
     let domain = null;
-    if (src.indexOf('http') == 0) {
+    if (src.indexOf('http') === 0) {
         const domain_match = src.match(/^(?<domain>https?:\/\/[^/]*?)\//)?.groups?.domain;
         if (domain_match) {
             domain = get_domain_hash(domain_match);
@@ -423,7 +423,7 @@ export function get_output(src) {
     return Cwd.get(src);
 }
 export function correct_format(format, src) {
-    if (format == 'null') {
+    if (format === 'null') {
         format = undefined;
     }
     if (!filled_string(format) && filled_string(src)) {
@@ -432,7 +432,7 @@ export function correct_format(format, src) {
             format = ext_match[1];
         }
     }
-    if (format == 'jpg') {
+    if (format === 'jpg') {
         return 'jpeg';
     }
     if (!filled_string(format)) {

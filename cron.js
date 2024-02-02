@@ -130,10 +130,10 @@ export function get_cache(cache_name, scope = 'default') {
  * @returns {boolean} - Returns true if the cache is successfully set, false otherwise.
  */
 export function set_cache(cache_name, value, scope = 'default') {
-    if (!filled_string(cache_name, scope)) {
+    if (!filled_string(cache_name)) {
         return false;
     }
-    return write_json(get_cache_path(cache_name), value);
+    return write_json(get_cache_path(cache_name, scope), value);
 }
 
 /**

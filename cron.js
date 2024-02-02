@@ -7,13 +7,15 @@ import { regenerate_pages } from './src/utils/regenerate.js';
 import { Cwd } from './src/vars/cwd.js';
 import { FOLDER_GEN } from './src/constants/folder.js';
 import { WorkerController } from './src/worker/controller.js';
-import { filled_array } from './src/utils/validate.js';
+import { filled_array, filled_string } from './src/utils/validate.js';
 import { WorkerAction } from './src/struc/worker_action.js';
-import { remove_index } from './src/utils/file.js';
+import { remove_index, read_json, write_json } from './src/utils/file.js';
 import { Env } from './src/vars/env.js';
 import { get_route_request } from './src/utils/routes.js';
 import { process_route_request } from './src/action_worker/route.js';
 import { register_stack } from './src/utils/global.js';
+import { get_config_cache_path } from './src/utils/config_cache.js';
+import { join } from 'path';
 
 register_stack();
 
@@ -46,7 +48,7 @@ export async function execute_route(url, options) {
         headers: options?.headers || {},
         data: options?.data || {},
         body: options?.body || {},
-        files: options?.files || {},
+        files: options?.files || {}
     };
     const uid = uniq_id();
     try {
@@ -109,3 +111,46 @@ export function get_logger() {
 }
 
 export const get_error_message = gem;
+
+/**
+ * Retrieves the cache data for the specified cache name and scope.
+ * @param {string} cache_name - The name of the cache.
+ * @param {string} [scope='default'] - The scope of the cache. Defaults to 'default'.
+ * @returns {object} - The cache data as a JavaScript object.
+ */
+export function get_cache(cache_name, scope = 'default') {
+    return read_json(get_cache_path(cache_name, scope));
+}
+
+/**
+ * Sets the cache with the specified name and value.
+ * @param {string} cache_name - The name of the cache.
+ * @param {any} value - The value to be stored in the cache.
+ * @param {string} [scope='default'] - The scope of the cache (optional, default is 'default').
+ * @returns {boolean} - Returns true if the cache is successfully set, false otherwise.
+ */
+export function set_cache(cache_name, value, scope = 'default') {
+    if (!filled_string(cache_name, scope)) {
+        return false;
+    }
+    return write_json(get_cache_path(cache_name), value);
+}
+
+/**
+ * Returns the cache path for a given cache name and scope.
+ * @param {string} cache_name - The name of the cache.
+ * @param {string} [scope='default'] - The scope of the cache. Defaults to 'default'.
+ * @returns {string} The cache path.
+ */
+export function get_cache_path(cache_name, scope = 'default') {
+    const cache_key = join(
+        scope,
+        cache_name
+            .replace(/^\//, '')
+            .replace(/\/$/, '')
+            .replace(/\//g, '|')
+            .replace(/[^\w|/]/g, '-')
+    );
+
+    return get_config_cache_path(cache_key);
+}

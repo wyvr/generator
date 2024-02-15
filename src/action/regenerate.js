@@ -2,14 +2,7 @@ import { join } from 'path';
 import { copy_folder } from './copy.js';
 import { measure_action } from './helper.js';
 import { build_wyvr_internal } from './wyvr_internal.js';
-import {
-    FOLDER_CSS,
-    FOLDER_GEN,
-    FOLDER_I18N,
-    FOLDER_JS,
-    FOLDER_DEVTOOLS,
-    FOLDER_PLUGINS,
-} from '../constants/folder.js';
+import { FOLDER_CSS, FOLDER_GEN, FOLDER_I18N, FOLDER_JS, FOLDER_DEVTOOLS, FOLDER_PLUGINS } from '../constants/folder.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
 import { Config } from '../utils/config.js';
@@ -25,15 +18,7 @@ import { ReleasePath } from '../vars/release_path.js';
 import { WatcherPaths } from '../vars/watcher_paths.js';
 import { WorkerController } from '../worker/controller.js';
 import { sleep } from '../utils/sleep.js';
-import {
-    regenerate_assets,
-    regenerate_routes,
-    regenerate_i18n,
-    regenerate_plugins,
-    regenerate_pages,
-    regenerate_src,
-    regeneration_static_file,
-} from '../utils/regenerate.js';
+import { regenerate_assets, regenerate_routes, regenerate_i18n, regenerate_plugins, regenerate_pages, regenerate_src, regeneration_static_file } from '../utils/regenerate.js';
 import { RegenerateFragment } from '../model/regenerate_fragment.mjs';
 import { run_tests } from '../utils/tests.js';
 import { get_page_data_path } from '../utils/pages.js';
@@ -42,7 +27,7 @@ import { get_page_data_path } from '../utils/pages.js';
  * Regenerate the files and the result of the given changed files
  */
 export async function regenerate(changed_files) {
-    let test_files = [];
+    const test_files = [];
     await measure_action('regenerate', async () => {
         // find all dependencies
         const dependencies_bottom = get_config_cache('dependencies.bottom');
@@ -93,12 +78,7 @@ export async function regenerate(changed_files) {
         }
 
         // src
-        const src_result = await regenerate_src(
-            RegenerateFragment(frag_files?.src),
-            dependencies_bottom,
-            all_identifiers,
-            gen_folder
-        );
+        const src_result = await regenerate_src(RegenerateFragment(frag_files?.src), dependencies_bottom, all_identifiers, gen_folder);
         let identifiers = src_result.identifiers;
         let pages = src_result.pages;
         test_files.push(...src_result.test_files);
@@ -112,12 +92,7 @@ export async function regenerate(changed_files) {
         }
 
         // pages
-        const pages_result = await regenerate_pages(
-            RegenerateFragment(frag_files?.pages),
-            identifiers,
-            pages,
-            gen_folder
-        );
+        const pages_result = await regenerate_pages(RegenerateFragment(frag_files?.pages), identifiers, pages, gen_folder);
         if (pages_result.reload_page) {
             reload_page = true;
         }
@@ -142,7 +117,7 @@ export async function regenerate(changed_files) {
                 if (!data) {
                     return;
                 }
-                delete data.type;
+                data.type = undefined;
                 identifiers[data.identifier] = data;
             });
             await WorkerController.process_in_workers(WorkerAction.build, pages, 100, true);
@@ -186,10 +161,10 @@ export async function regenerate(changed_files) {
 
 export function split_changed_files_by_fragment(changed_files) {
     const result = {};
-    Object.keys(changed_files).forEach((event) => {
-        changed_files[event].forEach((file) => {
+    for (const event of Object.keys(changed_files)) {
+        for (const file of changed_files[event]) {
             if (!file) {
-                return;
+                continue;
             }
             const fragment = file.rel_path.split('/').find((x) => x);
             if (!result[fragment]) {
@@ -199,8 +174,8 @@ export function split_changed_files_by_fragment(changed_files) {
                 result[fragment][event] = [];
             }
             result[fragment][event].push(file);
-        });
-    });
+        }
+    }
     return result;
 }
 
@@ -222,12 +197,12 @@ function append_dependencies_as_changed_files(changed_files, dependencies_bottom
             .flat(128)
     );
     // add the dependencies as "changed" files to the current batch
-    mod_files_rel_path.forEach((rel_path) => {
+    for (const rel_path of mod_files_rel_path) {
         if (!changed_files.change) {
             changed_files.change = [];
         }
         const entry = {
-            rel_path,
+            rel_path
         };
         const pkg = package_tree[rel_path];
         if (!pkg) {
@@ -236,6 +211,6 @@ function append_dependencies_as_changed_files(changed_files, dependencies_bottom
         entry.pkg = pkg;
         entry.path = join(pkg.path, rel_path);
         changed_files.change.push(entry);
-    });
+    }
     return changed_files;
 }

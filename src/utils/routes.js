@@ -21,6 +21,7 @@ import { contains_reserved_words } from './reserved_words.js';
 import { Env } from '../vars/env.js';
 import { stringify } from './json.js';
 import { SerializableResponse } from '../model/serializable/response.js';
+import { get_cookies, set_cookie } from './cookies.js';
 
 export async function build_cache() {
     const files = collect_files(Cwd.get(FOLDER_GEN_ROUTES));
@@ -67,7 +68,7 @@ export async function load_route(file) {
     const uniq_path = dev_cache_breaker(file);
     try {
         result = await import(uniq_path);
-        if (result && result.default) {
+        if (result?.default) {
             result = result.default;
         }
     } catch (e) {
@@ -93,10 +94,11 @@ export function get_route(url, method, route_cache) {
 }
 
 export async function run_route(request, response, uid, route) {
-    if(response === undefined) {
+    if (response === undefined) {
+        // biome-ignore lint: noParameterAssign
         response = new SerializableResponse();
     }
-    if (response && typeof response == 'object') {
+    if (response && typeof response === 'object') {
         response.uid = uid;
     }
     if (!match_interface(request, { url: true })) {
@@ -112,17 +114,17 @@ export async function run_route(request, response, uid, route) {
     // convert query parameters
     const query = {};
     if (query_params) {
-        query_params.split('&').forEach((entry) => {
+        for (const entry of query_params.split('&')) {
             let [key, value] = entry.split('=');
             key = decodeURIComponent(key).replace(/\+/g, ' ');
-            if (value == undefined) {
+            if (value === undefined) {
                 query[key] = true;
-                return;
+                continue;
             }
             query[key] = decodeURIComponent(value).replace(/\+/g, ' ');
-        });
+        }
     }
-    const headers = request.headers || {};
+    const request_headers = request.headers || {};
     const body = request.body || {};
     const files = request.files || {};
 
@@ -148,30 +150,24 @@ export async function run_route(request, response, uid, route) {
 
     // execute load function when set to get data
     let data = {
-        url: clean_url,
+        url: clean_url
     };
     let status = 200;
     let header = {};
     let customHead = false;
+    const request_cookies = get_cookies(request?.headers?.cookie);
+    const response_cookies = {};
     let route_context = {
         request,
         response,
         params,
-        headers,
+        headers: request_headers,
+        cookies: request_cookies,
         query,
         body,
         files,
         data,
         isProd: Env.is_prod(),
-        returnJSON: (json, status = 200, headers = {}) => {
-            const response_header = Object.assign({}, headers);
-            response_header['Content-Type'] = 'application/json';
-            const returned_json = json === undefined ? 'null' : stringify(json);
-            response = end_response(response, returned_json, status, response_header);
-        },
-        returnData: (data, status = 200, headers = {}) => {
-            response = end_response(response, data, status, headers);
-        },
         setStatus: (statusCode = 200) => {
             status = statusCode;
             customHead = true;
@@ -186,13 +182,41 @@ export async function run_route(request, response, uid, route) {
         getHeaders: () => {
             return header;
         },
-        returnRedirect: (url, statusCode = 301, headers = {}) => {
-            const response_header = Object.assign({ Location: url }, headers);
+        getCookies: () => {
+            return request_cookies;
+        },
+        setCookie: (key, value, options = {}) => {
+            response_cookies[key] = { value, options };
+            customHead = true;
+            return true;
+        },
+        setRawCookie: (cookie) => {
+            const [key, ...values] = cookie.split('=');
+            response_cookies[key] = values.join('=');
+            customHead = true;
+            return true;
+        },
+        returnJSON: (json, status = 200, custom_headers = {}) => {
+            const response_header = Object.assign({}, header, custom_headers);
+            response_header['Content-Type'] = 'application/json';
+            const returned_json = json === undefined ? 'null' : stringify(json);
+            // biome-ignore lint: noParameterAssign
+            response = end_response(response, returned_json, status, response_header, response_cookies);
+        },
+        returnData: (data, status = 200, custom_headers = {}) => {
+            // biome-ignore lint: noParameterAssign
+            response = end_response(response, data, status, Object.assign({}, header, custom_headers), response_cookies);
+        },
+        returnRedirect: (url, statusCode = 301, custom_headers = {}) => {
+            const response_header = Object.assign({}, header, custom_headers, {
+                Location: url
+            });
             if (Env.is_dev()) {
                 Logger.info('Redirect to', url, response_header);
             }
-            response = end_response(response, `Redirect to ${url}`, statusCode, response_header);
-        },
+            // biome-ignore lint: noParameterAssign
+            response = end_response(response, `Redirect to ${url}`, statusCode, response_header, response_cookies);
+        }
     };
 
     const construct_route_context = await Plugin.process('construct_route_context', route_context);
@@ -231,8 +255,16 @@ export async function run_route(request, response, uid, route) {
     });
     route_context = route_on_exec_context_result.result;
 
+    // apply cookies to header
+    header = apply_cookies(header, response_cookies);
+
+    // when customHead is set execute it
+    if (customHead && response) {
+        response.writeHead(status, undefined, header);
+    }
+
     // end request when is marked as complete
-    if(response?.complete) {
+    if (response?.complete) {
         return [undefined, response];
     }
 
@@ -269,12 +301,8 @@ export async function run_route(request, response, uid, route) {
             return undefined;
         })
     );
-    // when customHead is set execute it
-    if (customHead && response) {
-        response.writeHead(status, undefined, header);
-    }
     // set the statusCode
-    if (status != 200) {
+    if (status !== 200) {
         response.statusCode = status;
     }
 
@@ -283,9 +311,14 @@ export async function run_route(request, response, uid, route) {
     page_data._wyvr.is_exec = true;
     page_data._wyvr.route_pattern = route.url;
 
-    let content = generate_page_code(page_data);
+    // add data for routes to handle more complex cases in the svelte files
+    page_data._wyvr.cookies = request_cookies;
+    page_data._wyvr.headers = request_headers;
+    page_data._wyvr.query = query;
 
-    const route_result = await compile_server_svelte(content, route.path);
+    const page_content = generate_page_code(page_data);
+
+    const route_result = await compile_server_svelte(page_content, route.path);
 
     const rendered_result = await render_server_compiled_svelte(route_result, page_data, route.path);
 
@@ -306,7 +339,7 @@ export async function run_route(request, response, uid, route) {
             if (!rendered_result.shortcode) {
                 rendered_result.shortcode = {};
             }
-            delete shortcode_emit.type;
+            shortcode_emit.type = undefined;
             rendered_result.shortcode[shortcode_emit.identifier] = shortcode_emit;
         }
     });
@@ -316,13 +349,31 @@ export async function run_route(request, response, uid, route) {
     return [rendered_result, response];
 }
 
-function end_response(response, data, status = 200, headers = {}) {
-    response?.writeHead(status, undefined, headers);
+function end_response(response, data, status = 200, headers = {}, cookies = {}) {
+    response?.writeHead(status, undefined, apply_cookies(headers, cookies));
     response?.end(data);
-    if(response) {
+    if (response) {
         response.complete = true;
     }
     return response;
+}
+
+function apply_cookies(header, cookies) {
+    for (const [key, data] of Object.entries(cookies)) {
+        const cookie = typeof data === 'string' ? `${key}=${data}` : set_cookie(key, data.value, data.options);
+        if (!cookie) {
+            continue;
+        }
+        if (typeof header['Set-Cookie'] === 'string') {
+            header['Set-Cookie'] = [header['Set-Cookie']];
+        }
+        if (!Array.isArray(header['Set-Cookie'])) {
+            header['Set-Cookie'] = [];
+        }
+
+        header['Set-Cookie'].push(cookie);
+    }
+    return header;
 }
 
 export async function extract_route_config(result, path) {
@@ -344,7 +395,7 @@ export async function extract_route_config(result, path) {
         .join('\\/')}\\/?$`.replace('\\/\\/?$', '\\/?$');
     let methods = ['get', 'head', 'post', 'put', 'delete', 'connect', 'options', 'trace', 'patch'];
     // execute _wyvr to get insights into the executable
-    if (typeof result?._wyvr == 'function') {
+    if (typeof result?._wyvr === 'function') {
         result._wyvr = await result._wyvr({});
     }
     if (filled_array(result?._wyvr?.methods)) {
@@ -357,7 +408,7 @@ export async function extract_route_config(result, path) {
         if (part.match(/^\[.*\]$/)) {
             weight = 100;
         }
-        if (part == '.*' || part == '*' || !part.trim()) {
+        if (part === '.*' || part === '*' || !part.trim()) {
             weight = 10;
         }
 

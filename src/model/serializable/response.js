@@ -167,8 +167,10 @@ export class SerializableResponse {
         if (statusMessage !== undefined) {
             this.statusMessage = statusMessage;
         }
-        if (headers !== undefined && typeof headers == 'object' && !Array.isArray(headers)) {
-            Object.entries(headers).forEach(([key, value]) => this.setHeader(key, value));
+        if (headers !== undefined && typeof headers === 'object' && !Array.isArray(headers)) {
+            for (const [key, value] of Object.entries(headers)) {
+                this.setHeader(key, value);
+            }
         }
     }
 
@@ -184,7 +186,7 @@ export class SerializableResponse {
             statusCode: this.statusCode,
             statusMessage: this.statusMessage,
             data: this.data,
-            encoding: this.encoding,
+            encoding: this.encoding
         };
     }
 }

@@ -1,5 +1,6 @@
 /* eslint-disable no-alert, no-console */
 import { Logger } from './src/utils/logger.js';
+export { get_cookies, set_cookie, allowed_cookie_options, allowed_same_site_values } from './src/utils/cookies.js';
 
 /**
  * This is the server side of the universal code.

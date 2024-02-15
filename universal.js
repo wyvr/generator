@@ -1,3 +1,5 @@
+export { get_cookies, set_cookie, allowed_cookie_options, allowed_same_site_values } from './src/utils/cookies.js';
+
 /* eslint-disable no-alert, no-console */
 /**
  * This file contains basic functions that are used in both the client and the server.

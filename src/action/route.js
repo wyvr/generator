@@ -7,6 +7,7 @@ import { route, send_process_route_request } from '../action_worker/route.js';
 import { STATUS_CODES } from 'http';
 import { stringify } from '../utils/json.js';
 import { get_error_message } from '../utils/error.js';
+import { Env } from '../vars/env.js';
 
 /**
  * Process route from an request
@@ -52,6 +53,10 @@ export async function fallback_route_request(req, res, uid) {
 }
 
 export function clean_header_text(value, allow_spaces = true) {
+    // arrays are allowed in some cases for headers
+    if (Array.isArray(value)) {
+        return value.map((v) => clean_header_text(v, allow_spaces));
+    }
     /*
     @SEE https://github.com/nodejs/node/issues/17390
         token          = 1*tchar
@@ -77,6 +82,7 @@ export function apply_response(response, ser_response) {
     if (!ser_response) {
         return response;
     }
+    const headerable_response = typeof response.setHeader === 'function';
     response.wyvr = true;
     response.statusCode = ser_response.statusCode;
     response.statusText = STATUS_CODES[ser_response.statusCode];
@@ -84,33 +90,39 @@ export function apply_response(response, ser_response) {
     try {
         if (ser_response.headers) {
             const cleaned_headers = {};
-            Object.entries(ser_response.headers).forEach(([key, value]) => {
+            for (const [key, value] of Object.entries(ser_response.headers)) {
                 const clean_key = clean_header_text(key, false);
                 const clean_value = clean_header_text(value);
-                if (clean_key != key || clean_value != value) {
-                    Logger.warning(`cleaned response header entry ${clean_key}: ${clean_value}`);
+                if (Env.is_dev() && (clean_key !== key || JSON.stringify(clean_value) !== JSON.stringify(value))) {
+                    Logger.warning(`cleaned response header entry ${clean_key}: ${JSON.stringify(clean_value)}`);
                 }
 
                 cleaned_headers[clean_key] = clean_value;
-            });
+            }
             ser_response.headers = cleaned_headers;
         }
     } catch (e) {
         Logger.error(get_error_message(e, ser_response.url, 'response clean header'));
     }
-    if (typeof response.setHeaders == 'function') {
+    // when the response is real
+    if (headerable_response) {
         try {
-            response.setHeaders(new Headers(ser_response.headers));
+            for (const [key, value] of Object.entries(ser_response.headers)) {
+                response.setHeader(key, value);
+            }
         } catch (e) {
             Logger.error(get_error_message(e, ser_response.url, 'response set header'));
         }
     } else {
+        // when headers should be contained multiple times, like multiple set-cookie headers this is not possible here
         response.headers = ser_response.headers;
     }
 
+    // when the response has not been ended the fallback route reuses the response
     if (!ser_response.complete) {
         return response;
     }
+
     try {
         response.writeHead(response.statusCode, response.headers);
     } catch (e) {
@@ -135,10 +147,6 @@ export function apply_response(response, ser_response) {
         return response;
     }
     const data = stringify(ser_response.data);
-    Logger.warning(
-        'Response data has unknown format',
-        typeof ser_response.data,
-        Logger.color.dim(data.length > 100 ? data.substring(0, 100) + '...' : data)
-    );
+    Logger.warning('Response data has unknown format', typeof ser_response.data, Logger.color.dim(data.length > 100 ? `${data.substring(0, 100)}...` : data));
     return response;
 }

@@ -161,6 +161,9 @@ export async function regenerate(changed_files) {
 
 export function split_changed_files_by_fragment(changed_files) {
     const result = {};
+    if(!changed_files) {
+        return result;
+    }
     for (const event of Object.keys(changed_files)) {
         for (const file of changed_files[event]) {
             if (!file) {

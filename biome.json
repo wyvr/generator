@@ -1,0 +1,23 @@
+{
+    "formatter": {
+        "enabled": true,
+        "formatWithErrors": false,
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineWidth": 180,
+        "lineEnding": "lf",
+        "ignore": []
+    },
+    "javascript": {
+        "formatter": {
+            "enabled": true,
+            "indentStyle": "space",
+            "indentWidth": 4,
+            "lineWidth": 180,
+            "lineEnding": "lf",
+            "quoteStyle": "single",
+            "trailingComma": "none"
+        },
+        "globals": ["isServer", "isClient"]
+    }
+}

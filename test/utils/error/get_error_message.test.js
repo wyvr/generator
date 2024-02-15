@@ -50,6 +50,6 @@ describe('utils/error/get_error_message', () => {
     });
     it('minimal', () => {
         const error = {};
-        deepStrictEqual(get_error_message(error, null, 'test'), `\x1B[1m@test\x1B[22m\n[] -`);
+        deepStrictEqual(get_error_message(error, null, 'test'), "\x1B[1m@test\x1B[22m\n[] -");
     });
 });

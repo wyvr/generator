@@ -52,6 +52,10 @@ export const logger = {
         underline: passthrough,
         inverse: passthrough,
         hidden: passthrough,
-        strikethrough: passthrough,
-    },
+        strikethrough: passthrough
+    }
 };
+
+export function get_error_message(e, filename, scope) {
+    return `@${scope}\n${e.message}\n${e.stack}\nsource ${filename}`;
+}

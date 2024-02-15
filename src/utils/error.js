@@ -14,16 +14,17 @@ export function extract_error(e, source) {
         name: e.name || undefined,
         source: undefined,
         stack: undefined,
-        debug: e.stack,
+        debug: e.stack
     };
     if (filled_string(source)) {
-        object.source = source.replace(root_dir + '/', '');
+        object.source = source.replace(`${root_dir}/`, '');
     }
     // sass error
     if (e.file) {
         object.filename = e.file;
     }
     const gen_dir = join(root_dir, FOLDER_GEN);
+    const gen_dir_path = `${gen_dir}/`;
     let stack;
     if (e.stack) {
         stack = e.stack.split('\n');
@@ -34,11 +35,11 @@ export function extract_error(e, source) {
                 // when line starts with "- <cwd>/gen"
                 const match = entry.match(/^\s*- (.*?\/gen\/.*)$/);
                 if (match) {
-                    return match[1].replace(gen_dir + '/', '');
+                    return match[1].replace(gen_dir_path, '');
                 }
                 // when line contains " at /" and the "<cwd>/gen"
                 if (entry.indexOf(gen_dir) > -1 && entry.indexOf(' at ') > -1) {
-                    return entry.replace(/.*?at (?:file:\/\/)?/, '').replace(gen_dir + '/', '');
+                    return entry.replace(/.*?at (?:file:\/\/)?/, '').replace(gen_dir_path, '');
                 }
                 // sass errors can contain "│" (no pipe) at the beginning add them too
                 if (entry.indexOf('│') > -1 || entry.indexOf('╷') > -1 || entry.indexOf('╵') > -1) {
@@ -55,13 +56,8 @@ export function extract_error(e, source) {
         if (shrinked_stack.length > 0) {
             object.stack = shrinked_stack;
             // svelte errors
-            if (
-                stack.length > 4 &&
-                stack[0].indexOf(gen_dir) > -1 &&
-                stack[2].indexOf('^') > -1 &&
-                stack[3].trim() == ''
-            ) {
-                object.stack = [stack[0].trim().replace(gen_dir + '/', '')];
+            if (stack.length > 4 && stack[0].indexOf(gen_dir) > -1 && stack[2].indexOf('^') > -1 && stack[3].trim() === '') {
+                object.stack = [stack[0].trim().replace(gen_dir_path, '')];
                 object.hint = stack.slice(1, 3).join('\n');
             }
         }
@@ -70,7 +66,7 @@ export function extract_error(e, source) {
         object.message = e.message;
     }
     // fetch errors
-    if(e.cause?.reason) {
+    if (e.cause?.reason) {
         object.message = `${object.message || ''}\n${e.cause.reason}`;
     }
     // sass error
@@ -87,51 +83,41 @@ export function extract_error(e, source) {
     }
     // esbuild errors
     if (filled_array(e.errors)) {
-        object.message =
-            '\n' +
-            e.errors
-                .map((error) => {
-                    let text = '- ' + error.text;
-                    const has_location =
-                        error.location && !is_null(error.location.line) && !is_null(error.location.column);
-                    let where = error.location.file
-                        ? '\n' + error.location.file.replace(/\?.*$/, '').replace(/^gen\/[^/]+\//, '@src/')
-                        : '';
+        object.message = `\n${e.errors
+            .map((error) => {
+                let text = `- ${error.text}`;
+                const has_location = error.location && !is_null(error.location.line) && !is_null(error.location.column);
+                let where = error.location.file ? `\n${error.location.file.replace(/\?.*$/, '').replace(/^gen\/[^/]+\//, '@src/')}` : '';
 
-                    if (has_location) {
-                        where += ` @ ${error.location.line}:${error.location.column}`;
-                    }
+                if (has_location) {
+                    where += ` @ ${error.location.line}:${error.location.column}`;
+                }
 
-                    let preview = '';
+                let preview = '';
 
-                    if (has_location) {
-                        if (!is_null(error.location.lineText)) {
-                            const before = error.location.lineText.substring(0, error.location.column);
-                            const highlight = error.location.lineText.substring(
-                                error.location.column,
-                                error.location.column + error.location.length
-                            );
-                            const after = error.location.lineText.substring(
-                                error.location.column + error.location.length
-                            );
-                            preview = `${error.location.line} | `;
-                            const preLength = preview.length;
-                            preview += `${Logger.color.dim(before)}${Logger.color.bold(highlight)}${Logger.color.dim(
-                                after
-                            )}\n${' '.repeat(preLength + error.location.column)}${'^'.repeat(error.location.length)}`;
-                            preview = `\n\n${preview}`;
-                        }
+                if (has_location) {
+                    if (!is_null(error.location.lineText)) {
+                        const before = error.location.lineText.substring(0, error.location.column);
+                        const highlight = error.location.lineText.substring(error.location.column, error.location.column + error.location.length);
+                        const after = error.location.lineText.substring(error.location.column + error.location.length);
+                        preview = `${error.location.line} | `;
+                        const preLength = preview.length;
+                        preview += `${Logger.color.dim(before)}${Logger.color.bold(highlight)}${Logger.color.dim(after)}\n${' '.repeat(
+                            preLength + error.location.column
+                        )}${'^'.repeat(error.location.length)}`;
+                        preview = `\n\n${preview}`;
                     }
-                    text += where + preview;
-                    if (!is_null(error.notes)) {
-                        text += `\n\n${error.notes
-                            .map((n) => n.text)
-                            .filter((x) => x)
-                            .join('\n')}`;
-                    }
-                    return text;
-                })
-                .join('\n');
+                }
+                text += where + preview;
+                if (!is_null(error.notes)) {
+                    text += `\n\n${error.notes
+                        .map((n) => n.text)
+                        .filter((x) => x)
+                        .join('\n')}`;
+                }
+                return text;
+            })
+            .join('\n')}`;
     }
 
     return object;
@@ -141,7 +127,7 @@ export function get_error_message(e, filename, scope) {
     const data = extract_error(e, filename);
     const result = [];
     if (scope) {
-        result.push(Logger.color.bold('@' + scope));
+        result.push(Logger.color.bold(`@${scope}`));
     }
     result.push(`[${data.name ? Logger.color.bold(data.name) : ''}] ${data.message ?? '-'}`);
     if (filled_array(data.stack)) {
@@ -160,7 +146,7 @@ export function inject_worker_message_errors(messages) {
         return [];
     }
 
-    if (messages[0] != '[svelte]') {
+    if (messages[0] !== '[svelte]') {
         return messages;
     }
 
@@ -171,16 +157,14 @@ export function inject_worker_message_errors(messages) {
             return message;
         }
         // ssr errors
-        if (message.code == 'parse-error' && message.frame && message.start && message.name) {
-            return `\n${message.name} ${Logger.color.dim('Line:')}${message.start.line}${Logger.color.dim(' Col:')}${
-                message.start.column
-            }\n${message.frame}`;
+        if (message.code === 'parse-error' && message.frame && message.start && message.name) {
+            return `\n${message.name} ${Logger.color.dim('Line:')}${message.start.line}${Logger.color.dim(' Col:')}${message.start.column}\n${message.frame}`;
         }
         // rollup errors
-        if (message.code == 'PARSE_ERROR' && message.frame && message.loc) {
-            return `\n${message.code} ${Logger.color.dim('in')} ${message.loc.file}\n${Logger.color.dim('Line:')}${
-                message.loc.line
-            }${Logger.color.dim(' Col:')}${message.loc.column}\n${message.frame}`;
+        if (message.code === 'PARSE_ERROR' && message.frame && message.loc) {
+            return `\n${message.code} ${Logger.color.dim('in')} ${message.loc.file}\n${Logger.color.dim('Line:')}${message.loc.line}${Logger.color.dim(' Col:')}${
+                message.loc.column
+            }\n${message.frame}`;
         }
         // nodejs error
         if (message.error) {

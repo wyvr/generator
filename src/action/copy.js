@@ -1,15 +1,6 @@
 import { statSync } from 'fs';
 import { join } from 'path';
-import {
-    FOLDER_GEN,
-    FOLDER_GEN_ASSETS,
-    FOLDER_GEN_SRC,
-    FOLDER_LIST_PACKAGE_COPY,
-    FOLDER_PLUGINS,
-    FOLDER_PAGES,
-    FOLDER_SRC,
-    FOLDER_CRON,
-} from '../constants/folder.js';
+import { FOLDER_GEN, FOLDER_GEN_ASSETS, FOLDER_GEN_SRC, FOLDER_LIST_PACKAGE_COPY, FOLDER_PLUGINS, FOLDER_PAGES, FOLDER_SRC, FOLDER_CRON } from '../constants/folder.js';
 import { Config } from '../utils/config.js';
 import { set_config_cache } from '../utils/config_cache.js';
 import { collect_files, copy as copy_file, exists, read, write } from '../utils/file.js';
@@ -34,32 +25,27 @@ export async function copy(available_packages) {
             // Copy static files from packages
             // Copy files from packages and override in the reversed package order
             // Build Tree of files and packages
-            packages
-                .filter(Boolean)
-                .reverse()
-                .forEach((pkg) => {
-                    copy_folder(pkg.path, FOLDER_LIST_PACKAGE_COPY, Cwd.get(FOLDER_GEN), (file, target) => {
-                        const rel_path = to_relative_path_of_gen(target);
-                        // get file modify time of page files
-                        if (
-                            target.match(new RegExp(`/${FOLDER_PAGES}/`)) &&
-                            !target.match(new RegExp(`/${FOLDER_SRC}/`))
-                        ) {
-                            const stats = statSync(file.src);
-                            mtime[rel_path] = {
-                                mtime: stats.mtime,
-                                src: file.src,
-                            };
-                        }
+            const packages_ordered = packages.filter(Boolean).reverse();
+            for (const pkg of packages_ordered) {
+                copy_folder(pkg.path, FOLDER_LIST_PACKAGE_COPY, Cwd.get(FOLDER_GEN), (file, target) => {
+                    const rel_path = to_relative_path_of_gen(target);
+                    // get file modify time of page files
+                    if (target.match(new RegExp(`/${FOLDER_PAGES}/`)) && !target.match(new RegExp(`/${FOLDER_SRC}/`))) {
+                        const stats = statSync(file.src);
+                        mtime[rel_path] = {
+                            mtime: stats.mtime,
+                            src: file.src
+                        };
+                    }
 
-                        // e.g. target "./src/file.svelte"
-                        // transform to "./src/file.svelte" "src/file.svelte"
-                        const target_key = file.target.replace(/^\.\//, '');
-                        package_tree[target_key] = pkg;
-                        // replace @src in plugins and cron jobs(executables)
-                        copy_executable_file(target, target);
-                    });
+                    // e.g. target "./src/file.svelte"
+                    // transform to "./src/file.svelte" "src/file.svelte"
+                    const target_key = file.target.replace(/^\.\//, '');
+                    package_tree[target_key] = pkg;
+                    // replace @src in plugins and cron jobs(executables)
+                    copy_executable_file(target, target);
                 });
+            }
             await set_config_cache('package_tree', package_tree);
             await set_config_cache('mtime', mtime);
             Logger.info('copied files');
@@ -72,22 +58,28 @@ export async function copy(available_packages) {
     });
     return {
         package_tree,
-        mtime,
+        mtime
     };
 }
 
 export function copy_files(files, to, before) {
     if (filled_array(files) && filled_string(to)) {
         const beforeFn = is_func(before) ? before : () => {};
-        files.forEach((file) => {
-            if (file.src && file.target && exists(file.src)) {
+        for (const file of files) {
+            if (!file.target) {
+                Logger.warning('missing target when copying', file);
+                break;
+            }
+            if (file.src && exists(file.src)) {
                 // join paths
                 const target = join(to, file.target);
                 Logger.debug('copy', file.src, 'to', target);
                 copy_file(file.src, target);
                 beforeFn(file, target);
+            } else {
+                Logger.warning('can not copy non existing file', file.src);
             }
-        });
+        }
         return true;
     }
     return false;
@@ -95,7 +87,7 @@ export function copy_files(files, to, before) {
 
 export function copy_folder(source, folder, to, before) {
     if (filled_array(folder) && filled_string(source) && filled_string(to)) {
-        folder.forEach((part) => {
+        for (const part of folder) {
             const folder_path = join(source, part);
             if (exists(folder_path)) {
                 const files = collect_files(folder_path).map((file) => {
@@ -103,7 +95,7 @@ export function copy_folder(source, folder, to, before) {
                 });
                 copy_files(files, to, before);
             }
-        });
+        }
         return true;
     }
     return false;

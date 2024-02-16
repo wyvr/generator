@@ -209,7 +209,7 @@ function append_dependencies_as_changed_files(changed_files, dependencies_bottom
         };
         const pkg = package_tree[rel_path];
         if (!pkg) {
-            return;
+            continue;
         }
         entry.pkg = pkg;
         entry.path = join(pkg.path, rel_path);

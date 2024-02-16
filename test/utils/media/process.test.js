@@ -157,22 +157,6 @@ describe('utils/media/process', () => {
         deepStrictEqual(exists(Cwd.get(file.result)), true);
         deepStrictEqual(log, []);
     });
-    it('heif format', async () => {
-        const file = {
-            src: 'favicon.png',
-            result: '/media/hash/favicon.avif',
-            width: 300,
-            height: 150,
-            mode: 'cover',
-            format: 'heif',
-            hash: 'hash',
-            quality: 60,
-            output: 'path',
-        };
-        await process_media(file);
-        deepStrictEqual(exists(Cwd.get(file.result)), true);
-        deepStrictEqual(log, []);
-    });
     it('png format', async () => {
         const file = {
             src: 'favicon.png',

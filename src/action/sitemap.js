@@ -29,12 +29,7 @@ export async function sitemap() {
                     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
                     active_entries
                         .map((entry) => {
-                            return (
-                                '<url>\n' +
-                                `  <loc>${to_index(entry.url)}</loc>\n` +
-                                `  <lastmod>${entry.mtime}</lastmod>\n` +
-                                '</url>'
-                            );
+                            return '<url>\n' + `  <loc>${to_index(entry.url)}</loc>\n` + `  <lastmod>${entry.mtime}</lastmod>\n` + '</url>';
                         })
                         .join('\n') +
                     '</urlset>';

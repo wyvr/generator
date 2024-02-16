@@ -100,9 +100,7 @@ export async function process_message(msg) {
             break;
         }
         case WorkerAction.mode: {
-            Logger.warning(
-                'setting mode is only possible for cluster worker not child_process worker'
-            );
+            Logger.warning('setting mode is only possible for cluster worker not child_process worker');
             break;
         }
         case WorkerAction.heap: {

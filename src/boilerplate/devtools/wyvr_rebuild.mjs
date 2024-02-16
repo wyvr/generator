@@ -11,5 +11,5 @@ export default {
             wyvr_message('triggered rebuild');
             is_active = true;
         }
-    },
+    }
 };

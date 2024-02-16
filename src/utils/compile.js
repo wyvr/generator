@@ -34,13 +34,7 @@ export function insert_import(content, file, to) {
             path = `${splits.join(sep)}${sep}_${try_file}.scss`;
         }
         if (!exists(path)) {
-            Logger.warning(
-                get_error_message(
-                    { message: `can not import ${path} into ${file}, maybe the file doesn't exist` },
-                    file,
-                    'import'
-                )
-            );
+            Logger.warning(get_error_message({ message: `can not import ${path} into ${file}, maybe the file doesn't exist` }, file, 'import'));
             return '';
         }
         let import_content = read(path);
@@ -74,7 +68,7 @@ export async function compile_typescript(code, file) {
     }
     try {
         const compiled_typescript = await esbuild.transform(code, {
-            loader: 'ts',
+            loader: 'ts'
         });
         return compiled_typescript?.code;
     } catch (e) {
@@ -95,7 +89,7 @@ export function compile_markdown(code) {
     const content = marked(front_matter.body, {
         mangle: false,
         headerIds: false,
-        breaks: false,
+        breaks: false
     }).replace(/<code[^>]*>[\s\S]*?<\/code>/g, (match) => {
         // replace svelte placeholder inside code blocks
         const replaced = match.replace(/\{/g, '&lbrace;').replace(/\}/g, '&rbrace;');
@@ -103,7 +97,7 @@ export function compile_markdown(code) {
     });
     return {
         content,
-        data,
+        data
     };
 }
 export async function compile_server_svelte(content, file) {

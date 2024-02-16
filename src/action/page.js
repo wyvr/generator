@@ -26,12 +26,7 @@ export async function pages(package_tree, mtime) {
         collections = result.collections;
 
         const identifier_length = Object.keys(identifiers).length;
-        Logger.info(
-            'found',
-            identifier_length,
-            identifier_length == 1 ? 'identifier' : 'identifiers',
-            Logger.color.dim('different layout combinations')
-        );
+        Logger.info('found', identifier_length, identifier_length == 1 ? 'identifier' : 'identifiers', Logger.color.dim('different layout combinations'));
     });
     await set_config_cache('page.cache', result?.page_objects, false);
 

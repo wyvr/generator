@@ -19,8 +19,8 @@ async function wyvr_devtools_initialize() {
                     path_parts.push(cb);
                     const imported_module = await import(path_parts.join('&').replace('&', '?'));
                     const module = imported_module?.default;
-                    if(module) {
-                        if(!module.order) {
+                    if (module) {
+                        if (!module.order) {
                             module.order = 1000;
                         }
                     }
@@ -36,8 +36,8 @@ async function wyvr_devtools_initialize() {
             if (!module) {
                 return false;
             }
-            const result =  typeof module?.onInit != 'function' || module.onInit();
-            if(result === undefined) {
+            const result = typeof module?.onInit != 'function' || module.onInit();
+            if (result === undefined) {
                 return true;
             }
             return result;

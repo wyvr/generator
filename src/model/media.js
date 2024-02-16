@@ -19,8 +19,8 @@ export class MediaModel {
                 if (config[key]) {
                     if (key == 'src') {
                         const domain_match = config[key].match(/^(?<domain>https?:\/\/[^/]*?)\//);
-                        if(domain_match) {
-                            this.domain = domain_match.groups?.domain
+                        if (domain_match) {
+                            this.domain = domain_match.groups?.domain;
                         }
                         config[key] = config[key].replace(/^\//, '');
                     }

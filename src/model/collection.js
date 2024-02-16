@@ -25,7 +25,7 @@ export function collection_entry(data = {}, default_values = {}) {
         scope: 'none',
         visible: true,
         url: '',
-        mtime: undefined,
+        mtime: undefined
     };
     Object.keys(result).forEach((key) => {
         if (is_object(data) && !is_null(data[key])) {

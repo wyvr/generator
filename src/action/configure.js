@@ -25,6 +25,6 @@ export function get_configure_data() {
         release_path: ReleasePath.get(),
         wyvr_path: WyvrPath.get(),
         uniq_id: UniqId.get(),
-        report: Report.get(),
+        report: Report.get()
     };
 }

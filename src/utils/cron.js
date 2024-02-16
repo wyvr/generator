@@ -16,7 +16,7 @@ export function filter_cronjobs(cronjobs, event_name = undefined) {
         date.getHours(), // Hour 0 - 23
         date.getDate(), // Day 0 - 31
         date.getMonth() + 1, // Month 1 - 12
-        date.getDay(), // Weekday 0 Sunday - 6 Saturday - 7 Sunday
+        date.getDay() // Weekday 0 Sunday - 6 Saturday - 7 Sunday
     ];
     return Object.keys(cronjobs)
         .map((name) => {

@@ -53,18 +53,12 @@ function execute(command) {
     Logger.warning('chat', JSON.stringify(command));
     write(chat_input, '');
 
-    append(
-        chat_output,
-        `@ ${new Date()}\n> ${command}\n${answer.join('\n')}\n\n`
-    );
+    append(chat_output, `@ ${new Date()}\n> ${command}\n${answer.join('\n')}\n\n`);
 }
 
 const commands = {
     help: (cmd) => {
-        const result = [
-            'available commands:',
-            ...Object.keys(commands).map((c) => '- ' + c),
-        ];
+        const result = ['available commands:', ...Object.keys(commands).map((c) => '- ' + c)];
         if (cmd) {
             return [cmd + ' is not a valid command', ...result];
         }
@@ -75,17 +69,15 @@ const commands = {
     },
     worker: () => {
         return WorkerController.workers?.map((worker) => {
-            return `worker ${worker.pid} ${worker.status} ${get_name(
-                worker.status
-            )}`;
+            return `worker ${worker.pid} ${worker.status} ${get_name(worker.status)}`;
         });
     },
     heap: (pid) => {
         const worker = WorkerController.workers?.find((worker) => worker.pid == pid);
-        if(!worker) {
+        if (!worker) {
             return ['no worker found with pid ' + pid];
         }
         WorkerController.send_action(worker, WorkerAction.heap, true);
         return ['heap sent to worker ' + pid];
-    },
+    }
 };

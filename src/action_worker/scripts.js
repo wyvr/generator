@@ -44,7 +44,7 @@ export async function scripts(identifiers) {
             read(join(resouce_dir, 'props.js')),
             read(join(resouce_dir, 'portal.js')),
             read(join(resouce_dir, 'stack.js')),
-            read(join(resouce_dir, 'i18n.js')).replace(/\[lib\]/g, lib_dir),
+            read(join(resouce_dir, 'i18n.js')).replace(/\[lib\]/g, lib_dir)
         ];
 
         try {
@@ -53,21 +53,13 @@ export async function scripts(identifiers) {
             if (is_shortcode) {
                 dependencies = [].concat(
                     ...Object.keys(identifier.imports).map((key) => {
-                        return get_hydrate_dependencies(
-                            tree,
-                            file_config,
-                            to_relative_path_of_gen(identifier.imports[key])
-                        );
+                        return get_hydrate_dependencies(tree, file_config, to_relative_path_of_gen(identifier.imports[key]));
                     })
                 );
             } else {
                 dependencies = [].concat(
                     ...['doc', 'layout', 'page'].map((type) => {
-                        return get_hydrate_dependencies(
-                            tree,
-                            file_config,
-                            `src/${type}/${to_extension(identifier[type], 'svelte')}`
-                        );
+                        return get_hydrate_dependencies(tree, file_config, `src/${type}/${to_extension(identifier[type], 'svelte')}`);
                     })
                 );
             }
@@ -145,7 +137,7 @@ export async function scripts(identifiers) {
                         build_id_var,
                         read(join(resouce_dir, 'events.js')),
                         read(join(resouce_dir, 'stack.js')),
-                        read(join(resouce_dir, 'i18n.js')).replace(/\[lib\]/g, lib_dir),
+                        read(join(resouce_dir, 'i18n.js')).replace(/\[lib\]/g, lib_dir)
                     ].join('\n');
                 }
             }

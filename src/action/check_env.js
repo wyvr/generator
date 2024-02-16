@@ -18,7 +18,7 @@ export async function get_report() {
         success: true,
         info: [],
         warning: [],
-        error: [],
+        error: []
     };
 
     // wyvr root path

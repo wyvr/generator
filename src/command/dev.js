@@ -34,12 +34,12 @@ export async function dev_command(config) {
     if (!is_fast && config?.cli?.flags?.fast) {
         Logger.warning('fast build is not available');
     }
-    
+
     let packages;
     if (is_fast) {
         const config_data = get_config_data(config, build_id);
         present(config_data);
-        
+
         const { available_packages } = await pre_initial_build(build_id, config_data);
 
         await Plugin.initialize();
@@ -49,7 +49,7 @@ export async function dev_command(config) {
         const result = await intial_build(build_id, config);
         packages = result.packages;
     }
-    
+
     await publish();
 
     chat_start();

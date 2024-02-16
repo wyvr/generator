@@ -1,16 +1,4 @@
-import {
-    mkdirSync,
-    existsSync,
-    readFileSync,
-    readdirSync,
-    statSync,
-    writeFileSync,
-    copyFileSync,
-    rmSync,
-    symlinkSync,
-    lstatSync,
-    appendFileSync,
-} from 'fs';
+import { mkdirSync, existsSync, readFileSync, readdirSync, statSync, writeFileSync, copyFileSync, rmSync, symlinkSync, lstatSync, appendFileSync } from 'fs';
 import { extname, dirname, join } from 'path';
 import { stringify } from './json.js';
 import { is_string, filled_string, filled_array } from './validate.js';
@@ -204,7 +192,7 @@ export function write_json(filename, data = null) {
         for (let i = 0; i < len; i++) {
             const content = stringify(data[i], spaces) + (i + 1 < len ? seperator : '');
             writeFileSync(filename, content, {
-                flag: 'a',
+                flag: 'a'
             });
         }
         writeFileSync(filename, Env.is_dev() ? '\n]' : ']', { flag: 'a' });
@@ -345,7 +333,7 @@ export function get_folder(folder) {
         .map((entry) => {
             return {
                 name: entry,
-                path: join(folder, entry),
+                path: join(folder, entry)
             };
         })
         .filter((entry) => {

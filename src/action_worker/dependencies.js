@@ -20,13 +20,13 @@ export async function dependencies(files) {
             // send dependencies
             const dependency_emit = {
                 type: WorkerEmit.dependencies,
-                dependencies: result.dependencies,
+                dependencies: result.dependencies
             };
             send_action(WorkerAction.emit, dependency_emit);
             // send translations
             const i18n_emit = {
                 type: WorkerEmit.i18n,
-                i18n: result.i18n,
+                i18n: result.i18n
             };
             send_action(WorkerAction.emit, i18n_emit);
         }

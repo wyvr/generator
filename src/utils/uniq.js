@@ -5,11 +5,11 @@ export function uniq_id() {
     return v4().replace(/-/g, '');
 }
 export function uniq_values(list) {
-    if(is_null(list)) {
+    if (is_null(list)) {
         return [];
     }
     // force array
-    if(!is_array(list)) {
+    if (!is_array(list)) {
         list = [list];
     }
     return list.filter((x, index, arr) => arr.indexOf(x) == index);

@@ -39,11 +39,7 @@ export function get_instant_code(name, import_path, target) {
         return `console.error('no target found for ${name} from ${import_path}');`;
     }
     const cache_breaker = Env.is_dev() ? `?${get_file_time_hash(import_path)}` : '';
-    return [
-        `import ${name} from '${import_path}${cache_breaker}';`,
-        target,
-        `wyvr_hydrate_instant(${name}_target, ${name});`,
-    ].join('');
+    return [`import ${name} from '${import_path}${cache_breaker}';`, target, `wyvr_hydrate_instant(${name}_target, ${name});`].join('');
 }
 
 export async function build_hydrate_file(file, resouce_dir) {
@@ -53,24 +49,14 @@ export async function build_hydrate_file(file, resouce_dir) {
         sourcemap: undefined,
         path: undefined,
         real_path: undefined,
-        include_code: '',
+        include_code: ''
     };
 
     if (!match_interface(file, { name: true, path: true, config: true }) || !filled_string(resouce_dir)) {
         return undefined;
     }
     if (
-        !in_array(
-            [
-                WyvrFileLoading.instant,
-                WyvrFileLoading.lazy,
-                WyvrFileLoading.idle,
-                WyvrFileLoading.interact,
-                WyvrFileLoading.media,
-                WyvrFileLoading.none,
-            ],
-            file.config.loading
-        )
+        !in_array([WyvrFileLoading.instant, WyvrFileLoading.lazy, WyvrFileLoading.idle, WyvrFileLoading.interact, WyvrFileLoading.media, WyvrFileLoading.none], file.config.loading)
     ) {
         return undefined;
     }
@@ -93,12 +79,7 @@ export async function build_hydrate_file(file, resouce_dir) {
 
     // write the lazy file from the component
     if (!exists(real_lazy_file_path) || Env.is_dev() || !exists(join(ReleasePath.get(), lazy_file_path))) {
-        const content = [
-            read(join(resouce_dir, 'hydrate_instant.js')),
-            read(join(resouce_dir, 'props.js')),
-            read(join(resouce_dir, 'portal.js')),
-            instant_code,
-        ].join('\n');
+        const content = [read(join(resouce_dir, 'hydrate_instant.js')), read(join(resouce_dir, 'props.js')), read(join(resouce_dir, 'portal.js')), instant_code].join('\n');
 
         const build_result = await build(content, real_lazy_file_path);
 
@@ -111,8 +92,7 @@ export async function build_hydrate_file(file, resouce_dir) {
     // set marker for the needed hydrate methods
     result.has[file.config.loading] = true;
     // loading none requires a trigger property, but everything except instant can be triggered
-    const trigger =
-        file.config.loading != WyvrFileLoading.instant && file.config.trigger ? `, '${file.config.trigger}'` : '';
+    const trigger = file.config.loading != WyvrFileLoading.instant && file.config.trigger ? `, '${file.config.trigger}'` : '';
     result.include_code = `${target}
                 wyvr_hydrate_${file.config.loading}('${lazy_file_path}', ${file.name}_target, '${file.name}', '${file.name}'${trigger});`;
     return result;

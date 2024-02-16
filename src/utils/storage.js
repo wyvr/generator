@@ -47,7 +47,7 @@ export class Storage {
             // save and store the connection
             this.cache[db.name] = await open({
                 filename: db.path,
-                driver: sqlite3.Database,
+                driver: sqlite3.Database
             });
 
             // tables
@@ -56,14 +56,7 @@ export class Storage {
             value TEXT
             );`);
             const check = await this.cache[db.name].all(`PRAGMA table_info(data);`);
-            if (
-                !filled_array(check) ||
-                check[0].name !== 'key' ||
-                check[0].type !== 'VARCHAR(255)' ||
-                check[0].pk !== 1 ||
-                check[1].name !== 'value' ||
-                check[1].type !== 'TEXT'
-            ) {
+            if (!filled_array(check) || check[0].name !== 'key' || check[0].type !== 'VARCHAR(255)' || check[0].pk !== 1 || check[1].name !== 'value' || check[1].type !== 'TEXT') {
                 Logger.error('the structure of the storage is not correct', check, db);
                 return false;
             }
@@ -100,7 +93,7 @@ export class Storage {
             name: undefined,
             path: undefined,
             exists: false,
-            connected: false,
+            connected: false
         };
         if (!filled_string(name)) {
             return result;
@@ -116,12 +109,7 @@ export class Storage {
             result.exists = true;
         }
         // check connect only when file exists
-        if (
-            result.exists &&
-            this.cache &&
-            this.cache[db_name] &&
-            match_interface(this.cache[db_name], StorageCacheStructure)
-        ) {
+        if (result.exists && this.cache && this.cache[db_name] && match_interface(this.cache[db_name], StorageCacheStructure)) {
             result.connected = true;
         }
 
@@ -223,11 +211,7 @@ export class Storage {
                     }
                     // insert or replace entry
                     // https://stackoverflow.com/questions/418898/sqlite-upsert-not-insert-or-replace
-                    await this.cache[db.name].run(
-                        'INSERT OR REPLACE INTO "data" (key, value) VALUES (?, ?);',
-                        key,
-                        to_escaped(value)
-                    );
+                    await this.cache[db.name].run('INSERT OR REPLACE INTO "data" (key, value) VALUES (?, ?);', key, to_escaped(value));
                     return true;
                 } catch (e) {
                     Logger.error(e);

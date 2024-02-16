@@ -58,7 +58,7 @@ export class Plugin {
 
                         result[name][type].push({
                             source: file_path,
-                            fn: plugin[name][type],
+                            fn: plugin[name][type]
                         });
                         Logger.debug('add plugin', name, type, 'from', file_path);
                     });
@@ -74,14 +74,10 @@ export class Plugin {
     }
 
     static async before(name, ...args) {
-        return await (
-            await this.execute(name, 'before')
-        )(undefined, ...args);
+        return await (await this.execute(name, 'before'))(undefined, ...args);
     }
     static async after(name, result, ...args) {
-        return await (
-            await this.execute(name, 'after')
-        )(result, ...args);
+        return await (await this.execute(name, 'after'))(result, ...args);
     }
 
     /**
@@ -96,7 +92,7 @@ export class Plugin {
                 return {
                     error: 'missing plugin name or type',
                     args: undefined,
-                    result,
+                    result
                 };
             };
         }
@@ -106,7 +102,7 @@ export class Plugin {
                 return {
                     error: `no ${type} plugin for "${name}" found`,
                     args,
-                    result,
+                    result
                 };
             };
         }
@@ -123,9 +119,9 @@ export class Plugin {
                 config: {
                     cwd: Cwd.get(),
                     release_path: ReleasePath.get(),
-                    env: Env.name(),
+                    env: Env.name()
                 },
-                result,
+                result
             };
             for (let i = 0, len = plugins.length; i < len; i++) {
                 const start = hrtime.bigint();
@@ -135,12 +131,7 @@ export class Plugin {
                         data.result = partial_result;
                     }
                 } catch (e) {
-                    Logger.error(
-                        'error in plugin for',
-                        Logger.color.bold(name),
-                        Logger.color.bold(type),
-                        get_error_message(e, plugins[i].source, 'plugin')
-                    );
+                    Logger.error('error in plugin for', Logger.color.bold(name), Logger.color.bold(type), get_error_message(e, plugins[i].source, 'plugin'));
                 }
                 const duration = nano_to_milli(hrtime.bigint() - start);
                 Logger.report(duration, 'plugin', name, type, plugins[i].source);
@@ -153,7 +144,7 @@ export class Plugin {
             const out = {
                 error: undefined,
                 args,
-                result: undefined,
+                result: undefined
             };
             if (!is_func(original_function)) {
                 out.error = ['missing plugin function'];

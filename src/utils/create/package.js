@@ -13,15 +13,11 @@ export function create_package(name, templates, version, result, target_dir) {
     }
     if (result.features.includes('devtools')) {
         copy_template_file(join(templates, 'devtools', 'devtool.js'), Cwd.get(target_dir, 'devtools', 'devtool.js'), {
-            version,
+            version
         });
-        copy_template_file(
-            join(templates, 'devtools', 'devtool.svelte'),
-            Cwd.get(target_dir, 'devtools', 'devtool.svelte'),
-            {
-                version,
-            }
-        );
+        copy_template_file(join(templates, 'devtools', 'devtool.svelte'), Cwd.get(target_dir, 'devtools', 'devtool.svelte'), {
+            version
+        });
     }
     if (result.features.includes('i18n')) {
         result.i18n_folder
@@ -30,38 +26,30 @@ export function create_package(name, templates, version, result, target_dir) {
             .map((x) => x.trim())
             .filter((x) => x)
             .forEach((lang) => {
-                copy_template_file(
-                    join(templates, 'i18n', 'i18n.json'),
-                    Cwd.get(target_dir, 'i18n', lang, 'i18n.json'),
-                    {
-                        version,
-                        lang,
-                    }
-                );
+                copy_template_file(join(templates, 'i18n', 'i18n.json'), Cwd.get(target_dir, 'i18n', lang, 'i18n.json'), {
+                    version,
+                    lang
+                });
             });
     }
     if (result.features.includes('pages')) {
         copy_template_file(join(templates, 'pages', 'markdown.md'), Cwd.get(target_dir, 'pages', 'index.md'), {
             name,
-            version,
+            version
         });
         copy_template_file(join(templates, 'pages', 'page.js'), Cwd.get(target_dir, 'pages', 'page.js'), {
-            version,
+            version
         });
     }
     if (result.features.includes('plugins')) {
-        copy_template_file(
-            join(templates, 'plugins', 'plugin.js'),
-            Cwd.get(target_dir, 'plugins', name, 'plugin.js'),
-            {
-                version,
-            }
-        );
+        copy_template_file(join(templates, 'plugins', 'plugin.js'), Cwd.get(target_dir, 'plugins', name, 'plugin.js'), {
+            version
+        });
     }
     if (result.features.includes('routes')) {
         copy_template_file(join(templates, 'routes', 'route.js'), Cwd.get(target_dir, 'routes', name, 'route.js'), {
             name: name,
-            version,
+            version
         });
     }
 }

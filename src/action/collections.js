@@ -42,12 +42,7 @@ export async function collections(page_collections) {
         // sort the collection entries
         collections = sort_collections(collections);
 
-        Logger.info(
-            'collected',
-            Object.keys(collections).length,
-            'collections',
-            Logger.color.dim(Object.keys(collections).join(','))
-        );
+        Logger.info('collected', Object.keys(collections).length, 'collections', Logger.color.dim(Object.keys(collections).join(',')));
         // delete the existing collections
         // @TODO changed collections does not always gets removed
         await Storage.clear('collection');

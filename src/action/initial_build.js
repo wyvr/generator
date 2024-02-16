@@ -67,7 +67,7 @@ export async function pre_initial_build(build_id, config_data) {
     return {
         package_json,
         available_packages,
-        disabled_packages,
+        disabled_packages
     };
 }
 
@@ -127,7 +127,7 @@ export async function intial_build(build_id, config) {
             identifier: '404development',
             doc: '',
             layout: '',
-            page: '',
+            page: ''
         };
     }
     await scripts(identifiers);
@@ -148,6 +148,6 @@ export async function intial_build(build_id, config) {
         packages: available_packages,
         identifiers,
         media: build_result.media,
-        media_query_files: build_result.media_query_files,
+        media_query_files: build_result.media_query_files
     };
 }

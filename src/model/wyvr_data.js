@@ -10,12 +10,12 @@ export function WyvrData(data, url, name, mtime_default) {
         template: {
             doc: to_svelte_paths('Default'),
             layout: to_svelte_paths('Default'),
-            page: to_svelte_paths('Default'),
+            page: to_svelte_paths('Default')
         },
         template_files: {
             doc: undefined,
             layout: undefined,
-            page: undefined,
+            page: undefined
         },
         collection: build_collection(undefined, url, name),
         extension: 'html',
@@ -29,7 +29,7 @@ export function WyvrData(data, url, name, mtime_default) {
         persist: false,
         is_exec: false,
         exec_pattern: undefined,
-        mtime,
+        mtime
     };
     // when no wyvr data is set use the default values
     if (is_null(data)) {
@@ -37,13 +37,11 @@ export function WyvrData(data, url, name, mtime_default) {
     }
 
     // add simple props
-    ['extension', 'language', 'private', 'change_frequence', 'priority', 'static', 'mtime', 'persist'].forEach(
-        (key) => {
-            if (!is_null(data[key])) {
-                wyvr_prop[key] = data[key];
-            }
+    ['extension', 'language', 'private', 'change_frequence', 'priority', 'static', 'mtime', 'persist'].forEach((key) => {
+        if (!is_null(data[key])) {
+            wyvr_prop[key] = data[key];
         }
-    );
+    });
 
     // extend template data
     if (data.template) {

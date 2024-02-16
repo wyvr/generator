@@ -58,7 +58,7 @@ export async function build(files) {
     if (has_media) {
         const media_emit = {
             type: WorkerEmit.media,
-            media: media_files,
+            media: media_files
         };
         send_action(WorkerAction.emit, media_emit);
     }
@@ -66,13 +66,13 @@ export async function build(files) {
     if (filled_object(media_query_files)) {
         const media_query_files_emit = {
             type: WorkerEmit.media_query_files,
-            media_query_files,
+            media_query_files
         };
         send_action(WorkerAction.emit, media_query_files_emit);
     }
     const identifier_files_emit = {
         type: WorkerEmit.identifier_files,
-        identifier_files,
+        identifier_files
     };
     send_action(WorkerAction.emit, identifier_files_emit);
 }

@@ -13,7 +13,7 @@ export function Identifier(doc, layout, page) {
         identifier: 'default',
         doc: 'Default.js',
         layout: 'Default.js',
-        page: 'Default.js',
+        page: 'Default.js'
     };
     if (filled_string(doc)) {
         identifier.doc = to_relative_path(doc).replace(/^doc\//, '');

@@ -34,6 +34,6 @@ export function get_present_command(command_array, flags_array) {
     }
     return {
         command,
-        flags,
+        flags
     };
 }

@@ -6,7 +6,7 @@ import { to_relative_from_markers } from './to.js';
 import { filled_string, is_null, is_object } from './validate.js';
 
 export function write_css_file(file, code, media_query_files) {
-    if (!filled_string(file) ) {
+    if (!filled_string(file)) {
         return {};
     }
     write(file, code);
@@ -24,10 +24,7 @@ export function get_css_path(file) {
     if (!filled_string(file)) {
         return undefined;
     }
-    return (
-        sep +
-        join(FOLDER_CSS, to_relative_from_markers(to_relative_from_markers(file, FOLDER_SRC, FOLDER_GEN), FOLDER_CSS))
-    );
+    return sep + join(FOLDER_CSS, to_relative_from_markers(to_relative_from_markers(file, FOLDER_SRC, FOLDER_GEN), FOLDER_CSS));
 }
 export function split_css_into_media_query_files(content, file) {
     if (Env.is_prod()) {

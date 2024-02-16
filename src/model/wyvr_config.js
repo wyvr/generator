@@ -7,15 +7,15 @@ export const WyvrConfig = Object.freeze({
     env: Env.name(),
     https: true,
     i18n: {
-        fallback: 'en',
+        fallback: 'en'
     },
     packages: [], // list of the packages which should be used
     releases: {
-        keep: 0,
+        keep: 0
     },
     url: 'localhost',
     worker: {
         ratio: 0.3,
-        force_initial_build: false,
-    },
+        force_initial_build: false
+    }
 });

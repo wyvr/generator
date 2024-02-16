@@ -12,13 +12,9 @@ export function create_config(templates, version, result, target_dir = undefined
         create_cron(templates, version, result, target_dir, false);
     }
 
-    copy_template_file(
-        join(templates, 'config', result.project_config ? 'project.js' : 'package.js'),
-        Cwd.get(target_dir, 'wyvr.js'),
-        {
-            version,
-            url: result.url,
-            cron_code,
-        }
-    );
+    copy_template_file(join(templates, 'config', result.project_config ? 'project.js' : 'package.js'), Cwd.get(target_dir, 'wyvr.js'), {
+        version,
+        url: result.url,
+        cron_code
+    });
 }

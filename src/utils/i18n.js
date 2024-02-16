@@ -18,36 +18,39 @@ export function collect_i18n(packages, fallback_language) {
         return {};
     }
     const translations = {};
-    packages.filter(Boolean).reverse().forEach((pkg) => {
-        if (!pkg || !pkg.path) {
-            return;
-        }
-        collect_files(join(pkg.path, FOLDER_I18N)).forEach((file) => {
-            const i18n_folder = `/${FOLDER_I18N}/`;
-            // search from last i18n not the first
-            const search_path = file.split(i18n_folder).slice(-2).join(i18n_folder);
-            const info = search_path.match(new RegExp(`.*?/${FOLDER_I18N}/([^/]+?)/(.+)\\.json$`));
-            if (!info) {
+    packages
+        .filter(Boolean)
+        .reverse()
+        .forEach((pkg) => {
+            if (!pkg || !pkg.path) {
                 return;
             }
-            const data = read_json(file);
-            if (!filled_object(data)) {
-                return;
-            }
+            collect_files(join(pkg.path, FOLDER_I18N)).forEach((file) => {
+                const i18n_folder = `/${FOLDER_I18N}/`;
+                // search from last i18n not the first
+                const search_path = file.split(i18n_folder).slice(-2).join(i18n_folder);
+                const info = search_path.match(new RegExp(`.*?/${FOLDER_I18N}/([^/]+?)/(.+)\\.json$`));
+                if (!info) {
+                    return;
+                }
+                const data = read_json(file);
+                if (!filled_object(data)) {
+                    return;
+                }
 
-            const language = info[1];
-            if (!translations[language]) {
-                translations[language] = {};
-            }
-            const name = info[2];
-            if (!translations[language][name]) {
-                translations[language][name] = {};
-            }
-            Object.keys(data).forEach((key) => {
-                translations[language][name][key] = data[key];
+                const language = info[1];
+                if (!translations[language]) {
+                    translations[language] = {};
+                }
+                const name = info[2];
+                if (!translations[language][name]) {
+                    translations[language][name] = {};
+                }
+                Object.keys(data).forEach((key) => {
+                    translations[language][name][key] = data[key];
+                });
             });
         });
-    });
     // fill the translation with the translations from the base language
     if (fallback_language && translations[fallback_language]) {
         const base = translations[fallback_language];

@@ -5,7 +5,7 @@ export default {
         // control what you want to return
         if (params.awesome_param == 'json') {
             return returnJSON({
-                key: 'value',
+                key: 'value'
             });
         }
         // allow modifying of the page data
@@ -14,5 +14,5 @@ export default {
     title: ({ params }) => {
         return `Some dynamic content for "${params.awesome_param}"`;
     },
-    content: 'Some static content',
+    content: 'Some static content'
 };

@@ -17,18 +17,10 @@ export async function run_tests(files) {
                 stats = runner.stats;
                 let number = 1;
                 runner.on(EVENT_TEST_FAIL, (test, err) => {
-                    Logger.error(
-                        [
-                            `failed test #${number}`,
-                            Logger.color.bold(test.fullTitle()),
-                            Logger.color.dim(`file:${test.file}`),
-                            err.message,
-                            '',
-                        ].join('\n')
-                    );
+                    Logger.error([`failed test #${number}`, Logger.color.bold(test.fullTitle()), Logger.color.dim(`file:${test.file}`), err.message, ''].join('\n'));
                     number++;
                 });
-            },
+            }
         });
         uniq_values(files).forEach((file) => {
             if (filled_string(file)) {
@@ -40,7 +32,7 @@ export async function run_tests(files) {
                 // needed to avoid caching of resources
                 esmDecorator: (path) => {
                     return dev_cache_breaker(is_object(path) && path.pathname ? path.pathname : path);
-                },
+                }
             })
             .then(() => {
                 mocha.run(function (failures) {

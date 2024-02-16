@@ -9,7 +9,7 @@ export async function get_critical_css(content, file) {
     if (is_null(result)) {
         return '';
     }
-    
+
     if (result.css) {
         return result.css;
     }
@@ -35,9 +35,9 @@ export async function generate_critical_css(content, file) {
                 { width: 480, height: 800 },
                 { width: 1024, height: 768 },
                 { width: 1280, height: 1024 },
-                { width: 1920, height: 1080 },
+                { width: 1920, height: 1080 }
             ],
-            rebase: undefined,
+            rebase: undefined
         });
         return result;
     } catch (e) {

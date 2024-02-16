@@ -42,12 +42,7 @@ export async function clear_releases(ignore_id) {
         Logger.info('keep', keep, 'releases');
         const amount = delete_releases.length;
         if (amount > 0) {
-            Logger.info(
-                'deleted',
-                amount,
-                amount == 1 ? 'release' : 'releases',
-                Logger.color.dim(delete_releases.join(','))
-            );
+            Logger.info('deleted', amount, amount === 1 ? 'release' : 'releases', Logger.color.dim(delete_releases.join(',')));
             return;
         }
         Logger.info('no releases will be deleted');

@@ -1,13 +1,7 @@
 import { createServer } from 'http';
 import formidable, { errors as formidableErrors } from 'formidable';
 import { Logger } from './logger.js';
-import {
-    filled_string,
-    in_array,
-    is_func,
-    is_number,
-    match_interface,
-} from './validate.js';
+import { filled_string, in_array, is_func, is_number, match_interface } from './validate.js';
 import { uniq_id } from './uniq.js';
 import ServeStatic from 'serve-static';
 import { WebSocketServer } from 'ws';
@@ -15,11 +9,7 @@ import { Cwd } from '../vars/cwd.js';
 import { get_error_message } from './error.js';
 import { nano_to_milli } from './convert.js';
 import { Env } from '../vars/env.js';
-import {
-    route_request,
-    fallback_route_request,
-    apply_response,
-} from '../action/route.js';
+import { route_request, fallback_route_request, apply_response } from '../action/route.js';
 import { config_from_url, get_buffer } from './media.js';
 import { Event } from './event.js';
 import { stringify } from './json.js';
@@ -46,9 +36,7 @@ let show_requests = true;
 
 export function server(host, port, on_request, on_end) {
     if (!filled_string(host) || !is_number(port)) {
-        Logger.warning(
-            'server could not be started because host or port is missing'
-        );
+        Logger.warning('server could not be started because host or port is missing');
     }
     createServer(async (req, res) => {
         const start = process.hrtime.bigint();
@@ -64,12 +52,9 @@ export function server(host, port, on_request, on_end) {
         const question_mark = url.indexOf('?');
         const hash = url.indexOf('#');
         if (!extname(clean_url) && clean_url[clean_url.length - 1] != '/') {
-            const params_pos = Math.min(
-                question_mark > -1 ? question_mark : Number.MAX_SAFE_INTEGER,
-                hash > -1 ? hash : Number.MAX_SAFE_INTEGER
-            );
+            const params_pos = Math.min(question_mark > -1 ? question_mark : Number.MAX_SAFE_INTEGER, hash > -1 ? hash : Number.MAX_SAFE_INTEGER);
             res.writeHead(Env.is_dev() ? 302 : 301, undefined, {
-                location: clean_url + '/' + url.substring(params_pos),
+                location: clean_url + '/' + url.substring(params_pos)
             });
             res.end();
             return;
@@ -82,9 +67,7 @@ export function server(host, port, on_request, on_end) {
         const query = {};
         // add query parameters to the request
         if (question_mark > -1) {
-            const params = new URLSearchParams(
-                url.substring(question_mark + 1)
-            );
+            const params = new URLSearchParams(url.substring(question_mark + 1));
             Array.from(params.keys()).forEach((key) => {
                 query[key] = params.get(key);
             });
@@ -102,7 +85,7 @@ export function server(host, port, on_request, on_end) {
             keepExtensions: true,
             uploadDir: tmpdir(),
             allowEmptyFiles: true,
-            minFileSize: 0,
+            minFileSize: 0
         });
         try {
             [body, files] = await form.parse(req);
@@ -117,9 +100,7 @@ export function server(host, port, on_request, on_end) {
     }).listen(port, host, () => {
         const pre_text = 'server started at';
         const text = `http://${host}:${port}`;
-        const filler = new Array(2 + pre_text.length + 1 + text.length)
-            .fill('─')
-            .join('');
+        const filler = new Array(2 + pre_text.length + 1 + text.length).fill('─').join('');
         Logger.output(undefined, undefined, Logger.color.dim(filler));
         Logger.success(pre_text, text);
         Logger.output(undefined, undefined, Logger.color.dim(filler));
@@ -136,28 +117,18 @@ export async function final(on_end, req, res, uid, start) {
 
 export function log_start(req, uid) {
     const date = new Date();
-    Logger.debug(
-        req.method,
-        Logger.color.bold(req.url),
-        date.toLocaleTimeString(),
-        Logger.color.dim(date.toLocaleDateString()),
-        Logger.color.dim(uid)
-    );
+    Logger.debug(req.method, Logger.color.bold(req.url), date.toLocaleTimeString(), Logger.color.dim(date.toLocaleDateString()), Logger.color.dim(uid));
     return process.hrtime.bigint();
 }
 export function log_end(req, res, uid, start) {
-    const message = [
-        req.method,
-        req.url,
-        ...get_done_log_infos(res.statusMessage, res.statusCode, start, uid),
-    ];
+    const message = [req.method, req.url, ...get_done_log_infos(res.statusMessage, res.statusCode, start, uid)];
     const type = (res.statusCode + '')[0]; // first digit indicates the type
     const type_logger = {
         1: (message) => Logger.info(...message),
         2: (message) => Logger.success(...message),
         3: (message) => Logger.warning(...message),
         4: (message) => Logger.warning(...message),
-        _: (message) => Logger.error(...message),
+        _: (message) => Logger.error(...message)
     };
     (type_logger[type] || type_logger['_'])(message);
 }
@@ -165,21 +136,10 @@ export function is_data_method(method) {
     return ['post', 'patch', 'put'].indexOf(method.toLowerCase()) > -1;
 }
 export async function return_not_found(req, res, uid, message, status, start) {
-    Logger.error(
-        req.method,
-        req.url,
-        ...get_done_log_infos(message, status, start, uid)
-    );
+    Logger.error(req.method, req.url, ...get_done_log_infos(message, status, start, uid));
     if (Env.is_dev()) {
         // use full page in dev mode to add devtools, which allow autoreloading the page
-        const content = read(
-            join(
-                to_dirname(import.meta.url),
-                '..',
-                'resource',
-                '404development.html'
-            )
-        );
+        const content = read(join(to_dirname(import.meta.url), '..', 'resource', '404development.html'));
         if (content) {
             const url = req.url;
             try {
@@ -191,17 +151,14 @@ export async function return_not_found(req, res, uid, message, status, start) {
                                 .replace(/\{message\}/g, message)
                                 .replace(/\{status\}/g, status)
                                 .replace(/\{uid\}/g, uid)
-                                .replace(/\{url\}/g, url),
-                        },
+                                .replace(/\{url\}/g, url)
+                        }
                     },
                     { url, message, status, uid },
                     url,
                     '404development'
                 );
-                message = result.content.replace(
-                    /<\/body>/,
-                    `<script src="/js/404development.js"></script></body>`
-                );
+                message = result.content.replace(/<\/body>/, `<script src="/js/404development.js"></script></body>`);
             } catch (e) {
                 Logger.error(get_error_message(e, url, 'return_not_found'));
             }
@@ -212,21 +169,15 @@ export async function return_not_found(req, res, uid, message, status, start) {
     return;
 }
 export function get_done_log_infos(message, status, start, uid) {
-    return [
-        `${status}${Logger.color.dim(`(${message})`)}`,
-        ...get_time_log_infos(start, uid),
-    ];
+    return [`${status}${Logger.color.dim(`(${message})`)}`, ...get_time_log_infos(start, uid)];
 }
 export function get_time_log_infos(start = undefined, uid = undefined) {
     const date = new Date();
     return [
-        start
-            ? nano_to_milli(process.hrtime.bigint() - start) +
-              Logger.color.dim('ms')
-            : undefined,
+        start ? nano_to_milli(process.hrtime.bigint() - start) + Logger.color.dim('ms') : undefined,
         date.toLocaleTimeString(),
         Logger.color.dim(date.toLocaleDateString()),
-        uid ? Logger.color.dim(uid) : undefined,
+        uid ? Logger.color.dim(uid) : undefined
     ].filter((x) => x);
 }
 
@@ -258,30 +209,16 @@ export async function static_server(req, res, uid, on_end) {
             cacheControl: Env.is_prod(),
             etag: Env.is_prod(),
             maxAge: Env.is_prod() ? 3600 : false,
-            dotfiles: 'ignore',
+            dotfiles: 'ignore'
         });
     }
     // static server is not able to handle other requests then get, avoid post, put, patch
     if (!is_data_method(req.method)) {
         static_server_instance(req, res, async () => {
-            await static_server_final(
-                { message: 'Not found', status: 404 },
-                req,
-                res,
-                uid,
-                on_end,
-                start
-            );
+            await static_server_final({ message: 'Not found', status: 404 }, req, res, uid, on_end, start);
         });
     } else {
-        await static_server_final(
-            { message: 'Not found', status: 404 },
-            req,
-            res,
-            uid,
-            on_end,
-            start
-        );
+        await static_server_final({ message: 'Not found', status: 404 }, req, res, uid, on_end, start);
     }
 }
 
@@ -290,14 +227,7 @@ async function static_server_final(err, req, res, uid, on_end, start) {
         await on_end(err, req, res, uid);
 
         if (!res.writableEnded) {
-            return await return_not_found(
-                req,
-                res,
-                uid,
-                err.message,
-                err.status,
-                start
-            );
+            return await return_not_found(req, res, uid, err.message, err.status, start);
         }
     }
     if (res.writableEnded) {
@@ -309,9 +239,7 @@ async function static_server_final(err, req, res, uid, on_end, start) {
 export async function app_server(host, port) {
     return new Promise((resolve, reject) => {
         generate_server(host, port, false, undefined, undefined).catch((e) => {
-            Logger.error(
-                get_error_message(e, undefined, 'worker error ' + process.pid)
-            );
+            Logger.error(get_error_message(e, undefined, 'worker error ' + process.pid));
             reject();
         });
     });
@@ -332,13 +260,7 @@ export function watch_server(host, port, wsport, packages, fallback) {
     websocket_server(wsport, packages);
 }
 
-async function generate_server(
-    host,
-    port,
-    force_generating_of_resources,
-    onEnd,
-    fallback
-) {
+async function generate_server(host, port, force_generating_of_resources, onEnd, fallback) {
     register_stack();
     server(host, port, undefined, async (req, res, uid) => {
         // check if pub is available
@@ -355,20 +277,14 @@ async function generate_server(
                 if (IsWorker.get()) {
                     await media([media_config]);
                 } else {
-                    await WorkerController.process_data(WorkerAction.media, [
-                        media_config,
-                    ]);
+                    await WorkerController.process_data(WorkerAction.media, [media_config]);
                 }
                 // the file needs some time to be available after generation started
                 const success = await wait_for(() => {
                     return exists(Cwd.get(media_config.result));
                 });
                 if (show_requests) {
-                    Logger[success ? 'success' : 'error'](
-                        'media',
-                        name,
-                        ...get_time_log_infos(start, uid)
-                    );
+                    Logger[success ? 'success' : 'error']('media', name, ...get_time_log_infos(start, uid));
                 }
             }
         }
@@ -376,9 +292,7 @@ async function generate_server(
             if (err) {
                 // check if css or js files should be generated
                 if (req.url.indexOf('/js') == 0) {
-                    const file_content = await build_hydrate_file_from_url(
-                        req.url
-                    );
+                    const file_content = await build_hydrate_file_from_url(req.url);
                     if (file_content) {
                         res = send_head(res, 200, 'application/javascript');
                         res.end(file_content);
@@ -386,12 +300,7 @@ async function generate_server(
                     }
                 }
 
-                const route_response = await route_request(
-                    req,
-                    res,
-                    uid,
-                    force_generating_of_resources
-                );
+                const route_response = await route_request(req, res, uid, force_generating_of_resources);
                 if (route_response) {
                     res = apply_response(res, route_response);
                     return;
@@ -402,8 +311,7 @@ async function generate_server(
                         return false;
                     }
                     // fallback_route_request returns an response
-                    const fallback_route_response =
-                        await fallback_route_request(req, res, uid);
+                    const fallback_route_response = await fallback_route_request(req, res, uid);
                     if (fallback_route_response) {
                         res = apply_response(res, fallback_route_response);
                         return;
@@ -452,9 +360,7 @@ export function websocket_server(port, packages) {
                 try {
                     data = JSON.parse(message.toString('utf8'));
                 } catch (e) {
-                    Logger.warning(
-                        get_error_message(e, undefined, 'websocket')
-                    );
+                    Logger.warning(get_error_message(e, undefined, 'websocket'));
                 }
             }
             Logger.debug('client message', data);
@@ -469,17 +375,9 @@ export function websocket_server(port, packages) {
                             let path;
                             Logger.block('rebuild', data.data);
                             // check if the url is a route
-                            const route = get_route(
-                                data.data,
-                                'get',
-                                get_config_cache('route.cache')
-                            );
+                            const route = get_route(data.data, 'get', get_config_cache('route.cache'));
                             if (route) {
-                                const found_route = packages
-                                    .map((pkg) =>
-                                        join(pkg.path, route.rel_path)
-                                    )
-                                    .find((file) => exists(file));
+                                const found_route = packages.map((pkg) => join(pkg.path, route.rel_path)).find((file) => exists(file));
                                 if (found_route) {
                                     path = found_route;
                                 }
@@ -498,8 +396,8 @@ export function websocket_server(port, packages) {
                                     action: 'get_config_cache',
                                     data: {
                                         key: data.data,
-                                        value: get_config_cache(data.data),
-                                    },
+                                        value: get_config_cache(data.data)
+                                    }
                                 })
                             );
                         }
@@ -515,15 +413,8 @@ export function websocket_server(port, packages) {
                             remove(data.data.path);
                             return;
                         }
-                        if (
-                            data.data?.action == 'copy' &&
-                            data.data?.path &&
-                            data.data?.to
-                        ) {
-                            if (
-                                !data.data?.path.startsWith(cwd) ||
-                                !data.data.to.startsWith(cwd)
-                            ) {
+                        if (data.data?.action == 'copy' && data.data?.path && data.data?.to) {
+                            if (!data.data?.path.startsWith(cwd) || !data.data.to.startsWith(cwd)) {
                                 return;
                             }
                             copy(data.data.path, data.data.to);

@@ -13,13 +13,13 @@ export const questions_file = [
                     return 'This is required';
                 }
                 return true;
-            },
+            }
         },
         {
             type: 'confirm',
             message: `Split file into *.svelte${Logger.color.dim(`, *.mjs, *.css`)}?`,
             name: 'wyvr_split_file',
-            default: false,
+            default: false
         },
         {
             type: 'list',
@@ -29,14 +29,14 @@ export const questions_file = [
             choices: [
                 {
                     name: `Yes`,
-                    value: 'hydrate',
+                    value: 'hydrate'
                 },
                 {
                     name: `No`,
-                    value: 'static',
-                },
-            ],
-        },
+                    value: 'static'
+                }
+            ]
+        }
     ],
     {
         _field: 'wyvr_render',
@@ -51,30 +51,30 @@ export const questions_file = [
                     choices: [
                         {
                             name: `Lazy ${Logger.color.dim(`When in viewport`)}`,
-                            value: 'lazy',
+                            value: 'lazy'
                         },
                         {
                             name: `Idle ${Logger.color.dim(`When browser is idle`)}`,
-                            value: 'idle',
+                            value: 'idle'
                         },
                         {
                             name: `Interact ${Logger.color.dim(`When user interacts with it`)}`,
-                            value: 'interact',
+                            value: 'interact'
                         },
                         {
                             name: `Instant`,
-                            value: 'instant',
+                            value: 'instant'
                         },
                         {
                             name: `Media ${Logger.color.dim(`When media query matches`)}`,
-                            value: 'media',
+                            value: 'media'
                         },
                         {
                             name: `None ${Logger.color.dim(`When function is executed`)}`,
-                            value: 'none',
-                        },
-                    ],
-                },
+                            value: 'none'
+                        }
+                    ]
+                }
             ],
             {
                 _field: 'wyvr_loading',
@@ -91,9 +91,9 @@ export const questions_file = [
                                     return 'This is required';
                                 }
                                 return true;
-                            },
-                        },
-                    ],
+                            }
+                        }
+                    ]
                 ],
                 none: [
                     [
@@ -106,11 +106,11 @@ export const questions_file = [
                                     return 'This is required';
                                 }
                                 return true;
-                            },
-                        },
-                    ],
-                ],
-            },
-        ],
-    },
+                            }
+                        }
+                    ]
+                ]
+            }
+        ]
+    }
 ];

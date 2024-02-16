@@ -33,7 +33,7 @@ export default async function ({ cron, env, initial, rel_path, path, pkg }) {
                         <td><code>${!!cron}</code></td>
                     </tr>
                 </table>
-                `,
-        },
+                `
+        }
     ];
 }

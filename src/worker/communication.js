@@ -15,12 +15,12 @@ export function send(data) {
     if (communicate_by_ipc && typeof process?.send === 'function') {
         process.send({
             pid: process.pid,
-            data,
+            data
         });
     } else {
         Event.emit('master', 'message', {
             pid: process.pid,
-            data,
+            data
         });
     }
 }
@@ -32,8 +32,8 @@ export function send_action(action, data) {
     const data_to_send = {
         action: {
             key: action,
-            value: data,
-        },
+            value: data
+        }
     };
     // add human readable info when in debug mode
     if (Env.is_debug()) {

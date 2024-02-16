@@ -9,9 +9,7 @@ export function create_ddev(templates) {
     if (!exists(Cwd.get('.ddev'))) {
         // ddev must create a pub folder when config starts, but it is a symlink to the release in wyvr
         Logger.error(
-            `.ddev is not available, please run the following command first\n${Logger.color.bold(
-                'ddev config --docroot=pub --project-type=php --create-docroot;rm -rf pub'
-            )}`
+            `.ddev is not available, please run the following command first\n${Logger.color.bold('ddev config --docroot=pub --project-type=php --create-docroot;rm -rf pub')}`
         );
         process.exit(1);
     }
@@ -30,12 +28,7 @@ export function create_ddev(templates) {
     // modify existing files
     const gitignore = read(Cwd.get('.ddev', '.gitignore'));
     if (gitignore) {
-        write(
-            Cwd.get('.ddev', '.gitignore'),
-            gitignore
-                .replace('#ddev-generated: Automatically generated ddev .gitignore.', '')
-                .replace('/nginx_full/nginx-site.conf', '')
-        );
+        write(Cwd.get('.ddev', '.gitignore'), gitignore.replace('#ddev-generated: Automatically generated ddev .gitignore.', '').replace('/nginx_full/nginx-site.conf', ''));
         Logger.info('modified', Cwd.get('.ddev', '.gitignore'));
     }
 }

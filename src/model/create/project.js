@@ -13,18 +13,18 @@ export const questions_project = [
                     return 'This is required';
                 }
                 return true;
-            },
+            }
         },
         {
             type: 'confirm',
             message: 'Create local package?',
             name: 'local_package',
-            default: true,
-        },
+            default: true
+        }
     ],
     {
         _field: 'local_package',
         true: [questions_package_features, questions_package_features_additional],
-        _: [],
-    },
+        _: []
+    }
 ];

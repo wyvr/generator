@@ -423,7 +423,7 @@ export async function extract_route_config(result, path) {
         match,
         mtime: stats.mtimeMs,
         methods,
-        weight,
+        weight
     };
 }
 

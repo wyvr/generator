@@ -88,7 +88,7 @@ function config() {
         },
         persist: (config) => {
             write_json(config_cache_path, config);
-        },
+        }
     };
 }
 

@@ -38,11 +38,7 @@ export async function ClusterWorker() {
         }
 
         send_status(WorkerStatus.busy);
-        if (
-            action === WorkerAction.mode &&
-            value?.mode == 'app' &&
-            !isNaN(value?.port)
-        ) {
+        if (action === WorkerAction.mode && value?.mode === 'app' && !Number.isNaN(value?.port)) {
             await app_server('localhost', value?.port);
             return;
         }

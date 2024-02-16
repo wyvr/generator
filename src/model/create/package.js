@@ -11,44 +11,44 @@ export const questions_package_features = [
             {
                 name: `Assets`,
                 value: 'assets',
-                checked: true,
+                checked: true
             },
             {
                 name: `Cron`,
                 value: 'cron',
-                checked: true,
+                checked: true
             },
             {
                 name: `DevTools`,
-                value: 'devtools',
+                value: 'devtools'
             },
             {
                 name: `I18N`,
                 value: 'i18n',
-                checked: true,
+                checked: true
             },
             {
                 name: `Pages`,
                 value: 'pages',
-                checked: true,
+                checked: true
             },
             {
                 name: `Plugins`,
                 value: 'plugins',
-                checked: true,
+                checked: true
             },
             {
                 name: `Routes`,
                 value: 'routes',
-                checked: true,
+                checked: true
             },
             {
                 name: `Source`,
                 value: 'src',
-                checked: true,
-            },
-        ],
-    },
+                checked: true
+            }
+        ]
+    }
 ];
 
 export const questions_package_features_additional = {
@@ -71,8 +71,8 @@ export const questions_package = [
                 }
                 return true;
             }
-        },
+        }
     ],
     questions_package_features,
-    questions_package_features_additional,
+    questions_package_features_additional
 ];

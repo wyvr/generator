@@ -8,116 +8,116 @@ export const available_commands = {
         flags: [
             {
                 key: 'single',
-                desc: 'run the generator in single threaded mode only recommended for debugging purposes',
-            },
-        ],
+                desc: 'run the generator in single threaded mode only recommended for debugging purposes'
+            }
+        ]
     },
     build: {
         desc: 'statically generate site',
         flags: [
             {
                 key: 'single',
-                desc: 'run the generator in single threaded mode only recommended for debugging purposes',
-            },
-        ],
+                desc: 'run the generator in single threaded mode only recommended for debugging purposes'
+            }
+        ]
     },
     clear: {
         desc: 'clear the caches and generated data',
         flags: [
             {
                 key: 'hard',
-                desc: 'delete cache, gen and storage',
+                desc: 'delete cache, gen and storage'
             },
             {
                 key: 'cache',
-                desc: 'delete cache files',
+                desc: 'delete cache files'
             },
             {
                 key: 'gen',
-                desc: 'delete generated files',
+                desc: 'delete generated files'
             },
             {
                 key: 'media',
-                desc: 'deletes all generated media files, not included in hard',
+                desc: 'deletes all generated media files, not included in hard'
             },
             {
                 key: 'storage',
-                desc: 'delete storage databases',
-            },
-        ],
+                desc: 'delete storage databases'
+            }
+        ]
     },
     cron: {
         desc: 'execute the cronjobs',
-        flags: [],
+        flags: []
     },
     create: {
         desc: 'scaffold new projects and files',
-        flags: [],
+        flags: []
     },
     dev: {
         desc: 'build the site in development mode and rebuild when changes are made',
         flags: [
             {
                 key: 'fast',
-                desc: 'fast starting watch server without building the site',
-            },
-        ],
+                desc: 'fast starting watch server without building the site'
+            }
+        ]
     },
     health: {
         desc: 'show health infos about the current setup',
-        flags: [],
+        flags: []
     },
     help: {
         desc: 'show available commands and flags',
-        flags: [],
+        flags: []
     },
     info: {
         desc: 'show basic information about node version, wyvr version and the current working directory',
-        flags: [],
+        flags: []
     },
     version: {
         desc: 'show wyvr version',
-        flags: [],
-    },
+        flags: []
+    }
 };
 
 export const global_flags = [
     {
         key: 'debug',
-        desc: 'set the environment to development mode and show debug messages',
+        desc: 'set the environment to development mode and show debug messages'
     },
     {
         key: 'dev',
-        desc: 'set the environment to development mode',
+        desc: 'set the environment to development mode'
     },
     {
         key: 'plain',
-        desc: 'remove colors from the logger',
+        desc: 'remove colors from the logger'
     },
     {
         key: 'prod',
-        desc: 'set the environment to production mode',
+        desc: 'set the environment to production mode'
     },
     {
         key: 'silent',
-        desc: 'the logger does not print messages to stdout',
+        desc: 'the logger does not print messages to stdout'
     },
     {
         key: 'single',
-        desc: 'run the generator in single threaded mode',
+        desc: 'run the generator in single threaded mode'
     },
     {
         key: 'worker',
-        desc: 'set the worker ratio, value from 0-1, use 0.5 for 50% of the available threads',
+        desc: 'set the worker ratio, value from 0-1, use 0.5 for 50% of the available threads'
     },
     {
         key: 'log_file',
-        desc: 'write log output to get given file',
+        desc: 'write log output to get given file'
     },
     {
         key: 'log_level',
-        desc: 'set the log level when writing log file, available options ' + Object.keys(LogType).join(','),
-    },
+        desc: 'set the log level when writing log file, available options ' + Object.keys(LogType).join(',')
+    }
 ];
 
 export function show_help(config) {

@@ -15,6 +15,6 @@ export const create_questions = [
         file: questions_file,
         config: questions_config,
         cron: questions_cron,
-        ddev: questions_ddev,
-    },
+        ddev: questions_ddev
+    }
 ];

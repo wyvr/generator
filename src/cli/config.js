@@ -10,7 +10,7 @@ export function extract_cli_config(argv) {
         interpreter: undefined,
         script: undefined,
         command: [],
-        flags: undefined,
+        flags: undefined
     };
 
     if (!Array.isArray(argv) || argv.length == 0) {
@@ -59,7 +59,7 @@ export function extract_cli_config(argv) {
                 flags[argument[0]] = value;
                 return false;
             }
-            if(!last_flag || !filled_string(arg)) {
+            if (!last_flag || !filled_string(arg)) {
                 return true;
             }
             // add the char to the last flag
@@ -70,7 +70,7 @@ export function extract_cli_config(argv) {
     if (flags) {
         default_config.flags = flags;
         // inspect mode requires single mode otherwise the debug post will be used multiple times
-        if(flags.inspect) {
+        if (flags.inspect) {
             flags.single = true;
         }
     }

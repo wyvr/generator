@@ -37,7 +37,7 @@ export function collect_pages(dir, package_tree) {
         .map((file) => {
             const data = {
                 path: file,
-                rel_path: file.replace(new RegExp(`.*/${FOLDER_PAGES}/`), `${FOLDER_PAGES}/`),
+                rel_path: file.replace(new RegExp(`.*/${FOLDER_PAGES}/`), `${FOLDER_PAGES}/`)
             };
             // try apply package
             if (package_tree) {

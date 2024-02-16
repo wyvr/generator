@@ -25,6 +25,6 @@ export function Worker(custom_fork = fork) {
     return {
         process: instance,
         pid: instance.pid,
-        status: undefined,
+        status: undefined
     };
 }

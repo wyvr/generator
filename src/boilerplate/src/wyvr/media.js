@@ -9,7 +9,7 @@ export function to_media_config(hash) {
         m: 'mode',
         f: 'format',
         x: 'ext',
-        q: 'quality',
+        q: 'quality'
     };
     hash.split(',')
         .filter((part) => part.indexOf(':') > -1)
@@ -34,7 +34,7 @@ export function to_media_hash(config) {
         mode: 'm',
         quality: 'q',
         width: 'w',
-        ext: 'x',
+        ext: 'x'
     };
     const default_values = {
         format: 'jpeg',
@@ -42,7 +42,7 @@ export function to_media_hash(config) {
         mode: 'cover',
         quality: 60,
         width: -1,
-        ext: undefined,
+        ext: undefined
     };
 
     return Object.entries(map)

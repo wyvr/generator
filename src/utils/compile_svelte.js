@@ -31,7 +31,7 @@ export async function prepare_code_to_compile(content, file, type) {
                 return to_extension(path, 'js');
             }
             return path;
-        },
+        }
     });
     // replace names of components because some can not used, which are default html tags
     if (type === 'server') {
@@ -52,7 +52,7 @@ export async function compile_svelte_from_code(content, file, type, include_css 
         format: 'esm',
         immutable: true,
         hydratable: true,
-        css: 'external',
+        css: 'external'
     };
     if (include_css) {
         options.css = 'injected';
@@ -119,11 +119,7 @@ export async function execute_server_compiled_svelte(compiled, file) {
 }
 
 export async function render_server_compiled_svelte(exec_result, data, file) {
-    if (
-        !match_interface(exec_result, { compiled: true, component: true, result: true }) ||
-        !filled_string(file) ||
-        is_null(data)
-    ) {
+    if (!match_interface(exec_result, { compiled: true, component: true, result: true }) || !filled_string(file) || is_null(data)) {
         return undefined;
     }
     register_inject(file);
@@ -168,9 +164,9 @@ export function make_svelte_code_async(code) {
         // use own svelte internal, which is async
         .replace(/['"]svelte\/internal['"]/, `'${Cwd.get(FOLDER_GEN_SERVER, 'svelte_internal.mjs')}'`)
         // throw errors from server code instead of logging them to the console
-        .replace(/catch\(e\) \{console.log\(import.meta.url, e\); return '';\}/g, `catch(e) {throw e;}`);
+        .replace(/catch\(e\) \{console.log\(import.meta.url, e\); return '';\}/g, 'catch(e) {throw e;}');
     const template_index = code.indexOf('await create_ssr_component');
-    if (template_index == -1) {
+    if (template_index === -1) {
         return code;
     }
 

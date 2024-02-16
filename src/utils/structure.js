@@ -13,24 +13,17 @@ export function get_structure(file, tree, file_config, package_tree) {
     if (src_file.indexOf(FOLDER_SRC) != 0) {
         src_file = join(FOLDER_SRC, file);
     }
-    const components = uniq_values(tree[src_file] || []).map((child) =>
-        get_structure(child, tree, file_config, package_tree)
-    );
+    const components = uniq_values(tree[src_file] || []).map((child) => get_structure(child, tree, file_config, package_tree));
     return {
         file: src_file,
         pkg: package_tree[src_file],
         config: file_config[src_file],
-        components,
+        components
     };
 }
 
 export function write_identifier_structure(identifier, tree, file_config, package_tree) {
-    if (
-        !package_tree ||
-        !match_interface(identifier, { identifier: true, doc: true, layout: true, page: true }) ||
-        !tree ||
-        !file_config
-    ) {
+    if (!package_tree || !match_interface(identifier, { identifier: true, doc: true, layout: true, page: true }) || !tree || !file_config) {
         return;
     }
     const struct = {};

@@ -7,11 +7,10 @@ import { create_package } from './package.js';
 export function create_project(templates, version, result) {
     copy_template_file(join(templates, 'project', 'package.json'), Cwd.get(result.name, 'package.json'), {
         name: result.name,
-        version,
+        version
     });
     copy_template_file(join(templates, 'project', '.gitignore'), Cwd.get(result.name, '.gitignore'), {});
     if (result.local_package) {
-
         create_package('local', templates, version, result, `${result.name}/local`);
         // @TODO main config is wrong
         /*create_config(

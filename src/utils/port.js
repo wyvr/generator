@@ -3,8 +3,8 @@ import { is_int } from './validate.js';
 
 /**
  * Return the next available port starting from the given port
- * @param {number} port 
- * @returns 
+ * @param {number} port
+ * @returns
  */
 export async function find_port(port) {
     if (!is_int(port)) {
@@ -23,8 +23,8 @@ export async function find_port(port) {
 
 /**
  * Check if the given port is used, not available
- * @param {number} port 
- * @returns 
+ * @param {number} port
+ * @returns
  */
 export async function port_in_use(port) {
     if (!is_int(port)) {

@@ -14,13 +14,10 @@ export function create_cron(templates, version, result, target_dir = undefined, 
         result.cron_file = to_extension(result.cron_file, '.js');
     }
     copy_template_file(join(templates, 'cron', 'cron.js'), Cwd.get(target_dir, 'cron', result.cron_file), {
-        version,
+        version
     });
     if (show_insert_hint) {
-        Logger.warning(
-            'add the following cron entry into your wyvr config file',
-            to_tabbed(['', '', ...get_cron_code(result.cron_file, result.cron_interval)])
-        );
+        Logger.warning('add the following cron entry into your wyvr config file', to_tabbed(['', '', ...get_cron_code(result.cron_file, result.cron_interval)]));
     }
 }
 

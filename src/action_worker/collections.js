@@ -35,7 +35,7 @@ export async function collections(routes) {
     if (filled_object(collections)) {
         const collections_emit = {
             type: WorkerEmit.collections,
-            collections,
+            collections
         };
         send_action(WorkerAction.emit, collections_emit);
     }

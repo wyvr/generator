@@ -67,13 +67,13 @@ export async function page(files) {
     if (filled_object(collections)) {
         const collections_emit = {
             type: WorkerEmit.collections,
-            collections,
+            collections
         };
         send_action(WorkerAction.emit, collections_emit);
     }
     send_action(WorkerAction.emit, {
         type: WorkerEmit.page,
         pages,
-        data_pages,
+        data_pages
     });
 }

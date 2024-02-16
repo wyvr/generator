@@ -28,7 +28,7 @@ export function get_files_hashes(files) {
         result[rel_path] = {
             hash,
             rel_path,
-            path: rel_path.replace(ext, `_${hash}${ext}`),
+            path: rel_path.replace(ext, `_${hash}${ext}`)
         };
     });
     return result;

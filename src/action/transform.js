@@ -20,7 +20,7 @@ export async function transform(data, file_configs = {}, minimize_output = false
             if (!is_array(data)) {
                 data = collect_files(Cwd.get(FOLDER_GEN_SRC));
             }
-            if(!is_object(file_configs)) {
+            if (!is_object(file_configs)) {
                 file_configs = {};
             }
             const config_name = get_name(WorkerEmit.wyvr_config);

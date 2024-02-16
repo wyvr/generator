@@ -78,18 +78,13 @@ export async function build() {
         await set_config_cache('identifier.files', identifier_files);
 
         const identifier_length = Object.keys(identifiers).length;
-        Logger.info(
-            'found',
-            identifier_length,
-            identifier_length == 1 ? 'identifier' : 'identifiers',
-            Logger.color.dim('different layout combinations')
-        );
+        Logger.info('found', identifier_length, identifier_length === 1 ? 'identifier' : 'identifiers', Logger.color.dim('different layout combinations'));
         Logger.info('found', Object.keys(media).length, 'media files');
     });
 
     return {
         identifiers,
         media,
-        media_query_files,
+        media_query_files
     };
 }

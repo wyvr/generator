@@ -7,16 +7,8 @@ import { compile_typescript, insert_import } from '../utils/compile.js';
 import { get_error_message } from '../utils/error.js';
 import { exists, read, write, symlink } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
-import {
-    to_client_path,
-    to_relative_path_of_gen,
-    to_server_path,
-} from '../utils/to.js';
-import {
-    combine_splits,
-    replace_imports,
-    replace_wyvr_magic,
-} from '../utils/transform.js';
+import { to_client_path, to_relative_path_of_gen, to_server_path } from '../utils/to.js';
+import { combine_splits, replace_imports, replace_wyvr_magic } from '../utils/transform.js';
 import { filled_array, filled_string, in_array } from '../utils/validate.js';
 import { send_action } from '../worker/communication.js';
 import { add_dev_note } from '../utils/devtools.js';
@@ -44,26 +36,18 @@ export async function transform(files) {
                 const dependency_emit = {
                     type: WorkerEmit.wyvr_config,
                     file: to_relative_path_of_gen(file),
-                    config: extract_wyvr_file_config(content),
+                    config: extract_wyvr_file_config(content)
                 };
                 send_action(WorkerAction.emit, dependency_emit);
 
                 // override the content
                 // const wyvr_details = search_wyvr_content(content);
-                write(
-                    file,
-                    add_dev_note(to_relative_path_of_gen(file), content)
-                );
+                write(file, add_dev_note(to_relative_path_of_gen(file), content));
 
                 continue;
             }
             // replace import in text files
-            if (
-                in_array(
-                    ['.mjs', '.cjs', '.js', '.ts', '.css', '.scss'],
-                    extension
-                )
-            ) {
+            if (in_array(['.mjs', '.cjs', '.js', '.ts', '.css', '.scss'], extension)) {
                 let content = read(file);
                 // compile typescript and change output file
                 if (extension == '.ts') {
@@ -76,29 +60,15 @@ export async function transform(files) {
                 }
                 // replace @src in source files
                 if (in_array(['.mjs', '.cjs', '.js', '.ts'], extension)) {
-                    content = replace_imports(
-                        content,
-                        file,
-                        FOLDER_GEN_SRC,
-                        'transform'
-                    );
+                    content = replace_imports(content, file, FOLDER_GEN_SRC, 'transform');
                 }
-                const expanded_content = add_dev_note(
-                    to_relative_path_of_gen(file),
-                    insert_import(content, file)
-                );
+                const expanded_content = add_dev_note(to_relative_path_of_gen(file), insert_import(content, file));
                 write(file, expanded_content);
 
                 // write client and server versions of scripts
                 if (in_array(['.mjs', '.cjs', '.js', '.ts'], extension)) {
-                    write(
-                        to_server_path(file),
-                        replace_wyvr_magic(expanded_content, false)
-                    );
-                    write(
-                        to_client_path(file),
-                        replace_wyvr_magic(expanded_content, true)
-                    );
+                    write(to_server_path(file), replace_wyvr_magic(expanded_content, false));
+                    write(to_client_path(file), replace_wyvr_magic(expanded_content, true));
                     continue;
                 }
             }

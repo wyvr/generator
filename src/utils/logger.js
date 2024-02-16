@@ -1,15 +1,6 @@
 import kleur from 'kleur';
 import { LogColor, LogFirstValueColor, LogIcon, LogType, get_type_name } from '../struc/log.js';
-import {
-    filled_array,
-    filled_string,
-    is_array,
-    is_func,
-    is_number,
-    is_regex,
-    is_string,
-    is_symbol,
-} from './validate.js';
+import { filled_array, filled_string, is_array, is_func, is_number, is_regex, is_string, is_symbol } from './validate.js';
 import { stringify } from './json.js';
 import { Env } from '../vars/env.js';
 import { Report } from '../vars/report.js';
@@ -74,10 +65,7 @@ export class Logger {
         // write messages to log file
         if (this.log_file) {
             if (type >= this.log_level) {
-                append(
-                    this.log_file,
-                    `[${this.get_time_stamp()}] ${this.get_log_name(type)}: ${to_plain(messages.join(' '))}\n`
-                );
+                append(this.log_file, `[${this.get_time_stamp()}] ${this.get_log_name(type)}: ${to_plain(messages.join(' '))}\n`);
             }
         }
         /* c8 ignore end */
@@ -95,10 +83,10 @@ export class Logger {
                         key: WorkerAction.log,
                         value: {
                             type,
-                            messages,
-                        },
-                    },
-                },
+                            messages
+                        }
+                    }
+                }
             });
             return;
         }

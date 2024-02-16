@@ -65,7 +65,7 @@ export function get_cache_keys() {
         const hash = get_domain_hash(domain);
         result[key] = {
             hash,
-            domain,
+            domain
         };
     }
     cache_keys = result;
@@ -140,7 +140,7 @@ export async function process(media) {
         const image_magick = Config.get('media.image_magick');
         if (match_interface(image_magick, { version: true })) {
             const im_config = {
-                imageMagick: '7+',
+                imageMagick: '7+'
             };
             // legacy mode
             if (image_magick.version < 7) {
@@ -286,7 +286,7 @@ export async function replace_media(content) {
     const result = {
         content: '',
         media: {},
-        has_media: false,
+        has_media: false
     };
     if (!filled_string(content)) {
         return result;

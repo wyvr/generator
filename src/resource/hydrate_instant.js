@@ -13,7 +13,7 @@ function wyvr_hydrate_instant(elements, cls) {
             target.innerHTML = '';
             new cls({
                 target,
-                props: props,
+                props: props
             });
             if (slots) {
                 Array.from(slots).map((slot) => {

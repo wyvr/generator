@@ -28,7 +28,7 @@ export async function critical() {
             }
             critical[identifier] = {
                 css: '',
-                files,
+                files
             };
         });
 

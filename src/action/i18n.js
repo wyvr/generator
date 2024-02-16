@@ -9,17 +9,21 @@ export async function i18n(available_packages, minimize_output) {
     const i18n_config_data = get_config_cache('i18n');
 
     let languages = [];
-    await measure_action(name, async () => {
-        // wrap in plugin
-        const caller = await Plugin.process(name, available_packages);
-        await caller(async (available_packages) => {
-            const i18n = collect_i18n(available_packages, i18n_config_data?.fallback || 'en');
-            languages = Object.keys(i18n).map((language) => {
-                write_language(language, i18n[language]);
-                return language;
+    await measure_action(
+        name,
+        async () => {
+            // wrap in plugin
+            const caller = await Plugin.process(name, available_packages);
+            await caller(async (available_packages) => {
+                const i18n = collect_i18n(available_packages, i18n_config_data?.fallback || 'en');
+                languages = Object.keys(i18n).map((language) => {
+                    write_language(language, i18n[language]);
+                    return language;
+                });
+                Logger.info('found', languages.length, 'languages', Logger.color.dim(languages.join(',')));
             });
-            Logger.info('found', languages.length, 'languages', Logger.color.dim(languages.join(',')));
-        });
-    }, minimize_output);
+        },
+        minimize_output
+    );
     return languages;
 }

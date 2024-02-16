@@ -19,7 +19,7 @@ if (!window.bind_events) {
             return;
         }
         const params = {
-            detail: null,
+            detail: null
         };
 
         if (data) {

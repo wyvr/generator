@@ -25,7 +25,7 @@ export async function route_request(req, res, uid, force_generating_of_resources
     // create serializable request object
     const ser_req = SerializableRequest(req, {
         uid,
-        force_generating_of_resources,
+        force_generating_of_resources
     });
 
     // wrap in plugin

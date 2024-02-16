@@ -44,7 +44,7 @@ export async function build(content, file, format = 'iife') {
                 sveltePlugin({
                     compilerOptions: { css: true, dev: Env.is_dev() },
                     filterWarnings: (warning) => {
-                        if(!Config.get('svelte.warnings', true)) {
+                        if (!Config.get('svelte.warnings', true)) {
                             return false;
                         }
                         // ignore some warnings
@@ -53,9 +53,9 @@ export async function build(content, file, format = 'iife') {
                         }
                         Logger.warning(get_error_message(warning, file, 'svelte'));
                         return false;
-                    },
-                }),
-            ],
+                    }
+                })
+            ]
         });
         code = insert_import(read(tmp_file), file, FOLDER_CLIENT);
         code = code.replace(/\/\/# sourceMappingURL=[^.]+\.js\.map/g, '// %sourcemap%');
@@ -132,7 +132,7 @@ export async function inject(rendered_result, data, file, identifier, shortcode_
                     const shortcode_emit = {
                         type: WorkerEmit.identifier,
                         identifier: shortcode_result.identifier,
-                        imports: shortcode_result.shortcode_imports,
+                        imports: shortcode_result.shortcode_imports
                     };
 
                     if (shortcode_result.media_query_files) {
@@ -165,7 +165,7 @@ export async function inject(rendered_result, data, file, identifier, shortcode_
                     // add the current stack to the page
                     get_stack_script(),
                     // add the devtools
-                    add_devtools_code(path, data),
+                    add_devtools_code(path, data)
                 ])
             );
 

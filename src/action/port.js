@@ -1,5 +1,5 @@
-import { Logger } from "../utils/logger.js";
-import { find_port } from "../utils/port.js";
+import { Logger } from '../utils/logger.js';
+import { find_port } from '../utils/port.js';
 
 export async function get_ports(config) {
     const port = await find_port(config?.cli?.flags?.port || 3000);

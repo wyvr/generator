@@ -7,11 +7,11 @@ import { Cwd } from '../vars/cwd.js';
 import { WyvrConfig } from '../model/wyvr_config.js';
 
 export async function collect_packages(package_json, update_config = true) {
-    if(update_config) {
+    if (update_config) {
         // clear persisted config cache
         Config.clear();
     }
-        
+
     Logger.debug('package.json', package_json);
 
     // read & validate package.json
@@ -26,7 +26,7 @@ export async function collect_packages(package_json, update_config = true) {
 
     const boilerplate = {
         name: 'wyvr',
-        path: Cwd.get('node_modules', '@wyvr', 'generator', 'src', 'boilerplate'),
+        path: Cwd.get('node_modules', '@wyvr', 'generator', 'src', 'boilerplate')
     };
 
     if (!filled_array(packages)) {
@@ -60,7 +60,7 @@ export async function collect_packages(package_json, update_config = true) {
 
     const result = {
         available_packages: available_packages.filter((x) => x),
-        disabled_packages: disabled_packages.filter((x) => x),
+        disabled_packages: disabled_packages.filter((x) => x)
     };
     // update the packages in the config
     merged_config.packages = result.available_packages;

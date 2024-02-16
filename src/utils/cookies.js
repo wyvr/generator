@@ -53,7 +53,7 @@ export function set_cookie(key, value, options = null) {
         Expires: undefined,
         SameSite: 'Strict',
         Secure: true,
-        HttpOnly: true,
+        HttpOnly: true
     };
     let cookie_value = value;
     // allow deleting of cookies by setting the value to undefined
@@ -63,9 +63,7 @@ export function set_cookie(key, value, options = null) {
     }
     // merge the options with the default values
     if (options) {
-        const normalized_options = allowed_cookie_options.map((v) =>
-            v.toLowerCase()
-        );
+        const normalized_options = allowed_cookie_options.map((v) => v.toLowerCase());
         for (const [key, value] of Object.entries(options)) {
             const index = normalized_options.indexOf(key.toLowerCase());
             if (index >= 0) {
@@ -88,10 +86,7 @@ export function set_cookie(key, value, options = null) {
             continue;
         }
         // ignore invalid sameSite values
-        if (
-            opt === 'SameSite' &&
-            !allowed_same_site_values.includes(data[opt])
-        ) {
+        if (opt === 'SameSite' && !allowed_same_site_values.includes(data[opt])) {
             continue;
         }
         cookie.push(`${opt}=${data[opt]}`);
@@ -99,13 +94,6 @@ export function set_cookie(key, value, options = null) {
     return `${cookie.join('; ')};`;
 }
 
-export const allowed_cookie_options = [
-    'Path',
-    'Domain',
-    'Expires',
-    'SameSite',
-    'Secure',
-    'HttpOnly',
-];
+export const allowed_cookie_options = ['Path', 'Domain', 'Expires', 'SameSite', 'Secure', 'HttpOnly'];
 
 export const allowed_same_site_values = ['Strict', 'Lax', 'None'];

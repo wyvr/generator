@@ -117,7 +117,7 @@ export const app_command = async (config) => {
 
     // reset the exiting state
     WorkerController.exiting = false;
-    
+
     // start the chat
     chat_start();
 

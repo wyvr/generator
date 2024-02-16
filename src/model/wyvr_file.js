@@ -39,7 +39,7 @@ export function WyvrFile(path) {
         styles: undefined,
         props: undefined,
         rel_path,
-        from_lazy: undefined,
+        from_lazy: undefined
     };
 }
 

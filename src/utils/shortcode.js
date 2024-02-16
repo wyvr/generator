@@ -91,7 +91,7 @@ export async function replace_shortcode(html, data, file) {
         html: replaced_content,
         shortcode_imports: undefined,
         identifier: undefined,
-        media_query_files: undefined,
+        media_query_files: undefined
     };
 }
 

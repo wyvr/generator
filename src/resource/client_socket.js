@@ -1,9 +1,7 @@
 /* eslint-disable no-undef*/
 /* eslint-disable no-console*/
 (function wyvr_server_communication() {
-    window.wyvr_tab_id =
-        sessionStorage.getItem('wyvr_tab_id') ||
-        btoa(`${new Date().getTime()}${Math.random()}`);
+    window.wyvr_tab_id = sessionStorage.getItem('wyvr_tab_id') || btoa(`${new Date().getTime()}${Math.random()}`);
     sessionStorage.setItem('wyvr_tab_id', window.wyvr_tab_id);
     add_to_history();
     // build server connection
@@ -49,12 +47,7 @@
     function connect() {
         const connected = check_state();
         if (!connected) {
-            const socket_url =
-                'ws' +
-                (location.protocol === 'https:' ? 's' : '') +
-                '://' +
-                location.hostname +
-                '/ws';
+            const socket_url = 'ws' + (location.protocol === 'https:' ? 's' : '') + '://' + location.hostname + '/ws';
             socket = new WebSocket(socket_url);
             socket.onmessage = function (event) {
                 check_state();
@@ -73,7 +66,7 @@
                                 if (window.data?._wyvr?.page) {
                                     send({
                                         action: 'rebuild',
-                                        data: window.data._wyvr.page,
+                                        data: window.data._wyvr.page
                                     });
                                 }
                                 add_to_history(window.wyvr_tab_id);
@@ -99,10 +92,7 @@
                         break;
                     }
                     case 'get_config_cache': {
-                        trigger(
-                            'wyvr_devtools_get_config_cache_result',
-                            data.data
-                        );
+                        trigger('wyvr_devtools_get_config_cache_result', data.data);
                         break;
                     }
                 }
@@ -140,12 +130,9 @@
                     .replace(/</g, '&lt;')
                     .replace(/>/g, '&gt;')
                     .replace(/\n/g, '<br>')
-                    .replace(
-                        /\\n/g,
-                        '<br>'
-                    )}<button onclick="wyvr_close_error(this)" data-id="${index}" title="close"></button></li>`;
+                    .replace(/\\n/g, '<br>')}<button onclick="wyvr_close_error(this)" data-id="${index}" title="close"></button></li>`;
             }),
-            '</ul>',
+            '</ul>'
         ];
         content.innerHTML = html.join('');
         return true;
@@ -209,18 +196,13 @@
         }
     }
     function reload_resource(file_path, tag, attribute) {
-        Array.from(
-            document.querySelectorAll(`${tag}[${attribute}*="${file_path}"]`)
-        ).forEach((ref) => {
+        Array.from(document.querySelectorAll(`${tag}[${attribute}*="${file_path}"]`)).forEach((ref) => {
             const value = ref.getAttribute(attribute);
             if (value) {
                 // @see https://stackoverflow.com/questions/2024486/is-there-an-easy-way-to-reload-css-without-reloading-the-page
                 // add cache breaker to the resource
                 const cb = new Date().getTime().toString();
-                ref.setAttribute(
-                    attribute,
-                    value + (value.indexOf('?') > -1 ? '&' : '?') + cb
-                );
+                ref.setAttribute(attribute, value + (value.indexOf('?') > -1 ? '&' : '?') + cb);
             }
         });
     }

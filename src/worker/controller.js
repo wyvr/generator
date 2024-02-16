@@ -53,7 +53,7 @@ export class WorkerController {
                     Event.on('master', key, async (...args) => {
                         await fn(...args);
                     });
-                },
+                }
             };
         });
         // only import when needed
@@ -161,11 +161,7 @@ export class WorkerController {
         return this.workers.find((worker) => worker.pid == pid);
     }
     static get_message(msg) {
-        if (
-            filled_string(msg) ||
-            is_null(search_segment(msg, 'data.action.key')) ||
-            is_null(search_segment(msg, 'data.action.value'))
-        ) {
+        if (filled_string(msg) || is_null(search_segment(msg, 'data.action.key')) || is_null(search_segment(msg, 'data.action.value'))) {
             return false;
         }
         const worker = this.get_worker(msg.pid);
@@ -270,8 +266,8 @@ export class WorkerController {
         this.send_message(worker, {
             action: {
                 key: action,
-                value: data,
-            },
+                value: data
+            }
         });
         return false;
     }
@@ -409,13 +405,7 @@ export class WorkerController {
         if (!this.multi_threading) {
             batch_size = amount;
         }
-        Logger.info(
-            'process',
-            amount,
-            amount == 1 ? 'item' : 'items',
-            show_name ? Logger.color.blue(`in ${name}`) : '',
-            Logger.color.dim('batch size ' + batch_size)
-        );
+        Logger.info('process', amount, amount == 1 ? 'item' : 'items', show_name ? Logger.color.blue(`in ${name}`) : '', Logger.color.dim('batch size ' + batch_size));
 
         // create new queue
         this.queue = new Queue();
@@ -432,7 +422,7 @@ export class WorkerController {
         for (let i = 0; i < iterations; i++) {
             const queue_data = {
                 action,
-                data: list.slice(i * batch_size, (i + 1) * batch_size),
+                data: list.slice(i * batch_size, (i + 1) * batch_size)
             };
             this.queue.push(queue_data);
         }
@@ -455,12 +445,7 @@ export class WorkerController {
                 this.livecycle(idle[0]);
             }
             const done_listener_id = Event.on('worker_status', WorkerStatus.done, () => {
-                Logger.text(
-                    name,
-                    Logger.color.dim('...'),
-                    `${Math.round((100 / size) * done)}%`,
-                    Logger.color.dim(`${done}/${size}`)
-                );
+                Logger.text(name, Logger.color.dim('...'), `${Math.round((100 / size) * done)}%`, Logger.color.dim(`${done}/${size}`));
                 done++;
                 if (done >= size) {
                     Event.off('worker_status', WorkerStatus.done, done_listener_id);

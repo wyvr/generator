@@ -7,8 +7,8 @@ export const questions_config = [
             type: 'confirm',
             message: 'Is project config?',
             name: 'project_config',
-            default: true,
-        },
+            default: true
+        }
     ],
     {
         _field: 'project_config',
@@ -24,9 +24,9 @@ export const questions_config = [
                             return 'This is required';
                         }
                         return true;
-                    },
-                },
-            ],
+                    }
+                }
+            ]
         ],
         _: [
             [
@@ -34,14 +34,14 @@ export const questions_config = [
                     type: 'confirm',
                     message: 'Add cron?',
                     name: 'use_cron',
-                    default: false,
-                },
+                    default: false
+                }
             ],
             {
                 _field: 'use_cron',
                 true: [[generate_cron_name('cron_file'), questions_cron_interval]],
-                _: [],
-            },
-        ],
-    },
+                _: []
+            }
+        ]
+    }
 ];

@@ -8,21 +8,21 @@ export const questions_cron_interval = {
     choices: [
         {
             name: `Every minute`,
-            value: '* * * * *',
+            value: '* * * * *'
         },
         {
             name: `Every 15 minutes`,
-            value: '*/15 * * * *',
+            value: '*/15 * * * *'
         },
         {
             name: `Every 4 hours`,
-            value: '0 */4 * * *',
+            value: '0 */4 * * *'
         },
         {
             name: `Every day at 2am`,
-            value: '0 2 * * *',
-        },
-    ],
+            value: '0 2 * * *'
+        }
+    ]
 };
 export function generate_cron_name(name = 'name') {
     return {
@@ -35,7 +35,7 @@ export function generate_cron_name(name = 'name') {
                 return 'This is required';
             }
             return true;
-        },
+        }
     };
 }
 export const questions_cron = [[generate_cron_name(), questions_cron_interval]];

@@ -1,16 +1,6 @@
 import { to_media_hash } from '@src/wyvr/media.js';
 
-export function get_image_src_data(
-    src,
-    width,
-    height = 0,
-    mode = 'cover',
-    quality = undefined,
-    format = undefined,
-    fixed = false,
-    use_width = false,
-    orig_width = undefined
-) {
+export function get_image_src_data(src, width, height = 0, mode = 'cover', quality = undefined, format = undefined, fixed = false, use_width = false, orig_width = undefined) {
     if (Array.isArray(src)) {
         src = src
             .filter((x) => x)
@@ -34,7 +24,7 @@ export function get_image_src_data(
 
     const config = {
         mode: 'cover',
-        format: 'jpeg',
+        format: 'jpeg'
     };
     if (width) {
         config.width = width;
@@ -81,13 +71,13 @@ export function get_image_src_shortcode(src, config) {
 }
 export function get_image_src(src, config, domain = undefined) {
     let hash = typeof config == 'string' ? config : to_media_hash(config);
-    if(!hash) {
+    if (!hash) {
         hash = '_';
     } else {
-        if(typeof btoa == 'function') {
+        if (typeof btoa == 'function') {
             hash = btoa(hash);
         } else {
-            hash = Buffer.from(hash).toString('base64')
+            hash = Buffer.from(hash).toString('base64');
         }
     }
 
@@ -95,7 +85,7 @@ export function get_image_src(src, config, domain = undefined) {
         const domain_match = src.match(/^https?:\/\/([^\/]*?)\//);
         if (domain_match) {
             const domain = domain_match[1];
-            const domain_hash = get_image_hash(domain);
+            const domain_hash = get_image_hash(domain); // buggy
             if (domain_hash) {
                 let src_path = src.substring(src.indexOf(domain) + domain.length).replace(/^\//, '');
                 if (config.ext) {
@@ -112,11 +102,11 @@ export function get_image_src(src, config, domain = undefined) {
 }
 export function correct_image_format(format, src) {
     if (!format) {
-        if(!src) {
+        if (!src) {
             return null;
         }
         const src_format = src.match(/\.(?<format>[^./]*?)$/)?.groups?.format;
-        if(!src_format) {
+        if (!src_format) {
             return null;
         }
         format = src_format;

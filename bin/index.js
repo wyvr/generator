@@ -23,7 +23,7 @@ if (isPrimary) {
 
     const config = {
         cli,
-        version,
+        version
     };
 
     // console.error(config);

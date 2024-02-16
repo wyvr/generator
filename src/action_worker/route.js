@@ -80,6 +80,7 @@ export async function process_route_request(req, res, uid, route, force_generati
     const [result, response] = await run_route(req, res, uid, route);
     // write css
     if (filled_string(result?.data?._wyvr?.identifier) && result?.result?.css?.code) {
+        // @TODO use hash path from storage hashes
         const css_file_path = join(ReleasePath.get(), FOLDER_CSS, `${result.data._wyvr.identifier}.css`);
         if (!exists(css_file_path) || force_generating_of_resources) {
             write(css_file_path, result.result.css.code);
@@ -103,6 +104,7 @@ export async function process_route_request(req, res, uid, route, force_generati
         await scripts(generate_identifiers);
     }
     if (generate_identifier) {
+        // @TODO use hash path from storage hashes
         copy(Cwd.get(FOLDER_GEN_JS, `${result.data._wyvr.identifier}.js`), js_path);
     }
 

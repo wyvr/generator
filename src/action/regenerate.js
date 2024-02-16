@@ -26,13 +26,13 @@ import { get_page_data_path } from '../utils/pages.js';
 /**
  * Regenerate the files and the result of the given changed files
  */
-export async function regenerate(changed_files) {
+export async function regenerate(raw_changed_files) {
     const test_files = [];
     await measure_action('regenerate', async () => {
         // find all dependencies
         const dependencies_bottom = get_config_cache('dependencies.bottom');
 
-        changed_files = append_dependencies_as_changed_files(changed_files, dependencies_bottom);
+        const changed_files = append_dependencies_as_changed_files(raw_changed_files, dependencies_bottom);
 
         const frag_files = split_changed_files_by_fragment(changed_files);
         const fragments = Object.keys(frag_files);
@@ -161,7 +161,7 @@ export async function regenerate(changed_files) {
 
 export function split_changed_files_by_fragment(changed_files) {
     const result = {};
-    if(!changed_files) {
+    if (!changed_files) {
         return result;
     }
     for (const event of Object.keys(changed_files)) {
@@ -183,10 +183,7 @@ export function split_changed_files_by_fragment(changed_files) {
 }
 
 export function reload(files) {
-    if (!filled_array(files)) {
-        files = '*';
-    }
-    Event.emit('client', 'reload', files);
+    Event.emit('client', 'reload', filled_array(files) ? files : '*');
 }
 
 function append_dependencies_as_changed_files(changed_files, dependencies_bottom) {

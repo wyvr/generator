@@ -30,12 +30,9 @@ import { process_pages } from '../action/page.js';
 export async function regenerate_plugins({ change, add, unlink }, gen_folder) {
     const modified_plugins = [].concat(change, add);
     if (modified_plugins.length > 0) {
-        modified_plugins.forEach((file) => {
-            write(
-                join(gen_folder, file.rel_path),
-                replace_imports(read(file.path), file.path, FOLDER_GEN_SRC, 'plugins')
-            );
-        });
+        for (const file of modified_plugins) {
+            write(join(gen_folder, file.rel_path), replace_imports(read(file.path), file.path, FOLDER_GEN_SRC, 'plugins'));
+        }
     }
     unlink_from(unlink, gen_folder);
 
@@ -67,8 +64,8 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
         return identifier.imports;
     });
     let dependencies;
-    let identifiers = {};
-    let pages = [];
+    const identifiers = {};
+    const pages = [];
     let test_files = [];
 
     const mod_files = [].concat(change, add);
@@ -85,12 +82,12 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
                 if (!dependencies) {
                     dependencies = {};
                 }
-                Object.keys(dep_result.dependencies).forEach((key) => {
+                for (const key of Object.keys(dep_result.dependencies)) {
                     if (!dependencies[key]) {
                         dependencies[key] = [];
                     }
                     dependencies[key].push(...dep_result.dependencies[key]);
-                });
+                }
             }
             if (rel_path.match(/^src\/(?:doc|layout|page)\//)) {
                 main_files.push(rel_path);
@@ -108,12 +105,12 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
         // update dependencies
         if (dependencies) {
             const new_dep = get_config_cache('dependencies.top');
-            Object.keys(dependencies).forEach((key) => {
+            for (const key of Object.keys(dependencies)) {
                 if (!new_dep[key]) {
                     new_dep[key] = [];
                 }
                 new_dep[key].push(...dependencies[key]);
-            });
+            }
             // cache the given dependencies
             cache_dependencies(new_dep);
         }
@@ -129,26 +126,24 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
                         return Cwd.get(FOLDER_GEN, path);
                     })
             )
-        )
-            .map((file) => {
-                const ext = extname(file);
-                if (ext == '.svelte') {
-                    return file;
-                }
-                const svelte_file = to_extension(file, '.svelte');
-                if (exists(svelte_file)) {
-                    return [file, svelte_file];
-                }
-                if (ext == '.mjs' || ext == '.cjs' || ext == '.js') {
-                    const test_file = to_extension(file, '.spec' + ext);
-                    if (exists(test_file)) {
-                        return [file, test_file];
-                    }
-                    return file;
+        ).flatMap((file) => {
+            const ext = extname(file);
+            if (ext === '.svelte') {
+                return file;
+            }
+            const svelte_file = to_extension(file, '.svelte');
+            if (exists(svelte_file)) {
+                return [file, svelte_file];
+            }
+            if (ext === '.mjs' || ext === '.cjs' || ext === '.js') {
+                const test_file = to_extension(file, `.spec${ext}`);
+                if (exists(test_file)) {
+                    return [file, test_file];
                 }
                 return file;
-            })
-            .flat(1);
+            }
+            return file;
+        });
 
         // detect shortcode dependencies
         const used_shortcode_identifiers = shortcode_identifiers.filter((identifier) => {
@@ -161,14 +156,14 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
         });
         if (filled_array(used_shortcode_identifiers)) {
             // delete the possible shortcode dependencies otherwise these will no be regenerated
-            used_shortcode_identifiers.forEach((identifier) => {
-                Object.values(identifier.imports).forEach((file) => {
+            for (const identifier of used_shortcode_identifiers) {
+                for (const file of Object.values(identifier.imports)) {
                     const component = Cwd.get(FOLDER_GEN, 'js', to_extension(to_relative_path(file), 'js'));
                     remove(component);
                     const component_map = to_extension(component, 'js.map');
                     remove(component_map);
-                });
-            });
+                }
+            }
         }
 
         // transform and prefill with the existing configs
@@ -180,28 +175,23 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
         // when doc, layout or page has changed search directly in the pages reference
         if (filled_array(main_files)) {
             const identifier_keys = Object.keys(all_identifiers).concat(Object.keys(identifier_files));
-            main_files.forEach((file) => {
+            for (const file of main_files) {
                 const no_src_file = file.replace(/^\/?src\//, '');
                 if (no_src_file.match(/^(?:doc|layout|page)\//)) {
                     const identifier_name = to_single_identifier_name(no_src_file);
                     const wildcard = '[^-]+';
-                    const regexp = new RegExp(
-                        '^' +
-                            (no_src_file.match(/^doc\//) ? identifier_name : wildcard) +
-                            '-' +
-                            (no_src_file.match(/^layout\//) ? identifier_name : wildcard) +
-                            '-' +
-                            (no_src_file.match(/^page\//) ? identifier_name : wildcard) +
-                            '$'
-                    );
+                    const doc_name = no_src_file.match(/^doc\//) ? identifier_name : wildcard;
+                    const layout_name = no_src_file.match(/^layout\//) ? identifier_name : wildcard;
+                    const page_name = no_src_file.match(/^page\//) ? identifier_name : wildcard;
+                    const regexp = new RegExp(`^${doc_name}-${layout_name}-${page_name}$`);
 
-                    identifier_keys.forEach((identifier) => {
+                    for (const identifier of identifier_keys) {
                         if (identifier.match(regexp)) {
                             identifier_list.push({ identifier });
                         }
-                    });
+                    }
                 }
-            });
+            }
         }
         // get 2 dimensional array of affected urls
         const identifier_files_list = uniq_values(identifier_list).map((identifier) => {
@@ -255,13 +245,13 @@ export async function regenerate_pages({ change, add, unlink }, identifiers, pag
     let page_objects = [];
     const mod_pages = [].concat(change, add).filter(Boolean);
     if (mod_pages.length > 0) {
-        const mod_pages_copy = mod_pages.map((file) => ({ src: file.path, target: './' + file.rel_path }));
+        const mod_pages_copy = mod_pages.map((file) => ({ src: file.path, target: `./${file.rel_path}` }));
         copy_files(mod_pages_copy, gen_folder);
         const pages_data = mod_pages.map((file) => {
             return new Page({
                 path: join(gen_folder, file.rel_path),
                 rel_path: file.rel_path,
-                pkg: file.pkg,
+                pkg: file.pkg
             });
         });
         const result = await process_pages('page', pages_data, undefined, true);
@@ -269,7 +259,9 @@ export async function regenerate_pages({ change, add, unlink }, identifiers, pag
             collections = result.collections;
             page_objects = result.page_objects;
             pages.push(...result.pages);
-            Object.entries(result.identifiers).forEach(([name, value]) => (identifiers[name] = value));
+            for (const [name, value] of Object.entries(result.identifiers)) {
+                identifiers[name] = value;
+            }
         }
         reload_page = true;
     }
@@ -282,7 +274,7 @@ export async function regenerate_pages({ change, add, unlink }, identifiers, pag
         identifiers,
         collections,
         pages,
-        page_objects,
+        page_objects
     };
 }
 
@@ -296,7 +288,7 @@ export function regenerate_assets({ change, add, unlink }, gen_folder) {
     // copy modified and added files into the release and gen folder
     const modified_assets = [].concat(change, add);
     if (modified_assets.length > 0) {
-        const copy_assets = modified_assets.map((file) => ({ src: file.path, target: './' + file.rel_path }));
+        const copy_assets = modified_assets.map((file) => ({ src: file.path, target: `./${file.rel_path}` }));
         copy_files(copy_assets, ReleasePath.get());
         copy_files(copy_assets, gen_folder);
     }
@@ -325,11 +317,11 @@ export async function regenerate_i18n() {
  */
 function unlink_from(unlink, ...folders) {
     if (unlink) {
-        unlink.forEach((file) => {
-            folders.forEach((folder) => {
+        for (const file of unlink) {
+            for (const folder of folders) {
                 remove(join(folder, file.rel_path));
-            });
-        });
+            }
+        }
     }
 }
 
@@ -339,11 +331,12 @@ function unlink_from(unlink, ...folders) {
  * @param {string} gen_folder
  */
 export function regeneration_static_file({ change, add, unlink }, gen_folder) {
-    [].concat(change, add).forEach((file) => {
+    const files = [].concat(change, add);
+    for (const file of files) {
         const target = join(gen_folder, file.rel_path);
         if (!copy_executable_file(file.path, target)) {
             copy(file.path, target);
         }
-    });
+    }
     unlink_from(unlink, gen_folder, ReleasePath.get());
 }

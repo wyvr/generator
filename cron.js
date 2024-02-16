@@ -104,9 +104,11 @@ export function get_config(segment, fallback_value) {
 
 /**
  * Get logger instance
+ * @deprecated Use logger from @wyvr/generator/universal.js instead
  * @returns {Logger}
  */
 export function get_logger() {
+    Logger.warning('get_logger from cron.js is deprecated and will be removed in the future, please use logger from @wyvr/generator/universal.js instead.');
     return Logger;
 }
 

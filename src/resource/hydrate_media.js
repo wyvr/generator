@@ -1,15 +1,19 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-console */
+
+import { wyvr_portal } from '@wyvr/generator/src/resource/portal.js';
+import { wyvr_props } from '@wyvr/generator/src/resource/props.js';
+
 const wyvr_media_classes = {};
 
 /* eslint-disable no-unused-vars */
-const wyvr_hydrate_media = (path, elements, name, cls, trigger) => {
+export function wyvr_hydrate_media(path, elements, name, cls, trigger) {
     wyvr_media_classes[name] = { cls, path, loaded: false, elements };
-    Array.from(elements).forEach((el) => {
+    for (const el of elements) {
         wyvr_props(el).then((props) => {
             wyvr_portal(el, props);
         });
-    });
+    }
     if (trigger) {
         if (!window.wyvr) {
             window.wyvr = {};
@@ -19,8 +23,8 @@ const wyvr_hydrate_media = (path, elements, name, cls, trigger) => {
             wyvr_media_checker();
         };
     }
-};
-const wyvr_media_checker = () => {
+}
+function wyvr_media_checker() {
     const loaded = Object.keys(wyvr_media_classes)
         .map((name) => {
             if (wyvr_media_classes[name].elements) {
@@ -40,13 +44,14 @@ const wyvr_media_checker = () => {
     if (loaded) {
         window.removeEventListener('resize', wyvr_media_resize_throttle);
     }
-};
-const wyvr_media_init = (name) => {
+}
+
+function wyvr_media_init(name) {
     wyvr_media_classes[name].loaded = true;
     const script = document.createElement('script');
-    script.setAttribute('src', wyvr_media_classes[name].path + '?bid=' + window.build_id);
+    script.setAttribute('src', `${wyvr_media_classes[name].path}?bid=${window.build_id}`);
     document.body.appendChild(script);
-};
+}
 
 // throttle the event, because of performance
 let wyvr_resize_throttle = null;

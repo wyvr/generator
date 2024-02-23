@@ -2,36 +2,39 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
 
+import { wyvr_portal } from '@wyvr/generator/src/resource/portal.js';
+import { wyvr_props } from '@wyvr/generator/src/resource/props.js';
+
 const wyvr_interact_classes = {};
 
-const wyvr_hydrate_interact = (path, elements, name, cls, trigger) => {
+export function wyvr_hydrate_interact(path, elements, name, cls, trigger) {
     wyvr_interact_classes[name] = { cls, path, loaded: false };
 
-    Array.from(elements).forEach((el) => {
+    for (const el of elements) {
         el.addEventListener('mouseover', wyvr_interact_init);
         el.addEventListener('mousedown', wyvr_interact_init);
         el.addEventListener('focusin', wyvr_interact_init);
         el.addEventListener('pointerover', wyvr_interact_init);
         el.addEventListener('interact', wyvr_interact_init);
         el.setAttribute('data-bind-interact', 'true');
-    });
+    }
     if (trigger) {
         if (!window.wyvr) {
             window.wyvr = {};
         }
         window.wyvr[trigger] = () => {
-            Array.from(elements).forEach((el) => {
+            for (const el of elements) {
                 wyvr_interact_init({ target: el, type: 'mouseover' });
-            });
+            }
         };
     }
-};
+}
 
 const wyvr_interact_init = (e) => {
     let el = e.target;
     let last_element;
-    while (el && el.tagName != 'HTML') {
-        if (el.getAttribute('data-hydrate') && el.getAttribute('data-loading') == 'interact') {
+    while (el && el.tagName !== 'HTML') {
+        if (el.getAttribute('data-hydrate') && el.getAttribute('data-loading') === 'interact') {
             last_element = el;
         }
         el = el.parentNode;
@@ -47,7 +50,7 @@ const wyvr_interact_init = (e) => {
         if (name && wyvr_interact_classes[name] && !wyvr_interact_classes[name].loaded) {
             wyvr_interact_classes[name].loaded = true;
             const script = document.createElement('script');
-            script.setAttribute('src', wyvr_interact_classes[name].path + '?bid=' + window.build_id);
+            script.setAttribute('src', `${wyvr_interact_classes[name].path}?bid=${window.build_id}`);
             if (path) {
                 script.onload = () => {
                     // restore original event
@@ -60,7 +63,7 @@ const wyvr_interact_init = (e) => {
                         }
                         if (repathed_el) {
                             let event_name = e.type;
-                            if (event_name == 'focusin') {
+                            if (event_name === 'focusin') {
                                 event_name = 'focus';
                             }
                             if (repathed_el[event_name]) {
@@ -80,19 +83,19 @@ const wyvr_interact_init = (e) => {
 };
 
 function get_dom_path(el, parent) {
-    var stack = [];
-    const id = parent.getAttribute('data-hydrate-path') + '_' + new Date().getTime();
+    const stack = [];
+    const id = `${parent.getAttribute('data-hydrate-path')}_${new Date().getTime()}`;
     // set the unique value only once
     if (parent.getAttribute('data-hydrate-id')) {
         return undefined;
     }
     parent.setAttribute('data-hydrate-id', id);
-    while (el != parent && el != undefined) {
-        var sibCount = 1;
-        var sibIndex = 0;
-        for (var i = 0; i < el.parentNode.childNodes.length; i++) {
-            var sib = el.parentNode.childNodes[i];
-            if (sib.nodeName == el.nodeName) {
+    while (el !== parent && el !== undefined) {
+        let sibCount = 1;
+        let sibIndex = 0;
+        for (let i = 0; i < el.parentNode.childNodes.length; i++) {
+            const sib = el.parentNode.childNodes[i];
+            if (sib.nodeName === el.nodeName) {
                 if (sib === el) {
                     sibIndex = sibCount;
                     break;
@@ -101,12 +104,13 @@ function get_dom_path(el, parent) {
             }
         }
         if (!el.getAttribute('data-hydrate')) {
-            if (el.hasAttribute('id') && el.id != '') {
-                stack.unshift(el.nodeName.toLowerCase() + '#' + el.id);
+            const el_nodename = el.nodeName.toLowerCase();
+            if (el.hasAttribute('id') && el.id !== '') {
+                stack.unshift(`${el_nodename}#${el.id}`);
             } else if (sibCount > 1) {
-                stack.unshift(el.nodeName.toLowerCase() + ':nth-child(' + sibIndex + ')');
+                stack.unshift(`${el_nodename}:nth-child(${sibIndex})`);
             } else {
-                stack.unshift(el.nodeName.toLowerCase());
+                stack.unshift(el_nodename);
             }
         }
         el = el.parentNode;

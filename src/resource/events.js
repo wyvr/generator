@@ -1,14 +1,19 @@
 if (!window.bind_events) {
     window.bind_events = true;
 
-    // @see https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent
-    (function () {
-        if (typeof window.CustomEvent === 'function') return false;
+    /**
+     * CustomEvent Polyfill
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent
+     */
+    (() => {
+        if (typeof window.CustomEvent === 'function') {
+            return false;
+        }
 
         function CustomEvent(event, params) {
-            params = params || { bubbles: false, cancelable: false, detail: null };
-            var evt = document.createEvent('CustomEvent');
-            evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
+            const eventParams = params || { bubbles: false, cancelable: false, detail: null };
+            const evt = document.createEvent('CustomEvent');
+            evt.initCustomEvent(event, eventParams.bubbles, eventParams.cancelable, eventParams.detail);
             return evt;
         }
 
@@ -33,11 +38,11 @@ if (!window.bind_events) {
             return;
         }
         // if after start ready events are used, call them
-        if (event_name == 'ready') {
+        if (event_name === 'ready') {
             setTimeout(callback(), 10);
         }
         document.addEventListener(event_name, (e) => {
-            const data = e && e.detail ? e.detail : null;
+            const data = e?.detail || null;
             callback(data);
         });
     };
@@ -46,7 +51,7 @@ if (!window.bind_events) {
             return;
         }
         document.removeEventListener(event_name, (e) => {
-            const data = e && e.detail ? e.detail : null;
+            const data = e?.detail || null;
             callback(data);
         });
     };

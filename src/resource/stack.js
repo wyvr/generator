@@ -21,7 +21,7 @@
  *
  */
 window.getStack = (key, fallback) => {
-    if (typeof key == 'string' && key && window._stack) {
+    if (typeof key === 'string' && key && window._stack) {
         return window._stack[key] ?? fallback;
     }
     return fallback;

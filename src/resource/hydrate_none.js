@@ -1,7 +1,13 @@
 /* eslint-disable no-console */
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
-const wyvr_hydrate_none = (path, elements, name, cls, trigger) => {
+
+import { wyvr_portal } from '@wyvr/generator/src/resource/portal.js';
+import { wyvr_props } from '@wyvr/generator/src/resource/props.js';
+
+const wyvr_none_classes = {};
+
+export function wyvr_hydrate_none(path, elements, name, cls, trigger) {
     wyvr_none_classes[name] = { cls, path, loaded: false };
     if (!window.wyvr) {
         window.wyvr = {};
@@ -11,18 +17,17 @@ const wyvr_hydrate_none = (path, elements, name, cls, trigger) => {
         return null;
     }
     window.wyvr[trigger] = () => {
-        Array.from(elements).forEach((el) => {
+        for (const el of elements) {
             wyvr_props(el).then((props) => {
                 const target = wyvr_portal(el, props);
                 const name = target.getAttribute('data-hydrate');
                 if (name && !wyvr_none_classes[name].loaded) {
                     wyvr_none_classes[name].loaded = true;
                     const script = document.createElement('script');
-                    script.setAttribute('src', wyvr_none_classes[name].path + '?bid=' + window.build_id);
+                    script.setAttribute('src', `${wyvr_none_classes[name].path}?bid=${window.build_id}`);
                     document.body.appendChild(script);
                 }
             });
-        });
+        }
     };
-};
-const wyvr_none_classes = {};
+}

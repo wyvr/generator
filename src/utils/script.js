@@ -65,7 +65,7 @@ export async function build_hydrate_file(file, resouce_dir) {
     // code to instant execute the dependency
     const instant_code = get_instant_code(file.name, import_path, target);
     // loading=instant
-    if (file.config.loading == WyvrFileLoading.instant) {
+    if (file.config.loading === WyvrFileLoading.instant) {
         result.has.instant = true;
         result.include_code = instant_code;
         return result;
@@ -79,7 +79,7 @@ export async function build_hydrate_file(file, resouce_dir) {
 
     // write the lazy file from the component
     if (!exists(real_lazy_file_path) || Env.is_dev() || !exists(join(ReleasePath.get(), lazy_file_path))) {
-        const content = [read(join(resouce_dir, 'hydrate_instant.js')), read(join(resouce_dir, 'props.js')), read(join(resouce_dir, 'portal.js')), instant_code].join('\n');
+        const content = [insert_script_import(join(resouce_dir, 'hydrate_instant.js'), 'wyvr_hydrate_instant'), instant_code].join('\n');
 
         const build_result = await build(content, real_lazy_file_path);
 
@@ -92,7 +92,7 @@ export async function build_hydrate_file(file, resouce_dir) {
     // set marker for the needed hydrate methods
     result.has[file.config.loading] = true;
     // loading none requires a trigger property, but everything except instant can be triggered
-    const trigger = file.config.loading != WyvrFileLoading.instant && file.config.trigger ? `, '${file.config.trigger}'` : '';
+    const trigger = file.config.loading !== WyvrFileLoading.instant && file.config.trigger ? `, '${file.config.trigger}'` : '';
     result.include_code = `${target}
                 wyvr_hydrate_${file.config.loading}('${lazy_file_path}', ${file.name}_target, '${file.name}', '${file.name}'${trigger});`;
     return result;
@@ -127,4 +127,14 @@ export function write_hydrate_file(file_result) {
             write(file_result.real_path, file_result.code);
         }
     }
+}
+
+export function insert_script_import(file, exports) {
+    if (!filled_string(file)) {
+        return '';
+    }
+    if (!filled_string(exports)) {
+        return `import '${file}';`;
+    }
+    return `import { ${exports} } from '${file}';`;
 }

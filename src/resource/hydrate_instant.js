@@ -1,11 +1,15 @@
 /* eslint-disable no-console */
 /* eslint-disable no-undef */
+
+import { wyvr_portal } from '@wyvr/generator/src/resource/portal.js';
+import { wyvr_props } from '@wyvr/generator/src/resource/props.js';
+
 /* eslint-disable no-unused-vars */
-function wyvr_hydrate_instant(elements, cls) {
+export function wyvr_hydrate_instant(elements, cls) {
     if (!elements) {
         return;
     }
-    Array.from(elements).forEach((el) => {
+    for (const el of elements) {
         wyvr_props(el).then((props) => {
             const target = wyvr_portal(el, props);
             const slots = el.querySelectorAll('[data-slot]');
@@ -18,7 +22,7 @@ function wyvr_hydrate_instant(elements, cls) {
             if (slots) {
                 Array.from(slots).map((slot) => {
                     const slot_name = slot.getAttribute('data-slot');
-                    const client_slot = target.querySelector('[data-client-slot="' + slot_name + '"]');
+                    const client_slot = target.querySelector(`[data-client-slot="${slot_name}"]`);
                     if (client_slot) {
                         client_slot.parentNode.insertBefore(slot, client_slot);
                         client_slot.remove();
@@ -27,5 +31,5 @@ function wyvr_hydrate_instant(elements, cls) {
             }
             target.setAttribute('data-hydrated', 'true');
         });
-    });
+    }
 }

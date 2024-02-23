@@ -13,7 +13,7 @@ import { filled_array, filled_string, is_null } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
 import { ReleasePath } from '../vars/release_path.js';
-import { build_hydrate_file, write_hydrate_file } from '../utils/script.js';
+import { build_hydrate_file, insert_script_import, write_hydrate_file } from '../utils/script.js';
 import { UniqId } from '../vars/uniq_id.js';
 
 const __dirname = to_dirname(import.meta.url);
@@ -40,11 +40,9 @@ export async function scripts(identifiers) {
         let content;
         const scripts = [
             build_id_var,
-            read(join(resouce_dir, 'events.js')),
-            read(join(resouce_dir, 'props.js')),
-            read(join(resouce_dir, 'portal.js')),
-            read(join(resouce_dir, 'stack.js')),
-            read(join(resouce_dir, 'i18n.js')).replace(/\[lib\]/g, lib_dir)
+            insert_script_import(join(resouce_dir, 'events.js')),
+            insert_script_import(join(resouce_dir, 'stack.js')),
+            insert_script_import(join(resouce_dir, 'i18n.js'))
         ];
 
         try {
@@ -80,20 +78,20 @@ export async function scripts(identifiers) {
                         write_hydrate_file(file_result);
                         // apply additive has values
                         if (file_result.has) {
-                            Object.keys(file_result.has).forEach((key) => {
+                            for (const key of Object.keys(file_result.has)) {
                                 if (file_result.has[key]) {
                                     has[key] = file_result.has[key];
                                 }
-                            });
+                            }
                         }
                         return file_result.include_code;
                     })
                 )
             ).filter(Boolean);
-            Object.keys(has).forEach((key) => {
-                const script_path = join(resouce_dir, `hydrate_${key}.js`);
-                scripts.push(read(script_path));
-            });
+            // add the wyvr hydrate scripts
+            for (const key of Object.keys(has)) {
+                scripts.push(insert_script_import(join(resouce_dir, `hydrate_${key}.js`), `wyvr_hydrate_${key}`));
+            }
             scripts.push(`
                 const wyvr_identifier = ${stringify(identifier)};
                 const wyvr_dependencies = ${stringify(dependencies)};
@@ -135,9 +133,9 @@ export async function scripts(identifiers) {
                     // minimal set of js
                     build_content = [
                         build_id_var,
-                        read(join(resouce_dir, 'events.js')),
-                        read(join(resouce_dir, 'stack.js')),
-                        read(join(resouce_dir, 'i18n.js')).replace(/\[lib\]/g, lib_dir)
+                        insert_script_import(join(resouce_dir, 'events.js')),
+                        insert_script_import(join(resouce_dir, 'stack.js')),
+                        insert_script_import(join(resouce_dir, 'i18n.js'))
                     ].join('\n');
                 }
             }
@@ -159,7 +157,7 @@ export async function scripts(identifiers) {
             write(identifier_file, code);
             write(join(ReleasePath.get(), FOLDER_JS, `${identifier.identifier}.js`), code);
 
-            write(identifier_file + '.map', result.sourcemap);
+            write(`${identifier_file}.map`, result.sourcemap);
             write(join(ReleasePath.get(), FOLDER_JS, `${identifier.identifier}.js.map`), result.sourcemap);
             Logger.debug('identifier', identifier, dependencies);
         } catch (e) {
@@ -167,3 +165,4 @@ export async function scripts(identifiers) {
         }
     }
 }
+

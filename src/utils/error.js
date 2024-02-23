@@ -87,7 +87,7 @@ export function extract_error(e, source) {
             .map((error) => {
                 let text = `- ${error.text}`;
                 const has_location = error.location && !is_null(error.location.line) && !is_null(error.location.column);
-                let where = error.location.file ? `\n${error.location.file.replace(/\?.*$/, '').replace(/^gen\/[^/]+\//, '@src/')}` : '';
+                let where = error.location?.file ? `\n${error.location.file.replace(/\?.*$/, '').replace(/^gen\/[^/]+\//, '@src/')}` : '';
 
                 if (has_location) {
                     where += ` @ ${error.location.line}:${error.location.column}`;

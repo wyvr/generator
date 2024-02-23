@@ -18,16 +18,7 @@ describe('utils/error/extract_error', () => {
 
     it('structure', () => {
         const result = extract_error(new SyntaxError('hi'));
-        deepStrictEqual(Object.keys(result), [
-            'code',
-            'filename',
-            'hint',
-            'message',
-            'name',
-            'source',
-            'stack',
-            'debug',
-        ]);
+        deepStrictEqual(Object.keys(result), ['code', 'filename', 'hint', 'message', 'name', 'source', 'stack', 'debug']);
     });
 
     it('JS error', () => {
@@ -44,22 +35,16 @@ describe('utils/error/extract_error', () => {
                             at step (${__dirname}/wyvr/plugin.js:33:23)
                             at Object.next (${__dirname}/wyvr/plugin.js:14:53)
                             at ${__dirname}/wyvr/plugin.js:8:71
-                            at new Promise (<anonymous>)`,
+                            at new Promise (<anonymous>)`
         };
         const error = extract_error(e);
         strictEqual(error.code, undefined);
         strictEqual(error.filename, undefined);
         strictEqual(error.hint, undefined);
-        strictEqual(
-            error.message,
-            'The "path" argument must be of type string or an instance of Buffer or URL. Received null'
-        );
+        strictEqual(error.message, 'The "path" argument must be of type string or an instance of Buffer or URL. Received null');
         strictEqual(error.name, 'TypeError');
         strictEqual(error.source, undefined);
-        deepStrictEqual(error.stack, [
-            'plugins/wyvr/example/index.js:26:36',
-            'Object.after [as fn] (plugins/wyvr/example/index.js:25:19)',
-        ]);
+        deepStrictEqual(error.stack, ['plugins/wyvr/example/index.js:26:36', 'Object.after [as fn] (plugins/wyvr/example/index.js:25:19)']);
         ok(error.debug != undefined);
     });
     it('svelte error', () => {
@@ -80,7 +65,7 @@ describe('utils/error/extract_error', () => {
                                 at require (internal/modules/cjs/helpers.js:73:18)
                                 at Object.<anonymous> (${__dirname}/gen/src/test/StaticStore.svelte:5:19)
                                 at Module._compile (internal/modules/cjs/loader.js:1200:30)
-                                at Object.require.extensions.<computed> [as .svelte] (${__dirname}/node_modules/svelte/register.js:49:17)`,
+                                at Object.require.extensions.<computed> [as .svelte] (${__dirname}/node_modules/svelte/register.js:49:17)`
         };
         const error = extract_error(e);
         strictEqual(error.code, undefined);
@@ -110,7 +95,7 @@ describe('utils/error/extract_error', () => {
             line: 3,
             column: 23,
             file: cwd + '/gen/src/test/_test.scss',
-            status: 1,
+            status: 1
         };
         const error = extract_error(e, join(__dirname, 'gen', 'src'));
         strictEqual(error.code, undefined);
@@ -126,7 +111,7 @@ describe('utils/error/extract_error', () => {
             '  │                       ^^^^^^^^',
             '  ╵',
             '  gen/src/test/_test.scss 3:23  button()',
-            '  stdin 8:9                     root stylesheet',
+            '  stdin 8:9                     root stylesheet'
         ]);
         ok(error.debug == undefined);
     });
@@ -135,7 +120,7 @@ describe('utils/error/extract_error', () => {
             errors: [],
             warnings: [],
             message: 'Transform failed with 1 error:\n<stdin>:3:8: ERROR: Unexpected end of file',
-            stack: 'Error: Transform failed with 1 error:\n<stdin>:3:8: ERROR: Unexpected end of file\n    at failureErrorWithLog (~/node_modules/.pnpm/esbuild@0.14.27/node_modules/esbuild/lib/main.js:1599:15)\n    at ~/node_modules/.pnpm/esbuild@0.14.27/node_modules/esbuild/lib/main.js:1388:29\n    at ~/node_modules/.pnpm/esbuild@0.14.27/node_modules/esbuild/lib/main.js:662:9\n    at handleIncomingPacket (~/node_modules/.pnpm/esbuild@0…js:759:9)\n    at Socket.readFromStdout (~/node_modules/.pnpm/esbuild@0.14.27/node_modules/esbuild/lib/main.js:629:7)\n    at Socket.emit (node:events:526:28)\n    at addChunk (node:internal/streams/readable:315:12)\n    at readableAddChunk (node:internal/streams/readable:289:9)\n    at Socket.Readable.push (node:internal/streams/readable:228:10)\n    at Pipe.onStreamRead (node:internal/stream_base_commons:190:23)\n    at Pipe.callbackTrampoline (node:internal/async_hooks:130:17)',
+            stack: 'Error: Transform failed with 1 error:\n<stdin>:3:8: ERROR: Unexpected end of file\n    at failureErrorWithLog (~/node_modules/.pnpm/esbuild@0.14.27/node_modules/esbuild/lib/main.js:1599:15)\n    at ~/node_modules/.pnpm/esbuild@0.14.27/node_modules/esbuild/lib/main.js:1388:29\n    at ~/node_modules/.pnpm/esbuild@0.14.27/node_modules/esbuild/lib/main.js:662:9\n    at handleIncomingPacket (~/node_modules/.pnpm/esbuild@0…js:759:9)\n    at Socket.readFromStdout (~/node_modules/.pnpm/esbuild@0.14.27/node_modules/esbuild/lib/main.js:629:7)\n    at Socket.emit (node:events:526:28)\n    at addChunk (node:internal/streams/readable:315:12)\n    at readableAddChunk (node:internal/streams/readable:289:9)\n    at Socket.Readable.push (node:internal/streams/readable:228:10)\n    at Pipe.onStreamRead (node:internal/stream_base_commons:190:23)\n    at Pipe.callbackTrampoline (node:internal/async_hooks:130:17)'
         };
         const error = extract_error(e, join(__dirname, 'gen', 'src'));
         strictEqual(error.code, undefined);
@@ -150,7 +135,7 @@ describe('utils/error/extract_error', () => {
     it('source', () => {
         const e = {
             name: 'SyntaxError',
-            message: 'Cannot use import statement outside a module',
+            message: 'Cannot use import statement outside a module'
         };
         const error = extract_error(e, join(__dirname, 'gen', 'src'));
 
@@ -168,7 +153,7 @@ describe('utils/error/extract_error', () => {
             name: 'SyntaxError',
             stack: `test
         - ${__dirname}/gen/src/test/minus
-                        at ${__dirname}/gen/src/test/at`,
+                        at ${__dirname}/gen/src/test/at`
         };
         const error = extract_error(e);
 
@@ -285,7 +270,7 @@ describe('utils/error/extract_error', () => {
     });
     it('svelte frame', () => {
         const error = extract_error({
-            frame: 'a\nb',
+            frame: 'a\nb'
         });
         deepStrictEqual(error.stack, ['a', 'b']);
     });
@@ -303,11 +288,11 @@ describe('utils/error/extract_error', () => {
                         line: 130,
                         lineText: "import file from 'file.svelte';",
                         namespace: '',
-                        suggestion: '',
+                        suggestion: ''
                     },
                     notes: [],
                     pluginName: '',
-                    text: 'Could not resolve "file.svelte"',
+                    text: 'Could not resolve "file.svelte"'
                 },
                 {
                     detail: undefined,
@@ -315,9 +300,9 @@ describe('utils/error/extract_error', () => {
                     location: {},
                     notes: [],
                     pluginName: '',
-                    text: 'errortext',
-                },
-            ],
+                    text: 'errortext'
+                }
+            ]
         });
         deepStrictEqual(
             error.message,
@@ -332,5 +317,30 @@ describe('utils/error/extract_error', () => {
                 '- errortext\n' +
                 '\n'
         );
+    });
+    it('esbuild error, empty location', () => {
+        const error = extract_error({
+            name: 'Error',
+            errors: [
+                {
+                    detail: undefined,
+                    id: '',
+                    location: null,
+                    notes: [],
+                    pluginName: '',
+                    text: 'Cannot read directory "@wyvr/generator/src/resource/hydrate_instant.js": not a directory'
+                }
+            ]
+        });
+        deepStrictEqual(error, {
+            code: undefined,
+            debug: undefined,
+            filename: undefined,
+            hint: undefined,
+            message: '\n' + '- Cannot read directory "@wyvr/generator/src/resource/hydrate_instant.js": not a directory\n' + '\n',
+            name: 'Error',
+            source: undefined,
+            stack: []
+        });
     });
 });

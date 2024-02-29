@@ -94,7 +94,14 @@ export function apply_response(response, ser_response) {
                 const clean_key = clean_header_text(key, false);
                 const clean_value = clean_header_text(value);
                 if (Env.is_dev() && (clean_key !== key || JSON.stringify(clean_value) !== JSON.stringify(value))) {
-                    Logger.warning(`cleaned response header entry ${clean_key}: ${JSON.stringify(clean_value)}`);
+                    if (clean_key !== key) {
+                        Logger.warning(`cleaned response header entry key ${JSON.stringify(key)} => ${JSON.stringify(clean_key)}`);
+                    }
+                    if (JSON.stringify(clean_value) !== JSON.stringify(value)) {
+                        Logger.warning(`cleaned response header entry value ${JSON.stringify(clean_key)}`);
+                        Logger.debug(`- orig ${JSON.stringify(value)}`);
+                        Logger.debug(`- cleaned ${JSON.stringify(clean_value)}`);
+                    }
                 }
 
                 cleaned_headers[clean_key] = clean_value;

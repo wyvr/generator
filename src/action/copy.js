@@ -1,13 +1,23 @@
 import { statSync } from 'fs';
 import { join } from 'path';
-import { FOLDER_GEN, FOLDER_GEN_ASSETS, FOLDER_GEN_SRC, FOLDER_LIST_PACKAGE_COPY, FOLDER_PLUGINS, FOLDER_PAGES, FOLDER_SRC, FOLDER_CRON } from '../constants/folder.js';
+import {
+    FOLDER_GEN,
+    FOLDER_GEN_ASSETS,
+    FOLDER_GEN_SRC,
+    FOLDER_LIST_PACKAGE_COPY,
+    FOLDER_PLUGINS,
+    FOLDER_PAGES,
+    FOLDER_SRC,
+    FOLDER_CRON,
+    FOLDER_GEN_SERVER
+} from '../constants/folder.js';
 import { Config } from '../utils/config.js';
 import { set_config_cache } from '../utils/config_cache.js';
 import { collect_files, copy as copy_file, exists, read, write } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
 import { to_relative_path_of_gen } from '../utils/to.js';
-import { replace_src_path } from '../utils/transform.js';
+import { replace_src_path, replace_wyvr_magic } from '../utils/transform.js';
 import { filled_array, filled_string, is_func } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { measure_action } from './helper.js';
@@ -102,9 +112,17 @@ export function copy_folder(source, folder, to, before) {
 }
 
 export function copy_executable_file(source, target) {
-    if (source && [`/${FOLDER_PLUGINS}/`, `/${FOLDER_CRON}/`].find((path) => source.indexOf(path) > -1)) {
-        write(target, replace_src_path(read(source), FOLDER_GEN_SRC));
-        return true;
+    if (!source) {
+        return false;
     }
-    return false;
+    const folders = [`/${FOLDER_PLUGINS}/`, `/${FOLDER_CRON}/`];
+    const folder = folders.find((path) => source.indexOf(path) > -1);
+    if (!folder) {
+        return false;
+    }
+    // replace the wyvr content in the files, by make it server code
+    const content = replace_wyvr_magic(read(source), false);
+
+    write(target, replace_src_path(content, FOLDER_GEN_SERVER));
+    return true;
 }

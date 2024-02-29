@@ -23,7 +23,7 @@ describe('action/copy/copy_executable_file', () => {
         );
         ///home/p/wyvr/generator/test/action/copy/_tests/cron/text.txt
         strictEqual(result, true);
-        strictEqual(read(join(__dirname, '_tests', '_cron', 'text.txt')), '"undefined/gen/src/"');
+        strictEqual(read(join(__dirname, '_tests', '_cron', 'text.txt')), '"undefined/gen/server/"');
     });
     it('no executeable file', () => {
         const result = copy_executable_file(

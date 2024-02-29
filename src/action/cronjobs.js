@@ -7,7 +7,7 @@ export async function cronjobs(name) {
         return;
     }
     const build_cronjobs = filter_cronjobs(Config.get('cron'), name);
-    if (build_cronjobs.length == 0) {
+    if (build_cronjobs.length === 0) {
         return;
     }
     // execute cronjobs with when '@<name>'

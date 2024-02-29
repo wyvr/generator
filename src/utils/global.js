@@ -20,10 +20,10 @@ export function register_inject(file) {
             if (filled_string(key)) {
                 const parts = key.split('.');
                 const type = parts.shift();
-                key = parts.join('.');
+                const parent_key = parts.join('.');
 
                 Storage.set_location(FOLDER_STORAGE);
-                value = await Storage.get(type, key);
+                value = await Storage.get(type, parent_key);
             }
             if (is_null(value)) {
                 value = fallback;
@@ -99,14 +99,14 @@ export function register_stack() {
         return;
     }
     global.setStack = (key, value) => {
-        if (typeof key == 'string' && key) {
+        if (typeof key === 'string' && key) {
             // @TODO validate to allow only syncronizable data inside here
             stackData[key] = value;
         }
         return value;
     };
     global.getStack = (key, fallback) => {
-        if (typeof key == 'string' && key) {
+        if (typeof key === 'string' && key) {
             return stackData[key] ?? fallback;
         }
         return fallback;

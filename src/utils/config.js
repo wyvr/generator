@@ -56,7 +56,7 @@ function config() {
                     path[segment] = {};
                 }
                 // set the value for the last segment
-                if (index == seg_length - 1) {
+                if (index === seg_length - 1) {
                     path[segment] = value;
                 }
                 // use new path as path
@@ -78,7 +78,7 @@ function config() {
             }
             try {
                 const result = await import(filepath);
-                if (result && result.default) {
+                if (result?.default) {
                     return result.default;
                 }
             } catch (e) {
@@ -99,7 +99,7 @@ export async function inject(content, file) {
         return '';
     }
     const search_string = '_inject(';
-    const found = content.match(new RegExp('\\W' + search_string.replace('(', '\\(')));
+    const found = content.match(new RegExp(`\\W${search_string.replace('(', '\\(')}`));
     // when not found or part of another word
     if (!found) {
         return content;
@@ -117,7 +117,7 @@ export async function inject(content, file) {
                 break;
             case ')':
                 open_brackets--;
-                if (open_brackets == 0) {
+                if (open_brackets === 0) {
                     found_closing = true;
                 }
                 break;

@@ -48,7 +48,7 @@ export async function build(content, file, format = 'iife') {
                             return false;
                         }
                         // ignore some warnings
-                        if (warning.code == 'css-unused-selector' && warning.message.indexOf('[data-slot=') > -1) {
+                        if (warning.code === 'css-unused-selector' && warning.message.indexOf('[data-slot=') > -1) {
                             return false;
                         }
                         Logger.warning(get_error_message(warning, file, 'svelte'));
@@ -63,7 +63,7 @@ export async function build(content, file, format = 'iife') {
         Logger.error(get_error_message(e, file, 'build'));
     }
     remove(tmp_file);
-    const tmp_sourcemap = tmp_file + '.map';
+    const tmp_sourcemap = `${tmp_file}.map`;
     const sourcemap = read(tmp_sourcemap);
 
     remove(tmp_sourcemap);
@@ -75,7 +75,7 @@ export function inject_script(content, scripts) {
         return content;
     }
     const code = scripts.filter(Boolean).join('\n');
-    return content.replace(/<\/body>/, '<script>' + code + '</script></body>');
+    return content.replace(/<\/body>/, `<script>${code}</script></body>`);
 }
 export function inject_events(content) {
     return content.replace(

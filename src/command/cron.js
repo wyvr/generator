@@ -61,7 +61,7 @@ export async function cron_command(config) {
 
     if (non_existing_cronjobs.length > 0) {
         Logger.warning('non existing cronjobs', non_existing_cronjobs.join(' '));
-        if (explicit_crons_requested.length == non_existing_cronjobs.length) {
+        if (explicit_crons_requested.length === non_existing_cronjobs.length) {
             Logger.warning('no cronjob has run successfully');
             return;
         }
@@ -73,14 +73,14 @@ export async function cron_command(config) {
         Logger.present('List of all cronjobs');
 
         const found_cron_names = explicit_crons.map((cron) => cron.name);
-        Object.keys(all_cronjobs).forEach((name) => {
+        for (const name of Object.keys(all_cronjobs)) {
             const when = Logger.color.dim(all_cronjobs[name]?.when ?? '');
             if (found_cron_names.indexOf(name) > -1) {
                 Logger.log(Logger.color.green('*'), Logger.color.green(name), when);
-                return;
+            } else {
+                Logger.log(Logger.color.dim('-'), name, when);
             }
-            Logger.log(Logger.color.dim('-'), name, when);
-        });
+        }
 
         return found_cron_names.join(' ');
     }
@@ -94,7 +94,7 @@ export async function cron_command(config) {
         // filter out currently not running cronjobs
         cronjobs = filter_cronjobs(all_cronjobs);
     }
-    if (cronjobs.length == 0) {
+    if (cronjobs.length === 0) {
         Logger.warning('no cronjobs to run');
         return '-';
     }
@@ -102,7 +102,7 @@ export async function cron_command(config) {
     const successfull_cronjobs = executed_cronjobs.filter((cron) => {
         return cron && !cron.failed;
     });
-    if (successfull_cronjobs.length == 0) {
+    if (successfull_cronjobs.length === 0) {
         Logger.warning('no cronjob has run successfully');
         return '-';
     }

@@ -13,6 +13,7 @@ import { fix_reserved_tag_names, replace_imports, replace_src_path } from './tra
 import { register_inject, register_i18n, register_prop, register_stack } from './global.js';
 import { inject } from './config.js';
 import { get_language } from './i18n.js';
+import { Plugin } from './plugin.js';
 
 export async function prepare_code_to_compile(content, file, type) {
     if (!in_array(['client', 'server'], type) || !filled_string(content) || !filled_string(file)) {
@@ -27,7 +28,7 @@ export async function prepare_code_to_compile(content, file, type) {
     // replace the imports in this file
     let modified_content = replace_imports(content, file, folder, scope, {
         modify_path: (path, ext) => {
-            if (type === 'server' && ext == '.svelte') {
+            if (type === 'server' && ext === '.svelte') {
                 return to_extension(path, 'js');
             }
             return path;
@@ -141,7 +142,13 @@ export async function render_server_compiled_svelte(exec_result, data, file) {
         // svelte creates console log output themself inside
         exec_result.result = await exec_result.component.render(data);
         // remove svelte comments
-        exec_result.result.html = exec_result.result.html.replace(/<!-- HTML_TAG_(?:START|END) -->/g, '');
+        const raw_html = exec_result.result.html.replace(/<!-- HTML_TAG_(?:START|END) -->/g, '');
+        // allow plugin to modify the html
+        const render_html = await Plugin.process('render', raw_html);
+        const render_html_result = await render_html((html) => {
+            return html;
+        });
+        exec_result.result.html = render_html_result?.result || raw_html;
     } catch (e) {
         Logger.error(get_error_message(e, file, 'svelte server render'));
         return undefined;

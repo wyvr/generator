@@ -27,35 +27,36 @@ export async function build() {
                 return;
             }
             Logger.debug('emit identifier', data);
-            delete data.type;
+            data.type = undefined;
             identifiers[data.identifier] = data;
         });
         const media_id = Event.on('emit', media_name, (data) => {
             if (!data) {
                 return;
             }
-            Object.keys(data.media).forEach((key) => {
+            for (const key of Object.keys(data.media)) {
                 media[key] = data.media[key];
-            });
+            }
         });
         const media_query_files_id = Event.on('emit', media_query_files_name, (data) => {
             if (!data || !data.media_query_files) {
                 return;
             }
-            Object.keys(data.media_query_files).forEach((file) => {
+            for (const file of Object.keys(data.media_query_files)) {
                 media_query_files[file] = data.media_query_files[file];
-            });
+            }
         });
+
         const identifier_files_id = Event.on('emit', identifier_files_name, (data) => {
             if (!data || !data.identifier_files) {
                 return;
             }
-            Object.keys(data.identifier_files).forEach((identifier) => {
+            for (const identifier of Object.keys(data.identifier_files)) {
                 if (!identifier_files[identifier]) {
                     identifier_files[identifier] = [];
                 }
                 identifier_files[identifier].push(...data.identifier_files[identifier]);
-            });
+            }
         });
 
         const data = collect_files(FOLDER_GEN_DATA, 'json');

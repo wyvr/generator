@@ -136,9 +136,9 @@ export async function inject(rendered_result, data, file, identifier, shortcode_
                     };
 
                     if (shortcode_result.media_query_files) {
-                        Object.keys(shortcode_result.media_query_files).forEach((key) => {
+                        for (const key of Object.keys(shortcode_result.media_query_files)) {
                             media_query_files[key] = shortcode_result.media_query_files[key];
-                        });
+                        }
                     }
                     if (is_func(shortcode_callback)) {
                         shortcode_callback(shortcode_emit);
@@ -149,9 +149,9 @@ export async function inject(rendered_result, data, file, identifier, shortcode_
                 const media_result = await replace_media(shortcode_result.html);
                 if (media_result.has_media) {
                     has_media = true;
-                    Object.keys(media_result.media).forEach((key) => {
+                    for (const key of Object.keys(media_result.media)) {
                         media_files[key] = media_result.media[key];
-                    });
+                    }
                 }
                 content = media_result.content;
             }

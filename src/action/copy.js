@@ -9,7 +9,8 @@ import {
     FOLDER_PAGES,
     FOLDER_SRC,
     FOLDER_CRON,
-    FOLDER_GEN_SERVER
+    FOLDER_GEN_SERVER,
+    FOLDER_ROUTES
 } from '../constants/folder.js';
 import { Config } from '../utils/config.js';
 import { set_config_cache } from '../utils/config_cache.js';
@@ -115,7 +116,7 @@ export function copy_executable_file(source, target) {
     if (!source) {
         return false;
     }
-    const folders = [`/${FOLDER_PLUGINS}/`, `/${FOLDER_CRON}/`];
+    const folders = [`/${FOLDER_PLUGINS}/`, `/${FOLDER_CRON}/`, `/${FOLDER_ROUTES}/`];
     const folder = folders.find((path) => source.indexOf(path) > -1);
     if (!folder) {
         return false;

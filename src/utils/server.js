@@ -144,7 +144,6 @@ export async function return_not_found(req, res, uid, message, status, start) {
             const url = req.url;
             try {
                 const result = await inject(
-                    uid,
                     {
                         result: {
                             html: content

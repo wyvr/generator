@@ -14,7 +14,6 @@ import { copy, exists, write, to_index } from '../utils/file.js';
 import { scripts } from './scripts.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
-import { Storage } from '../utils/storage.js';
 import { appendFileSync } from 'fs';
 
 export async function route(requests) {

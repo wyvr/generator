@@ -122,9 +122,9 @@ export async function intial_build(build_id, config) {
 
     // Build Scripts
     if (Env.is_dev()) {
-        // add custom script for the 404 development page
-        identifiers['404development'] = {
-            identifier: '404development',
+        // add custom script for the 404 and 500 development page
+        identifiers.wyvr_development = {
+            identifier: 'wyvr_development',
             doc: '',
             layout: '',
             page: ''

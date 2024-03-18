@@ -122,7 +122,7 @@ export function log_start(req, uid) {
 }
 export function log_end(req, res, uid, start) {
     const message = [req.method, req.url, ...get_done_log_infos(res.statusMessage, res.statusCode, start, uid)];
-    const type = (res.statusCode + '')[0]; // first digit indicates the type
+    const type = (`${res.statusCode}`)[0]; // first digit indicates the type
     const type_logger = {
         1: (message) => Logger.info(...message),
         2: (message) => Logger.success(...message),
@@ -137,9 +137,10 @@ export function is_data_method(method) {
 }
 export async function return_not_found(req, res, uid, message, status, start) {
     Logger.error(req.method, req.url, ...get_done_log_infos(message, status, start, uid));
+    let return_content = message;
     if (Env.is_dev()) {
         // use full page in dev mode to add devtools, which allow autoreloading the page
-        const content = read(join(to_dirname(import.meta.url), '..', 'resource', '404development.html'));
+        const content = read(join(to_dirname(import.meta.url), '..', 'resource', '404.html'));
         if (content) {
             const url = req.url;
             try {
@@ -155,16 +156,16 @@ export async function return_not_found(req, res, uid, message, status, start) {
                     },
                     { url, message, status, uid },
                     url,
-                    '404development'
+                    'wyvr_development'
                 );
-                message = result.content.replace(/<\/body>/, `<script src="/js/404development.js"></script></body>`);
+                return_content = result.content;
             } catch (e) {
                 Logger.error(get_error_message(e, url, 'return_not_found'));
             }
         }
     }
     send_head(res, status, 'text/html');
-    send_content(res, message);
+    send_content(res, return_content);
     return;
 }
 export function get_done_log_infos(message, status, start, uid) {

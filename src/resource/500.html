@@ -29,6 +29,15 @@
                 color: var(--wyvr-debug-text);
                 margin-top: 10px;
             }
+            .error {
+                font-family: monospace;
+                text-align: left;
+                margin-bottom: 1rem;
+                width: 90vw;
+            }
+            .detail {
+                opacity: 0.7;
+            }
             @media (prefers-color-scheme: dark) {
                 html {
                     background-color: #222;
@@ -39,13 +48,18 @@
     <body>
         <div class="message">
             <div class="card">
-                <small>Status:</small> <code>{status}</code>
-                <h1>{message}</h1>
-                <small>URL:</small> <code>{url}</code><br />
-                <small>UID: <code>{uid}</code></small
-                ><br />
+                <small>file:</small> <code>{file}</code>
+                <h1>{name}</h1>
+                <div class="error"><b>{message}</b></div>
+                <div class="error detail">{debug}</div>
+                <br />
                 <button onclick="window.location.reload()">Reload</button>
             </div>
         </div>
+        <script>
+            const script = document.createElement('script');
+            script.src = '/js/wyvr_development.js';
+            document.body.appendChild(script);
+        </script>
     </body>
 </html>

@@ -1,8 +1,8 @@
 import { compile } from 'svelte/compiler';
-import { get_error_message } from './error.js';
+import { extract_error, get_error_message } from './error.js';
 import { Logger } from './logger.js';
 import { in_array, filled_string, is_func, is_null, match_interface } from './validate.js';
-import { remove, to_extension, write } from './file.js';
+import { read, remove, to_extension, write } from './file.js';
 import { extname, join } from 'path';
 import { Env } from '../vars/env.js';
 import { uniq_id } from './uniq.js';
@@ -14,6 +14,7 @@ import { register_inject, register_i18n, register_prop, register_stack } from '.
 import { inject } from './config.js';
 import { get_language } from './i18n.js';
 import { Plugin } from './plugin.js';
+import { to_dirname } from './to.js';
 
 export async function prepare_code_to_compile(content, file, type) {
     if (!in_array(['client', 'server'], type) || !filled_string(content) || !filled_string(file)) {
@@ -114,6 +115,21 @@ export async function execute_server_compiled_svelte(compiled, file) {
     } catch (e) {
         component = undefined;
         Logger.error(get_error_message(e, file, 'svelte server execute'));
+        if (Env.is_dev()) {
+            // construct an error page
+            component = {
+                render: ((error, file) => {
+                    const content = read(join(to_dirname(import.meta.url), '..', 'resource', '500.html'))
+                        ?.replace(/\{message\}/g, error.message)
+                        .replace(/\{debug\}/g, error.debug.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>'))
+                        .replace(/\{name\}/g, error.name)
+                        .replace(/\{file\}/g, file);
+                    return (data) => {
+                        return { html: content };
+                    };
+                })(extract_error(e), file)
+            };
+        }
     }
     remove(tmp_file);
     return component;

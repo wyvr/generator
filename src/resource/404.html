@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>{message}</title>
+        <style>
+            .message {
+                display: flex;
+                align-items: center;
+                font: 1rem/1.4em sans-serif;
+                width: 100vw;
+                height: 100vh;
+                justify-content: center;
+                position: absolute;
+                left: 0;
+                top: 0;
+                color: var(--wyvr-debug-primary);
+            }
+            .card {
+                text-align: center;
+            }
+            .card small {
+                opacity: 0.7;
+            }
+            .card button {
+                background: var(--wyvr-debug-primary);
+                border: 0;
+                padding: 10px;
+                color: var(--wyvr-debug-text);
+                margin-top: 10px;
+            }
+            @media (prefers-color-scheme: dark) {
+                html {
+                    background-color: #222;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="message">
+            <div class="card">
+                <small>Status:</small> <code>{status}</code>
+                <h1>{message}</h1>
+                <small>URL:</small> <code>{url}</code><br />
+                <small>UID: <code>{uid}</code></small
+                ><br />
+                <button onclick="window.location.reload()">Reload</button>
+            </div>
+        </div>
+        <script>
+            const script = document.createElement('script');
+            script.src = '/js/wyvr_development.js';
+            document.body.appendChild(script);
+        </script>
+    </body>
+</html>

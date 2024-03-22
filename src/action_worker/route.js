@@ -106,7 +106,12 @@ export async function process_route_request(req, res, uid, route, force_generati
     const [url] = req.url.split('?');
 
     // persist the result
-    if (result?.result?.html && result?.data?._wyvr?.persist && Env.is_prod()) {
+    // except:
+    // - in dev mode
+    // - if the response is a success 2XX
+    // - if the result is empty
+    // - if the route is not set to persist in the wyvr config object
+    if (result?.result?.html && result?.data?._wyvr?.persist && Env.is_prod() && response.statusCode >= 200 && response.statusCode < 300) {
         const file = to_index(url, 'html');
         const persisted_path = join(ReleasePath.get(), file);
         write(persisted_path, result.result.html);

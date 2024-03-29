@@ -123,7 +123,7 @@ export class Logger {
         let messages = this.prepare_message(values);
         if (LogFirstValueColor[type]) {
             messages = messages.map((value, index) => {
-                if (index == 0) {
+                if (index === 0) {
                     return LogFirstValueColor[type](value);
                 }
                 return value;
@@ -143,6 +143,9 @@ export class Logger {
     }
 
     static log(...values) {
+        this.output_type('log', '-', ...values);
+    }
+    static raw_log(...values) {
         this.output_type('log', ...values);
     }
     static present(key, ...values) {

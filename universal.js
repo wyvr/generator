@@ -12,6 +12,7 @@ const passthrough = (...args) => args;
  */
 export const logger = {
     log: console.log,
+    raw_log: console.log,
     present: console.log,
     info: console.info,
     success: console.log,

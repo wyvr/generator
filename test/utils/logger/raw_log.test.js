@@ -3,7 +3,7 @@ import kleur from 'kleur';
 import { describe, it } from 'mocha';
 import { Logger } from '../../../src/utils/logger.js';
 
-describe('utils/logger/log', () => {
+describe('utils/logger/raw_log', () => {
     let log;
     let err;
     let result = [];
@@ -28,13 +28,13 @@ describe('utils/logger/log', () => {
         console.error = err;
     });
     it('undefined', () => {
-        Logger.log();
-        deepStrictEqual(result, [['-', '']]);
+        Logger.raw_log();
+        deepStrictEqual(result, [['', '']]);
     });
 
     it('key + multiple text', () => {
-        Logger.log('#', 'a', 'b');
-        deepStrictEqual(result, [['-', '# a b']]);
+        Logger.raw_log('#', 'a', 'b');
+        deepStrictEqual(result, [['#', 'a b']]);
     });  
    
    

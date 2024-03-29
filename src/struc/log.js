@@ -15,7 +15,7 @@ export const LogType = {
 };
 
 export function get_type_name(type) {
-    return Object.keys(LogType).find((key) => LogType[key] == type);
+    return Object.keys(LogType).find((key) => LogType[key] === type);
 }
 
 export const LogIcon = {

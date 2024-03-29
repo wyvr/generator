@@ -17,6 +17,8 @@ import { append } from './file.js';
  * @class Logger
  *
  */
+
+// biome-ignore lint/complexity/noStaticOnlyClass: to make it easier to use the logger class
 export class Logger {
     /**
      * Create new instance of the Logger
@@ -45,6 +47,7 @@ export class Logger {
         if (!is_array(values)) {
             return [];
         }
+        // biome-ignore lint/complexity/noThisInStatic: <explanation>
         return values.map(this.stringify).filter((x) => x);
     }
 
@@ -95,7 +98,7 @@ export class Logger {
         if (has_color_fn) {
             text = color_fn(text);
         }
-        let symbol = this.out(has_color_fn ? color_fn(char) : char);
+        const symbol = this.out(has_color_fn ? color_fn(char) : char);
 
         text = this.out(text);
 
@@ -261,19 +264,10 @@ export class Logger {
 
     static get_time_stamp() {
         const date = new Date();
-        return (
-            date.getFullYear().toString().substring(2) +
-            '-' +
-            (date.getMonth() + 1).toString().padStart(2, '0') +
-            '-' +
-            date.getDate().toString().padStart(2, '0') +
-            ' ' +
-            date.getHours().toString().padStart(2, '0') +
-            ':' +
-            date.getMinutes().toString().padStart(2, '0') +
-            ':' +
-            date.getSeconds().toString().padStart(2, '0')
-        );
+        const short = (v) => v.toString().padStart(2, '0');
+        return `${date.getFullYear().toString().substring(2)}-${short(date.getMonth() + 1)}-${short(date.getDate())} ${short(date.getHours())}:${short(date.getMinutes())}:${short(
+            date.getSeconds()
+        )}`;
     }
 }
 /**

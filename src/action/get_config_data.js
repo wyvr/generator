@@ -8,11 +8,12 @@ import { Env } from '../vars/env.js';
 
 export function get_config_data(cli_config, build_id) {
     const config = Config.get();
-    if (is_object(cli_config)) {
-        Object.keys(cli_config).forEach((key) => {
+    if (cli_config) {
+        for (const key of Object.keys(cli_config)) {
             config[key] = cli_config[key];
-        });
+        }
     }
+
     if (is_object(cli_config?.cli?.flags)) {
         if (cli_config.cli.flags.dev) {
             Env.set(EnvType.dev);

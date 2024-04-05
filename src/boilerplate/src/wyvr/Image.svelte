@@ -15,7 +15,7 @@
             css={'css-classes'}
         />
     */
-
+    import { logger } from '@wyvr/generator/universal.js';
     import { get_image_src_data, get_image_src, correct_image_format } from '@src/wyvr/image_utils.js';
     import { onMount } from 'svelte';
     export let src = null;
@@ -88,7 +88,7 @@
         }
         if (domain_config && data.src.indexOf('http') > -1) {
             // something went terrible wrong
-            Logger.error('domain could not be removed from the media', src);
+            logger.error('domain could not be removed from the media', src);
         }
         // order the widths from highest to lowest
         const ordered_widths = Array.isArray(widths)

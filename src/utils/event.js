@@ -1,57 +1,57 @@
 import { to_string } from './to.js';
 import { is_null, filled_string, is_array, is_func } from './validate.js';
-
+// biome-ignore lint/complexity/noStaticOnlyClass: to keep track of the listeners
 export class Event {
     static on(scope, name, fn) {
-        const _scope = this.get_scope(scope);
+        const _scope = Event.get_scope(scope);
         const _name = to_string(name);
-        if (is_null(this.listeners[_scope])) {
-            this.listeners[_scope] = {};
+        if (is_null(Event.listeners[_scope])) {
+            Event.listeners[_scope] = {};
         }
-        if (!this.listeners[_scope][_name]) {
-            this.listeners[_scope][_name] = [];
+        if (!Event.listeners[_scope][_name]) {
+            Event.listeners[_scope][_name] = [];
         }
 
         // theoretically possible to overflow the number type
-        const id = this.auto_increment++;
-        this.listeners[_scope][_name].push({ id, fn });
+        const id = Event.auto_increment++;
+        Event.listeners[_scope][_name].push({ id, fn });
         return id;
     }
     static off(scope, name, index) {
         setTimeout(() => {
-            this.off_instant(scope, name, index);
+            Event.off_instant(scope, name, index);
         }, 50);
     }
     static off_instant(scope, name, index) {
-        const _scope = this.get_scope(scope);
+        const _scope = Event.get_scope(scope);
         const _name = to_string(name);
-        if (this.exists(_scope, _name)) {
-            this.listeners[_scope][_name] = this.listeners[_scope][_name].filter((listener) => {
-                return listener.id != index;
+        if (Event.exists(_scope, _name)) {
+            Event.listeners[_scope][_name] = Event.listeners[_scope][_name].filter((listener) => {
+                return listener.id !== index;
             });
         }
     }
     static emit(scope, name, data = null) {
-        const _scope = this.get_scope(scope);
+        const _scope = Event.get_scope(scope);
         const _name = to_string(name);
-        if (this.exists(_scope, _name)) {
-            this.listeners[_scope][_name].forEach((listener) => {
+        if (Event.exists(_scope, _name)) {
+            for (const listener of Event.listeners[_scope][_name]) {
                 if (!listener || !is_func(listener.fn)) {
-                    return;
+                    continue;
                 }
                 listener.fn(data);
-            });
+            }
         }
     }
     static once(scope, name, fn) {
         if (!is_func(fn)) {
             return;
         }
-        const _scope = this.get_scope(scope);
+        const _scope = Event.get_scope(scope);
         const _name = to_string(name);
-        const index = this.on(_scope, _name, (...props) => {
+        const index = Event.on(_scope, _name, (...props) => {
             fn(...props);
-            this.off_instant(_scope, _name, index, true);
+            Event.off_instant(_scope, _name, index, true);
         });
     }
 
@@ -63,7 +63,7 @@ export class Event {
     }
 
     static exists(scope, name) {
-        const exists = this.listeners[scope] && this.listeners[scope][name] && is_array(this.listeners[scope][name]);
+        const exists = is_array(Event.listeners[scope]?.[name]);
         return !!exists;
     }
 }

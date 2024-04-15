@@ -254,28 +254,28 @@ export function collect_files(dir, extension, forbidden_folder) {
         // escaping is here not useless
         regex = new RegExp(`\\.${extension.trim().replace(/^\./, '')}$`);
     }
-    entries.forEach((entry) => {
+    for (const entry of entries) {
         const path = join(dir, entry);
         let stat;
         try {
             stat = statSync(path);
         } catch (e) {
-            return;
+            continue;
         }
         if (!stat) {
-            return;
+            continue;
         }
         if (Array.isArray(forbidden_folder) && forbidden_folder.indexOf(entry) > -1) {
-            return;
+            continue;
         }
         if (stat.isDirectory()) {
             result.push(...collect_files(path, extension));
-            return;
+            continue;
         }
         if (stat.isFile() && entry.match(regex)) {
             result.push(path);
         }
-    });
+    }
 
     return result;
 }
@@ -297,7 +297,7 @@ export function collect_svelte_files(dir) {
  * @returns {boolean}
  */
 export function exists(path) {
-    if (!path || typeof path != 'string' || !existsSync(path)) {
+    if (!path || typeof path !== 'string' || !existsSync(path)) {
         return false;
     }
     return true;

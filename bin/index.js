@@ -10,12 +10,13 @@ import { Cwd } from '../src/vars/cwd.js';
 import { Storage } from '../src/utils/storage.js';
 import { FOLDER_STORAGE } from '../src/constants/folder.js';
 import { Logger } from '../src/utils/logger.js';
-import { get_error_message } from '../src/utils/error.js';
+import { bind_error_events, get_error_message } from '../src/utils/error.js';
 import { ClusterWorker } from '../src/cluster_worker.js';
 
 Cwd.set(process.cwd());
 Storage.set_location(FOLDER_STORAGE);
 
+bind_error_events();
 if (isPrimary) {
     const cli = extract_cli_config(process.argv);
 

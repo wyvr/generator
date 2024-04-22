@@ -1,5 +1,5 @@
 import { extname } from 'path';
-import { FOLDER_GEN_ROUTES, FOLDER_GEN_PLUGINS, FOLDER_GEN_SRC } from '../constants/folder.js';
+import { FOLDER_GEN_ROUTES, FOLDER_GEN_PLUGINS, FOLDER_GEN_SRC, FOLDER_GEN_EVENTS } from '../constants/folder.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
 import { set_config_cache } from '../utils/config_cache.js';
@@ -56,7 +56,8 @@ export async function dependencies() {
                 return list.indexOf(to_extension(path, 'svelte')) === -1;
             }),
             collect_files(Cwd.get(FOLDER_GEN_PLUGINS)),
-            collect_files(Cwd.get(FOLDER_GEN_ROUTES))
+            collect_files(Cwd.get(FOLDER_GEN_ROUTES)),
+            collect_files(Cwd.get(FOLDER_GEN_EVENTS))
         );
 
         // wrap in plugin

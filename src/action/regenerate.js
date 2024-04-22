@@ -2,7 +2,7 @@ import { join } from 'path';
 import { copy_folder } from './copy.js';
 import { measure_action } from './helper.js';
 import { build_wyvr_internal } from './wyvr_internal.js';
-import { FOLDER_CSS, FOLDER_GEN, FOLDER_I18N, FOLDER_JS, FOLDER_DEVTOOLS, FOLDER_PLUGINS } from '../constants/folder.js';
+import { FOLDER_CSS, FOLDER_GEN, FOLDER_I18N, FOLDER_JS, FOLDER_DEVTOOLS, FOLDER_PLUGINS, FOLDER_EVENTS } from '../constants/folder.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
 import { Config } from '../utils/config.js';
@@ -18,7 +18,16 @@ import { ReleasePath } from '../vars/release_path.js';
 import { WatcherPaths } from '../vars/watcher_paths.js';
 import { WorkerController } from '../worker/controller.js';
 import { sleep } from '../utils/sleep.js';
-import { regenerate_assets, regenerate_routes, regenerate_i18n, regenerate_plugins, regenerate_pages, regenerate_src, regeneration_static_file } from '../utils/regenerate.js';
+import {
+    regenerate_assets,
+    regenerate_routes,
+    regenerate_i18n,
+    regenerate_plugins,
+    regenerate_pages,
+    regenerate_src,
+    regeneration_static_file,
+    regenerate_events
+} from '../utils/regenerate.js';
 import { RegenerateFragment } from '../model/regenerate_fragment.mjs';
 import { run_tests } from '../utils/tests.js';
 import { get_page_data_path } from '../utils/pages.js';
@@ -86,6 +95,14 @@ export async function regenerate(raw_changed_files) {
         // plugins
         if (in_array(fragments, FOLDER_PLUGINS)) {
             await regenerate_plugins(RegenerateFragment(frag_files?.plugins), gen_folder);
+
+            // reload whole page
+            reload_page = true;
+        }
+
+        // events
+        if (in_array(fragments, FOLDER_EVENTS)) {
+            await regenerate_events(RegenerateFragment(frag_files?.events), gen_folder);
 
             // reload whole page
             reload_page = true;

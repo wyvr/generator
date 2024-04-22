@@ -151,7 +151,12 @@ export async function render_server_compiled_svelte(exec_result, data, file) {
         if (!is_func(callback)) {
             return undefined;
         }
-        return await callback();
+        try {
+            return await callback();
+        } catch (e) {
+            Logger.error(get_error_message(e, file, 'svelte server onServer'));
+            return undefined;
+        }
     };
 
     try {

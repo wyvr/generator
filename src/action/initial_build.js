@@ -1,7 +1,7 @@
 import { get_config_data } from './get_config_data.js';
 import { collect_packages } from './package.js';
 import { present } from './present.js';
-import { FOLDER_MEDIA, FOLDER_RELEASES, FOLDER_STORAGE } from '../constants/folder.js';
+import { FOLDER_GEN_EVENTS, FOLDER_MEDIA, FOLDER_RELEASES, FOLDER_STORAGE } from '../constants/folder.js';
 import { package_report } from '../presentation/package_report.js';
 import { Config } from '../utils/config.js';
 import { read_json, symlink } from '../utils/file.js';
@@ -34,6 +34,7 @@ import { collections } from './collections.js';
 import { Env } from '../vars/env.js';
 import { build_cache as build_media_cache } from '../utils/media.js';
 import { cronjobs } from './cronjobs.js';
+import { update_project_events } from '../utils/project_events.js';
 
 export async function pre_initial_build(build_id, config_data) {
     try {
@@ -92,6 +93,9 @@ export async function intial_build(build_id, config) {
 
     // Transform Svelte files to client and server components
     await transform();
+
+    // Reload the events
+    await update_project_events(FOLDER_GEN_EVENTS);
 
     // Initialize Plugins
     await Plugin.initialize();

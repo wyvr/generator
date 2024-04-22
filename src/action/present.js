@@ -1,4 +1,5 @@
 import { Logger } from '../utils/logger.js';
+import { get_active_events_count } from '../utils/project_events.js';
 import { filled_array, is_object } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
@@ -21,6 +22,10 @@ export function present(config_data) {
     const { command, flags } = get_present_command(config_data?.cli?.command, config_data?.cli?.flags);
     process.title = `wyvr ${command}`;
     Logger.present('command', command, Logger.color.dim(flags));
+    const events_count = get_active_events_count();
+    if(events_count > 0) {
+        Logger.present('events', events_count);
+    }
 }
 export function get_present_command(command_array, flags_array) {
     if (!filled_array(command_array)) {

@@ -3,6 +3,7 @@ import { FOLDER_GEN } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { Logger } from './logger.js';
 import { filled_array, filled_string, is_null, is_object } from './validate.js';
+import { Event } from './event.js';
 
 export function extract_error(e, source) {
     const root_dir = Cwd.get();
@@ -171,5 +172,19 @@ export function inject_worker_message_errors(messages) {
             return get_error_message(message.error, message.filename);
         }
         return message;
+    });
+}
+
+/**
+ * Detect global error events
+ */
+export function bind_error_events() {
+    // @see https://nodejs.org/api/process.html#event-uncaughtexception
+    process.on('uncaughtException', (error, origin) => {
+        Event.emit('project', 'error', { error, origin });
+    });
+    // when available it prevents the exit of the application
+    process.on('unhandledRejection', (reason, promise) => {
+        Event.emit('project', 'error', { promise, reason });
     });
 }

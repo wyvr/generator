@@ -19,6 +19,7 @@ import { to_plain } from './utils/to.js';
 import { filled_array } from './utils/validate.js';
 import { Cwd } from './vars/cwd.js';
 import { WorkerController } from './worker/controller.js';
+import { Event } from './utils/event.js';
 
 export function get_command(config) {
     const commands = config?.cli?.command;
@@ -40,6 +41,8 @@ export async function command(config) {
         console.error('');
         /* eslint-enable */
     }
+
+    Event.emit('project', 'config', config);
 
     switch (get_command(config)) {
         case 'app':

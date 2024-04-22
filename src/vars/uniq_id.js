@@ -1,9 +1,11 @@
 import { FOLDER_CACHE } from '../constants/folder.js';
+import { Event } from '../utils/event.js';
 import { read, write } from '../utils/file.js';
 import { uniq_id } from '../utils/uniq.js';
 import { is_null } from '../utils/validate.js';
 import { Cwd } from './cwd.js';
 
+// biome-ignore lint/complexity/noStaticOnlyClass: should be static only
 export class UniqId {
     static load() {
         const value = read(this.file());
@@ -19,6 +21,7 @@ export class UniqId {
         return this.value;
     }
     static set(value) {
+        Event.emit('project', 'build_id', value);
         this.value = value;
     }
     static persist() {

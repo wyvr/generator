@@ -1,7 +1,7 @@
 import { extname, join } from 'path';
 import { copy_executable_file, copy_files, copy_folder } from '../action/copy.js';
 import { i18n } from '../action/i18n.js';
-import { FOLDER_GEN, FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC, FOLDER_I18N } from '../constants/folder.js';
+import { FOLDER_GEN, FOLDER_GEN_CLIENT, FOLDER_GEN_EVENTS, FOLDER_GEN_SERVER, FOLDER_GEN_SRC, FOLDER_I18N } from '../constants/folder.js';
 import { Page } from '../model/page.js';
 import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
@@ -20,6 +20,7 @@ import { uniq_values } from './uniq.js';
 import { to_relative_path, to_single_identifier_name } from './to.js';
 import { transform } from '../action/transform.js';
 import { process_pages } from '../action/page.js';
+import { update_project_events } from './project_events.js';
 
 /**
  * Regenerate the plugins
@@ -39,7 +40,23 @@ export async function regenerate_plugins({ change, add, unlink }, gen_folder) {
     await Plugin.initialize();
 }
 /**
- * Regenerate the plugins
+ * Regenerate the events
+ * @param {RegenerateFragment} RegenerateFragment
+ * @param {string} gen_folder
+ * @param {string} cache_breaker
+ */
+export async function regenerate_events({ change, add, unlink }, gen_folder) {
+    const modified_plugins = [].concat(change, add);
+    if (modified_plugins.length > 0) {
+        for (const file of modified_plugins) {
+            write(join(gen_folder, file.rel_path), replace_imports(read(file.path), file.path, FOLDER_GEN_SRC, 'events'));
+        }
+    }
+    unlink_from(unlink, gen_folder);
+    await update_project_events(FOLDER_GEN_EVENTS);
+}
+/**
+ * Regenerate the routes
  * @param {RegenerateFragment} RegenerateFragment
  * @param {string} gen_folder
  * @returns whether the page has to be reloaded or not

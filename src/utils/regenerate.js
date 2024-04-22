@@ -234,8 +234,9 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
         pages.push(...data_files);
         */
 
-        // check if files have test files in place and execute them
-        test_files = combined_files.filter((file) => file.match(/\.spec\.[mc]js?/));
+        // check if files have test files in place and execute them later
+        const current_test_files = combined_files.filter((file) => file.match(/\.spec\.[mc]?js$/));
+        test_files.push(...current_test_files);
 
         // rebuild the identifiers
         if (filled_object(identifiers)) {

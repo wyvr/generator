@@ -33,7 +33,7 @@ describe('utils/dependency/cache_dependencies', () => {
         deepStrictEqual(read_json(join(__dirname, 'cache', 'dependencies_top.json')), { file: ['d1', 'd2'] });
         deepStrictEqual(read_json(join(__dirname, 'cache', 'dependencies_bottom.json')), {
             d1: ['file'],
-            d2: ['file'],
+            d2: ['file']
         });
     });
     it('set dependencies with dirty values', () => {
@@ -43,7 +43,10 @@ describe('utils/dependency/cache_dependencies', () => {
         deepStrictEqual(read_json(join(__dirname, 'cache', 'dependencies_top.json')), { file: ['d1', 'd2'] });
         deepStrictEqual(read_json(join(__dirname, 'cache', 'dependencies_bottom.json')), {
             d1: ['file'],
-            d2: ['file'],
+            d2: ['file']
         });
+    });
+    it('normalize: fix of server and client file dependencies', () => {
+        deepStrictEqual(cache_dependencies({ file: ['server/d1', 'client/d2', 'src/d3'] }), { file: ['src/d1', 'src/d2', 'src/d3'] });
     });
 });

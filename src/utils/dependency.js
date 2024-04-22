@@ -232,9 +232,10 @@ export function cache_dependencies(dependencies) {
         return undefined;
     }
     // remove doubled dependencies
-    files.forEach((file) => {
-        dependencies[file] = uniq_values(dependencies[file].flat(2));
-    });
+        dependencies[file] = uniq_values(dependencies[file].flat(2)).map((filepath) => {
+            // fix server content when selecting from routes, plugins or events
+            return filepath.replace(/^(server|client)\//, 'src/');
+        });
 
     // @NOTE set_config_cache is asynchronous, so this step could be problematic in edge cases
     set_config_cache('dependencies.top', dependencies);

@@ -25,24 +25,24 @@ export async function dependencies() {
         const dep_listener_id = Event.on('emit', dependency_name, (data) => {
             const deps = data?.dependencies;
             if (!is_null(deps)) {
-                Object.keys(deps).forEach((file) => {
+                for (const file of Object.keys(deps)) {
                     if (!is_array(dependencies[file])) {
                         dependencies[file] = [];
                     }
-                    const clean_deps = deps[file].filter((dep) => dep != file);
+                    const clean_deps = deps[file].filter((dep) => dep !== file);
                     dependencies[file].push(...clean_deps);
-                });
+                }
             }
         });
         const i18n_listener_id = Event.on('emit', i18n_name, (data) => {
             const result = data?.i18n;
             if (!is_null(result)) {
-                Object.keys(result).forEach((file) => {
+                for (const file of Object.keys(result)) {
                     if (!is_array(i18n[file])) {
                         i18n[file] = [];
                     }
                     i18n[file].push(...result[file]);
-                });
+                }
             }
         });
 
@@ -53,7 +53,7 @@ export async function dependencies() {
                 if (!in_array(['.css', '.scss', '.js', '.mjs', '.cjs', '.ts'], extension)) {
                     return true;
                 }
-                return list.indexOf(to_extension(path, 'svelte')) == -1;
+                return list.indexOf(to_extension(path, 'svelte')) === -1;
             }),
             collect_files(Cwd.get(FOLDER_GEN_PLUGINS)),
             collect_files(Cwd.get(FOLDER_GEN_ROUTES))

@@ -26,7 +26,7 @@ export function get_present_command(command_array, flags_array) {
     if (!filled_array(command_array)) {
         command_array = ['-'];
     }
-    let command = command_array.join(' ');
+    const command = command_array.join(' ');
 
     let flags = '';
     if (is_object(flags_array)) {

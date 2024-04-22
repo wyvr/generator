@@ -116,7 +116,7 @@ export const global_flags = [
     },
     {
         key: 'log_level',
-        desc: 'set the log level when writing log file, available options ' + Object.keys(LogType).join(',')
+        desc: `set the log level when writing log file, available options ${Object.keys(LogType).join(',')}`
     }
 ];
 

@@ -13,7 +13,7 @@ export function extract_cli_config(argv) {
         flags: undefined
     };
 
-    if (!Array.isArray(argv) || argv.length == 0) {
+    if (!Array.isArray(argv) || argv.length === 0) {
         return default_config;
     }
     default_config.interpreter = argv[0];
@@ -29,21 +29,21 @@ export function extract_cli_config(argv) {
         .slice(2)
         .filter((arg) => {
             // flag found
-            if (arg.indexOf('-') == 0) {
+            if (arg.indexOf('-') === 0) {
                 if (!flags) {
                     flags = {};
                 }
                 const argument = arg.replace(/^-+/, '').split('=');
 
                 // fallback value
-                if (argument.length == 1) {
+                if (argument.length === 1) {
                     argument[1] = true;
                 }
                 // convert numbers
                 let value = argument[1];
                 if (is_string(value)) {
-                    value = parseFloat(argument[1]);
-                    if (isNaN(value)) {
+                    value = Number.parseFloat(argument[1]);
+                    if (Number.isNaN(value)) {
                         value = argument[1].replace(/^['"]/, '').replace(/['"]$/, '');
                     }
                 }
@@ -63,7 +63,7 @@ export function extract_cli_config(argv) {
                 return true;
             }
             // add the char to the last flag
-            flags[last_flag] += ' ' + arg;
+            flags[last_flag] += ` ${arg}`;
             return false;
         })
         .map((cmd) => cmd.toLowerCase());
@@ -82,7 +82,7 @@ export function get_wyvr_version() {
 
     const pkg = JSON.parse(readFileSync(join(__dirname, '..', '..', 'package.json'), { encoding: 'utf-8' }));
 
-    if (pkg && pkg.version) {
+    if (pkg?.version) {
         return pkg.version;
     }
     /* c8 ignore next */

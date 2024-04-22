@@ -22,7 +22,7 @@ export function filled_string(value) {
  * @returns boolean
  */
 export function is_number(value) {
-    return typeof value === 'number' || typeof value == 'bigint';
+    return typeof value === 'number' || typeof value === 'bigint';
 }
 
 /**
@@ -40,7 +40,7 @@ export function is_int(value) {
  * @returns boolean
  */
 export function is_float(value) {
-    return is_int(value) && (value + '').indexOf('.') > -1;
+    return is_int(value) && `${value}`.indexOf('.') > -1;
 }
 
 /**
@@ -49,7 +49,7 @@ export function is_float(value) {
  * @returns boolean
  */
 export function is_big_int(value) {
-    return typeof value == 'bigint';
+    return typeof value === 'bigint';
 }
 
 /**
@@ -82,7 +82,7 @@ export function in_array(array, value) {
  * @returns boolean
  */
 export function is_object(value) {
-    return typeof value == 'object' && value != null && !Array.isArray(value) && !is_regex(value) && !is_date(value);
+    return typeof value === 'object' && value != null && !Array.isArray(value) && !is_regex(value) && !is_date(value);
 }
 
 /**
@@ -100,7 +100,7 @@ export function filled_object(value) {
  * @returns boolean
  */
 export function is_symbol(value) {
-    return typeof value == 'symbol';
+    return typeof value === 'symbol';
 }
 
 /**
@@ -136,7 +136,7 @@ export function is_null(value) {
  * @returns boolean
  */
 export function is_bool(value) {
-    return typeof value == 'boolean';
+    return typeof value === 'boolean';
 }
 
 /**
@@ -145,7 +145,7 @@ export function is_bool(value) {
  * @returns boolean
  */
 export function is_func(value) {
-    return typeof value == 'function';
+    return typeof value === 'function';
 }
 
 /**
@@ -157,7 +157,7 @@ export function is_path(value) {
     if (!filled_string(value)) {
         return false;
     }
-    if (value.indexOf('.') == 0 || value.indexOf('/') == 0 || value.indexOf('@src') == 0) {
+    if (value.indexOf('.') === 0 || value.indexOf('/') === 0 || value.indexOf('@src') === 0) {
         return true;
     }
     return false;

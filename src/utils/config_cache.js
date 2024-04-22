@@ -22,7 +22,7 @@ export function get_config_cache(segment, fallback_value) {
     if (!filled_string(segment)) {
         return fallback_value;
     }
-    let value = Config.get(segment);
+    const value = Config.get(segment);
     if (!is_null(value)) {
         return value;
     }
@@ -49,7 +49,7 @@ export async function set_config_cache(segment, value, send_to_workers = true) {
     Config.set(segment, value);
     if (IsWorker.get()) {
         // worker
-        if (segment == 'plugin_files') {
+        if (segment === 'plugin_files') {
             /* restore the plugins from the files,
              * because the plugins can not be sent to the workers,
              * because they contain functions which are not serializable

@@ -18,7 +18,7 @@ import { chat_start } from '../utils/chat.js';
 
 export async function dev_command(config) {
     // dev command has forced dev state, when nothing is defined
-    if (Env.get() == EnvType.prod) {
+    if (Env.get() === EnvType.prod) {
         Env.set(EnvType.dev);
     }
 

@@ -19,11 +19,11 @@ export function dependencies_from_content(content, file) {
     }
     let file_path = dirname(file);
     // prepand absolute path when it is relative
-    if (file_path.indexOf('/') != 0) {
+    if (file_path.indexOf('/') !== 0) {
         file_path = Cwd.get(file_path);
     }
     // paths are relative to the src folder
-    let rel_base_path = file_path.replace(Cwd.get(), '').replace(/^\/?src/, '');
+    const rel_base_path = file_path.replace(Cwd.get(), '').replace(/^\/?src/, '');
     const deps = {};
     const i18n = {};
     const key = to_relative_path_of_gen(file);
@@ -34,14 +34,14 @@ export function dependencies_from_content(content, file) {
         // remove cache breaker
         dep = dep.replace(/\?\d+$/, '');
         // node dependency
-        if (dep.indexOf('./') != 0 && dep.indexOf('/') != 0 && dep.indexOf('@src') != 0) {
+        if (dep.indexOf('./') !== 0 && dep.indexOf('/') !== 0 && dep.indexOf('@src') !== 0) {
             return;
         }
         // replace @src
         dep = replace_src(dep, '');
         // fix relative paths of the dependencies
         // './multiply.js' in folder 'local/src/test/import' must become '/test/import/multiply.js'
-        if (dep.indexOf('./') == 0) {
+        if (dep.indexOf('./') === 0) {
             dep = join(rel_base_path, dep);
         }
         const dep_file_path_with_src = Cwd.get(FOLDER_GEN_SRC, dep);
@@ -78,7 +78,6 @@ export function dependencies_from_content(content, file) {
     if (!filled_array(deps[key])) {
         return { dependencies: undefined, i18n };
     }
-
     return { dependencies: deps, i18n };
 }
 export function flip_dependency_tree(dependencies) {
@@ -86,27 +85,25 @@ export function flip_dependency_tree(dependencies) {
         return undefined;
     }
     const result = {};
-    Object.keys(dependencies).forEach((parent) => {
-        dependencies[parent].forEach((child) => {
+    for (const parent of Object.keys(dependencies)) {
+        for (const child of dependencies[parent]) {
             if (!is_array(result[child])) {
                 result[child] = [];
             }
             result[child].push(parent);
-        });
-    });
+        }
+    }
     return result;
 }
 export function get_dependencies(tree, file, callback) {
     if (!filled_object(tree) || is_null(tree[file])) {
         return [];
     }
-    if (!is_func(callback)) {
-        callback = (list) => list;
-    }
-    const result = callback(tree[file], file);
-    tree[file].forEach((child) => {
+    const fn = is_func(callback) ? callback : (list) => list;
+    const result = fn(tree[file], file);
+    for (const child of tree[file]) {
         result.push(...get_dependencies(tree, child, callback));
-    });
+    }
     return uniq_values(result);
 }
 
@@ -116,17 +113,17 @@ export function get_hydrate_dependencies(tree, file_config_tree, file) {
     }
     const result = [];
     const config = file_config_tree[file];
-    if (config.render == WyvrFileRender.hydrate) {
+    if (config.render === WyvrFileRender.hydrate) {
         const entry = WyvrFile(file);
         entry.config = file_config_tree[file];
         return [entry];
     }
     if (!is_null(tree[file])) {
-        tree[file].forEach((child) => {
-            if (child != file) {
+        for (const child of tree[file]) {
+            if (child !== file) {
                 result.push(...get_hydrate_dependencies(tree, file_config_tree, child));
             }
-        });
+        }
     }
     return result;
 }
@@ -152,38 +149,38 @@ export function get_identifiers_of_file(reversed_tree, file) {
 
     const get_push_value = (file, path) => {
         const index = file.indexOf(path);
-        if (index != 0) {
+        if (index !== 0) {
             return undefined;
         }
         has_values = true;
         return file.substring(index + path.length);
     };
 
-    files.forEach((file) => {
-        ['doc', 'layout', 'page'].forEach((type) => {
+    for (const file of files) {
+        for (const type of ['doc', 'layout', 'page']) {
             const value = get_push_value(file, `src/${type}/`);
             if (value) {
                 parents[type].push(value);
             }
-        });
-    });
+        }
+    }
     if (!has_values) {
         return { identifiers_of_file: [], files };
     }
     // clean empty arrays
-    ['doc', 'layout', 'page'].forEach((type) => {
+    for (const type of ['doc', 'layout', 'page']) {
         if (!filled_array(parents[type])) {
             parents[type].push(undefined);
         }
-    });
+    }
     const identifiers = [];
-    parents.doc.forEach((doc) => {
-        parents.layout.forEach((layout) => {
-            parents.page.forEach((page) => {
+    for (const doc of parents.doc) {
+        for (const layout of parents.layout) {
+            for (const page of parents.page) {
                 identifiers.push(Identifier(doc, layout, page));
-            });
-        });
-    });
+            }
+        }
+    }
     return { identifiers_of_file: uniq_values(identifiers), files };
 }
 
@@ -199,7 +196,8 @@ export function get_parents_of_file_recursive(tree, file) {
     // @TODO buggy when the parent directly is the file
     if (!tree[file]) {
         // try search for the file if it is a doc, layout or page
-        if (file.match(/\/(?:doc|layout|page)\//)) {
+        const type = file.split('/').find((part) => part && part !== 'src');
+        if (type && ['doc', 'layout', 'page'].indexOf(type) > -1) {
             return [file];
         }
         return undefined;
@@ -224,18 +222,20 @@ export function get_parents_of_file_recursive(tree, file) {
  * @returns {(object|undefined)}
  */
 export function cache_dependencies(dependencies) {
-    if (typeof dependencies != 'object') {
+    if (typeof dependencies !== 'object') {
         return undefined;
     }
     const files = Object.keys(dependencies);
-    if (files.length == 0) {
+    if (files.length === 0) {
         return undefined;
     }
     // remove doubled dependencies
+    for (const file of files) {
         dependencies[file] = uniq_values(dependencies[file].flat(2)).map((filepath) => {
             // fix server content when selecting from routes, plugins or events
             return filepath.replace(/^(server|client)\//, 'src/');
         });
+    }
 
     // @NOTE set_config_cache is asynchronous, so this step could be problematic in edge cases
     set_config_cache('dependencies.top', dependencies);

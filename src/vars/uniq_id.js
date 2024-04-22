@@ -6,7 +6,7 @@ import { Cwd } from './cwd.js';
 
 export class UniqId {
     static load() {
-        let value = read(this.file());
+        const value = read(this.file());
         if (is_null(value)) {
             return undefined;
         }

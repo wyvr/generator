@@ -63,6 +63,14 @@ describe('utils/css/get_critical_css', () => {
         );
         deepStrictEqual(log, ['Not rebasing assets for a {color:red}. Use "rebase" option\n']);
     });
+    it('no css found', async () => {
+        deepStrictEqual(
+            await get_critical_css(
+                '<html><head></head><body><a href="#">test</a></body></html>'
+            ),
+            ''
+        );
+    });
     it('missing file', async () => {
         deepStrictEqual(
             await get_critical_css(
@@ -73,6 +81,6 @@ describe('utils/css/get_critical_css', () => {
         deepStrictEqual(log, [['✖', "@critical\n[Error] Error: File not found: test.css\n       Current working directory: /home/p/wyvr/generator\n       Searched in: /home/p/wyvr/generator"]]);
     });
     it('no media query and no file', async () => {
-        deepStrictEqual(await get_critical_css('a {color: red;}'), 'a {color: red;}');
+        deepStrictEqual(await get_critical_css('a {color: red;}'), '');
     });
 });

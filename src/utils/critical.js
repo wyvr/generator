@@ -13,9 +13,6 @@ export async function get_critical_css(content, file) {
     if (result.css) {
         return result.css;
     }
-    if (result.html) {
-        return result.html;
-    }
     return '';
 }
 

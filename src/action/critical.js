@@ -20,7 +20,7 @@ export async function critical() {
     await measure_action(name, async () => {
         const identifier_files = await Storage.get('collection', 'identifier_files');
         const data = [];
-        Object.keys(identifier_files).forEach((identifier) => {
+        for (const identifier of Object.keys(identifier_files)) {
             const files = identifier_files[identifier].map((file) => to_index(file));
             const file = files.find((file) => file.match(/\.html?$/));
             if (file) {
@@ -30,15 +30,15 @@ export async function critical() {
                 css: '',
                 files
             };
-        });
+        }
 
         const critical_id = Event.on('emit', critical_name, (data) => {
             if (!data) {
                 return;
             }
-            Object.keys(data.critical).forEach((key) => {
+            for (const key of Object.keys(data.critical)) {
                 critical[key].css = data.critical[key];
-            });
+            }
         });
 
         // wrap in plugin

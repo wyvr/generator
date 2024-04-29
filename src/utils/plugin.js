@@ -16,6 +16,7 @@ import { FOLDER_GEN_PLUGINS } from '../constants/folder.js';
 import { set_config_cache } from './config_cache.js';
 import { append_cache_breaker } from './cache_breaker.js';
 
+// biome-ignore lint/complexity/noStaticOnlyClass: <explanation>
 export class Plugin {
     static async load(folder) {
         if (!filled_string(folder)) {

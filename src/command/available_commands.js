@@ -155,15 +155,15 @@ export function show_help(config) {
         }
     }
     Logger.start('commands');
-    Object.keys(commands).forEach((key) => {
+    for (const key of Object.keys(commands)) {
         show_command(key, config);
-    });
+    }
     Logger.stop('commands');
     if (config?.flags && flags) {
         Logger.start('global flags');
-        flags.forEach((flag) => {
+        for (const flag of flags) {
             show_flag(flag.key, flag.desc);
-        });
+        }
         Logger.stop('global flags');
     }
 }
@@ -171,9 +171,9 @@ export function show_help(config) {
 export function show_command(key, config = {}) {
     Logger.present(key, available_commands[key].desc);
     if (config?.flags) {
-        available_commands[key].flags.forEach((flag) => {
+        for (const flag of available_commands[key].flags) {
             show_flag(flag.key, flag.desc);
-        });
+        }
     }
 }
 

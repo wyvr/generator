@@ -1,4 +1,4 @@
-import { strictEqual } from 'assert';
+import { strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { LogType } from '../../../src/struc/log.js';
 import { Logger } from '../../../src/utils/logger.js';

@@ -1,4 +1,4 @@
-import { match } from 'assert';
+import { match } from 'node:assert';
 import { describe, it } from 'mocha';
 import { Logger } from '../../../src/utils/logger.js';
 

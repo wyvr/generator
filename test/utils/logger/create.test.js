@@ -1,5 +1,4 @@
-import { deepStrictEqual, strictEqual } from 'assert';
-import kleur from 'kleur';
+import {  strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { Logger } from '../../../src/utils/logger.js';
 

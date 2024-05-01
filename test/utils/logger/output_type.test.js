@@ -1,55 +1,39 @@
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { Logger } from '../../../src/utils/logger.js';
-import { to_plain } from '../../../src/utils/to.js';
+import { fakeConsole } from './fakeConsole.js';
 
 describe('utils/logger/output_type', () => {
-    let log, err;
-    let result = [];
+    const C = fakeConsole();
 
-    before(() => {
-        // runs once before the first test in this block
-        log = console.log;
-        console.log = (...args) => {
-            result.push(args.map((x) => to_plain(x)));
-        };
-        err = console.error;
-        console.error = (...args) => {
-            result.push(args.map((x) => to_plain(x)));
-        };
+    beforeEach(() => {
+        C.start()
     });
-    afterEach(() => {
-        result = [];
-    });
-    after(() => {
-        // runs once after the last test in this block
-        console.log = log;
-        console.error = err;
-    });
+    
     it('undefined', () => {
         Logger.output_type();
-        deepStrictEqual(result, [['', '']]);
+        deepStrictEqual(C.end(), [['', '']]);
     });
 
     it('no value', () => {
         Logger.output_type('log', 'key');
-        deepStrictEqual(result, [['key', '']]);
+        deepStrictEqual(C.end(), [['key', '']]);
     });
 
     it('log one value', () => {
         Logger.output_type('log', 'key', 'val1');
-        deepStrictEqual(result, [['key', 'val1']]);
+        deepStrictEqual(C.end(), [['key', 'val1']]);
     });
 
     it('log two values', () => {
         Logger.output_type('log', 'key', 'val1', 'val2');
-        deepStrictEqual(result, [['key', 'val1 val2']]);
+        deepStrictEqual(C.end(), [['key', 'val1 val2']]);
     });
 
     it('no value inset', () => {
         Logger.inset = 'test';
         Logger.output_type('log', 'key');
         Logger.inset = false;
-        deepStrictEqual(result, [['│', 'key', '']]);
+        deepStrictEqual(C.end(), [['│', 'key', '']]);
     });
 });

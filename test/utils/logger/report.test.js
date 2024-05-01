@@ -1,61 +1,75 @@
-import { deepStrictEqual } from 'assert';
-import cluster from 'cluster';
-import kleur from 'kleur';
+import { strictEqual, deepStrictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import Sinon from 'sinon';
-import { LogColor, LogIcon } from '../../../src/struc/log.js';
+import { LogIcon } from '../../../src/struc/log.js';
 import { Logger } from '../../../src/utils/logger.js';
 import { Report } from '../../../src/vars/report.js';
+import { fakeConsole } from './fakeConsole.js';
+import { IsWorker } from '../../../src/vars/is_worker.js';
 
 describe('utils/logger/report', () => {
-    let logger_messages = [];
+    const C = fakeConsole();
 
-    const icon = LogColor.report(LogIcon.report);
-    const color = LogColor.report;
+    const icon = LogIcon.report;
 
-    before(() => {
-        Sinon.stub(Logger, 'output');
-        Logger.output.callsFake((...msg) => {
-            logger_messages.push(msg.slice(3));
-        });
-    });
+    let mock_send;
+    let send_data;
+
     beforeEach(() => {
+        C.start();
         Report.set(true);
+
+        mock_send = process.send;
+        process.send = (data) => {
+            send_data = data;
+        };
     });
-    after(() => {
-        Logger.output.restore();
-    });
+
     afterEach(() => {
+        send_data = undefined;
         Report.set(false);
         Logger.report_content = [];
-        logger_messages = [];
+        process.send = mock_send;
+        IsWorker.set(undefined);
     });
 
     it('hide', () => {
         Report.set(false);
         Logger.report('#');
-        deepStrictEqual(logger_messages, []);
+        deepStrictEqual(C.end(), []);
+        deepStrictEqual(send_data, undefined);
     });
     it('undefined', () => {
         Logger.report();
-        deepStrictEqual(logger_messages, []);
+        deepStrictEqual(C.end(), []);
+        deepStrictEqual(send_data, undefined);
     });
 
     it('key + multiple text', () => {
         Logger.report(500, 'a', 'b');
-        deepStrictEqual(logger_messages, [['a', 'b', '500', kleur.dim('ms')]]);
+        deepStrictEqual(C.end(), [[icon, 'a b 500 ms']]);
+        deepStrictEqual(send_data, undefined);
         deepStrictEqual(Logger.report_content, [[500, 'a', 'b']]);
     });
     it('report from worker', () => {
-        const sandbox = Sinon.createSandbox();
-        sandbox.stub(cluster, 'isWorker').value(true);
+        IsWorker.set(true);
         Logger.report(500, 'a', 'b');
-        deepStrictEqual(logger_messages, [['a', 'b', '500', kleur.dim('ms')]]);
+        deepStrictEqual(C.end(), []);
+        deepStrictEqual(send_data.data, {
+            action: {
+                key: 0,
+                value: {
+                    messages: ['>', 'a', 'b', '500', '\x1B[2mms\x1B[22m'],
+                    type: 2
+                }
+            }
+        });
+        strictEqual(!Number.isNaN(send_data.pid), true, 'pid is not a number');
         deepStrictEqual(Logger.report_content, []);
-        sandbox.restore();
     });
     it('from worker', () => {
         Logger.report(500, 'a', 'b');
-        deepStrictEqual(logger_messages, [['a', 'b', '500', kleur.dim('ms')]]);
+        deepStrictEqual(C.end(), [[icon, 'a b 500 ms']]);
+        deepStrictEqual(send_data, undefined);
     });
 });

@@ -1,43 +1,26 @@
-import { strictEqual, deepStrictEqual } from 'assert';
-import kleur from 'kleur';
+import { deepStrictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
-import { LogFirstValueColor, LogIcon } from '../../../src/struc/log.js';
+import { LogIcon } from '../../../src/struc/log.js';
 import { Logger } from '../../../src/utils/logger.js';
+import { fakeConsole } from './fakeConsole.js';
+import { to_plain } from '../../../src/utils/to.js';
 
 describe('utils/logger/success', () => {
-    let log, err;
-    let result = [];
+    const C = fakeConsole();
 
-    const icon = LogIcon.success;
-    const color = LogFirstValueColor.success;
-    before(() => {
-        // runs once before the first test in this block
-        log = console.log;
-        console.log = (...args) => {
-            result.push(args);
-        };
-        err = console.error;
-        console.error = (...args) => {
-            result.push(args);
-        };
+    beforeEach(() => {
+        C.start();
     });
-    afterEach(() => {
-        result = [];
-    });
-    after(() => {
-        // runs once after the last test in this block
-        console.log = log;
-        console.error = err;
-    });
+
+    const icon = to_plain(LogIcon.success);
+
     it('undefined', () => {
         Logger.success();
-        deepStrictEqual(result, [[icon, '']]);
+        deepStrictEqual(C.end(), [[icon, '']]);
     });
 
     it('key + multiple text', () => {
         Logger.success('#', 'a', 'b');
-        deepStrictEqual(result, [[icon, `# ${color('a')} b`]]);
-    });  
-   
-   
+        deepStrictEqual(C.end(), [[icon, '# a b']]);
+    });
 });

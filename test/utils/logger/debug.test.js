@@ -1,55 +1,37 @@
-import { strictEqual, deepStrictEqual } from 'assert';
-import kleur from 'kleur';
+import { deepStrictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { EnvType } from '../../../src/struc/env.js';
-import { LogColor, LogIcon } from '../../../src/struc/log.js';
+import { LogIcon } from '../../../src/struc/log.js';
 import { Logger } from '../../../src/utils/logger.js';
 import { Env } from '../../../src/vars/env.js';
+import { fakeConsole } from './fakeConsole.js';
 
 describe('utils/logger/debug', () => {
-    let log, err;
-    let result = [];
+    const icon = LogIcon.debug;
 
-    const icon = LogColor.debug(LogIcon.debug);
-    const color = LogColor.debug;
+    const C = fakeConsole();
 
-    before(() => {
-        // runs once before the first test in this block
-        log = console.log;
-        console.log = (...args) => {
-            result.push(args);
-        };
-        err = console.error;
-        console.error = (...args) => {
-            result.push(args);
-        };
-    });
     beforeEach(() => {
+        C.start();
         Env.set(EnvType.debug);
     });
     afterEach(() => {
-        result = [];
         Env.set(EnvType.prod);
-    });
-    after(() => {
-        // runs once after the last test in this block
-        console.log = log;
-        console.error = err;
     });
 
     it('hide in prod mode', () => {
         Env.set(EnvType.prod);
         Logger.debug('#');
-        deepStrictEqual(result, []);
+        deepStrictEqual(C.end(), []);
     });
 
     it('undefined', () => {
         Logger.debug();
-        deepStrictEqual(result, [[icon, color('')]]);
+        deepStrictEqual(C.end(), [[icon, '']]);
     });
 
     it('key + multiple text', () => {
         Logger.debug('#', 'a', 'b');
-        deepStrictEqual(result, [[icon, color('# a b')]]);
+        deepStrictEqual(C.end(), [[icon, '# a b']]);
     });
 });

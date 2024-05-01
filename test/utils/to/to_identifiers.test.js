@@ -1,4 +1,4 @@
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { Identifier } from '../../../src/model/identifier.js';
 import { clone } from '../../../src/utils/json.js';

@@ -1,6 +1,6 @@
-import { strictEqual, deepStrictEqual } from 'assert';
+import { strictEqual, deepStrictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
-import { join } from 'path';
+import { join } from 'node:path';
 import Sinon from 'sinon';
 import { wait_until_idle } from '../../src/action/wait_until_idle.js';
 import { WorkerStatus } from '../../src/struc/worker_status.js';

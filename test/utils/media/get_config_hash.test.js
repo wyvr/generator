@@ -1,4 +1,4 @@
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'node:assert';
 import { get_config_hash } from '../../../src/utils/media.js';
 
 describe('utils/media/get_config_hash', () => {

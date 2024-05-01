@@ -1,5 +1,5 @@
-import { deepStrictEqual } from 'assert';
-import { join } from 'path';
+import { deepStrictEqual } from 'node:assert';
+import { join } from 'node:path';
 import Sinon from 'sinon';
 import { exists, remove, write } from '../../../src/utils/file.js';
 import { process as process_media } from '../../../src/utils/media.js';

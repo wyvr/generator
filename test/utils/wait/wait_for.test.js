@@ -1,4 +1,4 @@
-import { strictEqual } from 'assert';
+import { strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { wait_for } from '../../../src/utils/wait.js';
 

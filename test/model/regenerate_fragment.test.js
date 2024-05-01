@@ -1,4 +1,4 @@
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { RegenerateFragment } from '../../src/model/regenerate_fragment.mjs';
 

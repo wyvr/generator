@@ -1,4 +1,4 @@
-import { deepStrictEqual, strictEqual } from 'assert';
+import { deepStrictEqual, strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { MediaModel } from '../../src/model/media.js';
 

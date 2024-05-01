@@ -1,4 +1,4 @@
-import { strictEqual } from 'assert';
+import { strictEqual } from 'node:assert';
 import { replace_slots, replace_slots_static } from '../../../src/utils/transform.js';
 
 describe('utils/transform/replace_slots', () => {

@@ -1,6 +1,6 @@
-import { strictEqual } from 'assert';
+import { strictEqual } from 'node:assert';
 import { after, describe, it } from 'mocha';
-import { join } from 'path';
+import { join } from 'node:path';
 import { to_dirname } from '../../src/utils/to.js';
 import { Cwd } from '../../src/vars/cwd.js';
 import { UniqId } from '../../src/vars/uniq_id.js';

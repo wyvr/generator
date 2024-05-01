@@ -1,9 +1,9 @@
-import { strictEqual } from 'assert';
+import { strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { create_dir } from '../../../src/utils/file.js';
 import { v4 } from 'uuid';
-import { dirname, join } from 'path';
-import { existsSync, rmSync } from 'fs';
+import { dirname, join } from 'node:path';
+import { existsSync, rmSync } from 'node:fs';
 
 describe('utils/file/create_dir', () => {
     it('empty', () => {

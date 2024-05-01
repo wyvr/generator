@@ -1,4 +1,4 @@
-import { strictEqual } from 'assert';
+import { strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { uniq_id } from '../../../src/utils/uniq.js';
 

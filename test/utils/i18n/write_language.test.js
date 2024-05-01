@@ -1,10 +1,10 @@
-import { strictEqual } from 'assert';
+import { strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { write_language } from '../../../src/utils/i18n.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 import { to_dirname } from '../../../src/utils/to.js';
 import { read, remove } from '../../../src/utils/file.js';
-import { join } from 'path';
+import { join } from 'node:path';
 
 describe('action/i18n/write_language', () => {
     const __dirname = join(to_dirname(import.meta.url), '_tests');

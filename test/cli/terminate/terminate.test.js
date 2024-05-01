@@ -1,4 +1,4 @@
-import { strictEqual } from 'assert';
+import { strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { terminate } from '../../../src/cli/terminate.js';
 import Sinon from 'sinon';

@@ -1,6 +1,6 @@
-import { strictEqual } from 'assert';
+import { strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
-import { join } from 'path';
+import { join } from 'node:path';
 import { to_dirname } from '../../../src/utils/to.js';
 import { replace_import_path } from '../../../src/utils/transform.js';
 
@@ -15,9 +15,9 @@ describe('utils/transform/replace_import_path', () => {
     });
     it('content without', () => {
         strictEqual(
-            replace_import_path(`import fs from 'fs';
+            replace_import_path(`import fs from 'node:fs';
         import { Logger } from '@lib/utils/logger.js';`),
-            `import fs from 'fs';
+            `import fs from 'node:fs';
         import { Logger } from '${__dirname}/src/utils/logger.js';`
         );
     });

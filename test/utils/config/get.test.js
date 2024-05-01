@@ -1,4 +1,4 @@
-import { deepStrictEqual, strictEqual } from 'assert';
+import { deepStrictEqual, strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { Config } from '../../../src/utils/config.js';
 import { WyvrConfig } from '../../../src/model/wyvr_config.js';

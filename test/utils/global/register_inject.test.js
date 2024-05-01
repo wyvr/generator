@@ -1,10 +1,10 @@
-import { deepStrictEqual, strictEqual } from 'assert';
+import { deepStrictEqual, strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { register_inject } from '../../../src/utils/global.js';
 import { WyvrConfig } from '../../../src/model/wyvr_config.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 import { to_dirname, to_plain } from '../../../src/utils/to.js';
-import { join } from 'path';
+import { join } from 'node:path';
 import Sinon from 'sinon';
 import { Logger } from '../../../src/utils/logger.js';
 

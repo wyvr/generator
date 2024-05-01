@@ -1,4 +1,4 @@
-import { strictEqual } from 'assert';
+import { strictEqual } from 'node:assert';
 import kleur from 'kleur';
 import { describe, it } from 'mocha';
 import { to_plain } from '../../../src/utils/to.js';

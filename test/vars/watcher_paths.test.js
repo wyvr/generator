@@ -1,4 +1,4 @@
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'node:assert';
 import { after, describe, it } from 'mocha';
 import { WatcherPaths } from '../../src/vars/watcher_paths.js';
 

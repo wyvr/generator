@@ -1,9 +1,9 @@
-import { deepStrictEqual, strictEqual } from 'assert';
+import { deepStrictEqual, strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { transform } from '../../src/action_worker/transform.js';
 import { Cwd } from '../../src/vars/cwd.js';
-import { join } from 'path';
-import { copyFileSync } from 'fs';
+import { join } from 'node:path';
+import { copyFileSync } from 'node:fs';
 import { collect_files, copy, exists, read, remove } from '../../src/utils/file.js';
 import { FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC } from '../../src/constants/folder.js';
 

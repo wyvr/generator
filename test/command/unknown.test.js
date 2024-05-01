@@ -1,7 +1,7 @@
-import { strictEqual, deepStrictEqual } from 'assert';
-import { existsSync, mkdirSync, rmSync } from 'fs';
+import { strictEqual, deepStrictEqual } from 'node:assert';
+import { existsSync, mkdirSync, rmSync } from 'node:fs';
 import { describe, it } from 'mocha';
-import { join } from 'path';
+import { join } from 'node:path';
 import Sinon from 'sinon';
 import { unknown_command } from '../../src/command/unknown.js';
 import { Logger } from '../../src/utils/logger.js';
@@ -51,6 +51,34 @@ describe('command/unknown', () => {
     });
     it('unknown', async () => {
         const result = await unknown_command({ cli: { command: ['unknown'] } });
+        strictEqual(exit_code, 1, 'exit code is not 1');
+        strictEqual(result, undefined);
+        deepStrictEqual(logger_messages[0][0], 'unknown command unknown');
+    });
+    it('custom commands', async () => {
+        const result = await unknown_command(
+            { cli: { command: ['unkno'] } },
+            {
+                unknown: {
+                    desc: 'UnknownDescription'
+                }
+            }
+        );
+        strictEqual(exit_code, 1, 'exit code is not 1');
+        strictEqual(result, undefined);
+        const messages = JSON.stringify(logger_messages);
+        strictEqual(messages.indexOf('unknown command unkno') > -1, true, `"unknown command" text not found in ${messages}`);
+        strictEqual(messages.indexOf('did you mean?') > -1, true, `"did you mean?" text not found in ${messages}`);
+    });
+    it('custom commands', async () => {
+        const result = await unknown_command(
+            { cli: { command: ['unknown'] } },
+            {
+                unknown: {
+                    desc: 'UnknownDescription'
+                }
+            }
+        );
         strictEqual(exit_code, 1, 'exit code is not 1');
         strictEqual(result, undefined);
         deepStrictEqual(logger_messages[0][0], 'unknown command unknown');

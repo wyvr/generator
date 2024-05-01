@@ -1,5 +1,5 @@
-import { deepStrictEqual } from 'assert';
-import { join } from 'path';
+import { deepStrictEqual } from 'node:assert';
+import { join } from 'node:path';
 import Sinon from 'sinon';
 import { parse_tag } from '../../../src/utils/shortcode.js';
 import { to_plain } from '../../../src/utils/to.js';

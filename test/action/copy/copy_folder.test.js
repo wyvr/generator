@@ -1,7 +1,7 @@
-import { strictEqual } from 'assert';
+import { strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { copy_folder } from '../../../src/action/copy.js';
-import { join } from 'path';
+import { join } from 'node:path';
 import { to_dirname } from '../../../src/utils/to.js';
 
 describe('action/copy/copy_folder', () => {

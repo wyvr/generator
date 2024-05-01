@@ -1,4 +1,4 @@
-import { strictEqual, deepStrictEqual } from 'assert';
+import { strictEqual, deepStrictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import Sinon from 'sinon';
 import { package_report } from '../../../src/presentation/package_report.js';

@@ -1,4 +1,4 @@
-import { deepStrictEqual, ok } from 'assert';
+import { deepStrictEqual, ok } from 'node:assert';
 import { describe, it } from 'mocha';
 import { Plugin } from '../../../src/utils/plugin.js';
 import { to_dirname } from '../../../src/utils/to.js';

@@ -1,15 +1,15 @@
-import { deepStrictEqual, strictEqual } from 'assert';
+import { deepStrictEqual, strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { register_prop } from '../../../src/utils/global.js';
 import { WyvrConfig } from '../../../src/model/wyvr_config.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 import { to_dirname, to_plain } from '../../../src/utils/to.js';
-import { join } from 'path';
+import { join } from 'node:path';
 import Sinon from 'sinon';
 import { Logger } from '../../../src/utils/logger.js';
 import { remove } from '../../../src/utils/file.js';
-import { readdirSync } from 'fs';
-import { existsSync } from 'fs';
+import { readdirSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { ReleasePath } from '../../../src/vars/release_path.js';
 
 describe('utils/global/register_prop', () => {

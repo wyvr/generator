@@ -1,7 +1,7 @@
-import { deepStrictEqual } from 'assert';
-import { existsSync, rmSync } from 'fs';
+import { deepStrictEqual } from 'node:assert';
+import { existsSync, rmSync } from 'node:fs';
 import { describe, it } from 'mocha';
-import { join } from 'path';
+import { join } from 'node:path';
 import Sinon from 'sinon';
 import { Logger } from '../../../src/utils/logger.js';
 import { Storage } from '../../../src/utils/storage.js';

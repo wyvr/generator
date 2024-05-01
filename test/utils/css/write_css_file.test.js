@@ -1,7 +1,7 @@
-import { deepStrictEqual } from 'assert';
-import { readdirSync } from 'fs';
+import { deepStrictEqual } from 'node:assert';
+import { readdirSync } from 'node:fs';
 import { describe } from 'mocha';
-import { join } from 'path';
+import { join } from 'node:path';
 import { EnvType } from '../../../src/struc/env.js';
 import { write_css_file } from '../../../src/utils/css.js';
 import { exists, remove, write } from '../../../src/utils/file.js';

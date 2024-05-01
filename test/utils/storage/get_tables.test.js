@@ -1,7 +1,7 @@
-import { deepStrictEqual } from 'assert';
-import { existsSync, mkdirSync, rmSync } from 'fs';
+import { deepStrictEqual } from 'node:assert';
+import { existsSync, mkdirSync, rmSync } from 'node:fs';
 import { describe, it } from 'mocha';
-import { join } from 'path';
+import { join } from 'node:path';
 import { Storage } from '../../../src/utils/storage.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 import { to_dirname } from '../../../src/utils/to.js';

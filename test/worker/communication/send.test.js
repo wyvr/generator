@@ -1,4 +1,4 @@
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { send } from '../../../src/worker/communication.js';
 import { Event } from '../../../src/utils/event.js';

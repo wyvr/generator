@@ -1,4 +1,4 @@
-import { strictEqual } from 'assert';
+import { strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { WorkerEmit, get_name } from '../../../src/struc/worker_emit.js';
 

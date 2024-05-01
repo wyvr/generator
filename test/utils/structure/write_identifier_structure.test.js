@@ -1,6 +1,6 @@
-import { deepStrictEqual, strictEqual } from 'assert';
+import { deepStrictEqual, strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
-import { join } from 'path';
+import { join } from 'node:path';
 import { collect_files, read_json, remove } from '../../../src/utils/file.js';
 import { write_identifier_structure } from '../../../src/utils/structure.js';
 import { Cwd } from '../../../src/vars/cwd.js';

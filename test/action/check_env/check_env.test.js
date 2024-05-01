@@ -1,5 +1,5 @@
-import { strictEqual, deepStrictEqual } from 'assert';
-import { join } from 'path';
+import { strictEqual, deepStrictEqual } from 'node:assert';
+import { join } from 'node:path';
 import { Cwd } from '../../../src/vars/cwd.js';
 import { check_env } from '../../../src/action/check_env.js';
 import { to_dirname, to_plain } from '../../../src/utils/to.js';

@@ -1,7 +1,7 @@
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { collect_i18n } from '../../../src/utils/i18n.js';
-import { join } from 'path';
+import { join } from 'node:path';
 import { to_dirname } from '../../../src/utils/to.js';
 
 describe('action/i18n/collect_i18n', () => {

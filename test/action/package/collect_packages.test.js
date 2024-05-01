@@ -1,8 +1,8 @@
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { Cwd } from '../../../src/vars/cwd.js';
 import { collect_packages } from '../../../src/action/package.js';
-import { join } from 'path';
+import { join } from 'node:path';
 import { Config } from '../../../src/utils/config.js';
 import { to_dirname } from '../../../src/utils/to.js';
 

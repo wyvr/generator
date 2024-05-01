@@ -1,9 +1,9 @@
-import { strictEqual } from 'assert';
+import { strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { remove_index } from '../../../src/utils/file.js';
 import { v4 } from 'uuid';
-import { dirname, join, sep } from 'path';
-import { existsSync, rmSync } from 'fs';
+import { dirname, join, sep } from 'node:path';
+import { existsSync, rmSync } from 'node:fs';
 
 describe('utils/file/remove_index', () => {
     it('undefined', () => {

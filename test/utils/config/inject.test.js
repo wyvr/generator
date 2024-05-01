@@ -1,10 +1,10 @@
-import { deepStrictEqual, strictEqual } from 'assert';
+import { deepStrictEqual, strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { inject, Config } from '../../../src/utils/config.js';
 import { WyvrConfig } from '../../../src/model/wyvr_config.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 import { to_dirname } from '../../../src/utils/to.js';
-import { join } from 'path';
+import { join } from 'node:path';
 
 describe('utils/config/set', () => {
     let error;

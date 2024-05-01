@@ -1,4 +1,4 @@
-import { strictEqual } from 'assert';
+import { strictEqual } from 'node:assert';
 import { describe } from 'mocha';
 import { nano_to_base } from '../../../src/utils/convert.js';
 

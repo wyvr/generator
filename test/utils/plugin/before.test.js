@@ -1,6 +1,6 @@
-import { deepStrictEqual, strictEqual } from 'assert';
+import { deepStrictEqual, strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
-import { dirname, join, resolve } from 'path';
+import { dirname, join, resolve } from 'node:path';
 import Sinon from 'sinon';
 import { fileURLToPath } from 'url';
 import { Plugin } from '../../../src/utils/plugin.js';

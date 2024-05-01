@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'node:path';
 import { FOLDER_PAGES } from '../../../src/constants/folder.js';
 import { Page } from '../../../src/model/page.js';
 

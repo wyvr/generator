@@ -1,6 +1,6 @@
-import { strictEqual } from 'assert';
+import { strictEqual } from 'node:assert';
 import { describe } from 'mocha';
-import { join } from 'path';
+import { join } from 'node:path';
 import { to_dirname, to_relative_path_of_gen } from '../../../src/utils/to.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 

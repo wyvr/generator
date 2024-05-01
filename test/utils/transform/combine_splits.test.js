@@ -1,7 +1,7 @@
-import { deepStrictEqual, strictEqual } from 'assert';
-import { readFileSync } from 'fs';
+import { deepStrictEqual, strictEqual } from 'node:assert';
+import { readFileSync } from 'node:fs';
 import { describe, it } from 'mocha';
-import { join } from 'path';
+import { join } from 'node:path';
 import { to_dirname } from '../../../src/utils/to.js';
 import { combine_splits } from '../../../src/utils/transform.js';
 import { Cwd } from '../../../src/vars/cwd.js';

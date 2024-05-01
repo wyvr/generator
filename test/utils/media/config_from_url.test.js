@@ -1,5 +1,5 @@
-import { deepStrictEqual } from 'assert';
-import { join } from 'path';
+import { deepStrictEqual } from 'node:assert';
+import { join } from 'node:path';
 import { clear_cache, config_from_url } from '../../../src/utils/media.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 import { MediaModel } from '../../../src/model/media.js';

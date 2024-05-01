@@ -1,4 +1,4 @@
-import assert, { deepStrictEqual, strictEqual } from 'assert';
+import assert, { deepStrictEqual, strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { compile_typescript } from '../../../src/utils/compile.js';
 import { to_plain } from '../../../src/utils/to.js';

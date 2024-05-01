@@ -1,10 +1,10 @@
-import { deepStrictEqual, strictEqual } from 'assert';
+import { deepStrictEqual, strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { configure } from '../../src/action_worker/configure.js';
 import { Logger } from '../../src/utils/logger.js';
 import Sinon from 'sinon';
 import { EnvType } from '../../src/struc/env.js';
-import { join } from 'path';
+import { join } from 'node:path';
 import { Env } from '../../src/vars/env.js';
 import { Config } from '../../src/utils/config.js';
 import { Cwd } from '../../src/vars/cwd.js';

@@ -1,8 +1,8 @@
-import { deepStrictEqual, strictEqual } from 'assert';
+import { deepStrictEqual, strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { prepare_code_to_compile } from '../../../src/utils/compile_svelte.js';
 import { Cwd } from '../../../src/vars/cwd.js';
-import { join } from 'path';
+import { join } from 'node:path';
 import { to_plain } from '../../../src/utils/to.js';
 import Sinon from 'sinon';
 import { Logger } from '../../../src/utils/logger.js';

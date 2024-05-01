@@ -1,7 +1,7 @@
-import { strictEqual, deepStrictEqual } from 'assert';
+import { strictEqual, deepStrictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { get_route, extract_route_config } from '../../../src/utils/routes.js';
-import { join } from 'path';
+import { join } from 'node:path';
 
 describe('utils/routes/get_route', () => {
     it('undefined', () => {

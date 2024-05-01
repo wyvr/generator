@@ -1,4 +1,4 @@
-import { strictEqual } from 'assert';
+import { strictEqual } from 'node:assert';
 import cluster from 'cluster';
 import { after, describe, it } from 'mocha';
 import { IsWorker } from '../../src/vars/is_worker.js';

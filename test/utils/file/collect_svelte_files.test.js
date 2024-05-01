@@ -1,4 +1,4 @@
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'node:assert';
 import { before, describe, it } from 'mocha';
 import { collect_svelte_files } from '../../../src/utils/file.js';
 import { WyvrFile } from '../../../src/model/wyvr_file.js';

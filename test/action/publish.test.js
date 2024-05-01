@@ -1,6 +1,6 @@
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
-import { join } from 'path';
+import { join } from 'node:path';
 import Sinon from 'sinon';
 import { publish } from '../../src/action/publish.js';
 import { FOLDER_RELEASES } from '../../src/constants/folder.js';

@@ -1,4 +1,4 @@
-import { deepStrictEqual, match } from 'assert';
+import { deepStrictEqual, match } from 'node:assert';
 import { describe, it } from 'mocha';
 import { get_logo } from '../../../src/presentation/logo.js';
 import kleur from 'kleur';

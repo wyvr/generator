@@ -1,4 +1,4 @@
-import { deepStrictEqual, strictEqual } from 'assert';
+import { deepStrictEqual, strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { SerializableResponse } from '../../../src/model/serializable/response.js';
 import { to_plain } from '../../../src/utils/to.js';

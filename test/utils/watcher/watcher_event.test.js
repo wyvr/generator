@@ -1,6 +1,6 @@
-import { deepStrictEqual, strictEqual } from 'assert';
+import { deepStrictEqual, strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
-import { join } from 'path';
+import { join } from 'node:path';
 import Sinon from 'sinon';
 import { to_plain } from '../../../src/utils/to.js';
 import { watcher_event } from '../../../src/utils/watcher.js';

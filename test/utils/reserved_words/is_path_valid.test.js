@@ -1,4 +1,4 @@
-import { deepStrictEqual, strictEqual } from 'assert';
+import { deepStrictEqual, strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { is_path_valid } from '../../../src/utils/reserved_words.js';
 import Sinon from 'sinon';

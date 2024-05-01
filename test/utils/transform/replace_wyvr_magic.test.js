@@ -1,6 +1,6 @@
-import { strictEqual } from 'assert';
+import { strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
-import { dirname, join, resolve } from 'path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'url';
 import { replace_wyvr_magic } from '../../../src/utils/transform.js';
 import { Cwd } from '../../../src/vars/cwd.js';

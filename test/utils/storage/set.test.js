@@ -1,7 +1,7 @@
-import { deepStrictEqual } from 'assert';
-import { existsSync, mkdirSync, rmSync } from 'fs';
+import { deepStrictEqual } from 'node:assert';
+import { existsSync, mkdirSync, rmSync } from 'node:fs';
 import { describe, it } from 'mocha';
-import { join } from 'path';
+import { join } from 'node:path';
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 import { StorageCacheStructure } from '../../../src/struc/storage.js';

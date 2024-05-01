@@ -1,4 +1,4 @@
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'node:assert';
 import { to_media_hash } from '../../../../../src/boilerplate/src/wyvr/media.js';
 
 describe('resource/media/to_media_hash', () => {

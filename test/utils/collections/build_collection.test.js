@@ -1,4 +1,4 @@
-import { deepStrictEqual, strictEqual } from 'assert';
+import { deepStrictEqual, strictEqual } from 'node:assert';
 import { describe } from 'mocha';
 import { build_collection } from '../../../src/utils/collections.js';
 

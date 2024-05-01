@@ -1,7 +1,7 @@
-import { deepStrictEqual } from 'assert';
-import { readFileSync } from 'fs';
+import { deepStrictEqual } from 'node:assert';
+import { readFileSync } from 'node:fs';
 import { describe, it } from 'mocha';
-import { join } from 'path';
+import { join } from 'node:path';
 import { modify_svelte_internal } from '../../../src/action/modify_svelte.mjs';
 import { to_dirname } from '../../../src/utils/to.js';
 

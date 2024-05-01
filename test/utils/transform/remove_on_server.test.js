@@ -1,4 +1,4 @@
-import { strictEqual } from 'assert';
+import { strictEqual } from 'node:assert';
 import { remove_on_server } from '../../../src/utils/transform.js';
 
 describe('utils/transform/remove_on_server', () => {

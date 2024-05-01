@@ -1,4 +1,4 @@
-import { strictEqual } from 'assert';
+import { strictEqual } from 'node:assert';
 import { EnvType } from '../../../src/struc/env.js';
 import { add_devtools_code } from '../../../src/utils/devtools.js';
 import { collect_files, remove } from '../../../src/utils/file.js';

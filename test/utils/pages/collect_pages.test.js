@@ -1,5 +1,5 @@
-import { deepStrictEqual } from 'assert';
-import { join } from 'path';
+import { deepStrictEqual } from 'node:assert';
+import { join } from 'node:path';
 import { Cwd } from '../../../src/vars/cwd.js';
 import { collect_pages } from '../../../src/utils/pages.js';
 import Sinon from 'sinon';

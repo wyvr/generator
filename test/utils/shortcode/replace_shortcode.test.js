@@ -1,5 +1,5 @@
-import { deepStrictEqual } from 'assert';
-import { join } from 'path';
+import { deepStrictEqual } from 'node:assert';
+import { join } from 'node:path';
 import Sinon from 'sinon';
 import { modify_svelte_internal } from '../../../src/action/modify_svelte.mjs';
 import { FOLDER_GEN_SERVER } from '../../../src/constants/folder.js';

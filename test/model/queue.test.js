@@ -1,4 +1,4 @@
-import { strictEqual, deepStrictEqual } from 'assert';
+import { strictEqual, deepStrictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { kill } from 'process';
 import { Queue, QueueEntry } from '../../src/model/queue.js';

@@ -1,6 +1,6 @@
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'node:assert';
 import { describe } from 'mocha';
-import { join } from 'path';
+import { join } from 'node:path';
 import { Config } from '../../../src/utils/config.js';
 import { get_config_cache } from '../../../src/utils/config_cache.js';
 import { to_dirname } from '../../../src/utils/to.js';

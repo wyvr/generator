@@ -1,6 +1,6 @@
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
-import { join } from 'path';
+import { join } from 'node:path';
 import { extract_route_config } from '../../../src/utils/routes.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 

@@ -1,4 +1,4 @@
-import { strictEqual } from 'assert';
+import { strictEqual } from 'node:assert';
 import { after, beforeEach, describe, it } from 'mocha';
 import { EnvType } from '../../src/struc/env.js';
 import { Env } from '../../src/vars/env.js';

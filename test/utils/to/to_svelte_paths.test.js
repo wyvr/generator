@@ -1,4 +1,4 @@
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'node:assert';
 import { describe } from 'mocha';
 import { to_dirname, to_svelte_paths } from '../../../src/utils/to.js';
 import { Cwd } from '../../../src/vars/cwd.js';

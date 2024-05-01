@@ -1,7 +1,7 @@
-import { deepStrictEqual } from 'assert';
-import { existsSync, mkdirSync, rmSync } from 'fs';
+import { deepStrictEqual } from 'node:assert';
+import { existsSync, mkdirSync, rmSync } from 'node:fs';
 import { describe, it } from 'mocha';
-import { join } from 'path';
+import { join } from 'node:path';
 import { get_config_data } from '../../../src/action/get_config_data.js';
 import { EnvType } from '../../../src/struc/env.js';
 import { Logger } from '../../../src/utils/logger.js';

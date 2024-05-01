@@ -1,4 +1,4 @@
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'node:assert';
 import { MediaModel } from '../../../src/model/media.js';
 import { replace_media } from '../../../src/utils/media.js';
 

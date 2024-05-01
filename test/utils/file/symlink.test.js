@@ -1,9 +1,9 @@
-import { strictEqual, deepStrictEqual } from 'assert';
+import { strictEqual, deepStrictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { remove, symlink } from '../../../src/utils/file.js';
 import { v4 } from 'uuid';
-import { dirname, join } from 'path';
-import { existsSync, rmSync, unlinkSync, writeFileSync } from 'fs';
+import { dirname, join } from 'node:path';
+import { existsSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
 import { to_plain } from '../../../src/utils/to.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 

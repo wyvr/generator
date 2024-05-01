@@ -1,4 +1,4 @@
-import { strictEqual } from 'assert';
+import { strictEqual } from 'node:assert';
 import { after, describe, it } from 'mocha';
 import { Cwd } from '../../src/vars/cwd.js';
 

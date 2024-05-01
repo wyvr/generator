@@ -1,11 +1,11 @@
-import { deepStrictEqual, strictEqual } from 'assert';
+import { deepStrictEqual, strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { copy_template_file } from '../../../src/utils/create.js';
 import { to_dirname, to_plain } from '../../../src/utils/to.js';
 import Sinon from 'sinon';
-import { join } from 'path';
+import { join } from 'node:path';
 import { exists, read } from '../../../src/utils/file.js';
-import { rmSync } from 'fs';
+import { rmSync } from 'node:fs';
 
 describe('utils/create/copy_template_file', () => {
     const __tests = join(to_dirname(import.meta.url), '_tests');

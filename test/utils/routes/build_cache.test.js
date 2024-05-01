@@ -1,6 +1,6 @@
-import { strictEqual, deepStrictEqual } from 'assert';
+import { strictEqual, deepStrictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
-import { join } from 'path';
+import { join } from 'node:path';
 import Sinon from 'sinon';
 import { build_cache } from '../../../src/utils/routes.js';
 import { collect_files, remove } from '../../../src/utils/file.js';

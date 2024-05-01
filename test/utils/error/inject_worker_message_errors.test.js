@@ -1,4 +1,4 @@
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { inject_worker_message_errors } from '../../../src/utils/error.js';
 import { to_dirname } from '../../../src/utils/to.js';

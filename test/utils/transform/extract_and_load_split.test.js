@@ -1,6 +1,6 @@
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
-import { join } from 'path';
+import { join } from 'node:path';
 import { read } from '../../../src/utils/file.js';
 import { to_dirname } from '../../../src/utils/to.js';
 import { extract_and_load_split } from '../../../src/utils/transform.js';

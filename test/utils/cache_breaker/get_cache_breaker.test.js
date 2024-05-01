@@ -1,4 +1,4 @@
-import { strictEqual } from 'assert';
+import { strictEqual } from 'node:assert';
 import { describe } from 'mocha';
 import { get_cache_breaker } from '../../../src/utils/cache_breaker.js';
 

@@ -1,4 +1,4 @@
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'node:assert';
 import { stringify } from '../../../src/utils/json.js';
 
 describe('utils/json/stringify', () => {

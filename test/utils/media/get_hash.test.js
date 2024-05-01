@@ -1,5 +1,5 @@
-import { deepStrictEqual } from 'assert';
-import { join } from 'path';
+import { deepStrictEqual } from 'node:assert';
+import { join } from 'node:path';
 import { exists } from '../../../src/utils/file.js';
 import { get_hash } from '../../../src/utils/media.js';
 import { to_dirname } from '../../../src/utils/to.js';

@@ -1,6 +1,6 @@
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
-import { join } from 'path';
+import { join } from 'node:path';
 import { EnvType } from '../../../src/struc/env.js';
 import { generate_page_code } from '../../../src/utils/generate.js';
 import { Cwd } from '../../../src/vars/cwd.js';

@@ -1,5 +1,5 @@
-import { strictEqual, deepStrictEqual } from 'assert';
-import { chmod, writeFileSync } from 'fs';
+import { strictEqual, deepStrictEqual } from 'node:assert';
+import { chmod, writeFileSync } from 'node:fs';
 import { describe, it } from 'mocha';
 import { copy } from '../../../src/utils/file.js';
 

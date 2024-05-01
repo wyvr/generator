@@ -1,8 +1,8 @@
-import { deepStrictEqual, strictEqual } from 'assert';
+import { deepStrictEqual, strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { process_page_data } from '../../src/action_worker/process_page_data.js';
 import { Cwd } from '../../src/vars/cwd.js';
-import { join } from 'path';
+import { join } from 'node:path';
 import { to_plain } from '../../src/utils/to.js';
 import Sinon from 'sinon';
 import { Logger } from '../../src/utils/logger.js';

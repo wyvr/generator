@@ -1,4 +1,4 @@
-import { deepStrictEqual, strictEqual } from 'assert';
+import { deepStrictEqual, strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { EnvType } from '../../../src/struc/env.js';
 import { WorkerAction } from '../../../src/struc/worker_action.js';

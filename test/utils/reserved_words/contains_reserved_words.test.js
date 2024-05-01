@@ -1,4 +1,4 @@
-import { strictEqual } from 'assert';
+import { strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { contains_reserved_words } from '../../../src/utils/reserved_words.js';
 

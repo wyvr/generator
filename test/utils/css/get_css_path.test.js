@@ -1,4 +1,4 @@
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'node:assert';
 import { describe } from 'mocha';
 import { get_css_path } from '../../../src/utils/css.js';
 

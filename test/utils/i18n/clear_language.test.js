@@ -1,9 +1,9 @@
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { get_language, clear_language } from '../../../src/utils/i18n.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 import { to_dirname } from '../../../src/utils/to.js';
-import { join } from 'path';
+import { join } from 'node:path';
 
 describe('action/i18n/clear_language', () => {
     const __dirname = to_dirname(import.meta.url);

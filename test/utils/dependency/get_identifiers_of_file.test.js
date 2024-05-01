@@ -1,6 +1,6 @@
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
-import { join } from 'path';
+import { join } from 'node:path';
 import { get_identifiers_of_file } from '../../../src/utils/dependency.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 

@@ -1,5 +1,5 @@
-import { strictEqual } from 'assert';
-import { readFileSync, rmSync } from 'fs';
+import { strictEqual } from 'node:assert';
+import { readFileSync, rmSync } from 'node:fs';
 import { describe, it } from 'mocha';
 import { write } from '../../../src/utils/file.js';
 

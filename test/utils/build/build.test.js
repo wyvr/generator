@@ -1,6 +1,6 @@
-import { deepStrictEqual, strictEqual } from 'assert';
+import { deepStrictEqual, strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
-import { join } from 'path';
+import { join } from 'node:path';
 import { EnvType } from '../../../src/struc/env.js';
 import { build } from '../../../src/utils/build.js';
 import { read, write } from '../../../src/utils/file.js';

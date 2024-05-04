@@ -1,17 +1,18 @@
-import { filled_array } from './validate.js';
-import { createHash as cryptoCreateHash } from 'node:crypto';
+import { filled_array, is_number } from './validate.js';
+import { createHash } from 'node:crypto';
 import { exists, read } from './file.js';
 import { to_relative_path } from './to.js';
 import { extname } from 'node:path';
 import { statSync } from 'node:fs';
 
-export function create_hash(value, length) {
+export function create_hash(value, length = 16) {
     if (!value) {
         return '0x0';
     }
-    const hash = cryptoCreateHash('sha256');
+    const hash = createHash('sha256');
     hash.update(value);
-    return hash.digest('hex').substring(0, !isNaN(length) ? length : 16);
+    const len = is_number(length) ? length : 16;
+    return hash.digest('hex').substring(0, len);
 }
 export function get_files_hashes(files) {
     const result = {};

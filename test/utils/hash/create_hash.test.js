@@ -23,4 +23,8 @@ describe('utils/hash/create_hash', () => {
         const result = create_hash('#', 'a');
         strictEqual(result.length, 16, 'length of hash');
     });
+    it('invalid limit length and type', () => {
+        const result = create_hash('#', '5');
+        strictEqual(result.length, 16, 'length of hash');
+    });
 });

@@ -5,6 +5,12 @@ import { to_relative_path } from './to.js';
 import { extname } from 'node:path';
 import { statSync } from 'node:fs';
 
+/**
+ * Creates a hash value for the given input value using the SHA256 algorithm.
+ * @param {string} value - The input value to be hashed.
+ * @param {number} [length=16] - The length of the hash value to be returned. Defaults to 16.
+ * @returns {string} The hash value.
+ */
 export function create_hash(value, length = 16) {
     if (!value) {
         return '0x0';
@@ -14,6 +20,13 @@ export function create_hash(value, length = 16) {
     const len = is_number(length) ? length : 16;
     return hash.digest('hex').substring(0, len);
 }
+
+/**
+ * Calculates the hashes of the given files and returns an object containing the file paths, hashes, and modified paths.
+ *
+ * @param {string[]} files - An array of file paths.
+ * @returns {Object} - An object containing the file paths, hashes, and modified paths.
+ */
 export function get_files_hashes(files) {
     const result = {};
     if (!filled_array(files)) {
@@ -34,12 +47,26 @@ export function get_files_hashes(files) {
     }
     return result;
 }
+
+/**
+ * Calculates the hash of a file.
+ *
+ * @param {string} file - The path of the file.
+ * @returns {string|undefined} The hash of the file, or undefined if the file doesn't exist.
+ */
 export function get_file_hash(file) {
     if (!exists(file)) {
         return undefined;
     }
     return create_hash(read(file));
 }
+
+/**
+ * Calculates the time-based hash value for a given file.
+ *
+ * @param {string} file - The path of the file.
+ * @returns {string|undefined} The time-based hash value of the file, or undefined if the file doesn't exist.
+ */
 export function get_file_time_hash(file) {
     if (!exists(file)) {
         return undefined;

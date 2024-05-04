@@ -1,5 +1,5 @@
 import { extname } from 'node:path';
-import { FOLDER_GEN_ROUTES, FOLDER_GEN_PLUGINS, FOLDER_GEN_SRC, FOLDER_GEN_EVENTS } from '../constants/folder.js';
+import { FOLDER_GEN_ROUTES, FOLDER_GEN_PLUGINS, FOLDER_GEN_SRC, FOLDER_GEN_EVENTS, FOLDER_GEN_COMMANDS } from '../constants/folder.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
 import { set_config_cache } from '../utils/config_cache.js';
@@ -57,7 +57,8 @@ export async function dependencies() {
             }),
             collect_files(Cwd.get(FOLDER_GEN_PLUGINS)),
             collect_files(Cwd.get(FOLDER_GEN_ROUTES)),
-            collect_files(Cwd.get(FOLDER_GEN_EVENTS))
+            collect_files(Cwd.get(FOLDER_GEN_EVENTS)),
+            collect_files(Cwd.get(FOLDER_GEN_COMMANDS))
         );
 
         // wrap in plugin

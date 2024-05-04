@@ -39,22 +39,38 @@ export async function regenerate_plugins({ change, add, unlink }, gen_folder) {
 
     await Plugin.initialize();
 }
+
 /**
  * Regenerate the events
  * @param {RegenerateFragment} RegenerateFragment
  * @param {string} gen_folder
- * @param {string} cache_breaker
  */
 export async function regenerate_events({ change, add, unlink }, gen_folder) {
-    const modified_plugins = [].concat(change, add);
-    if (modified_plugins.length > 0) {
-        for (const file of modified_plugins) {
+    const modified_events = [].concat(change, add);
+    if (modified_events.length > 0) {
+        for (const file of modified_events) {
             write(join(gen_folder, file.rel_path), replace_imports(read(file.path), file.path, FOLDER_GEN_SRC, 'events'));
         }
     }
     unlink_from(unlink, gen_folder);
     await update_project_events(FOLDER_GEN_EVENTS);
 }
+
+/**
+ * Regenerate the commands
+ * @param {RegenerateFragment} RegenerateFragment
+ * @param {string} gen_folder
+ */
+export async function regenerate_commands({ change, add, unlink }, gen_folder) {
+    const modified_commands = [].concat(change, add);
+    if (modified_commands.length > 0) {
+        for (const file of modified_commands) {
+            write(join(gen_folder, file.rel_path), replace_imports(read(file.path), file.path, FOLDER_GEN_SRC, 'commands'));
+        }
+    }
+    unlink_from(unlink, gen_folder);
+}
+
 /**
  * Regenerate the routes
  * @param {RegenerateFragment} RegenerateFragment

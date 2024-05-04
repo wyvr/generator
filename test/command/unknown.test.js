@@ -4,9 +4,10 @@ import { describe, it } from 'mocha';
 import { join } from 'node:path';
 import Sinon from 'sinon';
 import { unknown_command } from '../../src/command/unknown.js';
-import { Logger } from '../../src/utils/logger.js';
 import { to_dirname } from '../../src/utils/to.js';
 import { Cwd } from '../../src/vars/cwd.js';
+import { fakeConsole } from '../utils/logger/fakeConsole.js';
+import inquirer from 'inquirer';
 
 describe('command/unknown', () => {
     const __dirname = to_dirname(import.meta.url);
@@ -15,7 +16,9 @@ describe('command/unknown', () => {
     const test_folder = join(__root, __path);
     let sandbox;
     let exit_code;
-    let logger_messages = [];
+    let prompt_result;
+    const C = fakeConsole();
+    const base_commands = { builtin: {}, custom: {} };
 
     before(() => {
         Cwd.set(__root);
@@ -24,17 +27,18 @@ describe('command/unknown', () => {
         process.exit.callsFake((code) => {
             exit_code = code;
         });
-        sandbox.stub(Logger, 'output');
-        Logger.output.callsFake((...msg) => {
-            logger_messages.push(msg.slice(3));
+        sandbox.stub(inquirer, 'prompt');
+        inquirer.prompt.callsFake(() => {
+            return prompt_result;
         });
     });
     beforeEach(() => {
+        C.start();
+        prompt_result = undefined;
         mkdirSync(test_folder, { recursive: true });
     });
     afterEach(() => {
         exit_code = undefined;
-        logger_messages = [];
         if (existsSync(test_folder)) {
             rmSync(test_folder, { recursive: true, force: true });
         }
@@ -45,42 +49,90 @@ describe('command/unknown', () => {
     });
     it('undefined', async () => {
         const result = await unknown_command();
+        const messages = C.end().join('|');
         strictEqual(exit_code, 1, 'exit code is not 1');
         strictEqual(result, undefined);
-        deepStrictEqual(logger_messages[0][0], 'command is missing');
+        deepStrictEqual(messages.indexOf('no internal commands found') > -1, true, `"no internal commands found" text not found in "${messages}"`);
     });
     it('unknown', async () => {
-        const result = await unknown_command({ cli: { command: ['unknown'] } });
+        const result = await unknown_command({ cli: { command: ['unknown'] } }, base_commands);
+        const messages = C.end().join('|');
         strictEqual(exit_code, 1, 'exit code is not 1');
         strictEqual(result, undefined);
-        deepStrictEqual(logger_messages[0][0], 'unknown command unknown');
+        deepStrictEqual(messages.indexOf('unknown command unknown') > -1, true, `"unknown command unknown" text not found in "${messages}"`);
     });
-    it('custom commands', async () => {
+    it('builtin command partial name not mathing', async () => {
         const result = await unknown_command(
             { cli: { command: ['unkno'] } },
             {
-                unknown: {
-                    desc: 'UnknownDescription'
+                builtin: {
+                    app: {
+                        desc: 'AppDescription',
+                        execute: () => true
+                    }
                 }
             }
         );
         strictEqual(exit_code, 1, 'exit code is not 1');
         strictEqual(result, undefined);
-        const messages = JSON.stringify(logger_messages);
-        strictEqual(messages.indexOf('unknown command unkno') > -1, true, `"unknown command" text not found in ${messages}`);
-        strictEqual(messages.indexOf('did you mean?') > -1, true, `"did you mean?" text not found in ${messages}`);
+        const messages = C.end().join('|');
+        strictEqual(messages.indexOf('unknown command unkno') > -1, true, `"unknown command unkno" text not found in "${messages}"`);
     });
-    it('custom commands', async () => {
+    it('custom command', async () => {
         const result = await unknown_command(
             { cli: { command: ['unknown'] } },
             {
-                unknown: {
-                    desc: 'UnknownDescription'
+                custom: {
+                    unknown: {
+                        desc: 'UnknownDescription',
+                        execute: () => true
+                    }
+                }
+            }
+        );
+        strictEqual(exit_code, undefined, 'exit code is not undefined');
+        strictEqual(result, true);
+        const messages = C.end().join('|');
+        strictEqual(messages.indexOf('unknown UnknownDescription') > -1, true, `"unknown UnknownDescription" text not found in "${messages}"`);
+        strictEqual(messages.indexOf('unknown command unknown') === -1, true, `"unknown command unknown" text found in "${messages}"`);
+    });
+    it('custom command partial name, prompt yes', async () => {
+        prompt_result = { execute: true };
+        const result = await unknown_command(
+            { cli: { command: ['unkno'] } },
+            {
+                custom: {
+                    unknown: {
+                        desc: 'UnknownDescription',
+                        execute: () => true
+                    }
+                }
+            }
+        );
+        strictEqual(exit_code, undefined, 'exit code is not undefined');
+        strictEqual(result, true);
+        const messages = C.end().join('|');
+        strictEqual(messages.indexOf('unknown command unkno') === -1, true, `"unknown command unkno" text found in "${messages}"`);
+        strictEqual(messages.indexOf('unknown command unknown') === -1, true, `"unknown command unknown" text found in "${messages}"`);
+
+    });
+    it('custom command partial name, prompt no', async () => {
+        prompt_result = { execute: false };
+        const result = await unknown_command(
+            { cli: { command: ['unkno'] } },
+            {
+                custom: {
+                    unknown: {
+                        desc: 'UnknownDescription',
+                        execute: () => true
+                    }
                 }
             }
         );
         strictEqual(exit_code, 1, 'exit code is not 1');
         strictEqual(result, undefined);
-        deepStrictEqual(logger_messages[0][0], 'unknown command unknown');
+        const messages = C.end().join('|');
+        strictEqual(messages.indexOf('unknown command unkno') > -1, true, `"unknown command unkno" text not found in "${messages}"`);
+
     });
 });

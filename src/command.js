@@ -16,10 +16,12 @@ import { get_logo } from './presentation/logo.js';
 import { nano_to_milli } from './utils/convert.js';
 import { Logger } from './utils/logger.js';
 import { to_plain } from './utils/to.js';
-import { filled_array } from './utils/validate.js';
+import { filled_array, filled_string, is_func } from './utils/validate.js';
 import { Cwd } from './vars/cwd.js';
 import { WorkerController } from './worker/controller.js';
 import { Event } from './utils/event.js';
+import { get_commands } from './command/available_commands.js';
+import { UniqId } from './vars/uniq_id.js';
 
 export function get_command(config) {
     const commands = config?.cli?.command;
@@ -29,11 +31,11 @@ export function get_command(config) {
     return commands[0];
 }
 
-export async function command(config) {
+export async function command(base_config) {
     const start = process.hrtime.bigint();
-    Cwd.set(config?.cli?.cwd);
+    Cwd.set(base_config?.cli?.cwd);
     let result = '';
-    config = get_config_data(config);
+    const config = get_config_data(base_config);
     if (!config?.cli?.flags?.silent) {
         const logo = get_logo(config?.version);
         /* eslint-disable no-console */
@@ -44,7 +46,8 @@ export async function command(config) {
 
     Event.emit('project', 'config', config);
 
-    switch (get_command(config)) {
+    const command = get_command(config);
+    switch (command) {
         case 'app':
             result = await app_command(config);
             break;
@@ -57,9 +60,11 @@ export async function command(config) {
         case 'health':
             result = await health_command(config);
             break;
-        case 'help':
-            result = await help_command(config);
+        case 'help': {
+            const commands = await get_commands();
+            result = await help_command(config, commands);
             break;
+        }
         case 'info':
             result = await info_command(config);
             break;
@@ -79,7 +84,18 @@ export async function command(config) {
             result = await version_command(config);
             break;
         default:
-            result = await unknown_command(config);
+            {
+                // try to execute the custom command
+                const commands = await get_commands();
+                const command_result = await execute_custom_command(config, command, commands);
+
+                if (command_result?.executed) {
+                    result = command_result.result;
+                    break;
+                }
+                // fallback to unknown command
+                result = await unknown_command(config, commands);
+            }
             break;
     }
     WorkerController.exit();
@@ -87,4 +103,21 @@ export async function command(config) {
     const duration_text = `${Math.round(duration)} ${Logger.color.dim('ms')}`;
     Logger.success('total execution time', duration_text);
     return { result, duration };
+}
+
+/**
+ * Executes a custom command.
+ *
+ * @param {object} config - The configuration object.
+ * @param {string} command - The command to execute.
+ * @param {object} commands - The commands object containing custom commands.
+ * @returns {Promise<object|undefined>} - A promise that resolves to an object with the result of the command execution, or undefined if the command is not valid.
+ */
+export async function execute_custom_command(config, command, commands) {
+    if (!filled_string(command) || !is_func(commands?.custom?.[command]?.execute)) {
+        return undefined;
+    }
+    const build_id = UniqId.load();
+    const result = await commands.custom[command].execute(get_config_data(config, build_id));
+    return { executed: true, result };
 }

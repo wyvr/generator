@@ -2,11 +2,10 @@ import inquirer from 'inquirer';
 import { Logger } from '../utils/logger.js';
 import { is_array, is_func, is_null, is_object } from '../utils/validate.js';
 
-/* c8 ignore start */
 export async function collect_data_from_cli(questions, default_data) {
     return await collect_data(questions, default_data, inquirer.prompt);
 }
-/* c8 ignore end */
+
 export async function collect_data(questions, default_data, get_answers_callback = () => {}) {
     if (!is_object(default_data)) {
         default_data = {};
@@ -37,7 +36,7 @@ export async function collect_data(questions, default_data, get_answers_callback
             // when array was given, combine the questions
             if (is_array(default_data[question._field])) {
                 conditional_questions = default_data[question._field]
-                    .map((value) => (value == '_' ? undefined : question[value]))
+                    .map((value) => (value === '_' ? undefined : question[value]))
                     .filter((x) => x)
                     .flat();
             }
@@ -57,7 +56,7 @@ export async function collect_data(questions, default_data, get_answers_callback
                 return item;
             })
             .filter((x) => x);
-        if (entry_questions.length == 0) {
+        if (entry_questions.length === 0) {
             continue;
         }
 
@@ -66,10 +65,9 @@ export async function collect_data(questions, default_data, get_answers_callback
             continue;
         }
         // set selected values
-        Object.entries(result).forEach(([key, value]) => {
+        for (const [key, value] of Object.entries(result)) {
             default_data[key] = value;
-        });
-        continue;
+        }
     }
     return default_data;
 }

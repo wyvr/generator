@@ -2,7 +2,7 @@ import { join } from 'node:path';
 import { copy_folder } from './copy.js';
 import { measure_action } from './helper.js';
 import { build_wyvr_internal } from './wyvr_internal.js';
-import { FOLDER_CSS, FOLDER_GEN, FOLDER_I18N, FOLDER_JS, FOLDER_DEVTOOLS, FOLDER_PLUGINS, FOLDER_EVENTS } from '../constants/folder.js';
+import { FOLDER_CSS, FOLDER_GEN, FOLDER_I18N, FOLDER_JS, FOLDER_DEVTOOLS, FOLDER_PLUGINS, FOLDER_EVENTS, FOLDER_COMMANDS } from '../constants/folder.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
 import { Config } from '../utils/config.js';
@@ -26,7 +26,8 @@ import {
     regenerate_pages,
     regenerate_src,
     regeneration_static_file,
-    regenerate_events
+    regenerate_events,
+    regenerate_commands
 } from '../utils/regenerate.js';
 import { RegenerateFragment } from '../model/regenerate_fragment.mjs';
 import { run_tests } from '../utils/tests.js';
@@ -106,6 +107,11 @@ export async function regenerate(raw_changed_files) {
 
             // reload whole page
             reload_page = true;
+        }
+
+        // commands
+        if (in_array(fragments, FOLDER_COMMANDS)) {
+            await regenerate_commands(RegenerateFragment(frag_files?.commands), gen_folder);
         }
 
         // pages

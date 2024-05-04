@@ -9,7 +9,7 @@ SHELL := /bin/bash
 # base commands
 WYVR_LINT=npx eslint src --ext .js
 WYVR_TEST=npx mocha -R dot './test/**/*.test.js'
-WYVR_COVERAGE=npx c8 -x src/action -x src/command -x src/command.js -x src/worker.js -x src/no_worker.js -x src/cluster_worker.js -x src/action_worker -x src/worker/process_message.js -x src/resource -x src/templates -x src/boilerplate -x src/utils/create.mjs -x src/utils/create -x src/model/create --skip-full --clean $(WYVR_TEST)
+WYVR_COVERAGE=npx c8 -x src/action -x src/command -x src/command.js -x src/worker.js -x src/no_worker.js -x src/cluster_worker.js -x src/action_worker -x src/worker/process_message.js -x src/resource -x src/templates -x src/boilerplate -x src/utils/create -x src/model/create --skip-full --clean $(WYVR_TEST)
 READONLY_FILES=if [ ! -f test/utils/file/_tests/not_writeable.txt ]; then echo -n "readonly" > test/utils/file/_tests/not_writeable.txt; chmod -rw test/utils/file/_tests/not_writeable.txt; fi;
 
 compile-watch: ## Start watcher and make dev builds

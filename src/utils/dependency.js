@@ -1,4 +1,4 @@
-import { dirname, extname, join } from 'path';
+import { dirname, extname, join } from 'node:path';
 import { FOLDER_GEN_SRC } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { exists, find_file, to_extension } from './file.js';

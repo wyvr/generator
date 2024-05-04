@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'node:path';
 import { FOLDER_GEN } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { Logger } from './logger.js';

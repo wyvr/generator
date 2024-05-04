@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'node:path';
 import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerEmit } from '../struc/worker_emit.js';
 import { clone } from '../utils/json.js';

@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'node:path';
 import { FOLDER_ASSETS, FOLDER_CSS, FOLDER_GEN, FOLDER_I18N, FOLDER_JS, FOLDER_PROP } from '../constants/folder.js';
 import { exists, symlink } from '../utils/file.js';
 import { Plugin } from '../utils/plugin.js';

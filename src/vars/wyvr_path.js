@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'node:path';
 import { to_dirname } from '../utils/to.js';
 
 export class WyvrPath {

@@ -1,4 +1,4 @@
-import { dirname, extname, join, resolve } from 'path';
+import { dirname, extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'url';
 import { FOLDER_GEN, FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC, FOLDER_SERVER, FOLDER_SRC } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';

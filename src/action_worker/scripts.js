@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'node:path';
 import { FOLDER_GEN_JS, FOLDER_JS } from '../constants/folder.js';
 import { build } from '../utils/build.js';
 import { get_config_cache } from '../utils/config_cache.js';

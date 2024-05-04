@@ -1,4 +1,4 @@
-import { dirname, extname, join, resolve } from 'path';
+import { dirname, extname, join, resolve } from 'node:path';
 import { exists, read, to_extension } from './file.js';
 import { filled_array, filled_object, filled_string, is_array, is_func, is_null, is_number, is_path, is_string } from './validate.js';
 import { compile_sass, compile_typescript, insert_import } from './compile.js';

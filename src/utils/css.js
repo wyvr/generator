@@ -1,4 +1,4 @@
-import { join, sep } from 'path';
+import { join, sep } from 'node:path';
 import { FOLDER_CSS, FOLDER_GEN, FOLDER_SRC } from '../constants/folder.js';
 import { Env } from '../vars/env.js';
 import { exists, write } from './file.js';

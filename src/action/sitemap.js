@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'node:path';
 import { to_index, write } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';

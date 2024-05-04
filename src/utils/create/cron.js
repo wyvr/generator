@@ -1,4 +1,4 @@
-import { extname, join } from 'path';
+import { extname, join } from 'node:path';
 import { Cwd } from '../../vars/cwd.js';
 import { copy_template_file } from '../create.js';
 import { to_extension } from '../file.js';

@@ -1,4 +1,4 @@
-import { extname, join } from 'path';
+import { extname, join } from 'node:path';
 import { copy_executable_file, copy_files, copy_folder } from '../action/copy.js';
 import { i18n } from '../action/i18n.js';
 import { FOLDER_GEN, FOLDER_GEN_CLIENT, FOLDER_GEN_EVENTS, FOLDER_GEN_SERVER, FOLDER_GEN_SRC, FOLDER_I18N } from '../constants/folder.js';

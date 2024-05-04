@@ -1,8 +1,8 @@
 // /* eslint @typescript-eslint/no-explicit-any: 0 */
 // /* eslint @typescript-eslint/ban-types: 0 */
 
-import { hrtime } from 'process';
-import { join } from 'path';
+import { hrtime } from 'node:process';
+import { join } from 'node:path';
 import { Cwd } from '../vars/cwd.js';
 import { get_error_message } from './error.js';
 import { collect_files } from './file.js';

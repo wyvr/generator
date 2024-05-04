@@ -4,7 +4,7 @@ import { collect_data_from_cli } from '../cli/interactive.js';
 import { create_questions } from '../model/create.js';
 import { Cwd } from '../vars/cwd.js';
 import { clone } from '../utils/json.js';
-import { join } from 'path';
+import { join } from 'node:path';
 import { to_dirname } from '../utils/to.js';
 import { is_func } from '../utils/validate.js';
 import { get_wyvr_version } from '../cli/config.js';

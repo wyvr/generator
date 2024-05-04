@@ -1,4 +1,4 @@
-import { statSync } from 'fs';
+import { statSync } from 'node:fs';
 import { FOLDER_GEN_ROUTES, FOLDER_GEN_SRC, FOLDER_ROUTES } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { compile_server_svelte } from './compile.js';

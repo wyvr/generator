@@ -1,9 +1,9 @@
 import { filled_array } from './validate.js';
-import { createHash as cryptoCreateHash } from 'crypto';
+import { createHash as cryptoCreateHash } from 'node:crypto';
 import { exists, read } from './file.js';
 import { to_relative_path } from './to.js';
-import { extname } from 'path';
-import { statSync } from 'fs';
+import { extname } from 'node:path';
+import { statSync } from 'node:fs';
 
 export function create_hash(value, length) {
     if (!value) {

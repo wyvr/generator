@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'node:path';
 import { filled_array } from '../utils/validate.js';
 
 export class Cwd {

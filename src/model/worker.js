@@ -1,5 +1,5 @@
-import { fork } from 'child_process';
-import { join } from 'path';
+import { fork } from 'node:child_process';
+import { join } from 'node:path';
 import { WyvrPath } from '../vars/wyvr_path.js';
 import { Logger } from '../utils/logger.js';
 

@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'node:path';
 import { FOLDER_GEN_SERVER } from '../constants/folder.js';
 import { Identifier } from '../model/identifier.js';
 import { WyvrData } from '../model/wyvr_data.js';

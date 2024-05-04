@@ -3,7 +3,7 @@ import { Buffer } from 'node:buffer';
 import minifyHtml from '@minify-html/node';
 import { read, write } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
-import { extname, join } from 'path';
+import { extname, join } from 'node:path';
 import postcss from 'postcss';
 import autoprefixer from 'autoprefixer';
 import cssnano from 'cssnano';

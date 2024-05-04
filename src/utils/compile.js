@@ -6,7 +6,7 @@ import { get_error_message } from './error.js';
 import { Logger } from './logger.js';
 import { filled_string, is_null, is_object } from './validate.js';
 import { exists, read } from './file.js';
-import { extname, join, sep } from 'path';
+import { extname, join, sep } from 'node:path';
 import { replace_src_path } from './transform.js';
 import { compile_server_svelte_from_code, execute_server_compiled_svelte } from './compile_svelte.js';
 import { FOLDER_GEN, FOLDER_SRC } from '../constants/folder.js';

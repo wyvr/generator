@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'node:path';
 import { FOLDER_GEN_SERVER } from '../constants/folder.js';
 import { exists, find_file, is_file, read, write } from '../utils/file.js';
 

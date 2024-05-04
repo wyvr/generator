@@ -1,4 +1,4 @@
-import { extname } from 'path';
+import { extname } from 'node:path';
 import { WyvrFile } from '../model/wyvr_file.js';
 import { WyvrFileRender } from '../struc/wyvr_file.js';
 import { compile_client_svelte_from_code, compile_server_svelte_from_code } from '../utils/compile_svelte.js';

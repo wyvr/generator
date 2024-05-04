@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'node:path';
 
 export const FOLDER_PUBLISH = 'pub';
 export const FOLDER_GEN = 'gen';

@@ -8,7 +8,7 @@ import { create_hash } from './hash.js';
 import { exists, write } from './file.js';
 import { stringify } from './json.js';
 import { Cwd } from '../vars/cwd.js';
-import { join } from 'path';
+import { join } from 'node:path';
 import { ReleasePath } from '../vars/release_path.js';
 
 export function register_inject(file) {

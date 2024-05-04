@@ -7,14 +7,14 @@ import { uniq_id } from '../utils/uniq.js';
 import { SerializableResponse } from '../model/serializable/response.js';
 import { send_content, send_head } from '../utils/server.js';
 import { get_route_request, run_route } from '../utils/routes.js';
-import { join } from 'path';
+import { join } from 'node:path';
 import { ReleasePath } from '../vars/release_path.js';
 import { FOLDER_CACHE, FOLDER_CSS, FOLDER_GEN_JS, FOLDER_JS } from '../constants/folder.js';
 import { copy, exists, write, to_index } from '../utils/file.js';
 import { scripts } from './scripts.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
-import { appendFileSync } from 'fs';
+import { appendFileSync } from 'node:fs';
 
 export async function route(requests) {
     if (!filled_array(requests)) {

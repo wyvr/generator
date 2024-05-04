@@ -1,6 +1,6 @@
 import esbuild from 'esbuild';
 import sveltePlugin from 'esbuild-svelte';
-import { join } from 'path';
+import { join } from 'node:path';
 import { FOLDER_CLIENT, FOLDER_GEN_CSS, FOLDER_GEN_TEMP } from '../constants/folder.js';
 import { WorkerEmit } from '../struc/worker_emit.js';
 import { Cwd } from '../vars/cwd.js';

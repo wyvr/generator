@@ -1,4 +1,4 @@
-import { dirname, extname, join } from 'path';
+import { dirname, extname, join } from 'node:path';
 import { FOLDER_DEVTOOLS, FOLDER_GEN } from '../constants/folder.js';
 import { compile_svelte_from_code } from '../utils/compile_svelte.js';
 import { collect_files, read, remove, to_extension, write, write_json } from '../utils/file.js';

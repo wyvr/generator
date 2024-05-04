@@ -5,7 +5,7 @@ import { watch } from 'chokidar';
 import { uniq_values } from './uniq.js';
 import { regenerate } from '../action/regenerate.js';
 import { get_config_cache, set_config_cache } from './config_cache.js';
-import { extname, join } from 'path';
+import { extname, join } from 'node:path';
 import { exists, to_extension } from './file.js';
 import { get_config_path } from './config.js';
 

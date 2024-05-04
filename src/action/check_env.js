@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'node:path';
 import { terminate } from '../cli/terminate.js';
 import { ERRORS } from '../constants/errors.js';
 import { env_report } from '../presentation/env_report.js';

@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'node:path';
 import { Cwd } from '../vars/cwd.js';
 import { collect_files } from './file.js';
 import { filled_array, filled_string, is_func } from './validate.js';

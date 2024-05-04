@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'node:path';
 import { FOLDER_GEN_I18N, FOLDER_I18N } from '../constants/folder.js';
 import { collect_files, read_json, write_json } from '../utils/file.js';
 import { filled_array, filled_object, filled_string } from '../utils/validate.js';

@@ -21,7 +21,7 @@ import { copy, exists, read, remove } from './file.js';
 import { WorkerController } from '../worker/controller.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { tmpdir } from 'os';
-import { basename, extname, join } from 'path';
+import { basename, extname, join } from 'node:path';
 import { get_route } from './routes.js';
 import { get_config_cache } from './config_cache.js';
 import { pub_healthcheck } from './health.js';

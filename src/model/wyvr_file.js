@@ -1,4 +1,4 @@
-import { extname, join, sep } from 'path';
+import { extname, join, sep } from 'node:path';
 import { FOLDER_GEN, FOLDER_SRC } from '../constants/folder.js';
 import { RESERVED_KEYWORDS } from '../constants/keywords.js';
 import { WyvrFileConfig } from '../struc/wyvr_file.js';

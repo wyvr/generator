@@ -1,7 +1,7 @@
-import { readFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
-import process from 'process';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import process from 'node:process';
 import { filled_string, is_string } from '../utils/validate.js';
 
 export function extract_cli_config(argv) {

@@ -1,4 +1,4 @@
-import { basename, dirname, extname } from 'path';
+import { basename, dirname, extname } from 'node:path';
 import { FOLDER_GEN_DATA, FOLDER_GEN_PAGES, FOLDER_GEN_SRC, FOLDER_PAGES } from '../constants/folder.js';
 import { Page } from '../model/page.js';
 import { PageStructure } from '../struc/page.js';

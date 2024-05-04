@@ -15,7 +15,7 @@ import { get_route_request } from './src/utils/routes.js';
 import { process_route_request } from './src/action_worker/route.js';
 import { register_stack } from './src/utils/global.js';
 import { get_config_cache_path } from './src/utils/config_cache.js';
-import { join } from 'path';
+import { join } from 'node:path';
 
 register_stack();
 

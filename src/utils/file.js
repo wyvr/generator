@@ -1,5 +1,5 @@
-import { mkdirSync, existsSync, readFileSync, readdirSync, statSync, writeFileSync, copyFileSync, rmSync, symlinkSync, lstatSync, appendFileSync } from 'fs';
-import { extname, dirname, join } from 'path';
+import { mkdirSync, existsSync, readFileSync, readdirSync, statSync, writeFileSync, copyFileSync, rmSync, symlinkSync, lstatSync, appendFileSync } from 'node:fs';
+import { extname, dirname, join } from 'node:path';
 import { stringify } from './json.js';
 import { is_string, filled_string, filled_array } from './validate.js';
 import { WyvrFile } from '../model/wyvr_file.js';

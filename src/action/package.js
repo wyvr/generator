@@ -1,4 +1,4 @@
-import { sep } from 'path';
+import { sep } from 'node:path';
 import { Config } from '../utils/config.js';
 import { exists } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';

@@ -1,4 +1,4 @@
-import { extname, join } from 'path';
+import { extname, join } from 'node:path';
 import { Env } from '../vars/env.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { read, to_extension, write_json } from './file.js';

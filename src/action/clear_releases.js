@@ -1,5 +1,5 @@
-import { readdirSync, statSync } from 'fs';
-import { join } from 'path';
+import { readdirSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 import { FOLDER_RELEASES } from '../constants/folder.js';
 import { Config } from '../utils/config.js';
 import { exists, remove } from '../utils/file.js';

@@ -1,4 +1,4 @@
-import { extname } from 'path';
+import { extname } from 'node:path';
 import { FOLDER_GEN_ROUTES, FOLDER_GEN_PLUGINS, FOLDER_GEN_SRC, FOLDER_GEN_EVENTS } from '../constants/folder.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';

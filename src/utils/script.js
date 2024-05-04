@@ -1,9 +1,9 @@
-import { join } from 'path';
+import { join } from 'node:path';
 import { FOLDER_GEN, FOLDER_GEN_CLIENT, FOLDER_JS } from '../constants/folder.js';
 import { WyvrFileLoading } from '../struc/wyvr_file.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
-import { exists, read, to_extension, write } from './file.js';
+import { exists, to_extension, write } from './file.js';
 import { get_file_time_hash } from './hash.js';
 import { to_dirname, to_relative_path } from './to.js';
 import { filled_string, in_array, match_interface } from './validate.js';

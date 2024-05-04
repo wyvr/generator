@@ -1,4 +1,4 @@
-import { dirname, extname } from 'path';
+import { dirname, extname } from 'node:path';
 import replaceAsync from 'string-replace-async';
 import { FOLDER_GEN, FOLDER_MEDIA } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';

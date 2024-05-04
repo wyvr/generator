@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'node:path';
 import { FOLDER_SRC } from '../constants/folder.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { to_extension, write_json } from './file.js';

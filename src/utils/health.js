@@ -1,4 +1,4 @@
-import { lstatSync } from 'fs';
+import { lstatSync } from 'node:fs';
 import { terminate } from '../cli/terminate.js';
 import { FOLDER_PUBLISH } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';

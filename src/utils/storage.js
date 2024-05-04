@@ -1,6 +1,6 @@
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
-import { basename, dirname, join, sep } from 'path';
+import { basename, dirname, join, sep } from 'node:path';
 import { Cwd } from '../vars/cwd.js';
 import { filled_array, filled_string, is_null, match_interface } from './validate.js';
 import { create_dir, exists, remove, collect_files } from './file.js';

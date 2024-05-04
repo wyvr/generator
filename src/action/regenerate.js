@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'node:path';
 import { copy_folder } from './copy.js';
 import { measure_action } from './helper.js';
 import { build_wyvr_internal } from './wyvr_internal.js';

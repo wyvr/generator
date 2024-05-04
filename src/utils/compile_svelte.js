@@ -3,7 +3,7 @@ import { extract_error, get_error_message } from './error.js';
 import { Logger } from './logger.js';
 import { in_array, filled_string, is_func, is_null, match_interface } from './validate.js';
 import { read, remove, to_extension, write } from './file.js';
-import { extname, join } from 'path';
+import { extname, join } from 'node:path';
 import { Env } from '../vars/env.js';
 import { uniq_id } from './uniq.js';
 import { Cwd } from '../vars/cwd.js';

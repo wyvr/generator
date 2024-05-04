@@ -27,7 +27,7 @@ import { copy } from './copy.js';
 import { set_config_cache } from '../utils/config_cache.js';
 import { build_cache } from '../utils/routes.js';
 import { wyvr_internal } from './wyvr_internal.js';
-import { join } from 'path';
+import { join } from 'node:path';
 import { modify_svelte } from './modify_svelte.mjs';
 import { get_error_message } from '../utils/error.js';
 import { collections } from './collections.js';

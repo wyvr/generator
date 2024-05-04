@@ -1,4 +1,4 @@
-import { extname } from 'path';
+import { extname } from 'node:path';
 import { FOLDER_GEN_SRC } from '../constants/folder.js';
 import { extract_wyvr_file_config } from '../model/wyvr_file.js';
 import { WorkerAction } from '../struc/worker_action.js';

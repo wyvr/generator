@@ -31,10 +31,10 @@ export async function compile(available_packages) {
             Logger.info('include', node_packages.length, 'node packages for server transformation');
         }
         // replace .svelte references from all files in the packages
-        node_packages.forEach((node_package) => {
-            collect_files(node_package).forEach((file) => {
-                if (extname(file) == '.svelte') {
-                    return;
+        for (const node_package of node_packages) {
+            for (const file of collect_files(node_package)) {
+                if (extname(file) === '.svelte') {
+                    continue;
                 }
                 try {
                     const content = read(file);
@@ -44,8 +44,8 @@ export async function compile(available_packages) {
                 } catch (e) {
                     Logger.error(get_error_message(e, file, 'compile'));
                 }
-            });
-        });
+            }
+        }
 
         // build data of all svelte files
         const data = [].concat(collect_files(Cwd.get(FOLDER_GEN_SRC), '.svelte'), node_modules_files);

@@ -22,7 +22,7 @@ export function to_extension(filename, extension) {
     }
     // create new extension
     extension.trim();
-    if (extension.indexOf('.') == 0) {
+    if (extension.indexOf('.') === 0) {
         extension = extension.replace(/^\./, '');
     }
     // only add dot when something is set
@@ -53,7 +53,7 @@ export function to_index(filename, extension) {
     }
     const ext = extension.trim().replace(/^\./, '');
 
-    if (!filename || typeof filename != 'string' || !filename.trim()) {
+    if (!filename || typeof filename !== 'string' || !filename.trim()) {
         return `index.${ext}`;
     }
     const parts = filename.split('/');
@@ -62,16 +62,16 @@ export function to_index(filename, extension) {
         parts[parts.length - 1] = `index.${ext}`;
         return parts.join('/');
     }
-    if (last == 'index') {
+    if (last === 'index') {
         parts[parts.length - 1] = `index.${ext}`;
         return parts.join('/');
     }
-    if (last.indexOf('.') == -1) {
+    if (last.indexOf('.') === -1) {
         parts.push(`index.${ext}`);
         return parts.join('/');
     }
     // dotfiles
-    if (last.indexOf('.') == 0) {
+    if (last.indexOf('.') === 0) {
         parts[parts.length - 1] = had_empty_ext ? last : `${last}.${ext}`;
         return parts.join('/');
     }
@@ -95,7 +95,7 @@ export function remove_index(filename) {
         return '';
     }
     const without = filename.replace(/index\.[^.]+/, '');
-    if (without == '/') {
+    if (without === '/') {
         return without;
     }
     return without.replace(/\/$/, '');
@@ -109,7 +109,7 @@ export function read_raw(filename, encoding = 'utf-8') {
     if (!exists(filename)) {
         return undefined;
     }
-    if (encoding == 'buffer') {
+    if (encoding === 'buffer') {
         encoding = undefined;
     }
     const content = readFileSync(filename, { encoding, flag: 'r' });

@@ -70,28 +70,28 @@ export async function process_changed_files(changed_files, packages) {
     const changed_config_files = [];
     const result = [];
     let changed_tree = false;
-    events.forEach((event) => {
-        changed_files[event].forEach((path) => {
-            const pkg = packages.find((pkg) => path.indexOf(pkg.path) == 0);
+    for (const event of events) {
+        for (const path of changed_files[event]) {
+            const pkg = packages.find((pkg) => path.indexOf(pkg.path) === 0);
             let pkg_path = '';
             if (pkg) {
                 pkg_path = pkg.path;
             }
 
-            const rel_path = path.replace(pkg_path + '/', '');
+            const rel_path = path.replace(`${pkg_path}/`, '');
 
             const used_pkg = package_tree[rel_path];
-            if (used_pkg && used_pkg.path != pkg_path) {
+            if (used_pkg && used_pkg.path !== pkg_path) {
                 // if the given package is over the used, proceed
-                const used_index = packages.findIndex((p) => p == used_pkg);
-                const current_index = packages.findIndex((p) => p == pkg);
+                const used_index = packages.findIndex((p) => p === used_pkg);
+                const current_index = packages.findIndex((p) => p === pkg);
                 if (current_index > -1 && current_index >= used_index) {
                     Logger.warning(`ignoring ${event} of ${rel_path} from ${pkg.name}, it is used from ${used_pkg.name} ${Logger.color.dim(used_pkg.path)}`);
                     return;
                 }
             }
 
-            Logger.info('detect', event, Logger.color.dim(pkg_path + '/') + rel_path);
+            Logger.info('detect', event, Logger.color.dim(`${pkg_path}/`) + rel_path);
 
             // when config file is changed restart
             if (path.match(/wyvr\.[mc]?js$/)) {
@@ -103,7 +103,7 @@ export async function process_changed_files(changed_files, packages) {
             }
 
             // special behaviour when css or js from svelte file gets changed or edited, only the svelte file should be edited
-            if (event == 'add' || event == 'change') {
+            if (event === 'add' || event === 'change') {
                 const extension = extname(path);
                 if (in_array(['.css', '.scss', '.js', '.mjs', '.cjs', '.ts'], extension)) {
                     const svelte_rel_path = to_extension(rel_path, '.svelte');
@@ -122,7 +122,7 @@ export async function process_changed_files(changed_files, packages) {
                 }
             }
             // update the entry in the package tree
-            if (event == 'add') {
+            if (event === 'add') {
                 changed_tree = true;
                 package_tree[rel_path] = pkg;
             }
@@ -133,7 +133,7 @@ export async function process_changed_files(changed_files, packages) {
             });
 
             // when a file is remove add the next file to the list of changed files
-            if (event == 'unlink') {
+            if (event === 'unlink') {
                 // force deletion of the file from the tree
                 changed_tree = true;
                 package_tree[rel_path] = undefined;
@@ -155,8 +155,8 @@ export async function process_changed_files(changed_files, packages) {
                     }
                 }
             }
-        });
-    });
+        }
+    }
     if (changed_tree) {
         await set_config_cache('package_tree', package_tree);
     }
@@ -171,8 +171,8 @@ export function ignore_watched_file(event, path) {
         path.indexOf('package-lock.json') > -1 ||
         path.indexOf('/node_modules') > -1 ||
         path.indexOf('/.git/') > -1 ||
-        event == 'addDir' ||
-        event == 'unlinkDir'
+        event === 'addDir' ||
+        event === 'unlinkDir'
     );
 }
 

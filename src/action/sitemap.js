@@ -24,15 +24,12 @@ export async function sitemap() {
             if (is_array(data)) {
                 const active_entries = data.filter((entry) => entry.visible);
                 // Logger.info('result', JSON.stringify(active_entries, null, 4));
-                const sitemap_content =
-                    '<?xml version="1.0" encoding="UTF-8"?>\n' +
-                    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
-                    active_entries
-                        .map((entry) => {
-                            return '<url>\n' + `  <loc>${to_index(entry.url)}</loc>\n` + `  <lastmod>${entry.mtime}</lastmod>\n` + '</url>';
-                        })
-                        .join('\n') +
-                    '</urlset>';
+                const sitemap_content = [
+                    '<?xml version="1.0" encoding="UTF-8"?>',
+                    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+                    active_entries.map((entry) => `<url><loc>${to_index(entry.url)}</loc><lastmod>${entry.mtime}</lastmod></url>`).join('\n'),
+                    '</urlset>'
+                ].join('\n');
                 write(join(ReleasePath.get(), 'sitemap.xml'), sitemap_content);
             }
         });

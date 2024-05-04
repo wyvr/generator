@@ -6,8 +6,8 @@ import { clone } from '../utils/json.js';
 import { filled_string, in_array } from '../utils/validate.js';
 
 export function WyvrFile(path) {
-    let name = '',
-        rel_path = '';
+    let name = '';
+    let rel_path = '';
     if (filled_string(path)) {
         const splitted = path.split(sep);
         const gen_index = splitted.indexOf(FOLDER_GEN);
@@ -76,7 +76,7 @@ export function extract_wyvr_file_config(content) {
         // search number
         const cfg_number = row.match(/(?<key>\w+)\s*?:\s*?(?<value>[\d,.]+)/)?.groups;
         if (cfg_number) {
-            config[cfg_number.key] = parseFloat(cfg_number.value);
+            config[cfg_number.key] = Number.parseFloat(cfg_number.value);
             continue;
         }
         // search conditions
@@ -85,7 +85,7 @@ export function extract_wyvr_file_config(content) {
             let inner = search_brackets_content(cur_content).inner;
             while (!inner || i >= len) {
                 i++;
-                cur_content += '\n' + rows[i];
+                cur_content += `\n${rows[i]}`;
                 inner = search_brackets_content(cur_content).inner;
                 if (inner) {
                     config.condition = inner;
@@ -95,7 +95,7 @@ export function extract_wyvr_file_config(content) {
     }
 
     // auto encapsulte media queries
-    if (config.media != 'all' && !config.media.match(/\sand\s|\sor\s/)) {
+    if (config.media !== 'all' && !config.media.match(/\sand\s|\sor\s/)) {
         config.media = `(${config.media})`;
     }
     return config;
@@ -113,7 +113,7 @@ export function search_wyvr_content(content) {
 
     // search content inside the wyvr instructions
     const wyvr_index = Math.max(script_content.indexOf('wyvr:'), script_content.indexOf('wyvr :'));
-    if (wyvr_index == -1) {
+    if (wyvr_index === -1) {
         return undefined;
     }
     const wyvr_content = script_content.substr(wyvr_index + 4);
@@ -135,8 +135,8 @@ function search_brackets_content(content) {
     const result = { start: -1, end: -1, inner: undefined };
 
     for (const len = content.length; index <= len; index++) {
-        let char = content[index];
-        if (char == '{') {
+        const char = content[index];
+        if (char === '{') {
             if (!started) {
                 result.start = index + 1;
             }
@@ -144,13 +144,12 @@ function search_brackets_content(content) {
             brackets++;
             continue;
         }
-        if (char == '}') {
+        if (char === '}') {
             brackets--;
-            if (started && brackets == 0) {
+            if (started && brackets === 0) {
                 result.end = index - 1;
                 break;
             }
-            continue;
         }
     }
     if (result.start > -1 && result.end > -1) {

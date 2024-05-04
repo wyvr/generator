@@ -22,11 +22,11 @@ export function generate_page_code(data) {
     if (!tmpl_files) {
         tmpl_files = {};
     }
-    ['doc', 'layout', 'page'].forEach((type) => {
+    for (const type of ['doc', 'layout', 'page']) {
         if (!tmpl_files[type]) {
             tmpl_files[type] = fallback_tmpl_files[type];
         }
-    });
+    }
     const code = `
 <script type="module">
     import Doc from '${remove_cache_breaker(tmpl_files.doc)}${cache_breaker}';

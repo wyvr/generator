@@ -41,7 +41,7 @@ export function add_dev_note(file, content) {
     }
     const ptree = get_config_cache('package_tree');
     const file_info = ptree[file] ? [`package: ${ptree[file].name}`, `path: ${join(ptree[file].path, file)}`] : [`source: ${file}`];
-    const note = '/*' + ['', 'wyvr generated file', 'changes made in this file will not processed by the dev command', ...file_info].join('\n   ') + '\n*/\n';
+    const note = `/*${['', 'wyvr generated file', 'changes made in this file will not processed by the dev command', ...file_info].join('\n   ')}\n*/\n`;
     const extension = extname(file);
     switch (extension) {
         case '.svelte':

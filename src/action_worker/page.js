@@ -15,10 +15,10 @@ export async function page(files) {
     if (!filled_array(files)) {
         return;
     }
-    let collections = {};
+    const collections = {};
     const identifiers_cache = {};
-    let pages = [];
-    let data_pages = [];
+    const pages = [];
+    const data_pages = [];
     for (const page of files) {
         Logger.debug('page', page);
 
@@ -43,9 +43,9 @@ export async function page(files) {
                 page_data._wyvr.page = join(page.pkg.path, page.rel_path);
                 page_data._wyvr.pkg = page.pkg.name;
                 if (page_data._wyvr.collection) {
-                    page_data._wyvr.collection.forEach((entry) => {
+                    for (const entry of page_data._wyvr.collection) {
                         append_entry_to_collections(collections, collection_entry(entry));
-                    });
+                    }
                 }
                 if (page_data._wyvr.identifier && page_data._wyvr.identifier_data) {
                     if (!identifiers_cache[page_data._wyvr.identifier] && !page_data._wyvr.static) {

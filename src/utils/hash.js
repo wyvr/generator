@@ -18,9 +18,9 @@ export function get_files_hashes(files) {
     if (!filled_array(files)) {
         return result;
     }
-    files.forEach((file) => {
+    for (const file of files) {
         if (!exists(file)) {
-            return;
+            continue;
         }
         const rel_path = to_relative_path(file);
         const hash = get_file_hash(file);
@@ -30,7 +30,7 @@ export function get_files_hashes(files) {
             rel_path,
             path: rel_path.replace(ext, `_${hash}${ext}`)
         };
-    });
+    }
     return result;
 }
 export function get_file_hash(file) {

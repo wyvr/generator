@@ -8,6 +8,7 @@ import { to_dirname } from '../../src/utils/to.js';
 import { Cwd } from '../../src/vars/cwd.js';
 import { fakeConsole } from '../utils/logger/fakeConsole.js';
 import inquirer from 'inquirer';
+import { exec } from 'node:child_process';
 
 describe('command/unknown', () => {
     const __dirname = to_dirname(import.meta.url);
@@ -91,7 +92,10 @@ describe('command/unknown', () => {
             }
         );
         strictEqual(exit_code, undefined, 'exit code is not undefined');
-        strictEqual(result, true);
+        deepStrictEqual(result, {
+            executed: true,
+            result: true
+        });
         const messages = C.end().join('|');
         strictEqual(messages.indexOf('unknown UnknownDescription') > -1, true, `"unknown UnknownDescription" text not found in "${messages}"`);
         strictEqual(messages.indexOf('unknown command unknown') === -1, true, `"unknown command unknown" text found in "${messages}"`);
@@ -110,11 +114,13 @@ describe('command/unknown', () => {
             }
         );
         strictEqual(exit_code, undefined, 'exit code is not undefined');
-        strictEqual(result, true);
+        deepStrictEqual(result, {
+            executed: true,
+            result: true
+        });
         const messages = C.end().join('|');
         strictEqual(messages.indexOf('unknown command unkno') === -1, true, `"unknown command unkno" text found in "${messages}"`);
         strictEqual(messages.indexOf('unknown command unknown') === -1, true, `"unknown command unknown" text found in "${messages}"`);
-
     });
     it('custom command partial name, prompt no', async () => {
         prompt_result = { execute: false };
@@ -133,6 +139,5 @@ describe('command/unknown', () => {
         strictEqual(result, undefined);
         const messages = C.end().join('|');
         strictEqual(messages.indexOf('unknown command unkno') > -1, true, `"unknown command unkno" text not found in "${messages}"`);
-
     });
 });

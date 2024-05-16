@@ -1,6 +1,5 @@
 import { filled_array } from '../utils/validate.js';
-import { Buffer } from 'node:buffer';
-import minifyHtml from '@minify-html/node';
+import { minify } from 'html-minifier';
 import { read, write } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { extname, join } from 'node:path';
@@ -19,11 +18,11 @@ export async function optimize(files) {
     const media_query_files_keys = Object.keys(global.cache.media_query_files);
     // create map of the critical css and file relation
     const file_critical_map = {};
-    for (const identifier of Object.keys(global.cache.critical)) {
-        for (const file of global.cache.critical[identifier].files) {
+    Object.keys(global.cache.critical).forEach((identifier) => {
+        global.cache.critical[identifier].files.forEach((file) => {
             file_critical_map[file] = identifier;
-        }
-    }
+        });
+    });
 
     for (const file of files) {
         try {
@@ -33,22 +32,22 @@ export async function optimize(files) {
             }
             // replace media query files
             const media_query_links = [];
-            for (const media_query_file of media_query_files_keys) {
+            media_query_files_keys.forEach((media_query_file) => {
                 if (content.indexOf(media_query_file) > -1) {
-                    for (const media of Object.keys(global.cache.media_query_files[media_query_file])) {
-                        media_query_links.push(`<link href="${global.cache.media_query_files[media_query_file][media]}" rel="stylesheet" media="${media}">`);
-                    }
+                    Object.keys(global.cache.media_query_files[media_query_file]).forEach((media) =>
+                        media_query_links.push(`<link href="${global.cache.media_query_files[media_query_file][media]}" rel="stylesheet" media="${media}">`)
+                    );
                 }
-            }
+            });
             if (filled_array(media_query_links)) {
-                content = content.replace('</head>', `${media_query_links.join('')}</head>`);
+                content = content.replace('</head>', media_query_links.join('') + '</head>');
             }
             // replace the hashed files
-            for (const key of hash_keys) {
+            hash_keys.forEach((key) => {
                 if (content.indexOf(key)) {
                     content = content.replace(new RegExp(key, 'g'), global.cache.hashes[key].path);
                 }
-            }
+            });
             switch (extname(file)) {
                 case '.html':
                 case '.htm': {
@@ -58,21 +57,16 @@ export async function optimize(files) {
                         content = content.replace('</head>', `<style id="critical">${global.cache.critical[file_critical_map[rel_file]]?.css}</style></head>`);
                     }
                     try {
-                        const minified_content = minifyHtml.minify(Buffer.from(content), {
-                            do_not_minify_doctype: true,
-                            ensure_spec_compliant_unquoted_attribute_values: true,
-                            keep_closing_tags: true,
-                            keep_html_and_head_opening_tags: true,
-                            keep_spaces_between_attributes: true,
-                            keep_comments: false,
-                            keep_input_type_text_attr: false,
-                            keep_ssi_comments: false,
-                            preserve_brace_template_syntax: false,
-                            preserve_chevron_percent_template_syntax: false,
-                            minify_css: true,
-                            minify_js: true,
-                            remove_bangs: true,
-                            remove_processing_instructions: true
+                        const minified_content = minify(content, {
+                            collapseBooleanAttributes: true,
+                            collapseInlineTagWhitespace: true,
+                            collapseWhitespace: true,
+                            continueOnParseError: true,
+                            removeAttributeQuotes: true,
+                            removeComments: true,
+                            removeScriptTypeAttributes: true,
+                            removeStyleLinkTypeAttributes: true,
+                            useShortDoctype: true
                         });
 
                         write(file, minified_content);

@@ -18,11 +18,11 @@ export async function optimize(files) {
     const media_query_files_keys = Object.keys(global.cache.media_query_files);
     // create map of the critical css and file relation
     const file_critical_map = {};
-    Object.keys(global.cache.critical).forEach((identifier) => {
-        global.cache.critical[identifier].files.forEach((file) => {
+    for (const identifier of Object.keys(global.cache.critical)) {
+        for (const file of global.cache.critical[identifier].files) {
             file_critical_map[file] = identifier;
-        });
-    });
+        }
+    }
 
     for (const file of files) {
         try {
@@ -32,22 +32,22 @@ export async function optimize(files) {
             }
             // replace media query files
             const media_query_links = [];
-            media_query_files_keys.forEach((media_query_file) => {
+            for (const media_query_file of media_query_files_keys) {
                 if (content.indexOf(media_query_file) > -1) {
-                    Object.keys(global.cache.media_query_files[media_query_file]).forEach((media) =>
-                        media_query_links.push(`<link href="${global.cache.media_query_files[media_query_file][media]}" rel="stylesheet" media="${media}">`)
-                    );
+                    for (const media of Object.keys(global.cache.media_query_files[media_query_file])) {
+                        media_query_links.push(`<link href="${global.cache.media_query_files[media_query_file][media]}" rel="stylesheet" media="${media}">`);
+                    }
                 }
-            });
+            }
             if (filled_array(media_query_links)) {
-                content = content.replace('</head>', media_query_links.join('') + '</head>');
+                content = content.replace('</head>', `${media_query_links.join('')}</head>`);
             }
             // replace the hashed files
-            hash_keys.forEach((key) => {
+            for (const key of hash_keys) {
                 if (content.indexOf(key)) {
                     content = content.replace(new RegExp(key, 'g'), global.cache.hashes[key].path);
                 }
-            });
+            }
             switch (extname(file)) {
                 case '.html':
                 case '.htm': {

@@ -10,7 +10,7 @@ import { build_cache, clear_caches } from './routes.js';
 import { copy, exists, read, remove, to_extension, write } from './file.js';
 import { clear_cache } from './i18n.js';
 import { Plugin } from './plugin.js';
-import { replace_imports } from './transform.js';
+import { replace_imports, replace_wyvr_magic } from './transform.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerController } from '../worker/controller.js';
 import { filled_array, filled_object, in_array } from './validate.js';
@@ -21,6 +21,18 @@ import { to_relative_path, to_single_identifier_name } from './to.js';
 import { transform } from '../action/transform.js';
 import { process_pages } from '../action/page.js';
 import { update_project_events } from './project_events.js';
+import { add_dev_note } from './devtools.js';
+
+function regenerate_server_files({ change, add, unlink }, gen_folder, scope) {
+    const modified = [].concat(change, add);
+    if (modified.length > 0) {
+        for (const file of modified) {
+            const content = replace_imports(replace_wyvr_magic(read(file.path), false), file.path, FOLDER_GEN_SRC, scope);
+            write(join(gen_folder, file.rel_path), add_dev_note(file.rel_path, content));
+        }
+    }
+    unlink_from(unlink, gen_folder);
+}
 
 /**
  * Regenerate the plugins
@@ -29,14 +41,7 @@ import { update_project_events } from './project_events.js';
  * @param {string} cache_breaker
  */
 export async function regenerate_plugins({ change, add, unlink }, gen_folder) {
-    const modified_plugins = [].concat(change, add);
-    if (modified_plugins.length > 0) {
-        for (const file of modified_plugins) {
-            write(join(gen_folder, file.rel_path), replace_imports(read(file.path), file.path, FOLDER_GEN_SRC, 'plugins'));
-        }
-    }
-    unlink_from(unlink, gen_folder);
-
+    regenerate_server_files({ change, add, unlink }, gen_folder, 'plugins');
     await Plugin.initialize();
 }
 
@@ -46,13 +51,7 @@ export async function regenerate_plugins({ change, add, unlink }, gen_folder) {
  * @param {string} gen_folder
  */
 export async function regenerate_events({ change, add, unlink }, gen_folder) {
-    const modified_events = [].concat(change, add);
-    if (modified_events.length > 0) {
-        for (const file of modified_events) {
-            write(join(gen_folder, file.rel_path), replace_imports(read(file.path), file.path, FOLDER_GEN_SRC, 'events'));
-        }
-    }
-    unlink_from(unlink, gen_folder);
+    regenerate_server_files({ change, add, unlink }, gen_folder, 'events');
     await update_project_events(FOLDER_GEN_EVENTS);
 }
 
@@ -62,13 +61,7 @@ export async function regenerate_events({ change, add, unlink }, gen_folder) {
  * @param {string} gen_folder
  */
 export async function regenerate_commands({ change, add, unlink }, gen_folder) {
-    const modified_commands = [].concat(change, add);
-    if (modified_commands.length > 0) {
-        for (const file of modified_commands) {
-            write(join(gen_folder, file.rel_path), replace_imports(read(file.path), file.path, FOLDER_GEN_SRC, 'commands'));
-        }
-    }
-    unlink_from(unlink, gen_folder);
+    regenerate_server_files({ change, add, unlink }, gen_folder, 'commands');
 }
 
 /**

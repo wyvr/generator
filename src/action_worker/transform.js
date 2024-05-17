@@ -24,7 +24,7 @@ export async function transform(files) {
         }
         try {
             const extension = extname(file);
-            if (extension == '.svelte') {
+            if (extension === '.svelte') {
                 let content = read(file);
                 const combined = await combine_splits(file, content);
                 if (!filled_string(combined.content)) {
@@ -50,7 +50,7 @@ export async function transform(files) {
             if (in_array(['.mjs', '.cjs', '.js', '.ts', '.css', '.scss'], extension)) {
                 let content = read(file);
                 // compile typescript and change output file
-                if (extension == '.ts') {
+                if (extension === '.ts') {
                     const ts_content = await compile_typescript(content, file);
 
                     if (ts_content) {

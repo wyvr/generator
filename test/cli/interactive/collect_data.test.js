@@ -34,16 +34,16 @@ describe('cli/interactive/collect_data', () => {
                 [
                     [
                         { name: 'a', type: 'input' },
-                        { name: 'b', type: 'input' },
+                        { name: 'b', type: 'input' }
                     ],
-                    [],
+                    []
                 ],
                 { key: 'value' },
                 (questions) => {
                     const result = {};
-                    questions.forEach((q) => {
+                    for (const q of questions) {
                         result[q.name] = q.name;
-                    });
+                    }
                     return result;
                 }
             ),
@@ -59,16 +59,16 @@ describe('cli/interactive/collect_data', () => {
                     {
                         _field: 'a',
                         a: [[{ name: 'b', type: 'input' }]],
-                        _: [],
+                        _: []
                     },
-                    [{ name: 'c', type: 'input' }],
+                    [{ name: 'c', type: 'input' }]
                 ],
                 { key: 'value' },
                 (questions) => {
                     const result = {};
-                    questions.forEach((q) => {
+                    for (const q of questions) {
                         result[q.name] = q.name;
-                    });
+                    }
                     return result;
                 }
             ),
@@ -93,16 +93,16 @@ describe('cli/interactive/collect_data', () => {
                     {
                         _field: 'a',
                         b: [],
-                        _: [[{ name: 'b', type: 'input' }]],
+                        _: [[{ name: 'b', type: 'input' }]]
                     },
-                    [{ name: 'c', type: 'input' }],
+                    [{ name: 'c', type: 'input' }]
                 ],
                 { key: 'value' },
                 (questions) => {
                     const result = {};
-                    questions.forEach((q) => {
+                    for (const q of questions) {
                         result[q.name] = q.name;
-                    });
+                    }
                     return result;
                 }
             ),
@@ -117,15 +117,15 @@ describe('cli/interactive/collect_data', () => {
                     {
                         _field: 'a',
                         b: [[{ name: 'b', type: 'input' }]],
-                        _: [[{ name: 'c', type: 'input' }]],
-                    },
+                        _: [[{ name: 'c', type: 'input' }]]
+                    }
                 ],
                 { key: 'value' },
                 (questions) => {
                     const result = {};
-                    questions.forEach((q) => {
+                    for (const q of questions) {
                         result[q.name] = q.name;
-                    });
+                    }
                     return result;
                 }
             ),
@@ -139,15 +139,15 @@ describe('cli/interactive/collect_data', () => {
                 [
                     {
                         _field: 'a',
-                        b: [[{ name: 'b', type: 'input' }]],
-                    },
+                        b: [[{ name: 'b', type: 'input' }]]
+                    }
                 ],
                 { key: 'value' },
                 (questions) => {
                     const result = {};
-                    questions.forEach((q) => {
+                    for (const q of questions) {
                         result[q.name] = q.name;
-                    });
+                    }
                     return result;
                 }
             ),
@@ -161,16 +161,16 @@ describe('cli/interactive/collect_data', () => {
                 [
                     [{ name: 'a', type: 'input' }],
                     {
-                        _: [[{ name: 'b', type: 'input' }]],
+                        _: [[{ name: 'b', type: 'input' }]]
                     },
-                    [{ name: 'c', type: 'input' }],
+                    [{ name: 'c', type: 'input' }]
                 ],
                 { key: 'value' },
                 (questions) => {
                     const result = {};
-                    questions.forEach((q) => {
+                    for (const q of questions) {
                         result[q.name] = q.name;
-                    });
+                    }
                     return result;
                 }
             ),
@@ -186,16 +186,16 @@ describe('cli/interactive/collect_data', () => {
                         _field: 'key',
                         a: [[{ name: 'a', type: 'input' }]],
                         b: [[{ name: 'b', type: 'input' }]],
-                        _: [[{ name: 'd', type: 'input' }]],
+                        _: [[{ name: 'd', type: 'input' }]]
                     },
-                    [{ name: 'c', type: 'input' }],
+                    [{ name: 'c', type: 'input' }]
                 ],
                 { key: ['a', 'b'] },
                 (questions) => {
                     const result = {};
-                    questions.forEach((q) => {
+                    for (const q of questions) {
                         result[q.name] = q.name;
-                    });
+                    }
                     return result;
                 }
             ),
@@ -211,16 +211,16 @@ describe('cli/interactive/collect_data', () => {
                         _field: 'key',
                         a: [[{ name: 'a', type: 'input' }]],
                         b: [[{ name: 'b', type: 'input' }]],
-                        _: [[{ name: 'd', type: 'input' }]],
+                        _: [[{ name: 'd', type: 'input' }]]
                     },
-                    [{ name: 'c', type: 'input' }],
+                    [{ name: 'c', type: 'input' }]
                 ],
                 { key: ['c'] },
                 (questions) => {
                     const result = {};
-                    questions.forEach((q) => {
+                    for (const q of questions) {
                         result[q.name] = q.name;
-                    });
+                    }
                     return result;
                 }
             ),
@@ -233,15 +233,15 @@ describe('cli/interactive/collect_data', () => {
             await collect_data(
                 [
                     {
-                        _field: 'a',
-                    },
+                        _field: 'a'
+                    }
                 ],
                 { a: 'a' },
                 (questions) => {
                     const result = {};
-                    questions.forEach((q) => {
+                    for (const q of questions) {
                         result[q.name] = q.name;
-                    });
+                    }
                     return result;
                 }
             ),
@@ -253,9 +253,9 @@ describe('cli/interactive/collect_data', () => {
         deepStrictEqual(
             await collect_data([[{ name: 'a', type: 'input', message: 'message' }]], { a: 'b' }, (questions) => {
                 const result = {};
-                questions.forEach((q) => {
+                for (const q of questions) {
                     result[q.name] = q.name;
-                });
+                }
                 return result;
             }),
             { a: 'b' }

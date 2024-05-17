@@ -20,17 +20,16 @@ export function create_package(name, templates, version, result, target_dir) {
         });
     }
     if (result.features.includes('i18n')) {
-        result.i18n_folder
+        for (const lang of result.i18n_folder
             .toLowerCase()
             .split(',')
             .map((x) => x.trim())
-            .filter((x) => x)
-            .forEach((lang) => {
-                copy_template_file(join(templates, 'i18n', 'i18n.json'), Cwd.get(target_dir, 'i18n', lang, 'i18n.json'), {
-                    version,
-                    lang
-                });
+            .filter((x) => x)) {
+            copy_template_file(join(templates, 'i18n', 'i18n.json'), Cwd.get(target_dir, 'i18n', lang, 'i18n.json'), {
+                version,
+                lang
             });
+        }
     }
     if (result.features.includes('pages')) {
         copy_template_file(join(templates, 'pages', 'markdown.md'), Cwd.get(target_dir, 'pages', 'index.md'), {

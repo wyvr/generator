@@ -14,6 +14,7 @@ import { Queue } from '../model/queue.js';
 import { get_configure_data } from '../action/configure.js';
 import { sleep } from '../utils/sleep.js';
 
+let die_counter = 0;
 let cpu_cores;
 // biome-ignore lint/complexity/noStaticOnlyClass:
 export class WorkerController {
@@ -132,9 +133,19 @@ export class WorkerController {
             if (this.exiting) {
                 return;
             }
+            const cpu = this.get_cpu_cores();
+            die_counter++;
             Logger.warning('create new worker because of exit from', worker.pid, code);
             this.remove_worker(worker.pid);
-            this.workers.push(this.create(fork_fn));
+            // wait some time before respawning, otherwise in total broken states the server will run at 100% cpu and is not responsive
+            setTimeout(() => {
+                if (die_counter > cpu * 2) {
+                    Logger.error(`Suicide: ${die_counter} workers died in the last second, which brings the application into an unhealthy state, shutting down`);
+                    process.exit(1);
+                }
+                this.workers.push(this.create(fork_fn));
+                die_counter--;
+            }, 1000);
         });
         worker.process.on('close', () => {
             if (this.exiting) {

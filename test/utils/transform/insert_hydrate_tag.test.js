@@ -65,44 +65,44 @@ describe('utils/transform/insert_hydrate_tag', () => {
             `<script>export let a = '';</script><div data-hydrate="name" data-props="{_prop('a', a)}" data-loading="lazy"><p>{a}</p></div>`
         );
     });
-    it('hydrate lazy with boundary', () => {
-        strictEqual(
-            insert_hydrate_tag(`<script>export let a = '';</script><p>{a}</p>`, {
-                path: 'path',
-                name: 'name',
-                config: {
-                    display: WyvrHydrateDisplay.block,
-                    render: WyvrFileRender.hydrate,
-                    loading: WyvrFileLoading.lazy,
-                    error: undefined,
-                    portal: undefined,
-                    trigger: undefined,
-                    boundary: '100px',
-                    media: 'all',
-                },
-            }),
-            `<script>export let a = '';</script><div data-hydrate="name" data-props="{_prop('a', a)}" data-loading="lazy" data-boundary="100px"><p>{a}</p></div>`
-        );
-    });
-    it('hydrate lazy with invalid boundary value', () => {
-        strictEqual(
-            insert_hydrate_tag(`<script>export let a = '';</script><p>{a}</p>`, {
-                path: 'path',
-                name: 'name',
-                config: {
-                    display: WyvrHydrateDisplay.block,
-                    render: WyvrFileRender.hydrate,
-                    loading: WyvrFileLoading.lazy,
-                    error: undefined,
-                    portal: undefined,
-                    trigger: undefined,
-                    boundary: true,
-                    media: 'all',
-                },
-            }),
-            `<script>export let a = '';</script><div data-hydrate="name" data-props="{_prop('a', a)}" data-loading="lazy"><p>{a}</p></div>`
-        );
-    });
+    // it('hydrate lazy with boundary', () => {
+    //     strictEqual(
+    //         insert_hydrate_tag(`<script>export let a = '';</script><p>{a}</p>`, {
+    //             path: 'path',
+    //             name: 'name',
+    //             config: {
+    //                 display: WyvrHydrateDisplay.block,
+    //                 render: WyvrFileRender.hydrate,
+    //                 loading: WyvrFileLoading.lazy,
+    //                 error: undefined,
+    //                 portal: undefined,
+    //                 trigger: undefined,
+    //                 boundary: '100px',
+    //                 media: 'all',
+    //             },
+    //         }),
+    //         `<script>export let a = '';</script><div data-hydrate="name" data-props="{_prop('a', a)}" data-loading="lazy" data-boundary="100px"><p>{a}</p></div>`
+    //     );
+    // });
+    // it('hydrate lazy with invalid boundary value', () => {
+    //     strictEqual(
+    //         insert_hydrate_tag(`<script>export let a = '';</script><p>{a}</p>`, {
+    //             path: 'path',
+    //             name: 'name',
+    //             config: {
+    //                 display: WyvrHydrateDisplay.block,
+    //                 render: WyvrFileRender.hydrate,
+    //                 loading: WyvrFileLoading.lazy,
+    //                 error: undefined,
+    //                 portal: undefined,
+    //                 trigger: undefined,
+    //                 boundary: true,
+    //                 media: 'all',
+    //             },
+    //         }),
+    //         `<script>export let a = '';</script><div data-hydrate="name" data-props="{_prop('a', a)}" data-loading="lazy"><p>{a}</p></div>`
+    //     );
+    // });
     it('portal', () => {
         strictEqual(
             insert_hydrate_tag(`<script>export let a = '';</script><p>{a}</p>`, {

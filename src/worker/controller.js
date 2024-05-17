@@ -1,7 +1,7 @@
 import os from 'os';
 import { Worker } from '../model/worker.js';
 import { Logger } from '../utils/logger.js';
-import { filled_array, filled_string, is_null, is_number, is_object, is_int } from '../utils/validate.js';
+import { filled_array, filled_string, is_null, is_number, is_object, is_int, is_func } from '../utils/validate.js';
 import { search_segment } from '../utils/segment.js';
 import { Event } from '../utils/event.js';
 import { get_name, WorkerAction } from '../struc/worker_action.js';
@@ -14,6 +14,8 @@ import { Queue } from '../model/queue.js';
 import { get_configure_data } from '../action/configure.js';
 import { sleep } from '../utils/sleep.js';
 
+let cpu_cores;
+// biome-ignore lint/complexity/noStaticOnlyClass:
 export class WorkerController {
     static async initialize(ratio = 1, single_threaded = false, fork_fn) {
         // set worker ratio
@@ -68,10 +70,15 @@ export class WorkerController {
         this.worker_ratio = ratio;
     }
     static get_cpu_cores() {
-        if (typeof os.availableParallelism == 'function') {
-            return os.availableParallelism();
+        if (cpu_cores) {
+            return cpu_cores;
         }
-        return os.cpus().length;
+        if (is_func(os.availableParallelism)) {
+            cpu_cores = os.availableParallelism();
+        } else {
+            cpu_cores = os.cpus().length;
+        }
+        return cpu_cores;
     }
     static get_worker_amount_from_ratio() {
         if (this.worker_amount) {
@@ -155,10 +162,10 @@ export class WorkerController {
         this.worker_ratio = 0;
     }
     static remove_worker(pid) {
-        this.workers = this.workers.filter((worker) => worker.pid != pid);
+        this.workers = this.workers.filter((worker) => worker.pid !== pid);
     }
     static get_worker(pid) {
-        return this.workers.find((worker) => worker.pid == pid);
+        return this.workers.find((worker) => worker.pid === pid);
     }
     static get_message(msg) {
         if (filled_string(msg) || is_null(search_segment(msg, 'data.action.key')) || is_null(search_segment(msg, 'data.action.value'))) {
@@ -181,7 +188,7 @@ export class WorkerController {
                 }
                 // update the status of the worker
                 this.workers.find((ref_worker) => {
-                    if (ref_worker.pid == worker.pid) {
+                    if (ref_worker.pid === worker.pid) {
                         ref_worker.status = data;
                         return true;
                     }
@@ -293,9 +300,9 @@ export class WorkerController {
      * @returns whether the value was sent to the workers or not
      */
     static send_action_all_workers(action, data) {
-        this.workers.forEach((worker) => {
+        for (const worker of this.workers) {
             this.send_action(worker, action, data);
-        });
+        }
     }
 
     /**
@@ -333,13 +340,13 @@ export class WorkerController {
         }
         const workers = this.get_workers_by_status(WorkerStatus.idle);
         // stop when queue is empty and all workers are idle
-        if (queue.length == 0 && workers.length == this.get_worker_amount()) {
+        if (queue.length === 0 && workers.length === this.get_worker_amount()) {
             return true;
         }
         if (queue.length > 0) {
             // get all idle workers
             if (workers.length > 0) {
-                workers.forEach((worker) => {
+                for (const worker of workers) {
                     const queue_entry = queue.take();
                     if (queue_entry != null) {
                         // set worker busy otherwise the same worker gets multiple actions send
@@ -347,7 +354,7 @@ export class WorkerController {
                         // send the data to the worker
                         this.send_action(worker, queue_entry.action, queue_entry.data);
                     }
-                });
+                }
             }
         }
         return false;
@@ -362,7 +369,7 @@ export class WorkerController {
         const workers = this.get_workers_by_status(WorkerStatus.idle);
         return new Promise((resolve) => {
             // retry when no idle workers are available
-            if (workers.length == 0) {
+            if (workers.length === 0) {
                 setTimeout(() => {
                     this.process_data(action, data).then(resolve);
                 }, 50);
@@ -371,7 +378,7 @@ export class WorkerController {
             workers[0].status = WorkerStatus.busy;
             this.send_action(workers[0], action, data);
             const done_listener_id = Event.on('worker_status', WorkerStatus.done, (worker) => {
-                if (worker.pid == workers[0].pid) {
+                if (worker.pid === workers[0].pid) {
                     Event.off('worker_status', WorkerStatus.done, done_listener_id);
                     resolve(true);
                 }
@@ -380,7 +387,7 @@ export class WorkerController {
     }
 
     static async process_in_workers(action, list, batch_size, show_name) {
-        if (this.workers.length == 0) {
+        if (this.workers.length === 0) {
             Logger.error('no worker available');
             process.exit(1);
         }
@@ -405,7 +412,7 @@ export class WorkerController {
         if (!this.multi_threading) {
             batch_size = amount;
         }
-        Logger.info('process', amount, amount == 1 ? 'item' : 'items', show_name ? Logger.color.blue(`in ${name}`) : '', Logger.color.dim('batch size ' + batch_size));
+        Logger.info('process', amount, amount === 1 ? 'item' : 'items', show_name ? Logger.color.blue(`in ${name}`) : '', Logger.color.dim('batch size ' + batch_size));
 
         // create new queue
         this.queue = new Queue();
@@ -441,7 +448,7 @@ export class WorkerController {
                 }
             });
             // when all workers are idle, emit on first
-            if (idle.length > 0 && idle.length == this.get_worker_amount()) {
+            if (idle.length > 0 && idle.length === this.get_worker_amount()) {
                 this.livecycle(idle[0]);
             }
             const done_listener_id = Event.on('worker_status', WorkerStatus.done, () => {

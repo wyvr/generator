@@ -16,7 +16,7 @@ export async function compile(files) {
     }
     const file_config = get_config_cache('dependencies.config');
     for (const file of files) {
-        if (!exists(file) || extname(file) != '.svelte') {
+        if (!exists(file) || extname(file) !== '.svelte') {
             continue;
         }
         try {
@@ -28,7 +28,7 @@ export async function compile(files) {
                 const rel_path = to_relative_path_of_gen(file);
                 const entry = WyvrFile(rel_path);
                 entry.config = file_config[rel_path];
-                if (entry?.config?.render == WyvrFileRender.hydrate) {
+                if (entry?.config?.render === WyvrFileRender.hydrate) {
                     server_code = insert_hydrate_tag(server_code, entry);
                 }
                 const compiled = await compile_server_svelte_from_code(server_code, file);

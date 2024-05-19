@@ -92,7 +92,7 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
     let dependencies;
     const identifiers = {};
     const pages = [];
-    let test_files = [];
+    const test_files = [];
 
     const mod_files = [].concat(change, add);
     if (mod_files.length > 0) {

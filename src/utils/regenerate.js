@@ -75,7 +75,7 @@ export async function regenerate_routes({ change, add, unlink }, gen_folder) {
     const modified_route = [].concat(change, add);
     if (modified_route.length > 0) {
         modified_route.map((file) => {
-            copy(file.path, join(gen_folder, file.rel_path));
+            copy_executable_file(file.path, join(gen_folder, file.rel_path));
         });
         reload_page = true;
     }

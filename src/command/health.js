@@ -17,28 +17,21 @@ export async function health_command(config) {
     let success = true;
 
     const env_report = await get_report();
-
-    if (env_report.info.length > 0) {
-        env_report.info.forEach((msg) => {
-            Logger.info(msg);
-        });
-    }
-    if (env_report.warning.length > 0) {
-        env_report.warning.forEach((msg) => {
-            Logger.warning(msg);
-        });
-    }
-    if (env_report.error.length > 0) {
-        env_report.error.forEach((msg) => {
-            Logger.error(msg);
-        });
-        success = false;
+    for (const type of ['info', 'warning', 'error']) {
+        if (env_report[type]?.length > 0) {
+            for (const msg of env_report[type]) {
+                Logger[type](msg);
+            }
+            if (type === 'error') {
+                success = false;
+            }
+        }
     }
 
     // check app port
     const defined_port = config?.cli?.flags?.port || 3000;
     const port = await find_port(defined_port);
-    if (defined_port == port) {
+    if (defined_port === port) {
         Logger.present('port', defined_port);
     } else {
         Logger.warning('port', defined_port, 'already in use, maybe you have another instance of wyvr running');
@@ -47,7 +40,7 @@ export async function health_command(config) {
     // check ws port
     const defined_wsport = config?.cli?.flags?.wsport || 3001;
     const wsport = await find_port(defined_wsport);
-    if (defined_wsport == wsport) {
+    if (defined_wsport === wsport) {
         Logger.present('port', defined_wsport);
     } else {
         Logger.warning('port', defined_wsport, 'already in use, maybe you have another instance of wyvr running');

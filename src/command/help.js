@@ -76,8 +76,9 @@ export async function show_help(config, commands) {
         }
         if (!found_something) {
             const has_command = config?.search.length > 0;
-            const value = config?.search.join(' ');
-            Logger.error(has_command ? `unknown command ${value}` : 'command is missing');
+            if (!has_command) {
+                Logger.error('command is missing');
+            }
         }
     } else {
         selected_commands = commands;
@@ -108,9 +109,9 @@ export async function show_help(config, commands) {
         }
         Logger.inset = false;
     }
-    const command = [].concat(Object.keys(selected_commands.builtin), Object.keys(selected_commands.custom)).find(Boolean);
+    const matching_commands = [].concat(Object.keys(selected_commands.builtin), Object.keys(selected_commands.custom));
     return {
-        command,
+        command: matching_commands.length === 1 ? matching_commands[0] : undefined,
         exact_match
     };
 }

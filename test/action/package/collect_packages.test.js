@@ -81,6 +81,18 @@ describe('action/package/collect_packages', () => {
             disabled_packages: [].concat([{ name: 'file2' }], empty_disabled_packages(Cwd.get()))
         });
     });
+    it('subpackages', async () => {
+        Cwd.set(join(__dirname, '_tests/subpackages'));
+        const result = await collect_packages(undefined, false);
+        deepStrictEqual(result, {
+            available_packages: [
+                { name: 'direct', path: join(Cwd.get(), 'direct') },
+                { name: 'local', path: join(Cwd.get(), '..', 'simple', 'local') }
+            ],
+            disabled_packages: empty_disabled_packages(Cwd.get())
+        });
+        deepStrictEqual(Config.get('test'), true);
+    });
     it('disabled', async () => {
         Cwd.set(join(__dirname, '_tests/disabled'));
         const result = await collect_packages(undefined, false);

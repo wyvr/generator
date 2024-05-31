@@ -1,7 +1,7 @@
-import { createServer } from 'http';
+import { createServer } from 'node:http';
 import formidable, { errors as formidableErrors } from 'formidable';
 import { Logger } from './logger.js';
-import { filled_string, in_array, is_func, is_number, match_interface } from './validate.js';
+import { filled_string, in_array, is_func, is_number } from './validate.js';
 import { uniq_id } from './uniq.js';
 import ServeStatic from 'serve-static';
 import { WebSocketServer } from 'ws';
@@ -20,7 +20,7 @@ import { WatcherPaths } from '../vars/watcher_paths.js';
 import { copy, exists, read, remove } from './file.js';
 import { WorkerController } from '../worker/controller.js';
 import { WorkerAction } from '../struc/worker_action.js';
-import { tmpdir } from 'os';
+import { tmpdir } from 'node:os';
 import { basename, extname, join } from 'node:path';
 import { get_route } from './routes.js';
 import { get_config_cache } from './config_cache.js';
@@ -48,13 +48,13 @@ export function server(host, port, on_request, on_end) {
 
         // force redirect to urls with / at the end
         const url = req.url;
-        let clean_url = url.replace(/\?.*/, '').replace(/#.*/, '');
+        const clean_url = url.replace(/\?.*/, '').replace(/#.*/, '');
         const question_mark = url.indexOf('?');
         const hash = url.indexOf('#');
-        if (!extname(clean_url) && clean_url[clean_url.length - 1] != '/') {
+        if (!extname(clean_url) && clean_url[clean_url.length - 1] !== '/') {
             const params_pos = Math.min(question_mark > -1 ? question_mark : Number.MAX_SAFE_INTEGER, hash > -1 ? hash : Number.MAX_SAFE_INTEGER);
             res.writeHead(Env.is_dev() ? 302 : 301, undefined, {
-                location: clean_url + '/' + url.substring(params_pos)
+                location: `${clean_url}/${url.substring(params_pos)}`
             });
             res.end();
             return;
@@ -68,9 +68,9 @@ export function server(host, port, on_request, on_end) {
         // add query parameters to the request
         if (question_mark > -1) {
             const params = new URLSearchParams(url.substring(question_mark + 1));
-            Array.from(params.keys()).forEach((key) => {
+            for (const key of params.keys()) {
                 query[key] = params.get(key);
-            });
+            }
         }
 
         req.query = query;
@@ -122,7 +122,7 @@ export function log_start(req, uid) {
 }
 export function log_end(req, res, uid, start) {
     const message = [req.method, req.url, ...get_done_log_infos(res.statusMessage, res.statusCode, start, uid)];
-    const type = (`${res.statusCode}`)[0]; // first digit indicates the type
+    const type = `${res.statusCode}`[0]; // first digit indicates the type
     const type_logger = {
         1: (message) => Logger.info(...message),
         2: (message) => Logger.success(...message),
@@ -130,7 +130,7 @@ export function log_end(req, res, uid, start) {
         4: (message) => Logger.warning(...message),
         _: (message) => Logger.error(...message)
     };
-    (type_logger[type] || type_logger['_'])(message);
+    (type_logger[type] || type_logger._)(message);
 }
 export function is_data_method(method) {
     return ['post', 'patch', 'put'].indexOf(method.toLowerCase()) > -1;
@@ -239,7 +239,7 @@ async function static_server_final(err, req, res, uid, on_end, start) {
 export async function app_server(host, port) {
     return new Promise((resolve, reject) => {
         generate_server(host, port, false, undefined, undefined).catch((e) => {
-            Logger.error(get_error_message(e, undefined, 'worker error ' + process.pid));
+            Logger.error(get_error_message(e, undefined, `worker error ${process.pid}`));
             reject();
         });
     });
@@ -291,7 +291,7 @@ async function generate_server(host, port, force_generating_of_resources, onEnd,
         await static_server(req, res, uid, async (err) => {
             if (err) {
                 // check if css or js files should be generated
-                if (req.url.indexOf('/js') == 0) {
+                if (req.url.indexOf('/js') === 0) {
                     const file_content = await build_hydrate_file_from_url(req.url);
                     if (file_content) {
                         res = send_head(res, 200, 'application/javascript');
@@ -329,12 +329,13 @@ export function websocket_server(port, packages) {
     const watchers = {};
 
     function send_all_watchers(data) {
-        Object.keys(watchers).forEach((key) => {
-            if (watchers[key]) {
+        for (const key of Object.keys(watchers)) {
+            const watcher = watchers[key];
+            if (watcher) {
                 Logger.debug('ws send', key, data);
-                watchers[key].send(stringify(data));
+                watcher.send(stringify(data));
             }
-        });
+        }
     }
     Event.on('client', 'reload', (data) => {
         send_all_watchers({ action: 'reload', data });
@@ -390,7 +391,7 @@ export function websocket_server(port, packages) {
                         break;
                     }
                     case 'get_config_cache': {
-                        if (typeof data.data == 'string') {
+                        if (typeof data.data === 'string') {
                             ws.send(
                                 stringify({
                                     action: 'get_config_cache',
@@ -405,15 +406,14 @@ export function websocket_server(port, packages) {
                     }
                     case 'file_system': {
                         const cwd = Cwd.get();
-                        console.log(data.data, cwd);
-                        if (data.data?.action == 'delete' && data.data?.path) {
+                        if (data.data?.action === 'delete' && data.data?.path) {
                             if (!data.data?.path.startsWith(cwd)) {
                                 return;
                             }
                             remove(data.data.path);
                             return;
                         }
-                        if (data.data?.action == 'copy' && data.data?.path && data.data?.to) {
+                        if (data.data?.action === 'copy' && data.data?.path && data.data?.to) {
                             if (!data.data?.path.startsWith(cwd) || !data.data.to.startsWith(cwd)) {
                                 return;
                             }

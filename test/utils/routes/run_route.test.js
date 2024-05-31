@@ -95,9 +95,7 @@ describe('utils/routes/run_route', () => {
         deepStrictEqual(log, [
             [
                 '⚠',
-                '[route] onExec in ' +
-                    process.cwd() +
-                    '/test/utils/routes/_tests/run/check_on_route.js should return a object',
+                `[route] onExec in ${process.cwd()}/test/utils/routes/_tests/run/check_on_route.js should return a object`,
             ],
         ]);
     });
@@ -155,7 +153,8 @@ describe('utils/routes/run_route', () => {
     });
     it('returnJson', async () => {
         Cwd.set(join(dir, 'run'));
-        let head, json;
+        let head;
+        let json;
         const [result] = await run_route(
             { url: '/test/10', method: 'GET' },
             {
@@ -235,7 +234,7 @@ describe('utils/routes/run_route', () => {
     });
     it('custom header', async () => {
         Cwd.set(join(dir, 'run'));
-        let head, json;
+        let head;
         const [result] = await run_route(
             { url: '/test/10', method: 'GET' },
             {

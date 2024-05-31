@@ -37,11 +37,11 @@ export function WyvrData(data, url, name, mtime_default) {
     }
 
     // add simple props
-    ['extension', 'language', 'private', 'change_frequence', 'priority', 'static', 'mtime', 'persist'].forEach((key) => {
+    for (const key of ['extension', 'language', 'private', 'change_frequence', 'priority', 'static', 'mtime', 'persist']) {
         if (!is_null(data[key])) {
             wyvr_prop[key] = data[key];
         }
-    });
+    }
 
     // extend template data
     if (data.template) {
@@ -67,9 +67,9 @@ export function WyvrData(data, url, name, mtime_default) {
     }
 
     // add extension to the template paths
-    ['doc', 'layout', 'page'].forEach((key) => {
+    for (const key of ['doc', 'layout', 'page']) {
         wyvr_prop.template[key] = to_svelte_paths(wyvr_prop.template[key]);
-    });
+    }
 
     wyvr_prop.collection = build_collection(data.collection, url, name, wyvr_prop.mtime);
 
@@ -86,5 +86,5 @@ function merge_property(prop_value, default_value) {
     if (is_string(prop_value)) {
         prop_value = [prop_value];
     }
-    return [].concat(prop_value, default_value).filter((x, index, arr) => arr.indexOf(x) == index);
+    return [].concat(prop_value, default_value).filter((x, index, arr) => arr.indexOf(x) === index);
 }

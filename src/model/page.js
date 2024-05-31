@@ -14,11 +14,11 @@ export class Page {
         // apply only known properties to the Page
         if (is_object(data)) {
             const data_keys = Object.keys(data);
-            Object.keys(this).forEach((key) => {
+            for (const key of Object.keys(this)) {
                 if (in_array(data_keys, key)) {
                     this[key] = data[key];
                 }
-            });
+            }
         }
     }
 }

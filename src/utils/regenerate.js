@@ -1,7 +1,7 @@
 import { extname, join } from 'node:path';
 import { copy_executable_file, copy_files, copy_folder } from '../action/copy.js';
 import { i18n } from '../action/i18n.js';
-import { FOLDER_GEN, FOLDER_GEN_CLIENT, FOLDER_GEN_EVENTS, FOLDER_GEN_SERVER, FOLDER_GEN_SRC, FOLDER_I18N } from '../constants/folder.js';
+import { FOLDER_GEN, FOLDER_GEN_CLIENT, FOLDER_GEN_EVENTS, FOLDER_GEN_SERVER, FOLDER_I18N } from '../constants/folder.js';
 import { Page } from '../model/page.js';
 import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
@@ -27,7 +27,7 @@ function regenerate_server_files({ change, add, unlink }, gen_folder, scope) {
     const modified = [].concat(change, add);
     if (modified.length > 0) {
         for (const file of modified) {
-            const content = replace_imports(replace_wyvr_magic(read(file.path), false), file.path, FOLDER_GEN_SRC, scope);
+            const content = replace_imports(replace_wyvr_magic(read(file.path), false), file.path, FOLDER_GEN_SERVER, scope);
             write(join(gen_folder, file.rel_path), add_dev_note(file.rel_path, content));
         }
     }

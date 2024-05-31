@@ -22,6 +22,7 @@ import { Env } from '../vars/env.js';
 import { stringify } from './json.js';
 import { SerializableResponse } from '../model/serializable/response.js';
 import { get_cookies, set_cookie } from './cookies.js';
+import { uniq_values } from './uniq.js';
 
 export async function build_cache() {
     const files = collect_files(Cwd.get(FOLDER_GEN_ROUTES));
@@ -125,6 +126,15 @@ export async function run_route(request, response, uid, route) {
         }
     }
     const request_headers = request.headers || {};
+    // parse certain parts of the request headers
+    request_headers.visitor_languages = request_headers['accept-language']
+        ? uniq_values(
+              request_headers['accept-language']
+                  .replace(/;.+$/, '')
+                  .split(',')
+                  .map((lang) => lang.split('-')[0])
+          )
+        : [];
     const body = request.body || {};
     const files = request.files || {};
 

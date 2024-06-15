@@ -54,7 +54,7 @@ export async function dev_command(config) {
 
     chat_start();
 
-    watch_server('localhost', port, wsport, packages);
+    watch_server(port, wsport, packages);
 
     await package_watcher(packages);
 

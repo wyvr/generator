@@ -27,9 +27,9 @@ describe('utils/port/find_port', () => {
                     }
                     server.events[name].push(cb);
                 },
-                listen: (port, host) => {
+                listen: ({port}) => {
                     server.port = port;
-                    server.host = host;
+                    server.host = 'localhost';
                 },
                 close: () => {},
             };

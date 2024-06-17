@@ -12,7 +12,7 @@ export async function wait_for(check_fn, interval = 10, max = 10000) {
         return false;
     }
     return new Promise((resolve) => {
-        const guard = setTimeout(() => {
+        let guard = setTimeout(() => {
             clearInterval(id);
             resolve(false);
         }, max);
@@ -20,6 +20,7 @@ export async function wait_for(check_fn, interval = 10, max = 10000) {
             const result = check_fn();
             if (result) {
                 clearTimeout(guard);
+                guard = null;
                 clearInterval(id);
                 resolve(true);
             }

@@ -82,7 +82,10 @@ export const app_command = async (config) => {
 
     // provision the new workers as app server
     Event.on('worker_status', WorkerStatus.exists, (worker) => {
-        WorkerController.send_action(worker, WorkerAction.mode, { mode: 'app', port });
+        WorkerController.send_action(worker, WorkerAction.mode, {
+            mode: 'app',
+            port,
+        });
     });
 
     await WorkerController.initialize(1, false, () => {
@@ -96,19 +99,24 @@ export const app_command = async (config) => {
     await new Promise((resolve, reject) => {
         const amount = WorkerController.get_worker_amount();
         Logger.debug('worker amount', amount);
-        const safe_guard = setTimeout(() => {
+        let safe_guard = setTimeout(() => {
             clearInterval(interval);
+            interval = null;
             reject('creating cluster worker timeout');
         }, 30000);
-        const interval = setInterval(() => {
-            const busy = WorkerController.get_workers_by_status(WorkerStatus.busy).length;
+        let interval = setInterval(() => {
+            const busy = WorkerController.get_workers_by_status(
+                WorkerStatus.busy
+            ).length;
             Logger.debug('busy', busy);
             // when a single worker come active end safe guard
             if (busy > 0) {
                 clearTimeout(safe_guard);
+                safe_guard = null;
             }
             if (busy == amount) {
                 clearInterval(interval);
+                interval = null;
                 Logger.info('all worker started');
                 resolve();
             }

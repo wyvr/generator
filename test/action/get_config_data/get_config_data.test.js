@@ -12,7 +12,13 @@ import { Env } from '../../../src/vars/env.js';
 describe('action/get_config_data/get_config_data', () => {
     const __dirname = to_dirname(import.meta.url);
     const __root = join(__dirname, '..', '..', '..');
-    const __path = join('test', 'action', 'get_config_data', '_tests', 'get_config_data');
+    const __path = join(
+        'test',
+        'action',
+        'get_config_data',
+        '_tests',
+        'get_config_data'
+    );
     const test_folder = join(__root, __path);
 
     before(() => {
@@ -32,25 +38,9 @@ describe('action/get_config_data/get_config_data', () => {
     });
     it('undefined', () => {
         deepStrictEqual(get_config_data(), {
-            assets: [],
             build_id: undefined,
-            cron: {},
             cwd: __root,
-            default_values: {},
             env: 'prod',
-            https: true,
-            i18n: {
-                fallback: 'en',
-            },
-            packages: [],
-            releases: {
-                keep: 0,
-            },
-            url: 'localhost',
-            worker: {
-                force_initial_build: false,
-                ratio: 0.3,
-            },
         });
     });
     it('cli_config', () => {
@@ -66,9 +56,7 @@ describe('action/get_config_data/get_config_data', () => {
                 version: '0.0.0',
             }),
             {
-                assets: [],
                 build_id: undefined,
-                cron: {},
                 cli: {
                     cwd: __root,
                     interpreter: '/bin/node',
@@ -77,95 +65,42 @@ describe('action/get_config_data/get_config_data', () => {
                     flags: undefined,
                 },
                 cwd: __root,
-                default_values: {},
                 env: 'prod',
-                https: true,
-                i18n: {
-                    fallback: 'en',
-                },
-                packages: [],
-                releases: {
-                    keep: 0,
-                },
-                url: 'localhost',
                 version: '0.0.0',
-                worker: {
-                    force_initial_build: false,
-                    ratio: 0.3,
-                },
             }
         );
     });
     it('build id', () => {
         deepStrictEqual(get_config_data(undefined, '012345'), {
-            assets: [],
             build_id: '012345',
-            cron: {},
             cwd: __root,
-            default_values: {},
             env: 'prod',
-            https: true,
-            i18n: {
-                fallback: 'en',
-            },
-            packages: [],
-            releases: {
-                keep: 0,
-            },
-            url: 'localhost',
-            worker: {
-                force_initial_build: false,
-                ratio: 0.3,
-            },
         });
     });
     it('override env dev', () => {
-        deepStrictEqual(get_config_data({ cli: { flags: { dev: true } } }, '012345'), {
-            assets: [],
-            build_id: '012345',
-            cli: { flags: { dev: true } },
-            cron: {},
-            cwd: __root,
-            default_values: {},
-            env: 'dev',
-            https: true,
-            i18n: {
-                fallback: 'en',
-            },
-            packages: [],
-            releases: {
-                keep: 0,
-            },
-            url: 'localhost',
-            worker: {
-                force_initial_build: false,
-                ratio: 0.3,
-            },
-        });
+        deepStrictEqual(
+            get_config_data({ cli: { flags: { dev: true } } }, '012345'),
+            {
+                build_id: '012345',
+                cli: { flags: { dev: true } },
+                cwd: __root,
+                env: 'dev',
+            }
+        );
     });
     it('override env debug', () => {
-        deepStrictEqual(get_config_data({ cli: { flags: { dev: true, debug: true } } }, '012345'), {
-            assets: [],
-            build_id: '012345',
-            cli: { flags: { dev: true, debug: true } },
-            cron: {},
-            cwd: __root,
-            default_values: {},
-            env: 'debug',
-            https: true,
-            i18n: {
-                fallback: 'en',
-            },
-            packages: [],
-            releases: {
-                keep: 0,
-            },
-            url: 'localhost',
-            worker: {
-                force_initial_build: false,
-                ratio: 0.3,
-            },
-        });
+        deepStrictEqual(
+            get_config_data(
+                { cli: { flags: { dev: true, debug: true } } },
+                '012345'
+            ),
+            {
+                build_id: '012345',
+                cli: { flags: { dev: true, debug: true } },
+                cwd: __root,
+                env: 'debug',
+            }
+        );
     });
     it('override plain output', () => {
         get_config_data({ cli: { flags: { plain: true } } }, '012345');

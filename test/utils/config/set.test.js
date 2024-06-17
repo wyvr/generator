@@ -1,7 +1,6 @@
 import { deepStrictEqual, strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { Config } from '../../../src/utils/config.js';
-import { WyvrConfig } from '../../../src/model/wyvr_config.js';
 
 describe('utils/config/set', () => {
     const original = Config.get();
@@ -32,7 +31,6 @@ describe('utils/config/set', () => {
     it('when empty', () => {
         Config.replace(undefined);
         Config.set('key', 'value');
-        const result = Object.assign({}, WyvrConfig, { key: 'value' });
-        deepStrictEqual(Config.get(), result);
+        deepStrictEqual(Config.get(), { key: 'value' });
     });
 });

@@ -36,17 +36,35 @@ describe('utils/file/copy', () => {
         strictEqual(copy(), false);
     });
     it('non existing', () => {
-        strictEqual(copy('test/utils/file/_tests/nonexists.txt', 'test/utils/file/_tests/copy.txt'), false);
+        strictEqual(
+            copy(
+                'test/utils/file/_tests/nonexists.txt',
+                'test/utils/file/_tests/copy.txt'
+            ),
+            false
+        );
     });
     it('copy', () => {
-        strictEqual(copy('test/utils/file/_tests/text.txt', 'test/utils/file/_tests/copy.txt'), true);
+        strictEqual(
+            copy(
+                'test/utils/file/_tests/text.txt',
+                'test/utils/file/_tests/copy.txt'
+            ),
+            true
+        );
     });
     it('target not writeable', () => {
-        strictEqual(copy('test/utils/file/_tests/empty.txt', 'test/utils/file/_tests/not_writeable.txt'), false);
+        strictEqual(
+            copy(
+                'test/utils/file/_tests/empty.txt',
+                'test/utils/file/_tests/not_writeable.txt'
+            ),
+            false
+        );
         deepStrictEqual(result, [
             [
                 '\x1B[31m✖\x1B[39m',
-                '\x1B[31mcopy test/utils/file/_tests/empty.txt test/utils/file/_tests/not_writeable.txt {"errno":-13,"syscall":"copyfile","code":"EACCES","path":"test/utils/file/_tests/empty.txt","dest":"test/utils/file/_tests/not_writeable.txt"}\x1B[39m',
+                '\u001b[31mcopy test/utils/file/_tests/empty.txt test/utils/file/_tests/not_writeable.txt {"errno":-13,"code":"EACCES","syscall":"copyfile","path":"test/utils/file/_tests/empty.txt","dest":"test/utils/file/_tests/not_writeable.txt"}\u001b[39m',
             ],
         ]);
     });

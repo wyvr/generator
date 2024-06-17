@@ -70,6 +70,8 @@ describe('utils/global/register_inject', () => {
         let result;
         result = await _inject(undefined, 'a', (value) => JSON.parse(value));
         deepStrictEqual(result, 'a');
-        deepStrictEqual(log, ['', '', '⚠', '@inject\n[SyntaxError] Unexpected token a in JSON at position 0']);
+        // deepStrictEqual(log, ['', '', '⚠', '@inject\n[SyntaxError] Unexpected token a in JSON at position 0']);
+        deepStrictEqual(log, ['', '', '⚠', `@inject\n[SyntaxError] Unexpected token 'a', "a" is not valid JSON`]);
+        
     });
 });

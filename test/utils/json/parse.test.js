@@ -40,6 +40,8 @@ describe('utils/json/parse', () => {
     it('error', () => {
         const value = parse('tre');
         deepStrictEqual(value, undefined);
-        deepStrictEqual(log, [['', '', '✖', '@parse\n[SyntaxError] Unexpected token e in JSON at position 2']]);
+        // deepStrictEqual(log, [['', '', '✖', '@parse\n[SyntaxError] Unexpected token e in JSON at position 2']]);
+        deepStrictEqual(log, [['', '', '✖', `@parse\n[SyntaxError] Unexpected token 'e', "tre" is not valid JSON`]]);
+
     });
 });

@@ -1,4 +1,4 @@
-import { url_join } from '@src/url.mjs';
+import { url_join } from '$src/url.mjs';
 
 export default {
     url: '/url/',

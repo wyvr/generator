@@ -41,7 +41,7 @@ describe('utils/routes/load_route', () => {
             [
                 '✖',
                 '@route\n' +
-                    "[Error] Cannot find package '@src/url.mjs' imported from " +
+                    "[Error] Cannot find package '$src' imported from " +
                     dir +
                     '/load/contains_src.js\n' +
                     'source contains_src.js',

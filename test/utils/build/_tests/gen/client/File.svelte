@@ -18,5 +18,5 @@
     [data-slot="default"] {
         border: 1px solid blue;
     }
-    @import '@src/_test.css';
+    @import '$src/_test.css';
 </style>

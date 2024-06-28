@@ -1,6 +1,6 @@
 <script>
     /*
-        import Tag from '@src/wyvr/Tag.svelte';
+        import Tag from '$src/wyvr/Tag.svelte';
 
         <Tag name="name" attr={{ attr: 'value', 'data-attr': 'true', 'attr-bool': true, 'attr-hidden': false, 'attr-array-hidden': []}}>
             content

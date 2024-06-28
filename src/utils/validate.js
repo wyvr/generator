@@ -82,7 +82,13 @@ export function in_array(array, value) {
  * @returns boolean
  */
 export function is_object(value) {
-    return typeof value === 'object' && value != null && !Array.isArray(value) && !is_regex(value) && !is_date(value);
+    return (
+        typeof value === 'object' &&
+        value != null &&
+        !Array.isArray(value) &&
+        !is_regex(value) &&
+        !is_date(value)
+    );
 }
 
 /**
@@ -157,7 +163,12 @@ export function is_path(value) {
     if (!filled_string(value)) {
         return false;
     }
-    if (value.indexOf('.') === 0 || value.indexOf('/') === 0 || value.indexOf('@src') === 0) {
+    if (
+        value.indexOf('.') === 0 ||
+        value.indexOf('/') === 0 ||
+        value.indexOf('$src') === 0 ||
+        value.indexOf('@src') === 0 // @deprecated
+    ) {
         return true;
     }
     return false;
@@ -182,7 +193,9 @@ export function match_interface(value, structure) {
     if (!is_object(value) || !is_object(structure)) {
         return false;
     }
-    const required_keys = Object.keys(structure).filter((key) => structure[key]);
+    const required_keys = Object.keys(structure).filter(
+        (key) => structure[key]
+    );
     const object_keys = Object.keys(value);
 
     return required_keys.every((key) => in_array(object_keys, key));

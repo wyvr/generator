@@ -1,5 +1,5 @@
 <script>
-    import Container from '@src/container.svelte';
+    import Container from '$src/container.svelte';
     let a = 'test';
 </script>
 

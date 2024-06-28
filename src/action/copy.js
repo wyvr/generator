@@ -54,7 +54,7 @@ export async function copy(available_packages) {
                     // transform to "./src/file.svelte" "src/file.svelte"
                     const target_key = file.target.replace(/^\.\//, '');
                     package_tree[target_key] = pkg;
-                    // replace @src in plugins and cron jobs(executables)
+                    // replace $src and @src in plugins and cron jobs(executables)
                     copy_executable_file(target, target);
                 });
             }

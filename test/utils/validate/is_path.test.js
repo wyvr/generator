@@ -60,16 +60,25 @@ describe('utils/validate/is_path', () => {
             false
         );
     });
-    it('@src', () => {
-        strictEqual(is_path('@src/file'), true);
+
+    it('$src', () => {
+        strictEqual(is_path('$src/file'), true);
     });
-    it('@src deep', () => {
-        strictEqual(is_path('@src/file/file.js'), true);
+    it('$src deep', () => {
+        strictEqual(is_path('$src/file/file.js'), true);
     });
     it('relative', () => {
         strictEqual(is_path('./src/file/file.js'), true);
     });
     it('absolute', () => {
         strictEqual(is_path('/src/file/file.js'), true);
+    });
+    describe('deprecated @src', () => {
+        it('@src', () => {
+            strictEqual(is_path('@src/file'), true);
+        });
+        it('@src deep', () => {
+            strictEqual(is_path('@src/file/file.js'), true);
+        });
     });
 });

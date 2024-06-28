@@ -1,4 +1,4 @@
-import { test } from '@src/test.mjs';
+import { test } from '$src/test.mjs';
 
 export default {
     test: {

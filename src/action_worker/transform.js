@@ -58,7 +58,7 @@ export async function transform(files) {
                         file = file.replace('.ts', '.js');
                     }
                 }
-                // replace @src in source files
+                // replace $src and @src in source files
                 if (in_array(['.mjs', '.cjs', '.js', '.ts'], extension)) {
                     content = replace_imports(content, file, FOLDER_GEN_SRC, 'transform');
                 }

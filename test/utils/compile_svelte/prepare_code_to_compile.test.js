@@ -45,7 +45,7 @@ describe('utils/compile_svelte/prepare_code_to_compile', () => {
     it('import', async () => {
         Env.set(EnvType.debug);
         const result = await prepare_code_to_compile(
-            '<script>import Header from "@src/component/Header.svelte";</script> <Header />',
+            '<script>import Header from "$src/component/Header.svelte";</script> <Header />',
             'file',
             'server'
         );
@@ -58,4 +58,22 @@ describe('utils/compile_svelte/prepare_code_to_compile', () => {
             "Doesn't contain cache breaker"
         );
     });
+    describe('deprecated @src', () => {
+        it('import', async () => {
+            Env.set(EnvType.debug);
+            const result = await prepare_code_to_compile(
+                '<script>import Header from "@src/component/Header.svelte";</script> <Header />',
+                'file',
+                'server'
+            );
+            Env.value = undefined;
+            strictEqual(
+                result.indexOf(
+                    `<script>import Header from '${process.cwd()}/test/utils/compile_svelte/_tests/gen/server/component/Header.js?`
+                ) > -1,
+                true,
+                "Doesn't contain cache breaker"
+            );
+        });
+    })
 });

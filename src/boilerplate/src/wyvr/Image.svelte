@@ -1,6 +1,6 @@
 <script>
     /*
-        import Image from '@src/wyvr/Image.svelte';
+        import Image from '$src/wyvr/Image.svelte';
 
         <Image 
             src={imageSrc} 
@@ -16,7 +16,7 @@
         />
     */
     import { logger } from '@wyvr/generator/universal.js';
-    import { get_image_src_data, get_image_src, correct_image_format } from '@src/wyvr/image_utils.js';
+    import { get_image_src_data, get_image_src, correct_image_format } from '$src/wyvr/image_utils.js';
     import { onMount } from 'svelte';
     export let src = null;
     export let width = 0;

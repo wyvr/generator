@@ -6,7 +6,7 @@
 </code>
 
 <style type="text/scss">
-    @import '@src/test';
+    @import '$src/test';
 
     code {
         display: block;

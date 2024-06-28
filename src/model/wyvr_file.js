@@ -21,7 +21,7 @@ export function WyvrFile(path) {
         if (src_index > -1) {
             rel_splitts = rel_splitts.slice(src_index + 1);
         }
-        rel_path = join('@src', ...rel_splitts);
+        rel_path = join('$src', ...rel_splitts);
         name = rel_splitts.join('_').replace(new RegExp(`${extname(path).replace('.', '\\.')}$`), '');
         // avoid reserved keywords
         if (in_array(RESERVED_KEYWORDS, name.toLowerCase())) {

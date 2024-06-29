@@ -63,7 +63,8 @@ export async function scripts(identifiers) {
             }
 
             // write dev structure
-            write_identifier_structure(identifier, tree, file_config, package_tree);
+            // @TODO memory leak ahead inside get_structure
+            // write_identifier_structure(identifier, tree, file_config, package_tree);
 
             const has = { instant: false };
             // build file content

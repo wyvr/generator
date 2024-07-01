@@ -13,6 +13,8 @@ describe('utils/css/get_critical_css', () => {
     let console_error, console_log, write;
     const cwd = process.cwd();
     const __dirname = join(to_dirname(import.meta.url), '_tests');
+    const __root = join(to_dirname(import.meta.url), '..', '..', '..');
+
     before(() => {
         Cwd.set(__dirname);
         console_error = console.error;
@@ -32,7 +34,7 @@ describe('utils/css/get_critical_css', () => {
     });
     afterEach(() => {
         log = [];
-        if(exists(__dirname)) {
+        if (exists(__dirname)) {
             readdirSync(__dirname).forEach((file) => {
                 remove(join(__dirname, file));
             });
@@ -61,7 +63,9 @@ describe('utils/css/get_critical_css', () => {
             ),
             'a{color:red}'
         );
-        deepStrictEqual(log, ['Not rebasing assets for a {color:red}. Use "rebase" option\n']);
+        deepStrictEqual(log, [
+            'Not rebasing assets for a {color:red}. Use "rebase" option\n',
+        ]);
     });
     it('no css found', async () => {
         deepStrictEqual(
@@ -78,7 +82,15 @@ describe('utils/css/get_critical_css', () => {
             ),
             ''
         );
-        deepStrictEqual(log, [['✖', "@critical\n[Error] Error: File not found: test.css\n       Current working directory: /home/p/wyvr/generator\n       Searched in: /home/p/wyvr/generator"]]);
+        deepStrictEqual(log, [
+            [
+                '✖',
+                '@critical\n[Error] Error: File not found: test.css\n       Current working directory: ' +
+                    __root +
+                    '\n       Searched in: ' +
+                    __root,
+            ],
+        ]);
     });
     it('no media query and no file', async () => {
         deepStrictEqual(await get_critical_css('a {color: red;}'), '');

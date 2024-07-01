@@ -11,11 +11,17 @@ import {
     FOLDER_GEN_SERVER,
     FOLDER_ROUTES,
     FOLDER_EVENTS,
-    FOLDER_COMMANDS
+    FOLDER_COMMANDS,
 } from '../constants/folder.js';
 import { Config } from '../utils/config.js';
 import { set_config_cache } from '../utils/config_cache.js';
-import { collect_files, copy as copy_file, exists, read, write } from '../utils/file.js';
+import {
+    collect_files,
+    copy as copy_file,
+    exists,
+    read,
+    write,
+} from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
 import { to_relative_path_of_gen } from '../utils/to.js';
@@ -39,24 +45,32 @@ export async function copy(available_packages) {
             // Build Tree of files and packages
             const packages_ordered = packages.filter(Boolean).reverse();
             for (const pkg of packages_ordered) {
-                copy_folder(pkg.path, FOLDER_LIST_PACKAGE_COPY, Cwd.get(FOLDER_GEN), (file, target) => {
-                    const rel_path = to_relative_path_of_gen(target);
-                    // get file modify time of page files
-                    if (target.match(new RegExp(`/${FOLDER_PAGES}/`)) && !target.match(new RegExp(`/${FOLDER_SRC}/`))) {
-                        const stats = statSync(file.src);
-                        mtime[rel_path] = {
-                            mtime: stats.mtime,
-                            src: file.src
-                        };
-                    }
+                copy_folder(
+                    pkg.path,
+                    FOLDER_LIST_PACKAGE_COPY,
+                    Cwd.get(FOLDER_GEN),
+                    (file, target) => {
+                        const rel_path = to_relative_path_of_gen(target);
+                        // get file modify time of page files
+                        if (
+                            target.match(new RegExp(`/${FOLDER_PAGES}/`)) &&
+                            !target.match(new RegExp(`/${FOLDER_SRC}/`))
+                        ) {
+                            const stats = statSync(file.src);
+                            mtime[rel_path] = {
+                                mtime: stats.mtime,
+                                src: file.src,
+                            };
+                        }
 
-                    // e.g. target "./src/file.svelte"
-                    // transform to "./src/file.svelte" "src/file.svelte"
-                    const target_key = file.target.replace(/^\.\//, '');
-                    package_tree[target_key] = pkg;
-                    // replace $src and @src in plugins and cron jobs(executables)
-                    copy_executable_file(target, target);
-                });
+                        // e.g. target "./src/file.svelte"
+                        // transform to "./src/file.svelte" "src/file.svelte"
+                        const target_key = file.target.replace(/^\.\//, '');
+                        package_tree[target_key] = pkg;
+                        // replace $src and @src in plugins and cron jobs(executables)
+                        copy_executable_file(target, target);
+                    }
+                );
             }
             await set_config_cache('package_tree', package_tree);
             await set_config_cache('mtime', mtime);
@@ -70,7 +84,7 @@ export async function copy(available_packages) {
     });
     return {
         package_tree,
-        mtime
+        mtime,
     };
 }
 
@@ -117,7 +131,13 @@ export function copy_executable_file(source, target) {
     if (!source) {
         return false;
     }
-    const folders = [FOLDER_PLUGINS, FOLDER_CRON, FOLDER_ROUTES, FOLDER_EVENTS, FOLDER_COMMANDS].map((folder) => `/${folder}/`);
+    const folders = [
+        FOLDER_PLUGINS,
+        FOLDER_CRON,
+        FOLDER_ROUTES,
+        FOLDER_EVENTS,
+        FOLDER_COMMANDS,
+    ].map((folder) => `/${folder}/`);
     const folder = folders.find((path) => source.indexOf(path) > -1);
     if (!folder) {
         return false;

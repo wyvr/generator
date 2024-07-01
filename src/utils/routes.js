@@ -1,5 +1,9 @@
 import { statSync } from 'node:fs';
-import { FOLDER_GEN_ROUTES, FOLDER_GEN_SRC, FOLDER_ROUTES } from '../constants/folder.js';
+import {
+    FOLDER_GEN_ROUTES,
+    FOLDER_GEN_SRC,
+    FOLDER_ROUTES,
+} from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { compile_server_svelte } from './compile.js';
 import { render_server_compiled_svelte } from './compile_svelte.js';
@@ -9,7 +13,15 @@ import { collect_files, exists, read, write } from './file.js';
 import { generate_page_code } from './generate.js';
 import { Logger } from './logger.js';
 import { to_relative_path_of_gen } from './to.js';
-import { filled_array, filled_string, in_array, is_func, is_null, is_string, match_interface } from './validate.js';
+import {
+    filled_array,
+    filled_string,
+    in_array,
+    is_func,
+    is_null,
+    is_string,
+    match_interface,
+} from './validate.js';
 import { process_page_data } from '../action_worker/process_page_data.js';
 import { inject } from './build.js';
 import { replace_imports } from './transform.js';
@@ -38,12 +50,23 @@ export async function build_cache() {
             // replace the imports only once
             const content = read(file);
             if (content) {
-                write(file, replace_imports(content, file, FOLDER_GEN_SRC, FOLDER_ROUTES));
+                write(
+                    file,
+                    replace_imports(
+                        content,
+                        file,
+                        FOLDER_GEN_SRC,
+                        FOLDER_ROUTES
+                    )
+                );
             }
             const result = await load_route(file);
             /* c8 ignore start */
             if (contains_reserved_words(result?.url)) {
-                Logger.warning(result?.url, 'contains reserved word, the route may be not executed');
+                Logger.warning(
+                    result?.url,
+                    'contains reserved word, the route may be not executed'
+                );
             }
             /* c8 ignore end */
             const config = await extract_route_config(result, file);
@@ -87,9 +110,14 @@ export function get_route(url, method, route_cache) {
     let [clean_url] = url.split('?');
     // remove index.html from the url to avoid mismatches
     clean_url = clean_url.replace(/\/index\.html?$/, '/');
-    const normalized_method = is_string(method) ? method.trim().toLowerCase() : '';
+    const normalized_method = is_string(method)
+        ? method.trim().toLowerCase()
+        : '';
     const found_cache_item = route_cache.find((item) => {
-        return clean_url.match(new RegExp(item.match)) && in_array(item.methods, normalized_method);
+        return (
+            clean_url.match(new RegExp(item.match)) &&
+            in_array(item.methods, normalized_method)
+        );
     });
     return found_cache_item;
 }
@@ -146,7 +174,9 @@ export async function run_route(request, response, uid, route) {
     // get parameters from url
     const params = {};
     route.params.forEach((param, idx) => {
-        params[param] = decodeURIComponent(params_match[idx + 1].replace(/\/$/, '').trim());
+        params[param] = decodeURIComponent(
+            params_match[idx + 1].replace(/\/$/, '').trim()
+        );
     });
     params.isExec = !request.isNotExec;
     // get the route result
@@ -212,28 +242,51 @@ export async function run_route(request, response, uid, route) {
             response_header['Content-Type'] = 'application/json';
             const returned_json = json === undefined ? 'null' : stringify(json);
             // biome-ignore lint: noParameterAssign
-            response = end_response(response, returned_json, status, response_header, response_cookies);
+            response = end_response(
+                response,
+                returned_json,
+                status,
+                response_header,
+                response_cookies
+            );
         },
         returnData: (data, status = 200, custom_headers = {}) => {
             // biome-ignore lint: noParameterAssign
-            response = end_response(response, data, status, Object.assign({}, header, custom_headers), response_cookies);
+            response = end_response(
+                response,
+                data,
+                status,
+                Object.assign({}, header, custom_headers),
+                response_cookies
+            );
         },
         returnRedirect: (url, statusCode = 301, custom_headers = {}) => {
             const response_header = Object.assign({}, header, custom_headers, {
-                Location: url
+                Location: url,
             });
             if (Env.is_dev()) {
                 Logger.info('Redirect to', url, response_header);
             }
             // biome-ignore lint: noParameterAssign
-            response = end_response(response, `Redirect to ${url}`, statusCode, response_header, response_cookies);
-        }
+            response = end_response(
+                response,
+                `Redirect to ${url}`,
+                statusCode,
+                response_header,
+                response_cookies
+            );
+        },
     };
 
-    const construct_route_context = await Plugin.process('construct_route_context', route_context);
-    const construct_route_context_result = await construct_route_context((route_object) => {
-        return route_object;
-    });
+    const construct_route_context = await Plugin.process(
+        'construct_route_context',
+        route_context
+    );
+    const construct_route_context_result = await construct_route_context(
+        (route_object) => {
+            return route_object;
+        }
+    );
     route_context = construct_route_context_result.result;
 
     if (is_func(code.onExec)) {
@@ -246,12 +299,19 @@ export async function run_route(request, response, uid, route) {
                 return [undefined, response];
             }
         } catch (e) {
-            Logger.error('[route]', error_message('onExec'), get_error_message(e, route.path, 'route'));
+            Logger.error(
+                '[route]',
+                error_message('onExec'),
+                get_error_message(e, route.path, 'route')
+            );
         }
     }
     // when onExec does not return a correct object force one
     if (!data) {
-        Logger.warning('[route]', `onExec in ${route.path} should return a object`);
+        Logger.warning(
+            '[route]',
+            `onExec in ${route.path} should return a object`
+        );
         data = route_context.data;
     }
 
@@ -260,14 +320,25 @@ export async function run_route(request, response, uid, route) {
     route_context.data = data;
 
     // added after the onExec to allow stopping the not found routines later on and reseting the headers
-    const route_on_exec_context = await Plugin.process('route_on_exec_context', route_context);
-    const route_on_exec_context_result = await route_on_exec_context((route_object) => {
-        return route_object;
-    });
+    const route_on_exec_context = await Plugin.process(
+        'route_on_exec_context',
+        route_context
+    );
+    const route_on_exec_context_result = await route_on_exec_context(
+        (route_object) => {
+            return route_object;
+        }
+    );
     route_context = route_on_exec_context_result.result;
 
     // apply cookies to header
     header = apply_cookies(header, response_cookies);
+
+    if (request.method === 'OPTIONS') {
+        const allow_methods = route.methods.join(',').toUpperCase();
+        header.Allow = allow_methods;
+        header['Access-Control-Allow-Methods'] = allow_methods;
+    }
 
     // when customHead is set execute it
     if (customHead && response) {
@@ -276,6 +347,11 @@ export async function run_route(request, response, uid, route) {
 
     // end request when is marked as complete
     if (response?.complete) {
+        return [undefined, response];
+    }
+    // head and options requests should not contain the content, only the headers
+    if (in_array(['HEAD', 'OPTIONS'], request.method)) {
+        response?.end();
         return [undefined, response];
     }
 
@@ -304,7 +380,11 @@ export async function run_route(request, response, uid, route) {
                 try {
                     data[key] = await code[key](route_context);
                 } catch (e) {
-                    Logger.error('[route]', error_message(key), get_error_message(e, route.path, 'route'));
+                    Logger.error(
+                        '[route]',
+                        error_message(key),
+                        get_error_message(e, route.path, 'route')
+                    );
                 }
                 return null;
             }
@@ -331,7 +411,11 @@ export async function run_route(request, response, uid, route) {
 
     const route_result = await compile_server_svelte(page_content, route.path);
 
-    const rendered_result = await render_server_compiled_svelte(route_result, page_data, route.path);
+    const rendered_result = await render_server_compiled_svelte(
+        route_result,
+        page_data,
+        route.path
+    );
 
     /* c8 ignore start */
     // safeguard
@@ -344,23 +428,36 @@ export async function run_route(request, response, uid, route) {
         rendered_result.data = page_data;
     }
     const identifier = rendered_result.data?._wyvr?.identifier || 'default';
-    const injected_result = await inject(rendered_result, page_data, route.path, identifier, (shortcode_emit) => {
-        Logger.debug('shortcode', shortcode_emit);
-        if (shortcode_emit) {
-            if (!rendered_result.shortcode) {
-                rendered_result.shortcode = {};
+    const injected_result = await inject(
+        rendered_result,
+        page_data,
+        route.path,
+        identifier,
+        (shortcode_emit) => {
+            Logger.debug('shortcode', shortcode_emit);
+            if (shortcode_emit) {
+                if (!rendered_result.shortcode) {
+                    rendered_result.shortcode = {};
+                }
+                shortcode_emit.type = undefined;
+                rendered_result.shortcode[shortcode_emit.identifier] =
+                    shortcode_emit;
             }
-            shortcode_emit.type = undefined;
-            rendered_result.shortcode[shortcode_emit.identifier] = shortcode_emit;
         }
-    });
+    );
 
     rendered_result.result.html = injected_result.content;
 
     return [rendered_result, response];
 }
 
-function end_response(response, data, status = 200, headers = {}, cookies = {}) {
+function end_response(
+    response,
+    data,
+    status = 200,
+    headers = {},
+    cookies = {}
+) {
     response?.writeHead(status, undefined, apply_cookies(headers, cookies));
     response?.end(data);
     if (response) {
@@ -371,7 +468,10 @@ function end_response(response, data, status = 200, headers = {}, cookies = {}) 
 
 function apply_cookies(header, cookies) {
     for (const [key, data] of Object.entries(cookies)) {
-        const cookie = typeof data === 'string' ? `${key}=${data}` : set_cookie(key, data.value, data.options);
+        const cookie =
+            typeof data === 'string'
+                ? `${key}=${data}`
+                : set_cookie(key, data.value, data.options);
         if (!cookie) {
             continue;
         }
@@ -404,13 +504,25 @@ export async function extract_route_config(result, path) {
             return item;
         })
         .join('\\/')}\\/?$`.replace('\\/\\/?$', '\\/?$');
-    let methods = ['get', 'head', 'post', 'put', 'delete', 'connect', 'options', 'trace', 'patch'];
+    let methods = [
+        'get',
+        'head',
+        'post',
+        'put',
+        'delete',
+        'connect',
+        'options',
+        'trace',
+        'patch',
+    ];
     // execute _wyvr to get insights into the executable
     if (typeof result?._wyvr === 'function') {
         result._wyvr = await result._wyvr({});
     }
     if (filled_array(result?._wyvr?.methods)) {
-        methods = result?._wyvr?.methods.filter((method) => in_array(methods, method));
+        methods = result?._wyvr?.methods.filter((method) =>
+            in_array(methods, method)
+        );
     }
 
     // get specificity of the url, to detect the order of match checking
@@ -434,7 +546,7 @@ export async function extract_route_config(result, path) {
         match,
         mtime: stats.mtimeMs,
         methods,
-        weight
+        weight,
     };
 }
 

@@ -333,6 +333,12 @@ export async function run_route(request, response, uid, route) {
     // apply cookies to header
     header = apply_cookies(header, response_cookies);
 
+    if (request.method === 'OPTIONS') {
+        const allow_methods = route.methods.join(',').toUpperCase();
+        header.Allow = allow_methods;
+        header['Access-Control-Allow-Methods'] = allow_methods;
+    }
+
     // when customHead is set execute it
     if (customHead && response) {
         response.writeHead(status, undefined, header);
@@ -340,6 +346,11 @@ export async function run_route(request, response, uid, route) {
 
     // end request when is marked as complete
     if (response?.complete) {
+        return [undefined, response];
+    }
+    // head and options requests should not contain the content, only the headers
+    if (in_array(['HEAD', 'OPTIONS'], request.method)) {
+        response?.end();
         return [undefined, response];
     }
 

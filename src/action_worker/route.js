@@ -1,4 +1,4 @@
-import { filled_array, filled_string } from '../utils/validate.js';
+import { filled_array, filled_string, in_array } from '../utils/validate.js';
 import { WorkerEmit } from '../struc/worker_emit.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { send_action } from '../worker/communication.js';
@@ -102,6 +102,11 @@ export async function process_route_request(
     force_generating_of_resources
 ) {
     const [result, response] = await run_route(req, res, uid, route);
+
+    // end non data requests
+    if (in_array(['HEAD', 'OPTIONS'], req.method)) {
+        return [result, response];
+    }
 
     // write css
     if (

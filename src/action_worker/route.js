@@ -9,7 +9,12 @@ import { send_content, send_head } from '../utils/server.js';
 import { get_route_request, run_route } from '../utils/routes.js';
 import { join } from 'node:path';
 import { ReleasePath } from '../vars/release_path.js';
-import { FOLDER_CACHE, FOLDER_CSS, FOLDER_GEN_JS, FOLDER_JS } from '../constants/folder.js';
+import {
+    FOLDER_CACHE,
+    FOLDER_CSS,
+    FOLDER_GEN_JS,
+    FOLDER_JS,
+} from '../constants/folder.js';
 import { copy, exists, write, to_index } from '../utils/file.js';
 import { scripts } from './scripts.js';
 import { Cwd } from '../vars/cwd.js';
@@ -27,14 +32,21 @@ export async function route(requests) {
             continue;
         }
         const uid = request.uid ?? uniq_id();
-        const force_generating_of_resources = request.force_generating_of_resources || false;
+        const force_generating_of_resources =
+            request.force_generating_of_resources || false;
         Logger.debug('route', request.url, route.url);
 
-        const response = await send_process_route_request(request, new SerializableResponse(), uid, route, force_generating_of_resources);
+        const response = await send_process_route_request(
+            request,
+            new SerializableResponse(),
+            uid,
+            route,
+            force_generating_of_resources
+        );
         responses.push(response?.serialize() || response);
         const route_emit = {
             type: WorkerEmit.route,
-            response: response?.serialize() || response
+            response: response?.serialize() || response,
         };
         // append url, to identify the routes in the event
         route_emit.response.url = request.url;
@@ -52,8 +64,20 @@ export async function route(requests) {
  * @param {boolean} force_generating_of_resources
  * @returns {SerializableResponse}
  */
-export async function send_process_route_request(req, res, uid, route, force_generating_of_resources) {
-    let [result, response] = await process_route_request(req, res, uid, route, force_generating_of_resources);
+export async function send_process_route_request(
+    req,
+    res,
+    uid,
+    route,
+    force_generating_of_resources
+) {
+    let [result, response] = await process_route_request(
+        req,
+        res,
+        uid,
+        route,
+        force_generating_of_resources
+    );
     if (result?.result?.html && !response.complete) {
         response = send_head(response, response.statusCode ?? 200, 'text/html');
         response = send_content(response, result.result.html);
@@ -70,23 +94,43 @@ export async function send_process_route_request(req, res, uid, route, force_gen
  * @param {boolean} force_generating_of_resources
  * @returns {[any, SerializableResponse]}
  */
-export async function process_route_request(req, res, uid, route, force_generating_of_resources) {
+export async function process_route_request(
+    req,
+    res,
+    uid,
+    route,
+    force_generating_of_resources
+) {
     const [result, response] = await run_route(req, res, uid, route);
 
     // write css
-    if (filled_string(result?.data?._wyvr?.identifier) && result?.result?.css?.code) {
+    if (
+        filled_string(result?.data?._wyvr?.identifier) &&
+        result?.result?.css?.code
+    ) {
         // @TODO use hash path from storage hashes
-        const css_file_path = join(ReleasePath.get(), FOLDER_CSS, `${result.data._wyvr.identifier}.css`);
+        const css_file_path = join(
+            ReleasePath.get(),
+            FOLDER_CSS,
+            `${result.data._wyvr.identifier}.css`
+        );
         if (!exists(css_file_path) || force_generating_of_resources) {
             write(css_file_path, result.result.css.code);
         }
     }
-    const js_path = join(ReleasePath.get(), FOLDER_JS, `${result?.data?._wyvr?.identifier || 'default'}.js`);
+    const js_path = join(
+        ReleasePath.get(),
+        FOLDER_JS,
+        `${result?.data?._wyvr?.identifier || 'default'}.js`
+    );
     const identifiers = result?.shortcode || {};
-    const generate_identifier = result?.data?._wyvr?.identifier_data && (!exists(js_path) || force_generating_of_resources);
+    const generate_identifier =
+        result?.data?._wyvr?.identifier_data &&
+        (!exists(js_path) || force_generating_of_resources);
     if (generate_identifier) {
         // script only accepts an object
-        identifiers[result.data._wyvr.identifier_data.identifier] = result?.data._wyvr.identifier_data;
+        identifiers[result.data._wyvr.identifier_data.identifier] =
+            result?.data._wyvr.identifier_data;
         // save the file to gen
     }
     if (Object.keys(identifiers).length > 0) {
@@ -99,7 +143,10 @@ export async function process_route_request(req, res, uid, route, force_generati
     }
     if (generate_identifier) {
         // @TODO use hash path from storage hashes
-        copy(Cwd.get(FOLDER_GEN_JS, `${result.data._wyvr.identifier}.js`), js_path);
+        copy(
+            Cwd.get(FOLDER_GEN_JS, `${result.data._wyvr.identifier}.js`),
+            js_path
+        );
     }
 
     // remove query parameters to avoid generating wrong files
@@ -111,13 +158,22 @@ export async function process_route_request(req, res, uid, route, force_generati
     // - if the response is a success 2XX
     // - if the result is empty
     // - if the route is not set to persist in the wyvr config object
-    if (result?.result?.html && result?.data?._wyvr?.persist && Env.is_prod() && response.statusCode >= 200 && response.statusCode < 300) {
+    if (
+        result?.result?.html &&
+        result?.data?._wyvr?.persist &&
+        Env.is_prod() &&
+        response.statusCode >= 200 &&
+        response.statusCode < 300
+    ) {
         const file = to_index(url, 'html');
         const persisted_path = join(ReleasePath.get(), file);
         write(persisted_path, result.result.html);
         Logger.improve('persisted', file);
         // add marker to identify which file where generated before
-        const persisted_routes_file = Cwd.get(FOLDER_CACHE, 'routes_persisted.txt');
+        const persisted_routes_file = Cwd.get(
+            FOLDER_CACHE,
+            'routes_persisted.txt'
+        );
         appendFileSync(persisted_routes_file, `${file}\n`, { flag: 'a+' });
     }
     return [result, response];

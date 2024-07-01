@@ -8,6 +8,8 @@ import { Cwd } from '../../../src/vars/cwd.js';
 
 describe('utils/config/load', () => {
     const __dirname = to_dirname(import.meta.url);
+    const __root = join(__dirname, '..', '..', '..');
+
     let logger_messages = [];
     before(() => {
         Sinon.stub(console, 'error');
@@ -29,7 +31,9 @@ describe('utils/config/load', () => {
         deepStrictEqual(config, {});
     });
     it('non existing', async () => {
-        const config = await Config.load(join(__dirname, '_tests/non_existing/'));
+        const config = await Config.load(
+            join(__dirname, '_tests/non_existing/')
+        );
         deepStrictEqual(config, {});
     });
     it('empty', async () => {
@@ -50,7 +54,9 @@ describe('utils/config/load', () => {
         deepStrictEqual(logger_messages, [
             [
                 '✖',
-                "@config\n[ReferenceError] module is not defined in ES module scope\nThis file is being treated as an ES module because it has a '.js' file extension and '/home/p/wyvr/generator/package.json' contains \"type\": \"module\". To treat it as a CommonJS script, rename it to use the '.cjs' file extension.\nsource test/utils/config/_tests/invalid/wyvr.js",
+                "@config\n[ReferenceError] module is not defined in ES module scope\nThis file is being treated as an ES module because it has a '.js' file extension and '" +
+                    __root +
+                    '/package.json\' contains "type": "module". To treat it as a CommonJS script, rename it to use the \'.cjs\' file extension.\nsource test/utils/config/_tests/invalid/wyvr.js',
             ],
         ]);
     });

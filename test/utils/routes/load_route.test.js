@@ -12,8 +12,8 @@ describe('utils/routes/load_route', () => {
     let log = [];
     before(() => {
         sandbox = Sinon.createSandbox();
-        sandbox.stub(console, 'error');
-        console.error.callsFake((...args) => {
+        sandbox.stub(console, 'log');
+        console.log.callsFake((...args) => {
             log.push(args.map(to_plain));
         });
     });
@@ -31,20 +31,27 @@ describe('utils/routes/load_route', () => {
     });
     it('error', async () => {
         Cwd.set(join(dir, 'load'));
-        deepStrictEqual(await load_route(join(dir, 'load/error.js')), undefined);
-        deepStrictEqual(log, [['✖', '@route\n[ReferenceError] value is not defined\nsource error.js']]);
-    });
-    it('contains not replaced src', async () => {
-        Cwd.set(join(dir, 'load'));
-        deepStrictEqual(await load_route(join(dir, 'load/contains_src.js')), undefined);
+        deepStrictEqual(
+            await load_route(join(dir, 'load/error.js')),
+            undefined
+        );
         deepStrictEqual(log, [
             [
                 '✖',
-                '@route\n' +
-                    "[Error] Cannot find package '$src' imported from " +
-                    dir +
-                    '/load/contains_src.js\n' +
-                    'source contains_src.js',
+                '@route\n[ReferenceError] value is not defined\nsource error.js',
+            ],
+        ]);
+    });
+    it('contains not replaced src', async () => {
+        Cwd.set(join(dir, 'load'));
+        deepStrictEqual(
+            await load_route(join(dir, 'load/contains_src.js')),
+            undefined
+        );
+        deepStrictEqual(log, [
+            [
+                '✖',
+                `@route\n[Error] Cannot find package '@src/url.mjs' imported from ${dir}/load/contains_src.js\nsource contains_src.js`,
             ],
         ]);
     });

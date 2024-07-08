@@ -17,8 +17,10 @@ export const WorkerAction = {
     collections: 17,
     route: 18,
     mode: 19,
-    heap: 20
+    heap: 20,
 };
 export function get_name(action) {
-    return Object.keys(WorkerAction).find((key) => WorkerAction[key] == action);
+    return Object.keys(WorkerAction).find(
+        (key) => WorkerAction[key] === action
+    );
 }

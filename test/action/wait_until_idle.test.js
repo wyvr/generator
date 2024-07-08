@@ -24,8 +24,8 @@ describe('action/wait_until_idle', () => {
         process.exit.callsFake((code) => {
             exit_code = code;
         });
-        sandbox.stub(console, 'error');
-        console.error.callsFake((...args) => {
+        sandbox.stub(console, 'log');
+        console.log.callsFake((...args) => {
             log.push(args.map(to_plain));
         });
     });
@@ -78,6 +78,10 @@ describe('action/wait_until_idle', () => {
         }
         strictEqual(exit_code, 1, 'exit code');
         deepStrictEqual(error, undefined);
-        deepStrictEqual(log[0][1].indexOf('emergency stop, waited'), 0, 'log contains emergency message');
+        deepStrictEqual(
+            log[0][1].indexOf('emergency stop, waited'),
+            0,
+            'log contains emergency message'
+        );
     });
 });

@@ -10,8 +10,8 @@ describe('utils/shortcode/get_shortcode_data', () => {
     const root = join(process.cwd(), 'test/utils/shortcode/_tests');
     before(() => {
         Cwd.set(root);
-        Sinon.stub(console, 'error');
-        console.error.callsFake((...msg) => {
+        Sinon.stub(console, 'log');
+        console.log.callsFake((...msg) => {
             log.push(msg.map(to_plain));
         });
     });
@@ -20,7 +20,7 @@ describe('utils/shortcode/get_shortcode_data', () => {
     });
     after(() => {
         Cwd.set(undefined);
-        console.error.restore();
+        console.log.restore();
     });
     it('undefined', () => {
         deepStrictEqual(get_shortcode_data(), undefined);
@@ -45,7 +45,7 @@ describe('utils/shortcode/get_shortcode_data', () => {
     it('path as name', () => {
         deepStrictEqual(get_shortcode_data('path/to/tag', 'a={true}', 'file'), {
             tag: 'PathToTag',
-            path: join(root, 'gen', 'src', 'path', 'to','tag.svelte'),
+            path: join(root, 'gen', 'src', 'path', 'to', 'tag.svelte'),
             props: { a: 'true' },
         });
         deepStrictEqual(log, []);

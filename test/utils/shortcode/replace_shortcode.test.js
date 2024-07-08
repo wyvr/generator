@@ -15,8 +15,8 @@ describe('utils/shortcode/replace_shortcode', () => {
     before(async () => {
         Cwd.set(root);
         ReleasePath.set(root);
-        Sinon.stub(console, 'error');
-        console.error.callsFake((...msg) => {
+        Sinon.stub(console, 'log');
+        console.log.callsFake((...msg) => {
             log.push(msg.map(to_plain));
         });
 
@@ -32,8 +32,10 @@ describe('utils/shortcode/replace_shortcode', () => {
     after(() => {
         Cwd.set(undefined);
         ReleasePath.set(undefined);
-        console.error.restore();
-        collect_files(join(root, 'gen/css')).forEach((f) => remove(f));
+        console.log.restore();
+        for (const f of collect_files(join(root, 'gen/src'))) {
+            remove(f);
+        }
     });
     it('undefined', async () => {
         deepStrictEqual(await replace_shortcode(), undefined);
@@ -86,9 +88,7 @@ describe('utils/shortcode/replace_shortcode', () => {
             [
                 [
                     '✖',
-                    '@svelte server execute\n' +
-                        `[Error] Cannot find module '${root}/gen/server/huhu.js' imported from ${root}/gen/tmp/TMP.js\n` +
-                        'source file',
+                    `@svelte server execute\n[Error] Cannot find module '${root}/gen/server/huhu.js' imported from ${root}/gen/tmp/TMP.js\nsource file`,
                 ],
             ]
         );

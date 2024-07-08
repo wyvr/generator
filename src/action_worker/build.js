@@ -9,7 +9,6 @@ import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerEmit } from '../struc/worker_emit.js';
 import { inject } from '../utils/build.js';
 import { get_error_message } from '../utils/error.js';
-import { process_page_data } from './process_page_data.js';
 
 export async function build(files) {
     if (!filled_array(files)) {
@@ -17,14 +16,13 @@ export async function build(files) {
     }
     const media_files = {};
     let has_media = false;
-    let media_query_files = {};
+    const media_query_files = {};
     const identifier_files = {};
 
     for (const file of files) {
         Logger.debug('build', file);
         try {
-            const raw_data = read_json(file);
-            const data = await process_page_data(raw_data, raw_data?._wyvr?.mtime);
+            const data = read_json(file);
             if (is_null(data)) {
                 Logger.warning('empty data in', file);
                 continue;
@@ -36,7 +34,7 @@ export async function build(files) {
             }
             identifier_files[identifier].push(data.url);
 
-            let content = generate_page_code(data);
+            const content = generate_page_code(data);
 
             const exec_result = await compile_server_svelte(content, file);
 

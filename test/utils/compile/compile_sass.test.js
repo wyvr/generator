@@ -4,23 +4,34 @@ import { join } from 'node:path';
 import { compile_sass } from '../../../src/utils/compile.js';
 import { to_dirname, to_plain } from '../../../src/utils/to.js';
 import { Cwd } from '../../../src/vars/cwd.js';
+import Sinon from 'sinon';
 
 describe('utils/to/compile_sass', () => {
     let log = [];
     let console_error;
     const cwd = process.cwd();
-    const __dirname = join(to_dirname(import.meta.url), '..', 'transform', '_tests', 'combine_splits');
+    const __dirname = join(
+        to_dirname(import.meta.url),
+        '..',
+        'transform',
+        '_tests',
+        'combine_splits'
+    );
+    before(() => {
+        Sinon.stub(console, 'log');
+        console.log.callsFake((...msg) => {
+            log.push(msg.map(to_plain));
+        });
+    });
     beforeEach(() => {
         Cwd.set(__dirname);
-        console_error = console.error;
-        console.error = (...values) => {
-            log.push(values.map(to_plain));
-        };
     });
     afterEach(() => {
         log = [];
-        console_error = console.error;
         Cwd.set(undefined);
+    });
+    after(() => {
+        console.log.restore();
     });
 
     it('undefined', async () => {
@@ -28,14 +39,20 @@ describe('utils/to/compile_sass', () => {
     });
     it('valid code', async () => {
         strictEqual(
-            await compile_sass('$color:red;.a {color:$color;}', 'testfile.scss'),
+            await compile_sass(
+                '$color:red;.a {color:$color;}',
+                'testfile.scss'
+            ),
             `.a {
   color: red;
 }`
         );
     });
     it('error with filename', async () => {
-        strictEqual(await compile_sass('.a {color:$color;}', 'testfile.scss'), undefined);
+        strictEqual(
+            await compile_sass('.a {color:$color;}', 'testfile.scss'),
+            undefined
+        );
         deepStrictEqual(log, [
             [
                 '✖',
@@ -46,9 +63,7 @@ describe('utils/to/compile_sass', () => {
     it('import absolute path', async () => {
         strictEqual(
             await compile_sass(
-                "\n    @import '" +
-                    cwd +
-                    "/test/utils/transform/_tests/combine_splits/gen/src/_test.scss';\n\n    code {\n        display: block;\n    }\n    button {\n        @include button();\n    }\n"
+                `\n    @import '${cwd}/test/utils/transform/_tests/combine_splits/gen/src/_test.scss';\n\n    code {\n        display: block;\n    }\n    button {\n        @include button();\n    }\n`
             ),
             'a {\n' +
                 '  color: red;\n' +
@@ -71,9 +86,7 @@ describe('utils/to/compile_sass', () => {
     it('import empty file', async () => {
         strictEqual(
             await compile_sass(
-                "@import '" +
-                    cwd +
-                    "/test/utils/transform/_tests/combine_splits/gen/src/_empty.scss';.a { color: red; }"
+                `@import '${cwd}/test/utils/transform/_tests/combine_splits/gen/src/_empty.scss';.a { color: red; }`
             ),
             '.a {\n' + '  color: red;\n' + '}'
         );

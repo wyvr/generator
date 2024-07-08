@@ -10,17 +10,19 @@ describe('utils/media/process', () => {
     let log = [];
     before(() => {
         Cwd.set(join(process.cwd(), 'test', 'utils', 'media', '_tests'));
-        Sinon.stub(console, 'error');
-        console.error.callsFake((...msg) => {
+        Sinon.stub(console, 'log');
+        console.log.callsFake((...msg) => {
             log.push(msg.map(to_plain));
         });
     });
     after(() => {
         Cwd.set(undefined);
-        console.error.restore();
+        console.log.restore();
     });
     afterEach(() => {
-        remove(join(process.cwd(), 'test', 'utils', 'media', '_tests', 'media'));
+        remove(
+            join(process.cwd(), 'test', 'utils', 'media', '_tests', 'media')
+        );
         log = [];
     });
     it('undefined', async () => {
@@ -57,7 +59,9 @@ describe('utils/media/process', () => {
         };
         await process_media(file);
         deepStrictEqual(exists(Cwd.get(file.result)), false);
-        deepStrictEqual(log, [['✖', `@media input file "assets/slider/1.jpg" doesn't exist`]]);
+        deepStrictEqual(log, [
+            ['✖', `@media input file "assets/slider/1.jpg" doesn't exist`],
+        ]);
     });
     it('create media', async () => {
         const file = {
@@ -105,7 +109,9 @@ describe('utils/media/process', () => {
         };
         await process_media(file);
         deepStrictEqual(exists(Cwd.get(file.result)), false);
-        deepStrictEqual(log, [['✖', '@sharp\n[Error] Input Buffer is empty\nsource empty.jpg']]);
+        deepStrictEqual(log, [
+            ['✖', '@sharp\n[Error] Input Buffer is empty\nsource empty.jpg'],
+        ]);
     });
     it('unsupported output value', async () => {
         const file = {
@@ -122,7 +128,10 @@ describe('utils/media/process', () => {
         await process_media(file);
         deepStrictEqual(exists(Cwd.get(file.result)), true);
         deepStrictEqual(log, [
-            ['⚠', 'media favicon.png output "base64" is not implemented at the moment, falling back to path'],
+            [
+                '⚠',
+                'media favicon.png output "base64" is not implemented at the moment, falling back to path',
+            ],
         ]);
     });
     it('jpg format', async () => {
@@ -203,7 +212,9 @@ describe('utils/media/process', () => {
         };
         await process_media(file);
         deepStrictEqual(exists(Cwd.get(file.result)), false);
-        deepStrictEqual(log, [['✖', '@sharp\n[] no buffer available\nsource favicon.png']]);
+        deepStrictEqual(log, [
+            ['✖', '@sharp\n[] no buffer available\nsource favicon.png'],
+        ]);
     });
     it('create svg media', async () => {
         const file = {
@@ -235,6 +246,8 @@ describe('utils/media/process', () => {
         };
         await process_media(file);
         deepStrictEqual(exists(Cwd.get(file.result)), false);
-        deepStrictEqual(log, [['✖', `@media input file "folder/" doesn't exist`]]);
+        deepStrictEqual(log, [
+            ['✖', `@media input file "folder/" doesn't exist`],
+        ]);
     });
 });

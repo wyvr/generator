@@ -38,9 +38,7 @@ export async function process_message(msg) {
     send_status(WorkerStatus.busy);
     switch (action) {
         case WorkerAction.set: {
-            const set_key = value.key,
-                set_value = value.value;
-            global.cache[set_key] = set_value;
+            global.cache[value.key] = value.value;
             break;
         }
         case WorkerAction.set_config_cache: {
@@ -100,7 +98,9 @@ export async function process_message(msg) {
             break;
         }
         case WorkerAction.mode: {
-            Logger.warning('setting mode is only possible for cluster worker not child_process worker');
+            Logger.warning(
+                'setting mode is only possible for cluster worker not child_process worker'
+            );
             break;
         }
         case WorkerAction.heap: {

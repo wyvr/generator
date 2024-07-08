@@ -4,10 +4,10 @@ import { join } from 'node:path';
 import { insert_import } from '../../../src/utils/compile.js';
 import { to_dirname, to_plain } from '../../../src/utils/to.js';
 import { Cwd } from '../../../src/vars/cwd.js';
+import Sinon from 'sinon';
 
 describe('utils/to/insert_import', () => {
     let log = [];
-    let console_error;
     const __dirname = join(
         to_dirname(import.meta.url),
         '..',
@@ -17,15 +17,13 @@ describe('utils/to/insert_import', () => {
     );
     beforeEach(() => {
         Cwd.set(__dirname);
-        console_error = console.error;
-        console.error = (...values) => {
-            log.push(values.map(to_plain));
-        };
     });
     afterEach(() => {
         log = [];
-        console_error = console.error;
         Cwd.set(undefined);
+    });
+    after(() => {
+        console.log.restore();
     });
 
     it('undefined', async () => {
@@ -45,7 +43,7 @@ describe('utils/to/insert_import', () => {
             await insert_import(
                 `@import '$src/_test.scss';\n\n    code {\n        display: block;\n    }\n    button {\n        @include button();\n    }\n`
             ),
-            `a {     color: red; }   $primary-color: #7c5ed0;  @mixin button($color: $primary-color) {     border: 2px solid $color;     background: transparent;     padding: 10px;     font-size: 16px;     color: $color; } \n\n    code {\n        display: block;\n    }\n    button {\n        @include button();\n    }\n`
+            'a {     color: red; }   $primary-color: #7c5ed0;  @mixin button($color: $primary-color) {     border: 2px solid $color;     background: transparent;     padding: 10px;     font-size: 16px;     color: $color; } \n\n    code {\n        display: block;\n    }\n    button {\n        @include button();\n    }\n'
         );
         deepStrictEqual(log, []);
     });
@@ -59,8 +57,7 @@ describe('utils/to/insert_import', () => {
         deepStrictEqual(log, [
             [
                 '⚠',
-                '@import\n' +
-                    `[] can not import ${__dirname}/gen/src/_nonexisting.scss into undefined, maybe the file doesn't exist`,
+                `@import\n[] can not import ${__dirname}/gen/src/_nonexisting.scss into undefined, maybe the file doesn't exist`,
             ],
         ]);
     });

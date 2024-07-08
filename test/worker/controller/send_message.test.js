@@ -3,21 +3,23 @@ import { describe, it } from 'mocha';
 import { WorkerStatus } from '../../../src/struc/worker_status.js';
 import { to_plain } from '../../../src/utils/to.js';
 import { WorkerController } from '../../../src/worker/controller.js';
+import Sinon from 'sinon';
 
 describe('worker/controller/send_message', () => {
     let messages;
-    let error;
-    let console_messages;
-    beforeEach(()=> {
-        error = console.error;
-        console.error = (...args) => {
-            console_messages = args.map(to_plain);
-        };
-    })
+    let logger_messages = [];
+    before(() => {
+        Sinon.stub(console, 'log');
+        console.log.callsFake((...msg) => {
+            logger_messages.push(msg.map(to_plain));
+        });
+    });
     afterEach(() => {
         messages = undefined;
-        console_messages = [];
-        console.error = error;
+        logger_messages = [];
+    });
+    after(() => {
+        console.log.restore();
     });
     it('undefined', () => {
         strictEqual(WorkerController.send_message(undefined), false);
@@ -29,11 +31,17 @@ describe('worker/controller/send_message', () => {
         strictEqual(WorkerController.send_message({ pid: 1000 }), false);
     });
     it('dead worker', () => {
-        const result = WorkerController.send_message({ pid: 1000, status: WorkerStatus.dead });
+        const result = WorkerController.send_message({
+            pid: 1000,
+            status: WorkerStatus.dead,
+        });
         strictEqual(result, false);
     });
     it('existing worker, without process', () => {
-        const result = WorkerController.send_message({ pid: 1000, status: WorkerStatus.exists });
+        const result = WorkerController.send_message({
+            pid: 1000,
+            status: WorkerStatus.exists,
+        });
         strictEqual(result, false);
     });
     it('existing worker, without data', () => {
@@ -47,9 +55,8 @@ describe('worker/controller/send_message', () => {
             },
         });
         strictEqual(result, false);
-        deepStrictEqual(console_messages, [
-            '⚠',
-            'can not send empty message to worker 1000',
+        deepStrictEqual(logger_messages, [
+            ['⚠', 'can not send empty message to worker 1000'],
         ]);
     });
     it('worker successfully sent', () => {
@@ -69,6 +76,6 @@ describe('worker/controller/send_message', () => {
         deepStrictEqual(messages, {
             value: true,
         });
-        deepStrictEqual(console_messages, []);
+        deepStrictEqual(logger_messages, []);
     });
 });

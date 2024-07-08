@@ -2,17 +2,16 @@ import { deepStrictEqual, strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import Sinon from 'sinon';
 import { Plugin } from '../../../src/utils/plugin.js';
-import { to_dirname } from '../../../src/utils/to.js';
 import { Cwd } from '../../../src/vars/cwd.js';
+import { to_plain } from '../../../src/utils/to.js';
 
 describe('utils/plugin/execute', () => {
-    const __dirname = to_dirname(import.meta.url);
     let logger_messages = [];
     before(() => {
         Cwd.set(process.cwd());
-        Sinon.stub(console, 'error');
-        console.error.callsFake((...msg) => {
-            logger_messages.push(msg);
+        Sinon.stub(console, 'log');
+        console.log.callsFake((...msg) => {
+            logger_messages.push(msg.map(to_plain));
         });
     });
     afterEach(() => {
@@ -20,7 +19,7 @@ describe('utils/plugin/execute', () => {
         Plugin.clear();
     });
     after(() => {
-        console.error.restore();
+        console.log.restore();
         Cwd.set(undefined);
     });
     it('undefined', async () => {
@@ -47,7 +46,7 @@ describe('utils/plugin/execute', () => {
                 after: [
                     {
                         fn: ({ result }) => {
-                            return result.map((i) => 'a' + i);
+                            return result.map((i) => `a${i}`);
                         },
                         source: 'first',
                     },
@@ -74,10 +73,10 @@ describe('utils/plugin/execute', () => {
         deepStrictEqual(result, ['a2', 'a3']);
         deepStrictEqual(logger_messages, [
             [
-                '\x1B[31m✖\x1B[39m',
-                '\x1B[31merror in plugin for \x1B[1ma\x1B[22m \x1B[1mafter\x1B[22m \x1B[1m@plugin\x1B[22m\n' +
-                    '[\x1B[1mSyntaxError\x1B[22m] missing code\n' +
-                    '\x1B[2msource\x1B[22m error\x1B[39m',
+                '✖',
+                'error in plugin for a after @plugin\n' +
+                    '[SyntaxError] missing code\n' +
+                    'source error',
             ],
         ]);
     });

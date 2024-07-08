@@ -10,8 +10,8 @@ describe('utils/shortcode/parse_props', () => {
     const root = join(process.cwd(), 'test/utils/shortcode/_tests');
     before(() => {
         Cwd.set(root);
-        Sinon.stub(console, 'error');
-        console.error.callsFake((...msg) => {
+        Sinon.stub(console, 'log');
+        console.log.callsFake((...msg) => {
             log.push(msg.map(to_plain));
         });
     });
@@ -20,7 +20,7 @@ describe('utils/shortcode/parse_props', () => {
     });
     after(() => {
         Cwd.set(undefined);
-        console.error.restore();
+        console.log.restore();
     });
     it('undefined', () => {
         deepStrictEqual(parse_props(), undefined);
@@ -35,11 +35,17 @@ describe('utils/shortcode/parse_props', () => {
         deepStrictEqual(log, []);
     });
     it('static props', () => {
-        deepStrictEqual(parse_props('label="text"', 'file'), { label: '"text"' });
+        deepStrictEqual(parse_props('label="text"', 'file'), {
+            label: '"text"',
+        });
         deepStrictEqual(log, []);
     });
     it('multiple prop', () => {
-        deepStrictEqual(parse_props('a={1} b={true} c={{key:true}}', 'file'), { a: '1', b: 'true', c: '{"key":true}' });
+        deepStrictEqual(parse_props('a={1} b={true} c={{key:true}}', 'file'), {
+            a: '1',
+            b: 'true',
+            c: '{"key":true}',
+        });
         deepStrictEqual(log, []);
     });
     it('static prop with &quot;', () => {
@@ -55,17 +61,26 @@ describe('utils/shortcode/parse_props', () => {
         deepStrictEqual(log, []);
     });
     it('object props with &quot;', () => {
-        deepStrictEqual(parse_props('c={{&quot;key&quot;:&quot;c&quot;}}', 'file'), {
-            c: '{"key":"c"}',
-        });
+        deepStrictEqual(
+            parse_props('c={{&quot;key&quot;:&quot;c&quot;}}', 'file'),
+            {
+                c: '{"key":"c"}',
+            }
+        );
         deepStrictEqual(log, []);
     });
     it('multiple props with &quot;', () => {
-        deepStrictEqual(parse_props('a=&quot;a&quot; b={&quot;b&quot;} c={{&quot;key&quot;:&quot;c&quot;}}', 'file'), {
-            a: '"a"',
-            b: '"b"',
-            c: '{"key":"c"}',
-        });
+        deepStrictEqual(
+            parse_props(
+                'a=&quot;a&quot; b={&quot;b&quot;} c={{&quot;key&quot;:&quot;c&quot;}}',
+                'file'
+            ),
+            {
+                a: '"a"',
+                b: '"b"',
+                c: '{"key":"c"}',
+            }
+        );
         deepStrictEqual(log, []);
     });
     it('unfinished prop', () => {
@@ -74,10 +89,16 @@ describe('utils/shortcode/parse_props', () => {
     });
     it('broken prop', () => {
         deepStrictEqual(parse_props('a={["a","]}', 'file'), undefined);
-        deepStrictEqual(log, [['⚠', 'shortcode shortcode prop "a" can not be converted in file']]);
+        deepStrictEqual(log, [
+            ['⚠', 'shortcode shortcode prop "a" can not be converted in file'],
+        ]);
     });
     it('partial broken prop', () => {
-        deepStrictEqual(parse_props('a={["a","]} b={true} c={1', 'file'), { b: 'true' });
-        deepStrictEqual(log, [['⚠', 'shortcode shortcode prop "a" can not be converted in file']]);
+        deepStrictEqual(parse_props('a={["a","]} b={true} c={1', 'file'), {
+            b: 'true',
+        });
+        deepStrictEqual(log, [
+            ['⚠', 'shortcode shortcode prop "a" can not be converted in file'],
+        ]);
     });
 });

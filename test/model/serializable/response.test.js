@@ -7,12 +7,12 @@ import { Env } from '../../../src/vars/env.js';
 import { EnvType } from '../../../src/struc/env.js';
 
 describe('model/serializable/response', () => {
-    let sandbox,
-        log = [];
+    let sandbox;
+    let log = [];
     before(() => {
         sandbox = Sinon.createSandbox();
-        sandbox.stub(console, 'error');
-        console.error.callsFake((...args) => {
+        sandbox.stub(console, 'log');
+        console.log.callsFake((...args) => {
             log.push(args.map(to_plain));
         });
     });
@@ -117,7 +117,9 @@ describe('model/serializable/response', () => {
             data: undefined,
             encoding: 'ascii',
         });
-        deepStrictEqual(log, [['✖', 'Response is already complete, can not end again']]);
+        deepStrictEqual(log, [
+            ['✖', 'Response is already complete, can not end again'],
+        ]);
     });
     it('getHeader empty', () => {
         const response = new SerializableResponse();
@@ -188,7 +190,9 @@ describe('model/serializable/response', () => {
             data: undefined,
             encoding: 'utf-8',
         });
-        deepStrictEqual(log, [['✖', 'Response is already complete, can not remove header']]);
+        deepStrictEqual(log, [
+            ['✖', 'Response is already complete, can not remove header'],
+        ]);
     });
     it('setHeader', () => {
         const response = new SerializableResponse();
@@ -243,7 +247,9 @@ describe('model/serializable/response', () => {
             data: undefined,
             encoding: 'utf-8',
         });
-        deepStrictEqual(log, [['✖', 'Response is already complete, can not set header']]);
+        deepStrictEqual(log, [
+            ['✖', 'Response is already complete, can not set header'],
+        ]);
     });
     it('write', () => {
         const response = new SerializableResponse();
@@ -271,7 +277,9 @@ describe('model/serializable/response', () => {
             data: undefined,
             encoding: 'utf-8',
         });
-        deepStrictEqual(log, [['✖', 'Response is already complete, can not write to it']]);
+        deepStrictEqual(log, [
+            ['✖', 'Response is already complete, can not write to it'],
+        ]);
     });
     it('writeHead', () => {
         const response = new SerializableResponse();
@@ -302,11 +310,11 @@ describe('model/serializable/response', () => {
         deepStrictEqual(log, []);
     });
     it('writeHead to complete response in dev mode', () => {
-        Env.set(EnvType.dev)
+        Env.set(EnvType.dev);
         const response = new SerializableResponse();
         response.end();
         response.writeHead(400, 'message', { a: 'test' });
-        Env.set(EnvType.prod)
+        Env.set(EnvType.prod);
         deepStrictEqual(response.serialize(), {
             headers: {},
             complete: true,
@@ -316,6 +324,8 @@ describe('model/serializable/response', () => {
             data: undefined,
             encoding: 'utf-8',
         });
-        deepStrictEqual(log, [['✖', 'Response is already complete, can not write head']]);
+        deepStrictEqual(log, [
+            ['✖', 'Response is already complete, can not write head'],
+        ]);
     });
 });

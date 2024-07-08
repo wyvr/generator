@@ -26,14 +26,24 @@ export async function pages(package_tree, mtime) {
         collections = result.collections;
 
         const identifier_length = Object.keys(identifiers).length;
-        Logger.info('found', identifier_length, identifier_length == 1 ? 'identifier' : 'identifiers', Logger.color.dim('different layout combinations'));
+        Logger.info(
+            'found',
+            identifier_length,
+            identifier_length === 1 ? 'identifier' : 'identifiers',
+            Logger.color.dim('different layout combinations')
+        );
     });
     await set_config_cache('page.cache', result?.page_objects, false);
 
     return { identifiers, collections };
 }
 
-export async function process_pages(name, data, mtime = undefined, show_name = false) {
+export async function process_pages(
+    name,
+    data,
+    mtime = undefined,
+    show_name = false
+) {
     const identifier_name = get_name(WorkerEmit.identifier);
     const identifiers = {};
     const collections_name = get_name(WorkerEmit.collections);
@@ -47,7 +57,7 @@ export async function process_pages(name, data, mtime = undefined, show_name = f
             return;
         }
         Logger.debug('emit identifier', data);
-        delete data.type;
+        data.type = undefined;
         identifiers[data.identifier] = data;
     });
     const collections_id = Event.on('emit', collections_name, (data) => {
@@ -74,7 +84,12 @@ export async function process_pages(name, data, mtime = undefined, show_name = f
     // wrap in plugin
     const caller = await Plugin.process(name, data);
     await caller(async (data) => {
-        await WorkerController.process_in_workers(WorkerAction.page, data, 10, show_name);
+        await WorkerController.process_in_workers(
+            WorkerAction.page,
+            data,
+            10,
+            show_name
+        );
     });
 
     if (mtime) {

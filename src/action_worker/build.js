@@ -16,7 +16,7 @@ export async function build(files) {
     }
     const media_files = {};
     let has_media = false;
-    let media_query_files = {};
+    const media_query_files = {};
     const identifier_files = {};
 
     for (const file of files) {
@@ -34,7 +34,7 @@ export async function build(files) {
             }
             identifier_files[identifier].push(data.url);
 
-            let content = generate_page_code(data);
+            const content = generate_page_code(data);
 
             const exec_result = await compile_server_svelte(content, file);
 

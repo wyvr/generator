@@ -19,7 +19,7 @@ export function wyvr_hydrate_media(path, elements, name, cls, trigger) {
             window.wyvr = {};
         }
         window.wyvr[trigger] = () => {
-            wyvr_lazy_init(name);
+            wyvr_media_init(name);
             wyvr_media_checker();
         };
     }

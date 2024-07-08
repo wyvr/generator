@@ -24,10 +24,9 @@ if (isPrimary) {
 
     const config = {
         cli,
-        version
+        version,
     };
 
-    // console.error(config);
     (async () => {
         try {
             const { result } = await command(config);

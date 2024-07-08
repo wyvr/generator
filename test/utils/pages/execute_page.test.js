@@ -13,8 +13,8 @@ describe('utils/pages/execute_page', () => {
 
     before(() => {
         Cwd.set(root);
-        Sinon.stub(console, 'error');
-        console.error.callsFake((...msg) => {
+        Sinon.stub(console, 'log');
+        console.log.callsFake((...msg) => {
             log.push(msg.map(to_plain));
         });
     });
@@ -22,7 +22,7 @@ describe('utils/pages/execute_page', () => {
         log = [];
     });
     after(() => {
-        console.error.restore();
+        console.log.restore();
         Cwd.set(undefined);
     });
     it('undefined', async () => {
@@ -136,9 +136,7 @@ describe('utils/pages/execute_page', () => {
         deepStrictEqual(log, [
             [
                 '✖',
-                "@page execution\n[ReferenceError] exports is not defined in ES module scope\nThis file is being treated as an ES module because it has a '.js' file extension and '" +
-                    __root +
-                    '/package.json\' contains "type": "module". To treat it as a CommonJS script, rename it to use the \'.cjs\' file extension.\nsource pages/commonjs.js',
+                `@page execution\n[ReferenceError] exports is not defined in ES module scope\nThis file is being treated as an ES module because it has a '.js' file extension and '${__root}/package.json\' contains "type": "module". To treat it as a CommonJS script, rename it to use the \'.cjs\' file extension.\nsource pages/commonjs.js`,
             ],
         ]);
     });

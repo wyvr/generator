@@ -10,8 +10,8 @@ describe('utils/reserved_words/is_path_valid', () => {
 
     beforeEach(() => {
         sandbox = Sinon.createSandbox();
-        sandbox.stub(console, 'error');
-        console.error.callsFake((...args) => {
+        sandbox.stub(console, 'log');
+        console.log.callsFake((...args) => {
             log.push(args.map(to_plain));
         });
     });
@@ -40,6 +40,8 @@ describe('utils/reserved_words/is_path_valid', () => {
         const path = '/media/reserved';
 
         strictEqual(is_path_valid(path), false);
-        deepStrictEqual(log, [['✖', 'path /media/reserved contains reserved words']]);
+        deepStrictEqual(log, [
+            ['✖', 'path /media/reserved contains reserved words'],
+        ]);
     });
 });

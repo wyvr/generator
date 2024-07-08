@@ -13,8 +13,8 @@ describe('utils/create/copy_template_file', () => {
     let log = [];
     before(() => {
         sandbox = Sinon.createSandbox();
-        sandbox.stub(console, 'error');
-        console.error.callsFake((...args) => {
+        sandbox.stub(console, 'log');
+        console.log.callsFake((...args) => {
             log.push(args.map(to_plain));
         });
     });
@@ -32,31 +32,42 @@ describe('utils/create/copy_template_file', () => {
         const target = join(__tests, 'result', 'empty.html');
         copy_template_file(join(__tests, 'empty.html'), target);
 
-        deepStrictEqual(log, [['✖', 'error reading file ' + join(__tests, 'empty.html')]]);
+        deepStrictEqual(log, [
+            ['✖', `error reading file ${join(__tests, 'empty.html')}`],
+        ]);
         deepStrictEqual(exists(target), false);
     });
     it('non existing file', () => {
         const target = join(__tests, 'result', 'nonexisting.html');
         copy_template_file(join(__tests, 'nonexisting.html'), target);
 
-        deepStrictEqual(log, [['✖', 'error reading file ' + join(__tests, 'nonexisting.html')]]);
+        deepStrictEqual(log, [
+            ['✖', `error reading file ${join(__tests, 'nonexisting.html')}`],
+        ]);
         deepStrictEqual(exists(target), false);
     });
     it('replace placeholders', () => {
         const target = join(__tests, 'result', 'success.html');
-        copy_template_file(join(__tests, 'success.html'), target, { key: 'value' });
+        copy_template_file(join(__tests, 'success.html'), target, {
+            key: 'value',
+        });
 
-        deepStrictEqual(log, [['ℹ', 'created file ' + target]]);
+        deepStrictEqual(log, [['ℹ', `created file ${target}`]]);
         deepStrictEqual(exists(target), true);
         deepStrictEqual(read(target), 'TEST value');
     });
     it('with transform func', () => {
         const target = join(__tests, 'result', 'success_func.html');
-        copy_template_file(join(__tests, 'success.html'), target, { key: 'value' }, (content) => {
-            return content.replace('TEST', 'huhu');
-        });
+        copy_template_file(
+            join(__tests, 'success.html'),
+            target,
+            { key: 'value' },
+            (content) => {
+                return content.replace('TEST', 'huhu');
+            }
+        );
 
-        deepStrictEqual(log, [['ℹ', 'created file ' + target]]);
+        deepStrictEqual(log, [['ℹ', `created file ${target}`]]);
         deepStrictEqual(exists(target), true);
         deepStrictEqual(read(target), 'huhu value');
     });

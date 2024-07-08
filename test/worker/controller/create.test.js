@@ -7,13 +7,14 @@ import { WorkerController } from '../../../src/worker/controller.js';
 import Sinon from 'sinon';
 import { Env } from '../../../src/vars/env.js';
 import { EnvType } from '../../../src/struc/env.js';
+import { to_plain } from '../../../src/utils/to.js';
 
 describe('worker/controller/create', () => {
     let logger_messages = [];
     before(() => {
-        Sinon.stub(console, 'error');
-        console.error.callsFake((...msg) => {
-            logger_messages.push(msg);
+        Sinon.stub(console, 'log');
+        console.log.callsFake((...msg) => {
+            logger_messages.push(msg.map(to_plain));
         });
     });
     beforeEach(() => {
@@ -24,7 +25,7 @@ describe('worker/controller/create', () => {
         WorkerController.workers = [];
     });
     after(() => {
-        console.error.restore();
+        console.log.restore();
     });
     it('invalid worker', () => {
         const result = WorkerController.create(() => undefined);
@@ -57,8 +58,8 @@ describe('worker/controller/create', () => {
         events.message(message);
         Env.set(EnvType.prod);
         deepStrictEqual(logger_messages, [
-            ['\x1B[2m~\x1B[22m', '\x1B[2mprocess 1000 message ' + JSON.stringify(message) + '\x1B[22m'],
-            ['\x1B[2m~\x1B[22m', '\x1B[2memit errors {"type":8,"error":true} \x1B[2mPID 1000\x1B[22m\x1B[2m\x1B[22m'],
+            ['~', `process 1000 message ${JSON.stringify(message)}`],
+            ['~', 'emit errors {"type":8,"error":true} PID 1000'],
         ]);
     });
     it('worker event error', () => {
@@ -77,7 +78,7 @@ describe('worker/controller/create', () => {
         events.error({
             error: true,
         });
-        deepStrictEqual(logger_messages, [['\x1B[31m✖\x1B[39m', '\x1B[31mprocess 1000 error {"error":true}\x1B[39m']]);
+        deepStrictEqual(logger_messages, [['✖', 'process 1000 error {"error":true}']]);
     });
     it('worker event disconnect', () => {
         const events = {};
@@ -95,7 +96,7 @@ describe('worker/controller/create', () => {
         Env.set(EnvType.debug);
         events.disconnect();
         Env.set(EnvType.prod);
-        deepStrictEqual(logger_messages, [['\x1B[2m~\x1B[22m', '\x1B[2mprocess 1000 disconnect\x1B[22m']]);
+        deepStrictEqual(logger_messages, [['~', 'process 1000 disconnect']]);
     });
     it('worker event exit', () => {
         const events = {};
@@ -114,8 +115,8 @@ describe('worker/controller/create', () => {
         events.exit(111);
         Env.set(EnvType.prod);
         deepStrictEqual(logger_messages, [
-            ['\x1B[2m~\x1B[22m', '\x1B[2mprocess 1000 exit 111\x1B[22m'],
-            ['\x1B[33m⚠\x1B[39m', '\x1B[33mcreate new worker because of exit from 1000 111\x1B[39m'],
+            ['~', 'process 1000 exit 111'],
+            ['⚠', 'create new worker because of exit from 1000 111'],
         ]);
     });
     it('worker event close', () => {
@@ -159,8 +160,8 @@ describe('worker/controller/create', () => {
         events.message(message);
         Env.set(EnvType.prod);
         deepStrictEqual(logger_messages, [
-            ['\x1B[2m~\x1B[22m', '\x1B[2mprocess 1000 message ' + JSON.stringify(message) + '\x1B[22m'],
-            ['\x1B[31m✖\x1B[39m', '\x1B[31munknown worker 9\x1B[39m'],
+            ['~', `process 1000 message ${JSON.stringify(message)}`],
+            ['✖', 'unknown worker 9'],
         ]);
     });
 });

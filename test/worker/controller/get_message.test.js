@@ -9,13 +9,14 @@ import { Event } from '../../../src/utils/event.js';
 import { WorkerStatus } from '../../../src/struc/worker_status.js';
 import { Env } from '../../../src/vars/env.js';
 import { EnvType } from '../../../src/struc/env.js';
+import { to_plain } from '../../../src/utils/to.js';
 
 describe('worker/controller/get_message', () => {
     let logger_messages = [];
     before(() => {
-        Sinon.stub(console, 'error');
-        console.error.callsFake((...msg) => {
-            logger_messages.push(msg);
+        Sinon.stub(console, 'log');
+        console.log.callsFake((...msg) => {
+            logger_messages.push(msg.map(to_plain));
         });
     });
     afterEach(() => {
@@ -23,7 +24,7 @@ describe('worker/controller/get_message', () => {
         WorkerController.workers = [];
     });
     after(() => {
-        console.error.restore();
+        console.log.restore();
     });
     it('undefined', () => {
         const result = WorkerController.get_message(undefined);
@@ -41,7 +42,7 @@ describe('worker/controller/get_message', () => {
             data: { action: { key: 'unknown', value: 'unknown' } },
         });
         deepStrictEqual(result, false);
-        deepStrictEqual(logger_messages, [['\x1B[31m✖\x1B[39m', '\x1B[31munknown worker 1000\x1B[39m']]);
+        deepStrictEqual(logger_messages, [['✖', 'unknown worker 1000']]);
     });
     it('unknown status', () => {
         WorkerController.workers = [{ pid: 1000 }];
@@ -51,7 +52,7 @@ describe('worker/controller/get_message', () => {
         });
         strictEqual(result, false);
         deepStrictEqual(logger_messages, [
-            ['\x1B[31m✖\x1B[39m', '\x1B[31munknown state -1 \x1B[2mPID 1000\x1B[22m\x1B[39m'],
+            ['✖', 'unknown state -1 PID 1000'],
         ]);
     });
     it('update status', () => {
@@ -65,7 +66,7 @@ describe('worker/controller/get_message', () => {
 
         deepStrictEqual(result, { pid: 1000, status: WorkerStatus.dead });
         deepStrictEqual(logger_messages, [
-            ['\u001b[2m~\u001b[22m', '\u001b[2mstatus dead \u001b[2mPID 1000\u001b[22m\u001b[2m idle workers 0 [\"dead\"]\u001b[22m'],
+            ['~', 'status dead PID 1000 idle workers 0 [\"dead\"]'],
         ]);
     });
     it('broken log', () => {
@@ -95,7 +96,7 @@ describe('worker/controller/get_message', () => {
         deepStrictEqual(result, {
             pid: 1000,
         });
-        deepStrictEqual(logger_messages, [['test', '\u001b[2mPID 1000\u001b[22m']]);
+        deepStrictEqual(logger_messages, [['test', 'PID 1000']]);
     });
     it('unknown emit', () => {
         WorkerController.workers = [{ pid: 1000 }];
@@ -105,7 +106,7 @@ describe('worker/controller/get_message', () => {
         });
         strictEqual(result, false);
         deepStrictEqual(logger_messages, [
-            ['\x1B[31m✖\x1B[39m', '\x1B[31munknown emit {"type":0} \x1B[2mPID 1000\x1B[22m\x1B[39m'],
+            ['✖', 'unknown emit {"type":0} PID 1000'],
         ]);
     });
     it('emit error', () => {

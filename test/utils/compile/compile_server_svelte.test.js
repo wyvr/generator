@@ -5,23 +5,32 @@ import { compile_server_svelte } from '../../../src/utils/compile.js';
 import { read, write } from '../../../src/utils/file.js';
 import { to_dirname, to_plain } from '../../../src/utils/to.js';
 import { Cwd } from '../../../src/vars/cwd.js';
+import Sinon from 'sinon';
 
 describe('utils/to/compile_server_svelte', () => {
     let log = [];
-    let console_error;
-    const cwd = process.cwd();
-    const __dirname = join(to_dirname(import.meta.url), '..', 'compile', '_tests', 'server_svelte');
+    const __dirname = join(
+        to_dirname(import.meta.url),
+        '..',
+        'compile',
+        '_tests',
+        'server_svelte'
+    );
+    before(() => {
+        Sinon.stub(console, 'log');
+        console.log.callsFake((...msg) => {
+            log.push(msg.map(to_plain));
+        });
+    });
     beforeEach(() => {
         Cwd.set(__dirname);
-        console_error = console.error;
-        console.error = (...values) => {
-            log.push(values.map(to_plain));
-        };
     });
     afterEach(() => {
         log = [];
-        console_error = console.error;
         Cwd.set(undefined);
+    });
+    after(() => {
+        console.log.restore();
     });
 
     it('undefined', async () => {
@@ -79,7 +88,9 @@ describe('utils/to/compile_server_svelte', () => {
         deepStrictEqual(result, undefined);
         deepStrictEqual(log[0][0], '✖');
         deepStrictEqual(
-            log[0][1].indexOf('@svelte server compile\n[ParseError] <script> must have a closing tag\nstack') == 0,
+            log[0][1].indexOf(
+                '@svelte server compile\n[ParseError] <script> must have a closing tag\nstack'
+            ) === 0,
             true,
             'error message is wrong'
         );

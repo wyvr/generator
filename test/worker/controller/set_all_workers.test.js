@@ -3,31 +3,38 @@ import { describe, it } from 'mocha';
 import { WorkerStatus } from '../../../src/struc/worker_status.js';
 import { to_plain } from '../../../src/utils/to.js';
 import { WorkerController } from '../../../src/worker/controller.js';
+import Sinon from 'sinon';
 
 describe('worker/controller/set_all_workers', () => {
     let messages;
-    let error;
-    let console_messages;
+    let logger_messages = [];
+    before(() => {
+        Sinon.stub(console, 'log');
+        console.log.callsFake((...msg) => {
+            logger_messages.push(msg.map(to_plain));
+        });
+    });
     beforeEach(() => {
-        error = console.error;
-        console.error = (...args) => {
-            console_messages = args.map(to_plain);
-        };
-        WorkerController.workers = [{
-            pid: 1000,
-            status: WorkerStatus.exists,
-            process: {
-                send: (data) => {
-                    messages = data;
+        logger_messages = [];
+        WorkerController.workers = [
+            {
+                pid: 1000,
+                status: WorkerStatus.exists,
+                process: {
+                    send: (data) => {
+                        messages = data;
+                    },
                 },
             },
-        }];
+        ];
     });
     afterEach(() => {
         messages = undefined;
-        console_messages = [];
-        console.error = error;
+        logger_messages = [];
         WorkerController.workers = [];
+    });
+    after(() => {
+        console.log.restore();
     });
     it('undefined', () => {
         strictEqual(WorkerController.set_all_workers(), false);

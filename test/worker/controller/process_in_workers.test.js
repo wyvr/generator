@@ -7,21 +7,21 @@ import { WorkerStatus } from '../../../src/struc/worker_status.js';
 import { Event } from '../../../src/utils/event.js';
 import { WorkerController } from '../../../src/worker/controller.js';
 import { WorkerMock } from '../worker_mock.js';
+import { to_plain } from '../../../src/utils/to.js';
 
 describe('worker/controller/process_in_workers', () => {
     let logger_messages = [];
     let exit_code;
     let sandbox;
-
     before(() => {
         sandbox = Sinon.createSandbox();
         sandbox.stub(process, 'exit');
         process.exit.callsFake((code) => {
             exit_code = code;
         });
-        sandbox.stub(console, 'error');
-        console.error.callsFake((...msg) => {
-            logger_messages.push(msg);
+        sandbox.stub(console, 'log');
+        console.log.callsFake((...msg) => {
+            logger_messages.push(msg.map(to_plain));
         });
     });
     beforeEach(() => {
@@ -45,24 +45,30 @@ describe('worker/controller/process_in_workers', () => {
     it('undefined', async () => {
         const result = await WorkerController.process_in_workers();
         strictEqual(exit_code, 0);
-        deepStrictEqual(logger_messages, [['\x1B[31m✖\x1B[39m', '\x1B[31munknown action\x1B[39m']]);
+        deepStrictEqual(logger_messages, [['✖', 'unknown action']]);
     });
     it('undefined action', async () => {
         const result = await WorkerController.process_in_workers(undefined, []);
         strictEqual(result, false);
         strictEqual(exit_code, 0);
-        deepStrictEqual(logger_messages, [['\x1B[31m✖\x1B[39m', '\x1B[31munknown action\x1B[39m']]);
+        deepStrictEqual(logger_messages, [['✖', 'unknown action']]);
     });
     it('undefined action with list', async () => {
-        const result = await WorkerController.process_in_workers(undefined, [true]);
+        const result = await WorkerController.process_in_workers(undefined, [
+            true,
+        ]);
         strictEqual(result, false);
         strictEqual(exit_code, 0);
-        deepStrictEqual(logger_messages, [['\x1B[31m✖\x1B[39m', '\x1B[31munknown action\x1B[39m']]);
+        deepStrictEqual(logger_messages, [['✖', 'unknown action']]);
     });
     it('correct batch size', async () => {
         WorkerMock.workers(2);
         const list = new Array(10).fill(true);
-        const result = await WorkerController.process_in_workers(WorkerAction.log, list, 1000);
+        const result = await WorkerController.process_in_workers(
+            WorkerAction.log,
+            list,
+            1000
+        );
         strictEqual(result, true);
         strictEqual(exit_code, 0);
         deepStrictEqual(WorkerMock.data, [
@@ -80,13 +86,17 @@ describe('worker/controller/process_in_workers', () => {
             },
         ]);
         deepStrictEqual(logger_messages, [
-            ['\x1B[34mℹ\x1B[39m', 'process \u001b[34m10\u001b[39m items \u001b[2mbatch size 1000\u001b[22m'],
+            ['ℹ', 'process 10 items batch size 1000'],
         ]);
     });
     it('single item list', async () => {
         WorkerMock.workers(2);
         const list = [true];
-        const result = await WorkerController.process_in_workers(WorkerAction.log, list, 1000);
+        const result = await WorkerController.process_in_workers(
+            WorkerAction.log,
+            list,
+            1000
+        );
 
         strictEqual(result, true);
         strictEqual(exit_code, 0);
@@ -99,24 +109,31 @@ describe('worker/controller/process_in_workers', () => {
             },
         ]);
         deepStrictEqual(logger_messages, [
-            ['\x1B[34mℹ\x1B[39m', 'process \u001b[34m1\u001b[39m item \u001b[2mbatch size 1000\u001b[22m'],
+            ['ℹ', 'process 1 item batch size 1000'],
         ]);
     });
     it('empty list', async () => {
         WorkerMock.workers(2);
         const list = [];
-        const result = await WorkerController.process_in_workers(WorkerAction.log, list, 1000);
+        const result = await WorkerController.process_in_workers(
+            WorkerAction.log,
+            list,
+            1000
+        );
         strictEqual(result, true);
         strictEqual(exit_code, 0);
         deepStrictEqual(WorkerMock.data, []);
         deepStrictEqual(logger_messages, [
-            ['\x1B[35m…\x1B[39m', '\x1B[35mno items to process, batch size \x1B[36m1000\x1B[39m\x1B[35m\x1B[39m'],
+            ['…', 'no items to process, batch size 1000'],
         ]);
     });
     it('empty batch size', async () => {
         WorkerMock.workers(2);
         const list = new Array(10).fill(true);
-        const result = await WorkerController.process_in_workers(WorkerAction.log, list);
+        const result = await WorkerController.process_in_workers(
+            WorkerAction.log,
+            list
+        );
         strictEqual(result, true);
         strictEqual(exit_code, 0);
         deepStrictEqual(WorkerMock.data, [
@@ -134,7 +151,7 @@ describe('worker/controller/process_in_workers', () => {
             },
         ]);
         deepStrictEqual(logger_messages, [
-            ['\x1B[34mℹ\x1B[39m', 'process \u001b[34m10\u001b[39m items \u001b[2mbatch size 10\u001b[22m'],
+            ['ℹ', 'process 10 items batch size 10'],
         ]);
     });
 });

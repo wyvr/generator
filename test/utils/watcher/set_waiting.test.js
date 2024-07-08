@@ -10,14 +10,14 @@ describe('utils/watcher/set_waiting', () => {
     let log = [];
     before(() => {
         Cwd.set(join(process.cwd(), 'test', 'utils', 'watcher', '_tests'));
-        Sinon.stub(console, 'error');
-        console.error.callsFake((...msg) => {
+        Sinon.stub(console, 'log');
+        console.log.callsFake((...msg) => {
             log.push(msg.map(to_plain));
         });
     });
     after(() => {
         Cwd.set(undefined);
-        console.error.restore();
+        console.log.restore();
     });
     afterEach(() => {
         log = [];

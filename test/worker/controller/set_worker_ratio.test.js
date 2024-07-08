@@ -6,8 +6,8 @@ import Sinon from 'sinon';
 describe('worker/controller/set_worker_ratio', () => {
     let logger_messages = [];
     before(() => {
-        Sinon.stub(console, 'error');
-        console.error.callsFake((...msg) => {
+        Sinon.stub(console, 'log');
+        console.log.callsFake((...msg) => {
             logger_messages.push(msg);
         });
     });
@@ -19,7 +19,7 @@ describe('worker/controller/set_worker_ratio', () => {
         WorkerController.worker_ratio = 0;
     });
     after(() => {
-        console.error.restore();
+        console.log.restore();
     });
     it('undefined', () => {
         WorkerController.set_worker_ratio(undefined);

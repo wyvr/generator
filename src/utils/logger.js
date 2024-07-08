@@ -107,7 +107,7 @@ export class Logger {
             if (this.inset) {
                 content.unshift(this.out(kleur.dim('│')));
             }
-            console.error(...content);
+            console.log(...content);
         }
     }
     /* eslint-enable */

@@ -12,8 +12,8 @@ describe('utils/config/load', () => {
 
     let logger_messages = [];
     before(() => {
-        Sinon.stub(console, 'error');
-        console.error.callsFake((...msg) => {
+        Sinon.stub(console, 'log');
+        console.log.callsFake((...msg) => {
             logger_messages.push(msg.map(to_plain));
         });
         Cwd.set(process.cwd());
@@ -22,7 +22,7 @@ describe('utils/config/load', () => {
         logger_messages = [];
     });
     after(() => {
-        console.error.restore();
+        console.log.restore();
         Cwd.set(undefined);
     });
 
@@ -54,9 +54,7 @@ describe('utils/config/load', () => {
         deepStrictEqual(logger_messages, [
             [
                 '✖',
-                "@config\n[ReferenceError] module is not defined in ES module scope\nThis file is being treated as an ES module because it has a '.js' file extension and '" +
-                    __root +
-                    '/package.json\' contains "type": "module". To treat it as a CommonJS script, rename it to use the \'.cjs\' file extension.\nsource test/utils/config/_tests/invalid/wyvr.js',
+                `@config\n[ReferenceError] module is not defined in ES module scope\nThis file is being treated as an ES module because it has a '.js' file extension and '${__root}/package.json\' contains "type": "module". To treat it as a CommonJS script, rename it to use the \'.cjs\' file extension.\nsource test/utils/config/_tests/invalid/wyvr.js`,
             ],
         ]);
     });

@@ -20,8 +20,8 @@ describe('utils/routes/run_route', () => {
     before(async () => {
         ReleasePath.set(dir);
         sandbox = Sinon.createSandbox();
-        sandbox.stub(console, 'error');
-        console.error.callsFake((...args) => {
+        sandbox.stub(console, 'log');
+        console.log.callsFake((...args) => {
             log.push(args.map(to_plain));
         });
         const internal_file = find_file('.', [
@@ -197,9 +197,7 @@ describe('utils/routes/run_route', () => {
         deepStrictEqual(log, [
             [
                 '⚠',
-                '[route] onExec in ' +
-                    __root +
-                    '/test/utils/routes/_tests/run/false.js should return a object',
+                `[route] onExec in ${__root}/test/utils/routes/_tests/run/false.js should return a object`,
             ],
         ]);
     });

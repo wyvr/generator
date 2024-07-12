@@ -7,6 +7,9 @@
 DEBUG=""
 for var in "$@"; do
     if [[ "$var" == "--inspect" ]]; then
+        DEBUG="--inspect=0.0.0.0"
+    fi
+    if [[ "$var" == "--inspect-brk" ]]; then
         DEBUG="--inspect-brk=0.0.0.0"
     fi
 done

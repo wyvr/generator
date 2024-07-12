@@ -70,7 +70,7 @@ export function extract_cli_config(argv) {
     if (flags) {
         default_config.flags = flags;
         // inspect mode requires single mode otherwise the debug post will be used multiple times
-        if (flags.inspect) {
+        if (flags.inspect || flags['inspect-brk']) {
             flags.single = true;
         }
     }

@@ -4,10 +4,10 @@ import { register_stack } from '../../../src/utils/global.js';
 
 describe('utils/global/register_stack', () => {
     afterEach(() => {
-        if (global.stackClear) {
-            global.stackClear();
+        if (global.clearStack) {
+            global.clearStack();
         }
-        delete global.setStack;
+        global.setStack = undefined;
     });
 
     it('getStack of unknown key', () => {

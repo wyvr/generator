@@ -35,6 +35,7 @@ import { register_stack } from './global.js';
 import { media } from '../action_worker/media.js';
 import { IsWorker } from '../vars/is_worker.js';
 import { build_hydrate_file_from_url } from './script.js';
+import { setRequestId } from '../vars/request_id.js';
 
 let show_requests = true;
 
@@ -51,6 +52,7 @@ export function server(port, on_request, on_end) {
             res.setHeader('Wyvr-Uid', uid);
         }
         req.uid = uid;
+        setRequestId(uid);
 
         // force redirect to urls with / at the end
         const url = req.url;

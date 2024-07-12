@@ -3,21 +3,11 @@ import { LogType } from "../struc/log.js";
 export const COMMANDS = {
     app: {
         desc: 'run as a service for server side execution',
-        flags: [
-            {
-                key: 'single',
-                desc: 'run the generator in single threaded mode only recommended for debugging purposes'
-            }
-        ]
+        flags: []
     },
     build: {
         desc: 'statically generate site',
-        flags: [
-            {
-                key: 'single',
-                desc: 'run the generator in single threaded mode only recommended for debugging purposes'
-            }
-        ]
+        flags: []
     },
     clear: {
         desc: 'clear the caches and generated data',

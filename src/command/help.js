@@ -109,7 +109,7 @@ export async function show_help(config, commands) {
         }
         Logger.inset = false;
     }
-    const matching_commands = [].concat(Object.keys(selected_commands.builtin), Object.keys(selected_commands.custom));
+    const matching_commands = [].concat(Object.keys(selected_commands.builtin), Object.keys(selected_commands.custom ?? {}));
     return {
         command: matching_commands.length === 1 ? matching_commands[0] : undefined,
         exact_match

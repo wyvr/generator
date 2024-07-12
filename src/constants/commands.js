@@ -34,12 +34,12 @@ export const COMMANDS = {
             }
         ]
     },
-    cron: {
-        desc: 'execute the cronjobs',
-        flags: []
-    },
     create: {
         desc: 'scaffold new projects and files',
+        flags: []
+    },
+    cron: {
+        desc: 'execute the cronjobs',
         flags: []
     },
     dev: {
@@ -60,7 +60,11 @@ export const COMMANDS = {
         flags: []
     },
     info: {
-        desc: 'show basic information about node version, wyvr version and the current working directory',
+        desc: 'show basic informations',
+        flags: []
+    },
+    test: {
+        desc: 'run all tests in the project and the packages',
         flags: []
     },
     version: {

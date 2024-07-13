@@ -60,8 +60,13 @@ export const COMMANDS = {
         flags: []
     },
     info: {
-        desc: 'show basic informations',
-        flags: []
+        desc: 'show informations',
+        flags: [
+            {
+                key: 'config',
+                desc: 'show the full config'
+            }
+        ]
     },
     test: {
         desc: 'run all tests in the project and the packages',

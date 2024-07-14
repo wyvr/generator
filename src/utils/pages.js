@@ -34,7 +34,7 @@ import {
     match_interface,
 } from './validate.js';
 import { get_config_cache, set_config_cache } from './config_cache.js';
-import { uniq_values } from './uniq.js';
+import { uniq_id, uniq_values } from './uniq.js';
 import { clone } from './json.js';
 
 export function collect_pages(dir, package_tree) {
@@ -121,6 +121,7 @@ export async function execute_page(page) {
             url = to_extension(to_index(url), ext.replace(/^\./, ''));
             // remove unneeded index.html
             data.url = remove_index(url);
+            data.$uid = uniq_id();
 
             return [data];
         }
@@ -175,7 +176,10 @@ export async function execute_page(page) {
             if (!filled_array(result)) {
                 return undefined;
             }
-            return result;
+            return result.map((page) => {
+                page.$uid = uniq_id();
+                return page;
+            });
         }
         /* eslint-enable no-case-declarations */
 

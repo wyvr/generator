@@ -1,4 +1,4 @@
-import { deepStrictEqual } from 'node:assert';
+import { deepStrictEqual, strict, strictEqual } from 'node:assert';
 import { join } from 'node:path';
 import { Cwd } from '../../../src/vars/cwd.js';
 import { execute_page } from '../../../src/utils/pages.js';
@@ -30,19 +30,20 @@ describe('utils/pages/execute_page', () => {
         deepStrictEqual(log, [['⚠', 'invalid page was given']]);
     });
     it('markdown file', async () => {
-        deepStrictEqual(
-            await execute_page(mockPage('pages/markdown.md', undefined, root)),
-            [
-                {
-                    content:
-                        '<h1 id="lorem-ipsum-dolor-sit-amet">Lorem ipsum dolor sit amet</h1>\n' +
-                        '<p>Nam ut porta metus, rhoncus rutrum est.</p>\n',
-                    title: 'Title',
-                    param: true,
-                    url: '/markdown',
-                },
-            ]
+        const result = await execute_page(
+            mockPage('pages/markdown.md', undefined, root)
         );
+        strictEqual(result.length, 1);
+        strictEqual(typeof result[0].$uid, 'string');
+        strictEqual(
+            result[0].content,
+            '<h1 id="lorem-ipsum-dolor-sit-amet">Lorem ipsum dolor sit amet</h1>\n' +
+                '<p>Nam ut porta metus, rhoncus rutrum est.</p>\n'
+        );
+        strictEqual(result[0].title, 'Title');
+        strictEqual(result[0].param, true);
+        strictEqual(result[0].url, '/markdown');
+
         deepStrictEqual(log, []);
     });
     it('markdown file empty', async () => {
@@ -55,49 +56,39 @@ describe('utils/pages/execute_page', () => {
         deepStrictEqual(log, []);
     });
     it('js file, object', async () => {
-        deepStrictEqual(
-            await execute_page(mockPage('pages/static.js', undefined, root)),
-            [
-                {
-                    url: '/url',
-                },
-            ]
+        const result = await execute_page(
+            mockPage('pages/static.js', undefined, root)
         );
+        strictEqual(result.length, 1);
+        strictEqual(typeof result[0].$uid, 'string');
+        strictEqual(result[0].url, '/url');
         deepStrictEqual(log, []);
     });
     it('js file, array', async () => {
-        deepStrictEqual(
-            await execute_page(mockPage('pages/array.js', undefined, root)),
-            [
-                {
-                    url: '/url',
-                },
-            ]
+        const result = await execute_page(
+            mockPage('pages/array.js', undefined, root)
         );
+        strictEqual(result.length, 1);
+        strictEqual(typeof result[0].$uid, 'string');
+        strictEqual(result[0].url, '/url');
         deepStrictEqual(log, []);
     });
     it('js function file, object', async () => {
-        deepStrictEqual(
-            await execute_page(mockPage('pages/func.js', undefined, root)),
-            [
-                {
-                    url: '/url',
-                },
-            ]
+        const result = await execute_page(
+            mockPage('pages/func.js', undefined, root)
         );
+        strictEqual(result.length, 1);
+        strictEqual(typeof result[0].$uid, 'string');
+        strictEqual(result[0].url, '/url');
         deepStrictEqual(log, []);
     });
     it('js function file, array', async () => {
-        deepStrictEqual(
-            await execute_page(
-                mockPage('pages/func_array.js', undefined, root)
-            ),
-            [
-                {
-                    url: '/url',
-                },
-            ]
+        const result = await execute_page(
+            mockPage('pages/func_array.js', undefined, root)
         );
+        strictEqual(result.length, 1);
+        strictEqual(typeof result[0].$uid, 'string');
+        strictEqual(result[0].url, '/url');
         deepStrictEqual(log, []);
     });
     it('js file, empty', async () => {

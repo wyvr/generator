@@ -190,7 +190,8 @@ export async function run_route(request, response, uid, route) {
 
     // execute load function when set to get data
     let data = {
-        url: clean_url
+        url: clean_url,
+        $uid: uid,
     };
     let status = 200;
     let header = {};

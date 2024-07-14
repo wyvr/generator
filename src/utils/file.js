@@ -1,4 +1,17 @@
-import { mkdirSync, existsSync, readFileSync, readdirSync, statSync, writeFileSync, copyFileSync, rmSync, symlinkSync, lstatSync, appendFileSync } from 'node:fs';
+import {
+    mkdirSync,
+    existsSync,
+    readFileSync,
+    readdirSync,
+    statSync,
+    writeFileSync,
+    copyFileSync,
+    rmSync,
+    symlinkSync,
+    lstatSync,
+    appendFileSync,
+    renameSync,
+} from 'node:fs';
 import { extname, dirname, join } from 'node:path';
 import { stringify } from './json.js';
 import { is_string, filled_string, filled_array } from './validate.js';
@@ -162,7 +175,10 @@ export function read_json(filename) {
  * @returns void
  */
 export function write(filename, content) {
-    if (!is_string(filename) || (!is_string(content) && !Buffer.isBuffer(content))) {
+    if (
+        !is_string(filename) ||
+        (!is_string(content) && !Buffer.isBuffer(content))
+    ) {
         return false;
     }
     // create containing folder
@@ -190,9 +206,10 @@ export function write_json(filename, data = null) {
         writeFileSync(filename, Env.is_dev() ? '[\n' : '[', { flag: 'w+' });
         const seperator = Env.is_dev() ? ',\n' : ',';
         for (let i = 0; i < len; i++) {
-            const content = stringify(data[i], spaces) + (i + 1 < len ? seperator : '');
+            const content =
+                stringify(data[i], spaces) + (i + 1 < len ? seperator : '');
             writeFileSync(filename, content, {
-                flag: 'a'
+                flag: 'a',
             });
         }
         writeFileSync(filename, Env.is_dev() ? '\n]' : ']', { flag: 'a' });
@@ -222,7 +239,11 @@ export function append(filename, content) {
  * @returns path of the found file
  */
 export function find_file(in_dir, possible_files) {
-    if (!possible_files || !Array.isArray(possible_files) || possible_files.length == 0) {
+    if (
+        !possible_files ||
+        !Array.isArray(possible_files) ||
+        possible_files.length == 0
+    ) {
         return undefined;
     }
     const found = possible_files.find((file) => {
@@ -265,7 +286,10 @@ export function collect_files(dir, extension, forbidden_folder) {
         if (!stat) {
             continue;
         }
-        if (Array.isArray(forbidden_folder) && forbidden_folder.indexOf(entry) > -1) {
+        if (
+            Array.isArray(forbidden_folder) &&
+            forbidden_folder.indexOf(entry) > -1
+        ) {
             continue;
         }
         if (stat.isDirectory()) {
@@ -333,7 +357,7 @@ export function get_folder(folder) {
         .map((entry) => {
             return {
                 name: entry,
-                path: join(folder, entry)
+                path: join(folder, entry),
             };
         })
         .filter((entry) => {
@@ -357,7 +381,12 @@ export function symlink(from, to) {
             if (exists(to)) {
                 const is_symlink = lstatSync(to).isSymbolicLink();
                 if (!is_symlink) {
-                    Logger.error('symlink', from, to, 'to is a regular file no symlink');
+                    Logger.error(
+                        'symlink',
+                        from,
+                        to,
+                        'to is a regular file no symlink'
+                    );
                     return false;
                 }
             }
@@ -375,15 +404,30 @@ export function symlink(from, to) {
 }
 
 export function copy(from, to) {
-    if (exists(from) && filled_string(to)) {
-        try {
-            create_dir(to);
-            copyFileSync(from, to);
-        } catch (e) {
-            Logger.error('copy', from, to, e);
-            return false;
-        }
-        return true;
+    if (!exists(from) || !filled_string(to)) {
+        return false;
     }
-    return false;
+    try {
+        create_dir(to);
+        copyFileSync(from, to);
+        return true;
+    } catch (e) {
+        Logger.error('copy', from, to, e);
+        return false;
+    }
+}
+
+/**
+ * Renames a file, the new name will be in the same directory
+ * @param {string} file
+ * @param {string} new_name
+ * @returns
+ */
+export function rename(file, new_name) {
+    if (!filled_string(file) || !filled_string(new_name) || !exists(file)) {
+        return false;
+    }
+    const new_file = join(dirname(file), new_name);
+    renameSync(file, new_file);
+    return true;
 }

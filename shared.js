@@ -9,17 +9,25 @@ import { FOLDER_GEN } from './src/constants/folder.js';
 import { WorkerController } from './src/worker/controller.js';
 import { filled_array, filled_string } from './src/utils/validate.js';
 import { WorkerAction } from './src/struc/worker_action.js';
-import { remove_index, read_json, write_json } from './src/utils/file.js';
+import {
+    remove_index,
+    read_json,
+    write_json,
+    to_index,
+    rename,
+} from './src/utils/file.js';
 import { Env } from './src/vars/env.js';
 import { get_route_request } from './src/utils/routes.js';
 import { process_route_request } from './src/action_worker/route.js';
 import { register_stack } from './src/utils/global.js';
 import { get_config_cache_path } from './src/utils/config_cache.js';
 import { join } from 'node:path';
-
+import { ReleasePath } from './src/vars/release_path.js';
 
 if (typeof window !== 'undefined' || typeof process === 'undefined') {
-    throw new Error('This module is only allowed in server runtimes like Node.js, if you see this error please report it to the library author.');
+    throw new Error(
+        'This module is only allowed in server runtimes like Node.js, if you see this error please report it to the library author.'
+    );
 }
 
 register_stack();
@@ -53,17 +61,23 @@ export async function execute_route(url, options) {
         headers: options?.headers || {},
         data: options?.data || {},
         body: options?.body || {},
-        files: options?.files || {}
+        files: options?.files || {},
     };
     const uid = uniq_id();
     try {
         const exec = get_route_request(request);
         if (exec) {
             Logger.debug('exec', url, exec.url);
-            return await process_route_request(request, undefined, uid, exec, false);
+            return await process_route_request(
+                request,
+                undefined,
+                uid,
+                exec,
+                false
+            );
         }
     } catch (e) {
-        Logger.error(gem(e, url, 'cron route'));
+        Logger.error(gem(e, url, 'execute route'));
     }
     return false;
 }
@@ -81,18 +95,31 @@ export async function execute_page(url) {
         return undefined;
     }
     try {
-        const { pages, page_objects } = await regenerate_pages({ change: [page] }, {}, [], Cwd.get(FOLDER_GEN));
+        const { pages, page_objects } = await regenerate_pages(
+            { change: [page] },
+            {},
+            [],
+            Cwd.get(FOLDER_GEN)
+        );
         if (!filled_array(pages)) {
             Logger.error('no pages were regenerated');
             return false;
         }
         update_pages_cache(page_objects);
-        await WorkerController.process_in_workers(WorkerAction.build, pages, 100, true);
+        await WorkerController.process_in_workers(
+            WorkerAction.build,
+            pages,
+            100,
+            true
+        );
 
-        Logger.improve('persisted', page_objects.map((page) => page.urls.join(' ')).join(' '));
+        Logger.improve(
+            'persisted',
+            page_objects.map((page) => page.urls.join(' ')).join(' ')
+        );
         return page_objects;
     } catch (e) {
-        Logger.error(get_error_message(e, url, 'cron page'));
+        Logger.error(get_error_message(e, url, 'execute page'));
     }
     return false;
 }
@@ -113,7 +140,9 @@ export function get_config(segment, fallback_value) {
  * @returns {Logger}
  */
 export function get_logger() {
-    Logger.warning('get_logger from cron.js is deprecated and will be removed in the future, please use logger from @wyvr/generator/universal.js instead.');
+    Logger.warning(
+        'get_logger from cron.js is deprecated and will be removed in the future, please use logger from @wyvr/generator/universal.js instead.'
+    );
     return Logger;
 }
 

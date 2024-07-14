@@ -190,3 +190,13 @@ export function get_cache_path(cache_name, scope = 'default') {
 
     return get_config_cache_path(cache_key);
 }
+
+/**
+ * Converts the specified URL to a ghost file.
+ * @param {string} url - The URL to convert.
+ * @returns {Promise} - A promise that resolves to the converted ghost file.
+ */
+export function convert_to_ghost_file(url) {
+    const file_path = join(ReleasePath.get(), to_index(url));
+    return rename(file_path, 'index.ghost');
+}

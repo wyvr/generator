@@ -1,14 +1,32 @@
 import { dirname, extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'url';
-import { FOLDER_GEN, FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC, FOLDER_SERVER, FOLDER_SRC } from '../constants/folder.js';
+import {
+    FOLDER_GEN,
+    FOLDER_GEN_CLIENT,
+    FOLDER_GEN_SERVER,
+    FOLDER_GEN_SRC,
+    FOLDER_SERVER,
+    FOLDER_SRC,
+} from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { to_extension } from './file.js';
-import { is_object, is_array, is_null, filled_string, is_regex, is_symbol, is_big_int, is_string, filled_array, filled_object } from './validate.js';
+import {
+    is_object,
+    is_array,
+    is_null,
+    filled_string,
+    is_regex,
+    is_symbol,
+    is_big_int,
+    is_string,
+    filled_array,
+    filled_object,
+} from './validate.js';
 
 export function to_string(value) {
     if (is_null(value)) {
-        return value + '';
+        return `${value}`;
     }
     if (is_object(value) || is_array(value)) {
         return JSON.stringify(value);
@@ -45,7 +63,11 @@ export function to_plain(text) {
     }
     /* eslint-disable no-control-regex */
     // @see https://github.com/doowb/ansi-colors/blob/master/index.js ANSI_REGEX
-    return text.replace(/[\u001b\u009b][[\]#;?()]*(?:(?:(?:[^\W_]*;?[^\W_]*)\u0007)|(?:(?:[0-9]{1,4}(;[0-9]{0,4})*)?[~0-9=<>cf-nqrtyA-PRZ]))/g, '');
+    // biome-ignore lint/suspicious/noControlCharactersInRegex: <explanation>
+    return text.replace(
+        /[\u001b\u009b][[\]#;?()]*(?:(?:(?:[^\W_]*;?[^\W_]*)\u0007)|(?:(?:[0-9]{1,4}(;[0-9]{0,4})*)?[~0-9=<>cf-nqrtyA-PRZ]))/g,
+        ''
+    );
     /* eslint-enable no-control-regex */
 }
 
@@ -96,7 +118,10 @@ export function to_relative_path_of_gen(path) {
     if (!filled_string(path)) {
         return '';
     }
-    return to_relative_from_markers(path, FOLDER_GEN).replace(ReleasePath.get(), '');
+    return to_relative_from_markers(path, FOLDER_GEN).replace(
+        ReleasePath.get(),
+        ''
+    );
 }
 /**
  * Converts the given path to a relative path of the given marker folders
@@ -112,7 +137,7 @@ export function to_relative_from_markers(path, ...markers) {
     const index = Math.max(
         ...markers.map((marker) => {
             const index = parts.indexOf(marker);
-            if (index == max_index) {
+            if (index === max_index) {
                 return -1;
             }
             return index;
@@ -130,7 +155,7 @@ export function to_relative_from_markers(path, ...markers) {
  */
 export function to_server_path(path) {
     const mod_path = replace_path(path, FOLDER_GEN_SERVER);
-    if (extname(mod_path) != '.svelte') {
+    if (extname(mod_path) !== '.svelte') {
         return mod_path;
     }
     return to_extension(mod_path, 'js');
@@ -154,7 +179,10 @@ export function to_identifier_name(...parts) {
     }
     const identifiers = parts.map(to_single_identifier_name);
     // empty or all default identifiers gets combined into one
-    if (!filled_array(identifiers) || identifiers.filter((part) => part != default_sign).length == 0) {
+    if (
+        !filled_array(identifiers) ||
+        identifiers.filter((part) => part !== default_sign).length === 0
+    ) {
         return default_sign;
     }
     const combined = identifiers.join('-');
@@ -162,9 +190,15 @@ export function to_identifier_name(...parts) {
 }
 export function to_single_identifier_name(part) {
     const internal_part = !filled_string(part) ? 'default' : part;
-    let normalized_part = to_relative_from_markers(internal_part.replace(/\.[^.]+$/, '').toLowerCase(), FOLDER_GEN_SERVER, FOLDER_SERVER);
+    let normalized_part = to_relative_from_markers(
+        internal_part.replace(/\.[^.]+$/, '').toLowerCase(),
+        FOLDER_GEN_SERVER,
+        FOLDER_SERVER
+    );
 
-    return normalized_part.replace(/^\/?(doc|layout|page)\//, '').replace(/\/|-/g, '_');
+    return normalized_part
+        .replace(/^\/?(doc|layout|page)\//, '')
+        .replace(/\/|-/g, '_');
 }
 /**
  * Combine identifiers into one object
@@ -173,14 +207,14 @@ export function to_single_identifier_name(part) {
  */
 export function to_identifiers(...items) {
     const identifiers = {};
-    items.forEach((obj) => {
+    for (const obj of items) {
         if (!filled_object(obj)) {
-            return;
+            continue;
         }
-        Object.keys(obj).forEach((key) => {
+        for (const key of Object.keys(obj)) {
             identifiers[key] = obj[key];
-        });
-    });
+        }
+    }
     return identifiers;
 }
 

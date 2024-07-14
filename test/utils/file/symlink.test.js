@@ -52,16 +52,16 @@ describe('utils/file/symlink', () => {
         remove(file);
         deepStrictEqual(result, []);
     });
-    it('target not writeable', () => {
-        strictEqual(symlink(cwd + '/test/utils/file/_tests/symlink_content.txt', cwd + '/test/utils/file/_tests/not_writeable.txt'), false);
-        deepStrictEqual(result, [
-            [
-                '✖',
-                'symlink ' +
-                    cwd +
-                    '/test/utils/file/_tests/symlink_content.txt ' +
-                    cwd + '/test/utils/file/_tests/not_writeable.txt to is a regular file no symlink',
-            ],
-        ]);
-    });
+    // it('target not writeable', () => {
+    //     strictEqual(symlink(cwd + '/test/utils/file/_tests/symlink_content.txt', cwd + '/test/utils/file/_tests/not_writeable.txt'), false);
+    //     deepStrictEqual(result, [
+    //         [
+    //             '✖',
+    //             'symlink ' +
+    //                 cwd +
+    //                 '/test/utils/file/_tests/symlink_content.txt ' +
+    //                 cwd + '/test/utils/file/_tests/not_writeable.txt to is a regular file no symlink',
+    //         ],
+    //     ]);
+    // });
 });

@@ -1,11 +1,22 @@
 import os from 'os';
 import { Worker } from '../model/worker.js';
 import { Logger } from '../utils/logger.js';
-import { filled_array, filled_string, is_null, is_number, is_object, is_int, is_func } from '../utils/validate.js';
+import {
+    filled_array,
+    filled_string,
+    is_null,
+    is_number,
+    is_object,
+    is_int,
+    is_func,
+} from '../utils/validate.js';
 import { search_segment } from '../utils/segment.js';
 import { Event } from '../utils/event.js';
 import { get_name, WorkerAction } from '../struc/worker_action.js';
-import { get_name as get_status_name, WorkerStatus } from '../struc/worker_status.js';
+import {
+    get_name as get_status_name,
+    WorkerStatus,
+} from '../struc/worker_status.js';
 import { get_name as get_emit_name } from '../struc/worker_emit.js';
 import { get_type_name } from '../struc/log.js';
 import { inject_worker_message_errors } from '../utils/error.js';
@@ -18,34 +29,47 @@ let die_counter = 0;
 let cpu_cores;
 // biome-ignore lint/complexity/noStaticOnlyClass:
 export class WorkerController {
-    static async initialize(ratio = 1, single_threaded = false, fork_fn) {
+    static async initialize(
+        ratio = 1,
+        single_threaded = false,
+        fork_fn = undefined
+    ) {
         // set worker ratio
         WorkerController.set_worker_ratio(ratio);
 
         if (single_threaded) {
-            Logger.warning('running in single threaded mode, no workers will be started');
+            Logger.warning(
+                'running in single threaded mode, no workers will be started'
+            );
 
             await WorkerController.single_threaded();
         } else {
             // Create the workers for the processing
-            const worker_amount = WorkerController.get_worker_amount_from_ratio();
-            this.worker_amount = worker_amount;
-            Logger.present('worker', worker_amount, Logger.color.dim(`of ${this.get_cpu_cores()} threads`));
+            const worker_amount =
+                WorkerController.get_worker_amount_from_ratio();
+            WorkerController.worker_amount = worker_amount;
+            Logger.present(
+                'worker',
+                worker_amount,
+                Logger.color.dim(
+                    `of ${WorkerController.get_cpu_cores()} threads`
+                )
+            );
             WorkerController.create_workers(worker_amount, fork_fn);
         }
     }
-    static create_workers(amount, fork_fn) {
-        this.workers = [];
+    static create_workers(amount, fork_fn = undefined) {
+        WorkerController.workers = [];
         for (let i = amount; i > 0; i--) {
-            const worker = this.create(fork_fn);
-            if (this.is_worker(worker)) {
-                this.workers.push(worker);
+            const worker = WorkerController.create(fork_fn);
+            if (WorkerController.is_worker(worker)) {
+                WorkerController.workers.push(worker);
             } else {
                 Logger.warning('worker is invalid', worker);
             }
         }
-        this.worker_amount = this.workers.length;
-        return this.workers;
+        WorkerController.worker_amount = WorkerController.workers.length;
+        return WorkerController.workers;
     }
     static async single_threaded() {
         WorkerController.set_multi_threading(false);
@@ -56,7 +80,7 @@ export class WorkerController {
                     Event.on('master', key, async (...args) => {
                         await fn(...args);
                     });
-                }
+                },
             };
         });
         // only import when needed
@@ -68,7 +92,7 @@ export class WorkerController {
             Logger.warning(`invalid worker ratio ${ratio}`);
             return;
         }
-        this.worker_ratio = ratio;
+        WorkerController.worker_ratio = ratio;
     }
     static get_cpu_cores() {
         if (cpu_cores) {
@@ -82,33 +106,35 @@ export class WorkerController {
         return cpu_cores;
     }
     static get_worker_amount_from_ratio() {
-        if (this.worker_amount) {
-            return this.worker_amount;
+        if (WorkerController.worker_amount) {
+            return WorkerController.worker_amount;
         }
-        if (this.max_cores) {
-            return this.max_cores;
+        if (WorkerController.max_cores) {
+            return WorkerController.max_cores;
         }
         // single threaded mode
-        if (this.worker_ratio <= 0) {
+        if (WorkerController.worker_ratio <= 0) {
             return 1;
         }
         // get amount of cores
         // at least one and left 1 core for the main worker
-        const cpu_cores = this.get_cpu_cores();
-        const cpu_cores_ratio = Math.round(cpu_cores * this.worker_ratio);
+        const cpu_cores = WorkerController.get_cpu_cores();
+        const cpu_cores_ratio = Math.round(
+            cpu_cores * WorkerController.worker_ratio
+        );
         const max_cores = Math.max(1, cpu_cores_ratio - 1);
 
         // store the value
-        this.max_cores = max_cores;
+        WorkerController.max_cores = max_cores;
         return max_cores;
     }
     static get_worker_amount() {
-        const amount = this.get_worker_amount_from_ratio();
+        const amount = WorkerController.get_worker_amount_from_ratio();
         return amount;
     }
-    static create(fork_fn) {
+    static create(fork_fn = undefined) {
         const worker = Worker(fork_fn);
-        if (!this.is_worker(worker)) {
+        if (!WorkerController.is_worker(worker)) {
             return undefined;
         }
         // creating workers and pushing reference in an array
@@ -117,9 +143,9 @@ export class WorkerController {
         // to receive messages from worker process
         worker.process.on('message', (msg) => {
             Logger.debug('process', worker.pid, 'message', msg);
-            const current_worker = this.get_message(msg);
+            const current_worker = WorkerController.get_message(msg);
             if (current_worker !== false) {
-                this.livecycle(worker);
+                WorkerController.livecycle(worker);
             }
         });
         worker.process.on('error', (msg) => {
@@ -130,59 +156,71 @@ export class WorkerController {
         });
         worker.process.on('exit', (code) => {
             Logger.debug('process', worker.pid, 'exit', code);
-            if (this.exiting) {
+            if (WorkerController.exiting) {
                 return;
             }
-            const cpu = this.get_cpu_cores();
+            const cpu = WorkerController.get_cpu_cores();
             die_counter++;
-            Logger.warning('create new worker because of exit from', worker.pid, code);
-            this.remove_worker(worker.pid);
+            Logger.warning(
+                'create new worker because of exit from',
+                worker.pid,
+                code
+            );
+            WorkerController.remove_worker(worker.pid);
             // wait some time before respawning, otherwise in total broken states the server will run at 100% cpu and is not responsive
             setTimeout(() => {
                 if (die_counter > cpu * 2) {
-                    Logger.error(`Suicide: ${die_counter} workers died in the last second, which brings the application into an unhealthy state, shutting down`);
+                    Logger.error(
+                        `Suicide: ${die_counter} workers died in the last second, which brings the application into an unhealthy state, shutting down`
+                    );
                     process.exit(1);
                 }
-                this.workers.push(this.create(fork_fn));
+                WorkerController.workers.push(WorkerController.create(fork_fn));
                 die_counter--;
             }, 1000);
         });
         worker.process.on('close', () => {
-            if (this.exiting) {
+            if (WorkerController.exiting) {
                 return;
             }
             Logger.info('create new worker because of close from', worker.pid);
-            this.remove_worker(worker.pid);
-            this.workers.push(this.create(fork_fn));
+            WorkerController.remove_worker(worker.pid);
+            WorkerController.workers.push(WorkerController.create(fork_fn));
         });
         return worker;
     }
     static exit() {
-        this.exiting = true;
-        Logger.debug('killing', this.workers.length, 'workers');
-        if (!this.multi_threading) {
+        WorkerController.exiting = true;
+        Logger.debug('killing', WorkerController.workers.length, 'workers');
+        if (!WorkerController.multi_threading) {
             return;
         }
-        this.workers.forEach((worker) => {
+        for (const worker of WorkerController.workers) {
             process.kill(worker.pid);
-        });
-        this.worker_amount = undefined;
-        this.max_cores = undefined;
+        }
+        WorkerController.worker_amount = undefined;
+        WorkerController.max_cores = undefined;
 
-        this.workers = [];
-        this.worker_ratio = 0;
+        WorkerController.workers = [];
+        WorkerController.worker_ratio = 0;
     }
     static remove_worker(pid) {
-        this.workers = this.workers.filter((worker) => worker.pid !== pid);
+        WorkerController.workers = WorkerController.workers.filter(
+            (worker) => worker.pid !== pid
+        );
     }
     static get_worker(pid) {
-        return this.workers.find((worker) => worker.pid === pid);
+        return WorkerController.workers.find((worker) => worker.pid === pid);
     }
     static get_message(msg) {
-        if (filled_string(msg) || is_null(search_segment(msg, 'data.action.key')) || is_null(search_segment(msg, 'data.action.value'))) {
+        if (
+            filled_string(msg) ||
+            is_null(search_segment(msg, 'data.action.key')) ||
+            is_null(search_segment(msg, 'data.action.value'))
+        ) {
             return false;
         }
-        const worker = this.get_worker(msg.pid);
+        const worker = WorkerController.get_worker(msg.pid);
         if (!worker) {
             Logger.error('unknown worker', msg.pid);
             return false;
@@ -198,22 +236,24 @@ export class WorkerController {
                     return false;
                 }
                 // update the status of the worker
-                this.workers.find((ref_worker) => {
+                WorkerController.workers.find((ref_worker) => {
                     if (ref_worker.pid === worker.pid) {
                         ref_worker.status = data;
                         return true;
                     }
                 });
                 // worker.status = data;
-                const workers = this.get_workers_by_status(WorkerStatus.idle);
+                const workers = WorkerController.get_workers_by_status(
+                    WorkerStatus.idle
+                );
                 if (Env.is_debug()) {
                     Logger.debug(
-                        `status`,
+                        'status',
                         name,
                         pid_text,
                         'idle workers',
                         workers.length,
-                        this.workers.map((worker) => {
+                        WorkerController.workers.map((worker) => {
                             return get_status_name(worker.status);
                         })
                     );
@@ -244,12 +284,19 @@ export class WorkerController {
         return worker;
     }
     static livecycle(worker) {
-        if (!this.is_worker(worker) || !get_status_name(worker.status)) {
+        if (
+            !WorkerController.is_worker(worker) ||
+            !get_status_name(worker.status)
+        ) {
             return false;
         }
         switch (worker.status) {
             case WorkerStatus.exists: {
-                this.send_action(worker, WorkerAction.configure, get_configure_data());
+                WorkerController.send_action(
+                    worker,
+                    WorkerAction.configure,
+                    get_configure_data()
+                );
                 break;
             }
         }
@@ -258,17 +305,21 @@ export class WorkerController {
     }
 
     static is_worker(worker) {
-        return is_object(worker) && is_number(worker.pid) && !is_null(worker.process);
+        return (
+            is_object(worker) &&
+            is_number(worker.pid) &&
+            !is_null(worker.process)
+        );
     }
 
     static send_message(worker, data) {
-        if (!this.multi_threading) {
+        if (!WorkerController.multi_threading) {
             setTimeout(() => {
                 Event.emit('process', 'message', data);
             }, 100);
             return true;
         }
-        if (!this.is_worker(worker)) {
+        if (!WorkerController.is_worker(worker)) {
             return false;
         }
 
@@ -281,11 +332,11 @@ export class WorkerController {
     }
 
     static send_action(worker, action, data) {
-        this.send_message(worker, {
+        WorkerController.send_message(worker, {
             action: {
                 key: action,
-                value: data
-            }
+                value: data,
+            },
         });
         return false;
     }
@@ -300,7 +351,10 @@ export class WorkerController {
         if (!filled_string(key)) {
             return false;
         }
-        this.send_action_all_workers(WorkerAction.set, { key, value });
+        WorkerController.send_action_all_workers(WorkerAction.set, {
+            key,
+            value,
+        });
         return true;
     }
 
@@ -311,8 +365,8 @@ export class WorkerController {
      * @returns whether the value was sent to the workers or not
      */
     static send_action_all_workers(action, data) {
-        for (const worker of this.workers) {
-            this.send_action(worker, action, data);
+        for (const worker of WorkerController.workers) {
+            WorkerController.send_action(worker, action, data);
         }
     }
 
@@ -326,8 +380,14 @@ export class WorkerController {
         if (!filled_string(segment)) {
             return false;
         }
-        if (this.multi_threading) {
-            this.send_action_all_workers(WorkerAction.set_config_cache, { segment, value });
+        if (WorkerController.multi_threading) {
+            WorkerController.send_action_all_workers(
+                WorkerAction.set_config_cache,
+                {
+                    segment,
+                    value,
+                }
+            );
         }
         return true;
     }
@@ -337,7 +397,9 @@ export class WorkerController {
         if (is_null(name)) {
             return [];
         }
-        return this.workers.filter((worker) => worker.status === status);
+        return WorkerController.workers.filter(
+            (worker) => worker.status === status
+        );
     }
 
     /**
@@ -349,9 +411,14 @@ export class WorkerController {
         if (is_null(queue)) {
             return true;
         }
-        const workers = this.get_workers_by_status(WorkerStatus.idle);
+        const workers = WorkerController.get_workers_by_status(
+            WorkerStatus.idle
+        );
         // stop when queue is empty and all workers are idle
-        if (queue.length === 0 && workers.length === this.get_worker_amount()) {
+        if (
+            queue.length === 0 &&
+            workers.length === WorkerController.get_worker_amount()
+        ) {
             return true;
         }
         if (queue.length > 0) {
@@ -363,7 +430,11 @@ export class WorkerController {
                         // set worker busy otherwise the same worker gets multiple actions send
                         worker.status = WorkerStatus.busy;
                         // send the data to the worker
-                        this.send_action(worker, queue_entry.action, queue_entry.data);
+                        WorkerController.send_action(
+                            worker,
+                            queue_entry.action,
+                            queue_entry.data
+                        );
                     }
                 }
             }
@@ -377,28 +448,38 @@ export class WorkerController {
             Logger.error('unknown action', action);
             return false;
         }
-        const workers = this.get_workers_by_status(WorkerStatus.idle);
+        const workers = WorkerController.get_workers_by_status(
+            WorkerStatus.idle
+        );
         return new Promise((resolve) => {
             // retry when no idle workers are available
             if (workers.length === 0) {
                 setTimeout(() => {
-                    this.process_data(action, data).then(resolve);
+                    WorkerController.process_data(action, data).then(resolve);
                 }, 50);
                 return;
             }
             workers[0].status = WorkerStatus.busy;
-            this.send_action(workers[0], action, data);
-            const done_listener_id = Event.on('worker_status', WorkerStatus.done, (worker) => {
-                if (worker.pid === workers[0].pid) {
-                    Event.off('worker_status', WorkerStatus.done, done_listener_id);
-                    resolve(true);
+            WorkerController.send_action(workers[0], action, data);
+            const done_listener_id = Event.on(
+                'worker_status',
+                WorkerStatus.done,
+                (worker) => {
+                    if (worker.pid === workers[0].pid) {
+                        Event.off(
+                            'worker_status',
+                            WorkerStatus.done,
+                            done_listener_id
+                        );
+                        resolve(true);
+                    }
                 }
-            });
+            );
         });
     }
 
     static async process_in_workers(action, list, batch_size, show_name) {
-        if (this.workers.length === 0) {
+        if (WorkerController.workers.length === 0) {
             Logger.error('no worker available');
             process.exit(1);
         }
@@ -408,29 +489,43 @@ export class WorkerController {
             return false;
         }
         // wait some time that the events can catch up
-        if (!this.multi_threading) {
+        if (!WorkerController.multi_threading) {
             await sleep(10);
         }
         const amount = list.length;
-        if (amount == 0) {
-            Logger.improve('no items to process, batch size', Logger.color.cyan(batch_size.toString()));
+        if (amount === 0) {
+            Logger.improve(
+                'no items to process, batch size',
+                Logger.color.cyan(batch_size.toString())
+            );
             return true;
         }
         if (!is_int(batch_size)) {
             batch_size = 10;
         }
         // @NOTE @TODO batches are not correctly handled in single threaded mode, so handle all items in one batch
-        if (!this.multi_threading) {
+        if (!WorkerController.multi_threading) {
             batch_size = amount;
         }
-        Logger.info('process', amount, amount === 1 ? 'item' : 'items', show_name ? Logger.color.blue(`in ${name}`) : '', Logger.color.dim('batch size ' + batch_size));
+        Logger.info(
+            'process',
+            amount,
+            amount === 1 ? 'item' : 'items',
+            show_name ? Logger.color.blue(`in ${name}`) : '',
+            Logger.color.dim(`batch size ${batch_size}`)
+        );
 
         // create new queue
-        this.queue = new Queue();
+        WorkerController.queue = new Queue();
 
         // correct batch size when there are more workers available
-        const worker_based_batch_size = Math.ceil(list.length / this.get_worker_amount());
-        if (worker_based_batch_size > list.length / batch_size && worker_based_batch_size < batch_size) {
+        const worker_based_batch_size = Math.ceil(
+            list.length / WorkerController.get_worker_amount()
+        );
+        if (
+            worker_based_batch_size > list.length / batch_size &&
+            worker_based_batch_size < batch_size
+        ) {
             batch_size = worker_based_batch_size;
         }
 
@@ -440,39 +535,65 @@ export class WorkerController {
         for (let i = 0; i < iterations; i++) {
             const queue_data = {
                 action,
-                data: list.slice(i * batch_size, (i + 1) * batch_size)
+                data: list.slice(i * batch_size, (i + 1) * batch_size),
             };
-            this.queue.push(queue_data);
+            WorkerController.queue.push(queue_data);
         }
-        const size = this.queue.length;
+        const size = WorkerController.queue.length;
         let done = 0;
         return new Promise((resolve) => {
-            const idle = this.get_workers_by_status(WorkerStatus.idle);
-            const listener_id = Event.on('worker_status', WorkerStatus.idle, async () => {
-                if (this.tick(this.queue)) {
-                    Event.off('worker_status', WorkerStatus.idle, listener_id);
-                    // wait some time that the events can catch up
-                    if (!this.multi_threading) {
-                        await sleep(10);
+            const idle = WorkerController.get_workers_by_status(
+                WorkerStatus.idle
+            );
+            const listener_id = Event.on(
+                'worker_status',
+                WorkerStatus.idle,
+                async () => {
+                    if (WorkerController.tick(WorkerController.queue)) {
+                        Event.off(
+                            'worker_status',
+                            WorkerStatus.idle,
+                            listener_id
+                        );
+                        // wait some time that the events can catch up
+                        if (!WorkerController.multi_threading) {
+                            await sleep(10);
+                        }
+                        resolve(true);
                     }
-                    resolve(true);
                 }
-            });
+            );
             // when all workers are idle, emit on first
-            if (idle.length > 0 && idle.length === this.get_worker_amount()) {
-                this.livecycle(idle[0]);
+            if (
+                idle.length > 0 &&
+                idle.length === WorkerController.get_worker_amount()
+            ) {
+                WorkerController.livecycle(idle[0]);
             }
-            const done_listener_id = Event.on('worker_status', WorkerStatus.done, () => {
-                Logger.text(name, Logger.color.dim('...'), `${Math.round((100 / size) * done)}%`, Logger.color.dim(`${done}/${size}`));
-                done++;
-                if (done >= size) {
-                    Event.off('worker_status', WorkerStatus.done, done_listener_id);
+            const done_listener_id = Event.on(
+                'worker_status',
+                WorkerStatus.done,
+                () => {
+                    Logger.text(
+                        name,
+                        Logger.color.dim('...'),
+                        `${Math.round((100 / size) * done)}%`,
+                        Logger.color.dim(`${done}/${size}`)
+                    );
+                    done++;
+                    if (done >= size) {
+                        Event.off(
+                            'worker_status',
+                            WorkerStatus.done,
+                            done_listener_id
+                        );
+                    }
                 }
-            });
+            );
         });
     }
     static set_multi_threading(value) {
-        this.multi_threading = !!value;
+        WorkerController.multi_threading = !!value;
     }
 }
 WorkerController.exiting = false;

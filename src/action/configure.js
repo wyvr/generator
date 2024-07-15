@@ -13,9 +13,9 @@ export async function configure() {
     // wait until all workers are ready
     await wait_until_idle(30);
     const data = get_configure_data();
-    WorkerController.workers.forEach((worker) => {
+    for (const worker of WorkerController.workers) {
         WorkerController.send_action(worker, WorkerAction.configure, data);
-    });
+    }
 }
 export function get_configure_data() {
     return {

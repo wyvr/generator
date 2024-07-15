@@ -4,7 +4,14 @@ import { Cwd } from '../vars/cwd.js';
 import { exists, find_file, to_extension } from './file.js';
 import { to_relative_path_of_gen } from './to.js';
 import { replace_src } from './transform.js';
-import { filled_array, filled_object, filled_string, is_array, is_func, is_null } from './validate.js';
+import {
+    filled_array,
+    filled_object,
+    filled_string,
+    is_array,
+    is_func,
+    is_null,
+} from './validate.js';
 import { Logger } from './logger.js';
 import { uniq_values } from './uniq.js';
 import { WyvrFileRender } from '../struc/wyvr_file.js';
@@ -23,7 +30,9 @@ export function dependencies_from_content(content, file) {
         file_path = Cwd.get(file_path);
     }
     // paths are relative to the src folder
-    const rel_base_path = file_path.replace(Cwd.get(), '').replace(/^\/?src/, '');
+    const rel_base_path = file_path
+        .replace(Cwd.get(), '')
+        .replace(/^\/?src/, '');
     const deps = {};
     const i18n = {};
     const key = to_relative_path_of_gen(file);
@@ -34,10 +43,15 @@ export function dependencies_from_content(content, file) {
         // remove cache breaker
         dep = dep.replace(/\?\d+$/, '');
         // node dependency
-        if (dep.indexOf('./') !== 0 && dep.indexOf('/') !== 0 && dep.indexOf('@src') !== 0) {
+        if (
+            dep.indexOf('./') !== 0 &&
+            dep.indexOf('/') !== 0 &&
+            dep.indexOf('$src') !== 0 &&
+            dep.indexOf('@src') !== 0 // @deprecated
+        ) {
             return;
         }
-        // replace @src
+        // replace $src
         dep = replace_src(dep, '');
         // fix relative paths of the dependencies
         // './multiply.js' in folder 'local/src/test/import' must become '/test/import/multiply.js'
@@ -57,11 +71,15 @@ export function dependencies_from_content(content, file) {
         if (is_null(dep_file)) {
             dep_file = find_file(
                 file_path,
-                ['svelte', 'js', 'mjs', 'cjs', 'ts'].map((ext) => to_extension(dep, ext))
+                ['svelte', 'js', 'mjs', 'cjs', 'ts'].map((ext) =>
+                    to_extension(dep, ext)
+                )
             );
         }
         if (dep_file) {
-            dep_file = to_relative_path_of_gen(dep_file.replace(Cwd.get(), '.'));
+            dep_file = to_relative_path_of_gen(
+                dep_file.replace(Cwd.get(), '.')
+            );
             deps[key].push(dep_file);
         }
         return;
@@ -108,7 +126,11 @@ export function get_dependencies(tree, file, callback) {
 }
 
 export function get_hydrate_dependencies(tree, file_config_tree, file) {
-    if (!filled_object(tree) || !filled_object(file_config_tree) || is_null(file_config_tree[file])) {
+    if (
+        !filled_object(tree) ||
+        !filled_object(file_config_tree) ||
+        is_null(file_config_tree[file])
+    ) {
         return [];
     }
     const result = [];
@@ -121,7 +143,9 @@ export function get_hydrate_dependencies(tree, file_config_tree, file) {
     if (!is_null(tree[file])) {
         for (const child of tree[file]) {
             if (child !== file) {
-                result.push(...get_hydrate_dependencies(tree, file_config_tree, child));
+                result.push(
+                    ...get_hydrate_dependencies(tree, file_config_tree, child)
+                );
             }
         }
     }
@@ -188,7 +212,11 @@ export function get_parents_of_file_recursive(tree, file) {
     // @TODO quickfix if the file is a array
     if (is_array(file)) {
         if (file.length > 1) {
-            Logger.error('file is an array and has more then one entries', file, tree);
+            Logger.error(
+                'file is an array and has more then one entries',
+                file,
+                tree
+            );
         }
         // use only first entry
         file = file[0];
@@ -205,7 +233,9 @@ export function get_parents_of_file_recursive(tree, file) {
     const parents = [...tree[file]];
     try {
         // Maximum call stack size exceeded can easily occure here
-        const found_parents = tree[file].map((parent) => get_parents_of_file_recursive(tree, parent)).filter(Boolean);
+        const found_parents = tree[file]
+            .map((parent) => get_parents_of_file_recursive(tree, parent))
+            .filter(Boolean);
         parents.push(...found_parents);
     } catch (e) {
         /* c8 ignore start */
@@ -231,10 +261,12 @@ export function cache_dependencies(dependencies) {
     }
     // remove doubled dependencies
     for (const file of files) {
-        dependencies[file] = uniq_values(dependencies[file].flat(2)).map((filepath) => {
-            // fix server content when selecting from routes, plugins or events
-            return filepath.replace(/^(server|client)\//, 'src/');
-        });
+        dependencies[file] = uniq_values(dependencies[file].flat(2)).map(
+            (filepath) => {
+                // fix server content when selecting from routes, plugins or events
+                return filepath.replace(/^(server|client)\//, 'src/');
+            }
+        );
     }
 
     // @NOTE set_config_cache is asynchronous, so this step could be problematic in edge cases

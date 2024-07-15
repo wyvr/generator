@@ -1,10 +1,10 @@
 <script>
     /* 
-        import Stylesheet from '@src/wyvr/Stylesheet.svelte';
+        import Stylesheet from '$src/wyvr/Stylesheet.svelte';
 
         <Stylesheet src="/assets/global.css" /> 
     */
-    import { append_query_string } from '@src/wyvr/append_query_string.js';
+    import { append_query_string } from '$src/wyvr/append_query_string.js';
 
     export let src = null;
     export let critical = false;

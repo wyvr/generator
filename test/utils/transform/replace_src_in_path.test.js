@@ -18,12 +18,41 @@ describe('utils/transform/replace_src_in_path', () => {
         strictEqual(replace_src_in_path(), '');
     });
     it('content without to', () => {
-        strictEqual(replace_src_in_path(`@src/some/src/file.css`), `@src/some/src/file.css`);
+        strictEqual(
+            replace_src_in_path(`$src/some/src/file.css`),
+            `$src/some/src/file.css`
+        );
     });
     it('content', () => {
-        strictEqual(replace_src_in_path(`@src/some/src/file.css`, 'to'), `${cwd}/to/some/src/file.css`);
+        strictEqual(
+            replace_src_in_path(`$src/some/src/file.css`, 'to'),
+            `${cwd}/to/some/src/file.css`
+        );
     });
     it('content with extension', () => {
-        strictEqual(replace_src_in_path(`@src/some/src/file.css`, 'to', 'css'), `${cwd}/to/some/src/file.css`);
+        strictEqual(
+            replace_src_in_path(`$src/some/src/file.css`, 'to', 'css'),
+            `${cwd}/to/some/src/file.css`
+        );
+    });
+    describe('deprecated @src', () => {
+        it('content without to', () => {
+            strictEqual(
+                replace_src_in_path(`@src/some/src/file.css`),
+                `@src/some/src/file.css`
+            );
+        });
+        it('content', () => {
+            strictEqual(
+                replace_src_in_path(`@src/some/src/file.css`, 'to'),
+                `${cwd}/to/some/src/file.css`
+            );
+        });
+        it('content with extension', () => {
+            strictEqual(
+                replace_src_in_path(`@src/some/src/file.css`, 'to', 'css'),
+                `${cwd}/to/some/src/file.css`
+            );
+        });
     });
 });

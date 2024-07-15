@@ -24,7 +24,7 @@ describe('model/wyvr_file', () => {
             scripts: undefined,
             styles: undefined,
             props: undefined,
-            rel_path: '@src/file',
+            rel_path: '$src/file',
             from_lazy: undefined,
         });
     });
@@ -36,7 +36,7 @@ describe('model/wyvr_file', () => {
             scripts: undefined,
             styles: undefined,
             props: undefined,
-            rel_path: '@src/test/file',
+            rel_path: '$src/test/file',
             from_lazy: undefined,
         });
     });
@@ -48,7 +48,7 @@ describe('model/wyvr_file', () => {
             scripts: undefined,
             styles: undefined,
             props: undefined,
-            rel_path: '@src/component/file',
+            rel_path: '$src/component/file',
             from_lazy: undefined,
         });
     });
@@ -60,7 +60,7 @@ describe('model/wyvr_file', () => {
             scripts: undefined,
             styles: undefined,
             props: undefined,
-            rel_path: '@src/byte',
+            rel_path: '$src/byte',
             from_lazy: undefined,
         });
     });

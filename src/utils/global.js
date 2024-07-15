@@ -88,11 +88,6 @@ export function register_prop(file) {
         if (converted.length > 1000) {
             const hash = create_hash(converted, 64);
             const file_name = `/${FOLDER_PROP}/${prop}_${hash}.json`;
-            const path = Cwd.get(FOLDER_GEN, file_name);
-            Logger.debug('extract prop', prop, 'from', file, 'to', path);
-            if (!exists(path)) {
-                write(path, converted);
-            }
             const release_path = join(ReleasePath.get(), file_name);
             if (!exists(release_path)) {
                 write(release_path, converted);

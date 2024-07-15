@@ -14,7 +14,7 @@ import { ReleasePath } from '../../../src/vars/release_path.js';
 
 describe('utils/global/register_prop', () => {
     const __dirname = join(to_dirname(import.meta.url), '_tests');
-
+    const prop_folder = join(__dirname, 'release', 'prop');
     before(() => {
         Cwd.set(__dirname);
         ReleasePath.set(join(__dirname, 'release'));
@@ -43,37 +43,30 @@ describe('utils/global/register_prop', () => {
     });
     it('generate prop', () => {
         register_prop('file');
-        const folder = join(__dirname, 'gen', 'prop');
         const result = _prop('test', true);
-        const prop_files = existsSync(folder) ? readdirSync(folder) : [];
-        remove(folder);
+        const prop_files = existsSync(prop_folder) ? readdirSync(prop_folder) : [];
+        remove(prop_folder);
         deepStrictEqual(result, '|test|:true');
         deepStrictEqual(prop_files, []);
     });
     it('generate undefined prop', () => {
         register_prop('file');
-        const folder = join(__dirname, 'gen', 'prop');
         const result = _prop('test', undefined);
-        const prop_files = existsSync(folder) ? readdirSync(folder) : [];
-        remove(folder);
+        const prop_files = existsSync(prop_folder) ? readdirSync(prop_folder) : [];
+        remove(prop_folder);
         deepStrictEqual(result, '|test|:null');
         deepStrictEqual(prop_files, []);
     });
     it('generate hugh prop as file', () => {
         register_prop('file');
-        const folder = join(__dirname, 'gen', 'prop');
         const result = _prop(
             'test',
             new Array(1000).fill((_, index) => index)
         );
-        const prop_files = readdirSync(folder);
-        const release_folder = join(__dirname, 'release', 'prop');
-        const release_files = readdirSync(release_folder);
-        remove(folder);
-        remove(release_folder);
+        const prop_files = readdirSync(prop_folder);
+        remove(prop_folder);
         deepStrictEqual(result, '|test|:|@(/prop/test_e15dc02d8f0f43206b89309712aa26d7c644eae9fa2d6f525457d0a042dbc618.json)|');
         deepStrictEqual(prop_files, ['test_e15dc02d8f0f43206b89309712aa26d7c644eae9fa2d6f525457d0a042dbc618.json']);
-        deepStrictEqual(release_files, ['test_e15dc02d8f0f43206b89309712aa26d7c644eae9fa2d6f525457d0a042dbc618.json']);
     });
     // it('missing translations with file', () => {
     //     register_prop(undefined, 'file');

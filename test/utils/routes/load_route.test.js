@@ -51,7 +51,7 @@ describe('utils/routes/load_route', () => {
         deepStrictEqual(log, [
             [
                 '✖',
-                `@route\n[Error] Cannot find package '@src/url.mjs' imported from ${dir}/load/contains_src.js\nsource contains_src.js`,
+                `@route\n[Error] Cannot find package '$src' imported from ${dir}/load/contains_src.js\nsource contains_src.js`,
             ],
         ]);
     });

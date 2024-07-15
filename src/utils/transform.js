@@ -23,11 +23,11 @@ export function replace_import_path(content) {
     return content.replace(/(import .*? from ')@lib/g, `$1${__dirname}`);
 }
 /**
- * Replace the @src imports with the given to path
- * @param content source code with @src imports
+ * Replace the $src and @src imports with the given to path
+ * @param content source code with $src imports
  * @param to path to the src folder, relative to the cwd
  * @param extension the extension of the content, svelte files has to be handelt different
- * @returns the source code with the replaced @src imports
+ * @returns the source code with the replaced $src imports
  */
 export function replace_src_path(content, to, extension) {
     if (!filled_string(content)) {
@@ -36,7 +36,7 @@ export function replace_src_path(content, to, extension) {
     if (!filled_string(to)) {
         return content;
     }
-    const search = /(['"])@src\//g;
+    const search = /(['"])[$@]src\//g;
     const replace = `$1${Cwd.get()}/${to.replace('^/', '').replace(/\/$/, '')}/`;
     // everything except svelte files
     if (!is_string(extension) || is_null(extension.match(/svelte$/))) {
@@ -53,10 +53,10 @@ export function replace_src_path(content, to, extension) {
     return content;
 }
 /**
- * Replace the @src imports with the given to path
- * @param content source code with @src imports
+ * Replace the $src and @src imports with the given to path
+ * @param content source code with $src imports
  * @param to path to the src folder, relative to the cwd
- * @returns the path with the replaced @src
+ * @returns the path with the replaced $src
  */
 export function replace_src_in_path(path, to) {
     if (!filled_string(path)) {
@@ -76,10 +76,11 @@ export function replace_src(path, replace) {
     if (!is_string(replace)) {
         return path;
     }
-    if (path.indexOf('@src') !== 0) {
+    // @deprecated @src
+    if (path.indexOf('$src') !== 0 && path.indexOf('@src') !== 0) {
         return path;
     }
-    return path.replace(/^@src\//, replace);
+    return path.replace(/^[$@]src\//, replace);
 }
 
 export async function combine_splits(path, content) {
@@ -115,7 +116,7 @@ export async function combine_splits(path, content) {
 
     // set content
     // replaced src has to be reverted otherwise the next steps will not work when building the tree
-    result.content = content.replace(new RegExp(Cwd.get(FOLDER_GEN_SRC), 'g'), '@src');
+    result.content = content.replace(new RegExp(Cwd.get(FOLDER_GEN_SRC), 'g'), '$src');
     return result;
 }
 

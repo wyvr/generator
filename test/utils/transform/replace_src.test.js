@@ -18,15 +18,53 @@ describe('utils/transform/replace_src', () => {
         strictEqual(replace_src(), '');
     });
     it('content without to', () => {
-        strictEqual(replace_src(`@src/some/src/file.css`), `@src/some/src/file.css`);
+        strictEqual(
+            replace_src(`$src/some/src/file.css`),
+            `$src/some/src/file.css`
+        );
     });
     it('content empty to', () => {
-        strictEqual(replace_src(`@src/some/src/file.css`, ''), `some/src/file.css`);
+        strictEqual(
+            replace_src(`$src/some/src/file.css`, ''),
+            `some/src/file.css`
+        );
     });
     it('content', () => {
-        strictEqual(replace_src(`@src/some/src/file.css`, 'huhu/'), `huhu/some/src/file.css`);
+        strictEqual(
+            replace_src(`$src/some/src/file.css`, 'huhu/'),
+            `huhu/some/src/file.css`
+        );
     });
     it('content with extension', () => {
-        strictEqual(replace_src(`@src/some/src/file.css`, 'huhu/', 'css'), `huhu/some/src/file.css`);
+        strictEqual(
+            replace_src(`$src/some/src/file.css`, 'huhu/', 'css'),
+            `huhu/some/src/file.css`
+        );
+    });
+    describe('deprecated @src', () => {
+        it('content without to', () => {
+            strictEqual(
+                replace_src(`@src/some/src/file.css`),
+                `@src/some/src/file.css`
+            );
+        });
+        it('content empty to', () => {
+            strictEqual(
+                replace_src(`@src/some/src/file.css`, ''),
+                `some/src/file.css`
+            );
+        });
+        it('content', () => {
+            strictEqual(
+                replace_src(`@src/some/src/file.css`, 'huhu/'),
+                `huhu/some/src/file.css`
+            );
+        });
+        it('content with extension', () => {
+            strictEqual(
+                replace_src(`@src/some/src/file.css`, 'huhu/', 'css'),
+                `huhu/some/src/file.css`
+            );
+        });
     });
 });

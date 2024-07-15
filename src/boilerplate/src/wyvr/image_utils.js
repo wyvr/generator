@@ -1,4 +1,4 @@
-import { to_media_hash } from '@src/wyvr/media.js';
+import { to_media_hash } from '$src/wyvr/media.js';
 
 export function get_image_src_data(src, width, height = 0, mode = 'cover', quality = undefined, format = undefined, fixed = false, use_width = false, orig_width = undefined) {
     if (Array.isArray(src)) {

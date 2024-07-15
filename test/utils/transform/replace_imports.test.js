@@ -20,20 +20,79 @@ describe('utils/transform/replace_imports', () => {
     });
     it('singleline imports', () => {
         strictEqual(
-            replace_imports(`import { get } from '@src/bla/bla.js';`, 'file.js', FOLDER_GEN_SERVER).replace(/\?\d+/g, ''),
+            replace_imports(
+                `import { get } from '$src/bla/bla.js';`,
+                'file.js',
+                FOLDER_GEN_SERVER
+            ).replace(/\?\d+/g, ''),
             `import { get } from '${join(cwd, FOLDER_GEN_SERVER)}/bla/bla.js';`
         );
     });
     it('multiline imports', () => {
         strictEqual(
-            replace_imports("import { \nget,\nset\n } from '@src/bla/bla.js';", 'file.js', FOLDER_GEN_SERVER).replace(/\?\d+/g, ''),
-            `import { \nget,\nset\n } from '${join(cwd, FOLDER_GEN_SERVER)}/bla/bla.js';`
+            replace_imports(
+                "import { \nget,\nset\n } from '$src/bla/bla.js';",
+                'file.js',
+                FOLDER_GEN_SERVER
+            ).replace(/\?\d+/g, ''),
+            `import { \nget,\nset\n } from '${join(
+                cwd,
+                FOLDER_GEN_SERVER
+            )}/bla/bla.js';`
         );
     });
     it('replace ts files as js', () => {
         strictEqual(
-            replace_imports("import { \nget,\nset\n } from '@src/bla/bla.ts';", 'file.js', FOLDER_GEN_SERVER).replace(/\?\d+/g, ''),
-            `import { \nget,\nset\n } from '${join(cwd, FOLDER_GEN_SERVER)}/bla/bla.js';`
+            replace_imports(
+                "import { \nget,\nset\n } from '$src/bla/bla.ts';",
+                'file.js',
+                FOLDER_GEN_SERVER
+            ).replace(/\?\d+/g, ''),
+            `import { \nget,\nset\n } from '${join(
+                cwd,
+                FOLDER_GEN_SERVER
+            )}/bla/bla.js';`
         );
+    });
+    describe('deprecated @src', () => {
+        it('singleline imports', () => {
+            strictEqual(
+                replace_imports(
+                    `import { get } from '@src/bla/bla.js';`,
+                    'file.js',
+                    FOLDER_GEN_SERVER
+                ).replace(/\?\d+/g, ''),
+                `import { get } from '${join(
+                    cwd,
+                    FOLDER_GEN_SERVER
+                )}/bla/bla.js';`
+            );
+        });
+        it('multiline imports', () => {
+            strictEqual(
+                replace_imports(
+                    "import { \nget,\nset\n } from '@src/bla/bla.js';",
+                    'file.js',
+                    FOLDER_GEN_SERVER
+                ).replace(/\?\d+/g, ''),
+                `import { \nget,\nset\n } from '${join(
+                    cwd,
+                    FOLDER_GEN_SERVER
+                )}/bla/bla.js';`
+            );
+        });
+        it('replace ts files as js', () => {
+            strictEqual(
+                replace_imports(
+                    "import { \nget,\nset\n } from '@src/bla/bla.ts';",
+                    'file.js',
+                    FOLDER_GEN_SERVER
+                ).replace(/\?\d+/g, ''),
+                `import { \nget,\nset\n } from '${join(
+                    cwd,
+                    FOLDER_GEN_SERVER
+                )}/bla/bla.js';`
+            );
+        });
     });
 });

@@ -18,15 +18,65 @@ describe('utils/transform/replace_src_path', () => {
         strictEqual(replace_src_path(), undefined);
     });
     it('content without to', () => {
-        strictEqual(replace_src_path(`@import '@src/some/src/file.css';`), `@import '@src/some/src/file.css';`);
+        strictEqual(
+            replace_src_path(`@import '$src/some/src/file.css';`),
+            `@import '$src/some/src/file.css';`
+        );
     });
     it('content', () => {
-        strictEqual(replace_src_path(`@import '@src/some/src/file.css';`, 'to'), `@import '${cwd}/to/some/src/file.css';`);
+        strictEqual(
+            replace_src_path(`@import '$src/some/src/file.css';`, 'to'),
+            `@import '${cwd}/to/some/src/file.css';`
+        );
     });
     it('content with extension', () => {
-        strictEqual(replace_src_path(`@import '@src/some/src/file.css';`, 'to', 'css'), `@import '${cwd}/to/some/src/file.css';`);
+        strictEqual(
+            replace_src_path(`@import '$src/some/src/file.css';`, 'to', 'css'),
+            `@import '${cwd}/to/some/src/file.css';`
+        );
     });
     it('svelte content, only inside script and style tags', () => {
-        strictEqual(replace_src_path(`<script>import * from '@src/some/src/file.css';</script><p>import '@src/some/src/file.css';</p><style>@import '@src/some/src/file.css';</style>`, 'to', 'svelte'), `<script>import * from '${cwd}/to/some/src/file.css';</script><p>import '@src/some/src/file.css';</p><style>@import '${cwd}/to/some/src/file.css';</style>`);
+        strictEqual(
+            replace_src_path(
+                `<script>import * from '$src/some/src/file.css';</script><p>import '$src/some/src/file.css';</p><style>@import '$src/some/src/file.css';</style>`,
+                'to',
+                'svelte'
+            ),
+            `<script>import * from '${cwd}/to/some/src/file.css';</script><p>import '$src/some/src/file.css';</p><style>@import '${cwd}/to/some/src/file.css';</style>`
+        );
+    });
+    describe('deprecated @src', () => {
+        it('content without to', () => {
+            strictEqual(
+                replace_src_path(`@import '@src/some/src/file.css';`),
+                `@import '@src/some/src/file.css';`
+            );
+        });
+        it('content', () => {
+            strictEqual(
+                replace_src_path(`@import '@src/some/src/file.css';`, 'to'),
+                `@import '${cwd}/to/some/src/file.css';`
+            );
+        });
+        it('content with extension', () => {
+            strictEqual(
+                replace_src_path(
+                    `@import '@src/some/src/file.css';`,
+                    'to',
+                    'css'
+                ),
+                `@import '${cwd}/to/some/src/file.css';`
+            );
+        });
+        it('svelte content, only inside script and style tags', () => {
+            strictEqual(
+                replace_src_path(
+                    `<script>import * from '@src/some/src/file.css';</script><p>import '@src/some/src/file.css';</p><style>@import '@src/some/src/file.css';</style>`,
+                    'to',
+                    'svelte'
+                ),
+                `<script>import * from '${cwd}/to/some/src/file.css';</script><p>import '@src/some/src/file.css';</p><style>@import '${cwd}/to/some/src/file.css';</style>`
+            );
+        });
     });
 });

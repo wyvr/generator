@@ -1,4 +1,4 @@
-import { context } from '@src/wyvr/context.js';
+import { context } from '$src/wyvr/context.js';
 import { writable } from 'svelte/store';
 
 /**

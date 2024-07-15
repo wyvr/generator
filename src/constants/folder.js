@@ -29,7 +29,6 @@ export const FOLDER_GEN_CSS = join(FOLDER_GEN, FOLDER_CSS);
 export const FOLDER_JS = 'js';
 export const FOLDER_GEN_JS = join(FOLDER_GEN, FOLDER_JS);
 export const FOLDER_PROP = 'prop';
-export const FOLDER_GEN_PROP = join(FOLDER_GEN, FOLDER_PROP);
 export const FOLDER_DEVTOOLS = 'devtools';
 export const FOLDER_GEN_DEVTOOLS = join(FOLDER_GEN, FOLDER_DEVTOOLS);
 export const FOLDER_MEDIA = 'media';

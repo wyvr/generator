@@ -1,6 +1,6 @@
 <script>
-    import Stylesheet from '@src/wyvr/Stylesheet.svelte';
-    import Script from '@src/wyvr/Script.svelte';
+    import Stylesheet from '$src/wyvr/Stylesheet.svelte';
+    import Script from '$src/wyvr/Script.svelte';
 
     export let data = null;
 </script>

@@ -4,7 +4,7 @@ import { intial_build, pre_initial_build } from '../action/initial_build.js';
 import { present } from '../action/present.js';
 import { FOLDER_GEN, FOLDER_RELEASES } from '../constants/folder.js';
 import { EnvType } from '../struc/env.js';
-import { exists } from '../utils/file.js';
+import { exists, read_json } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { watch_server } from '../utils/server.js';
 import { package_watcher } from '../utils/watcher.js';
@@ -15,6 +15,12 @@ import { get_ports } from '../action/port.js';
 import { publish } from '../action/publish.js';
 import { Plugin } from '../utils/plugin.js';
 import { chat_start } from '../utils/chat.js';
+import { collect_packages } from '../action/package.js';
+import { package_report } from '../presentation/package_report.js';
+import { Config } from '../utils/config.js';
+import { configure } from '../action/configure.js';
+import { Storage } from '../utils/storage.js';
+import { reload } from '../action/regenerate.js';
 
 export async function dev_command(config) {
     // dev command has forced dev state, when nothing is defined
@@ -40,7 +46,10 @@ export async function dev_command(config) {
         const config_data = get_config_data(config, build_id);
         present(config_data);
 
-        const { available_packages } = await pre_initial_build(build_id, config_data);
+        const { available_packages } = await pre_initial_build(
+            build_id,
+            config_data
+        );
 
         await Plugin.initialize();
 
@@ -56,10 +65,36 @@ export async function dev_command(config) {
 
     watch_server(port, wsport, packages);
 
-    await package_watcher(packages);
+    await package_watcher(packages, async () => {
+        Logger.block('reload the packages and the config');
+        const prev_config = Config.get();
+        Config.replace(undefined);
+
+        const package_json = read_json('package.json');
+        const { available_packages, disabled_packages } =
+            await collect_packages(package_json);
+        package_report(available_packages, disabled_packages);
+
+        // store new config
+        await Storage.set('config', Config.get());
+
+        if(prev_config.packages?.map((pkg) => pkg.name).join(',') !== Config.get().packages?.map((pkg) => pkg.name).join(',')) {
+            Logger.warning('packages changed in config, restart required');
+            return;
+        }
+
+        await configure();
+        
+        reload();
+        Logger.success('reloaded');
+    });
 
     return build_id;
 }
 export function is_fast_build(config, build_id) {
-    return config?.cli?.flags?.fast && exists(Cwd.get(FOLDER_RELEASES, build_id)) && exists(Cwd.get(FOLDER_GEN));
+    return (
+        config?.cli?.flags?.fast &&
+        exists(Cwd.get(FOLDER_RELEASES, build_id)) &&
+        exists(Cwd.get(FOLDER_GEN))
+    );
 }

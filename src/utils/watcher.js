@@ -1,6 +1,6 @@
 import { Cwd } from '../vars/cwd.js';
 import { Logger } from './logger.js';
-import { filled_array, in_array } from './validate.js';
+import { filled_array, in_array, is_func } from './validate.js';
 import { watch } from 'chokidar';
 import { uniq_values } from './uniq.js';
 import { regenerate } from '../action/regenerate.js';
@@ -16,7 +16,7 @@ let changed_files = {};
 let pkgs;
 let restart_required = false;
 
-export async function package_watcher(packages) {
+export async function package_watcher(packages, restart_required_callback) {
     if (!filled_array(packages)) {
         Logger.error('missing packages in package_watcher');
         return;
@@ -31,14 +31,16 @@ export async function package_watcher(packages) {
 
         watcher = watch(watch_folder, {
             ignoreInitial: true,
-        }).on('all', watcher_event);
+        }).on('all', (event, path) =>
+            watcher_event(event, path, restart_required_callback)
+        );
 
         Logger.success('watching', packages.length, 'packages');
         set_waiting();
     });
 }
 
-export function watcher_event(event, path) {
+export function watcher_event(event, path, restart_required_callback) {
     if (ignore_watched_file(event, path)) {
         return;
     }
@@ -58,6 +60,16 @@ export function watcher_event(event, path) {
         await process_changed_files(changed_files, pkgs);
         changed_files = {};
         set_waiting();
+        if (restart_required) {
+            if (is_func(restart_required_callback)) {
+                restart_required_callback();
+                restart_required = false;
+            } else {
+                Logger.warning(
+                    'wyvr restart required because of config changes'
+                );
+            }
+        }
     }, 250);
     /* c8 ignore stop */
 }
@@ -215,9 +227,6 @@ export async function unwatch() {
 
 export function set_waiting() {
     Logger.output(undefined, undefined, Logger.color.dim('...'));
-    if (restart_required) {
-        Logger.warning('wyvr restart required because of config changes');
-    }
     Logger.block('waiting for changes');
     working = false;
 }

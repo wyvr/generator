@@ -7,6 +7,7 @@ import { search_segment } from './segment.js';
 import { filled_string, is_string } from './validate.js';
 import { FOLDER_CACHE } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
+import { append_cache_breaker } from './cache_breaker.js';
 
 // location of the persisted config cache
 const config_cache_path = Cwd.get(FOLDER_CACHE, 'config.json');
@@ -77,7 +78,7 @@ function config() {
                 return {};
             }
             try {
-                const result = await import(filepath);
+                const result = await import(append_cache_breaker(filepath));
                 if (result?.default) {
                     return result.default;
                 }
@@ -88,7 +89,7 @@ function config() {
         },
         persist: (config) => {
             write_json(config_cache_path, config);
-        }
+        },
     };
 }
 
@@ -99,7 +100,9 @@ export async function inject(content, file) {
         return '';
     }
     const search_string = '_inject(';
-    const found = content.match(new RegExp(`\\W${search_string.replace('(', '\\(')}`));
+    const found = content.match(
+        new RegExp(`\\W${search_string.replace('(', '\\(')}`)
+    );
     // when not found or part of another word
     if (!found) {
         return content;
@@ -131,7 +134,10 @@ export async function inject(content, file) {
         const result = await eval(func_content); // @NOTE throw error, must be catched outside
 
         // insert result of getGlobal
-        const replaced = content.substr(0, start_index) + JSON.stringify(result) + content.substr(index);
+        const replaced =
+            content.substr(0, start_index) +
+            JSON.stringify(result) +
+            content.substr(index);
         // check if more onServer handlers are used
         return await inject(replaced);
     }

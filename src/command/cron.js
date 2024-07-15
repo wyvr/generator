@@ -33,7 +33,10 @@ export async function cron_command(config) {
 
     // Collect packages
     const package_json = read_json('package.json');
-    const { available_packages, disabled_packages } = await collect_packages(package_json, false);
+    const { available_packages, disabled_packages } = await collect_packages(
+        package_json,
+        false
+    );
     package_report(available_packages, disabled_packages);
 
     if (Env.is_dev()) {
@@ -45,7 +48,9 @@ export async function cron_command(config) {
     // check for specific cron calls
     const all_cronjobs = Config.get('cron');
     const non_existing_cronjobs = [];
-    const explicit_crons_requested = (config_data?.cli?.command || ['cron']).slice(1);
+    const explicit_crons_requested = (
+        config_data?.cli?.command || ['cron']
+    ).slice(1);
     const explicit_crons = explicit_crons_requested
         .map((name) => {
             const cron = clone(all_cronjobs[name]);
@@ -60,7 +65,10 @@ export async function cron_command(config) {
         .filter((x) => x);
 
     if (non_existing_cronjobs.length > 0) {
-        Logger.warning('non existing cronjobs', non_existing_cronjobs.join(' '));
+        Logger.warning(
+            'non existing cronjobs',
+            non_existing_cronjobs.join(' ')
+        );
         if (explicit_crons_requested.length === non_existing_cronjobs.length) {
             Logger.warning('no cronjob has run successfully');
             return;
@@ -69,18 +77,29 @@ export async function cron_command(config) {
 
     // list cron jobs
     if (config_data?.cli?.flags?.list) {
-        Logger.log('');
+        Logger.raw_log('');
         Logger.present('List of all cronjobs');
 
         const found_cron_names = explicit_crons.map((cron) => cron.name);
         for (const name of Object.keys(all_cronjobs)) {
-            const when = Logger.color.dim(all_cronjobs[name]?.when ?? '');
+            const when = all_cronjobs[name]?.when ?? 'disabled';
+            const when_colored =
+                when === 'disabled'
+                    ? Logger.color.red(when)
+                    : when.indexOf('@') === 0
+                    ? Logger.color.yellow(when)
+                    : Logger.color.green(when);
             if (found_cron_names.indexOf(name) > -1) {
-                Logger.log(Logger.color.green('*'), Logger.color.green(name), when);
+                Logger.raw_log(
+                    Logger.color.green('  *'),
+                    Logger.color.green(name),
+                    when_colored
+                );
             } else {
-                Logger.log(Logger.color.dim('-'), name, when);
+                Logger.raw_log('   ', name, when_colored);
             }
         }
+        Logger.raw_log('');
 
         return found_cron_names.join(' ');
     }

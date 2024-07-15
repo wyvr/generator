@@ -105,12 +105,12 @@ export function get_media_script() {
 }
 
 export function get_stack_script() {
-    const stack = global.stackExtract();
+    const stack = global.dumpStack();
     if (!stack) {
         return '';
     }
     // after injection clear the stack to avoid population to other pages
-    global.stackClear();
+    global.clearStack();
     return `window._stack = ${stringify(stack)};`;
 }
 

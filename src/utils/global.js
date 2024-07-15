@@ -3,13 +3,18 @@ import { Storage } from './storage.js';
 import { get_error_message } from './error.js';
 import { Logger } from './logger.js';
 import { filled_string, is_func, is_null } from './validate.js';
-import { FOLDER_GEN, FOLDER_PROP, FOLDER_STORAGE } from '../constants/folder.js';
+import {
+    FOLDER_GEN,
+    FOLDER_PROP,
+    FOLDER_STORAGE,
+} from '../constants/folder.js';
 import { create_hash } from './hash.js';
 import { exists, write } from './file.js';
 import { stringify } from './json.js';
 import { Cwd } from '../vars/cwd.js';
 import { join } from 'node:path';
 import { ReleasePath } from '../vars/release_path.js';
+import { getRequestId } from '../vars/request_id.js';
 
 export function register_inject(file) {
     global._inject_file = file;
@@ -35,7 +40,9 @@ export function register_inject(file) {
             try {
                 value = await callback(value);
             } catch (e) {
-                Logger.warning(get_error_message(e, global._inject_file, 'inject'));
+                Logger.warning(
+                    get_error_message(e, global._inject_file, 'inject')
+                );
             }
             return value;
         };
@@ -55,7 +62,13 @@ export function register_i18n(translations, file) {
         global.__ = (key, options) => {
             const error = global._i18n.get_error(key, options);
             if (error) {
-                Logger.warning(get_error_message({ name: 'i18n', message: error }, global._i18n_file, 'inject'));
+                Logger.warning(
+                    get_error_message(
+                        { name: 'i18n', message: error },
+                        global._i18n_file,
+                        'inject'
+                    )
+                );
             }
             return global._i18n.tr(key, options);
         };
@@ -86,10 +99,12 @@ export function register_prop(file) {
             }
             return `|${prop}|:|@(${file_name})|`;
         }
-        return `|${prop}|:${converted.replace(/\|/g, '§|§').replace(/"/g, '|')}`;
+        return `|${prop}|:${converted
+            .replace(/\|/g, '§|§')
+            .replace(/"/g, '|')}`;
     };
 }
-let stackData = {};
+const stackContext = new Map();
 /**
  * Create the global methods to handle the stack data which can be used to transform data between server and client per page
  * @returns void
@@ -100,21 +115,24 @@ export function register_stack() {
     }
     global.setStack = (key, value) => {
         if (typeof key === 'string' && key) {
+            const data = stackContext.get(getRequestId()) ?? {};
             // @TODO validate to allow only syncronizable data inside here
-            stackData[key] = value;
+            data[key] = value;
+            stackContext.set(getRequestId(), data);
         }
         return value;
     };
     global.getStack = (key, fallback) => {
-        if (typeof key === 'string' && key) {
-            return stackData[key] ?? fallback;
+        if (typeof key !== 'string' || !key) {
+            return fallback;
         }
-        return fallback;
+        const data = stackContext.get(getRequestId()) ?? {};
+        return data[key] ?? fallback;
     };
-    global.stackClear = () => {
-        stackData = {};
+    global.clearStack = () => {
+        stackContext.delete(getRequestId());
     };
-    global.stackExtract = () => {
-        return stackData;
+    global.dumpStack = () => {
+        return stackContext.get(getRequestId()) ?? {};
     };
 }

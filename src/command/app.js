@@ -87,8 +87,8 @@ export const app_command = async (config) => {
             port,
         });
     });
-
-    await WorkerController.initialize(1, false, () => {
+    const app_worker_ratio = config?.cli?.flags?.worker || 1;
+    await WorkerController.initialize(app_worker_ratio, false, () => {
         const instance = cluster.fork();
         instance.pid = instance.process.pid;
         return instance;

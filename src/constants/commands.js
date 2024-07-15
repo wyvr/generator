@@ -3,21 +3,11 @@ import { LogType } from "../struc/log.js";
 export const COMMANDS = {
     app: {
         desc: 'run as a service for server side execution',
-        flags: [
-            {
-                key: 'single',
-                desc: 'run the generator in single threaded mode only recommended for debugging purposes'
-            }
-        ]
+        flags: []
     },
     build: {
         desc: 'statically generate site',
-        flags: [
-            {
-                key: 'single',
-                desc: 'run the generator in single threaded mode only recommended for debugging purposes'
-            }
-        ]
+        flags: []
     },
     clear: {
         desc: 'clear the caches and generated data',
@@ -44,12 +34,12 @@ export const COMMANDS = {
             }
         ]
     },
-    cron: {
-        desc: 'execute the cronjobs',
-        flags: []
-    },
     create: {
         desc: 'scaffold new projects and files',
+        flags: []
+    },
+    cron: {
+        desc: 'execute the cronjobs',
         flags: []
     },
     dev: {
@@ -70,7 +60,16 @@ export const COMMANDS = {
         flags: []
     },
     info: {
-        desc: 'show basic information about node version, wyvr version and the current working directory',
+        desc: 'show informations',
+        flags: [
+            {
+                key: 'config',
+                desc: 'show the full config'
+            }
+        ]
+    },
+    test: {
+        desc: 'run all tests in the project and the packages',
         flags: []
     },
     version: {

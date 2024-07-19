@@ -111,7 +111,7 @@ export async function process_message(msg) {
             Logger.warning('unknown message action from outside', msg);
             break;
     }
-    send_status(WorkerStatus.done);
+    send_status(WorkerStatus.done, action);
     // @TODO check memory limit, if near kill process
     send_status(WorkerStatus.idle);
 

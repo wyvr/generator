@@ -28,7 +28,7 @@ describe('worker/communication/send_status', () => {
             data: {
                 action: {
                     key: WorkerAction.status,
-                    value: WorkerStatus.exists,
+                    value: { status: WorkerStatus.exists, action: undefined },
                 },
             },
         });
@@ -40,7 +40,7 @@ describe('worker/communication/send_status', () => {
             data: {
                 action: {
                     key: WorkerAction.status,
-                    value: WorkerStatus.exists,
+                    value: { status: WorkerStatus.exists, action: undefined },
                 },
             },
         });
@@ -52,7 +52,31 @@ describe('worker/communication/send_status', () => {
             data: {
                 action: {
                     key: WorkerAction.status,
-                    value: WorkerStatus.dead,
+                    value: { status: WorkerStatus.dead, action: undefined },
+                },
+            },
+        });
+    });
+    it('valid status', () => {
+        send_status(WorkerStatus.busy);
+        deepStrictEqual(send_data, {
+            pid: process.pid,
+            data: {
+                action: {
+                    key: WorkerAction.status,
+                    value: { status: WorkerStatus.busy, action: undefined },
+                },
+            },
+        });
+    });
+    it('valid status with action', () => {
+        send_status(WorkerStatus.busy, 1);
+        deepStrictEqual(send_data, {
+            pid: process.pid,
+            data: {
+                action: {
+                    key: WorkerAction.status,
+                    value: { status: WorkerStatus.busy, action: 1 },
                 },
             },
         });

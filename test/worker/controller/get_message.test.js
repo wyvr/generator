@@ -48,25 +48,33 @@ describe('worker/controller/get_message', () => {
         WorkerController.workers = [{ pid: 1000 }];
         const result = WorkerController.get_message({
             pid: 1000,
-            data: { action: { key: WorkerAction.status, value: -1 } },
+            data: {
+                action: { key: WorkerAction.status, value: { status: -1 } },
+            },
         });
         strictEqual(result, false);
-        deepStrictEqual(logger_messages, [
-            ['✖', 'unknown state -1 PID 1000'],
-        ]);
+        deepStrictEqual(logger_messages, [['✖', 'unknown state -1 PID 1000']]);
     });
     it('update status', () => {
         Env.set(EnvType.debug);
         WorkerController.workers = [{ pid: 1000, status: WorkerStatus.exists }];
         const result = WorkerController.get_message({
             pid: 1000,
-            data: { action: { key: WorkerAction.status, value: WorkerStatus.dead } },
+            data: {
+                action: {
+                    key: WorkerAction.status,
+                    value: { status: WorkerStatus.dead },
+                },
+            },
         });
         Env.set(EnvType.prod);
 
-        deepStrictEqual(result, { pid: 1000, status: WorkerStatus.dead });
+        deepStrictEqual(result, {
+            pid: 1000,
+            status: WorkerStatus.dead,
+        });
         deepStrictEqual(logger_messages, [
-            ['~', 'status dead PID 1000 idle workers 0 [\"dead\"]'],
+            ['~', 'status dead PID 1000 idle workers 0 ["dead"]'],
         ]);
     });
     it('broken log', () => {
@@ -82,7 +90,12 @@ describe('worker/controller/get_message', () => {
         WorkerController.workers = [{ pid: 1000 }];
         const result = WorkerController.get_message({
             pid: 1000,
-            data: { action: { key: WorkerAction.log, value: { type: LogType.log, messages: 'test' } } },
+            data: {
+                action: {
+                    key: WorkerAction.log,
+                    value: { type: LogType.log, messages: 'test' },
+                },
+            },
         });
         deepStrictEqual(result, false);
         deepStrictEqual(logger_messages, []);
@@ -91,7 +104,12 @@ describe('worker/controller/get_message', () => {
         WorkerController.workers = [{ pid: 1000 }];
         const result = WorkerController.get_message({
             pid: 1000,
-            data: { action: { key: WorkerAction.log, value: { type: LogType.log, messages: ['test'] } } },
+            data: {
+                action: {
+                    key: WorkerAction.log,
+                    value: { type: LogType.log, messages: ['test'] },
+                },
+            },
         });
         deepStrictEqual(result, {
             pid: 1000,
@@ -118,7 +136,12 @@ describe('worker/controller/get_message', () => {
         });
         const result = WorkerController.get_message({
             pid: 1000,
-            data: { action: { key: WorkerAction.emit, value: { type: WorkerEmit.errors, error: true } } },
+            data: {
+                action: {
+                    key: WorkerAction.emit,
+                    value: { type: WorkerEmit.errors, error: true },
+                },
+            },
         });
         Event.listeners = {};
         deepStrictEqual(result, {

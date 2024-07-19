@@ -81,7 +81,7 @@ export const app_command = async (config) => {
     Logger.debug('start cluster forks');
 
     // provision the new workers as app server
-    Event.on('worker_status', WorkerStatus.exists, (worker) => {
+    Event.on('worker_status', WorkerStatus.exists, ({ worker }) => {
         WorkerController.send_action(worker, WorkerAction.mode, {
             mode: 'app',
             port,

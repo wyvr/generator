@@ -145,7 +145,10 @@ export class WorkerController {
             Logger.debug('process', worker.pid, 'message', msg);
             const current_worker = WorkerController.get_message(msg);
             if (current_worker !== false) {
-                WorkerController.livecycle(worker);
+                WorkerController.livecycle(
+                    worker,
+                    msg?.data?.action?.value?.action
+                );
             }
         });
         worker.process.on('error', (msg) => {
@@ -230,19 +233,20 @@ export class WorkerController {
         const pid_text = Logger.color.dim(`PID ${msg.pid}`);
         switch (action) {
             case WorkerAction.status: {
-                const name = get_status_name(data);
+                const status = data?.status;
+                const name = get_status_name(status);
                 if (!name) {
-                    Logger.error('unknown state', data, pid_text);
+                    Logger.error('unknown state', status, pid_text);
                     return false;
                 }
                 // update the status of the worker
                 WorkerController.workers.find((ref_worker) => {
                     if (ref_worker.pid === worker.pid) {
-                        ref_worker.status = data;
+                        ref_worker.status = status;
                         return true;
                     }
                 });
-                // worker.status = data;
+
                 const workers = WorkerController.get_workers_by_status(
                     WorkerStatus.idle
                 );
@@ -283,7 +287,7 @@ export class WorkerController {
         }
         return worker;
     }
-    static livecycle(worker) {
+    static livecycle(worker, action) {
         if (
             !WorkerController.is_worker(worker) ||
             !get_status_name(worker.status)
@@ -300,7 +304,10 @@ export class WorkerController {
                 break;
             }
         }
-        Event.emit('worker_status', worker.status, worker);
+        Event.emit('worker_status', worker.status, {
+            worker,
+            action,
+        });
         return true;
     }
 
@@ -421,22 +428,21 @@ export class WorkerController {
         ) {
             return true;
         }
-        if (queue.length > 0) {
-            // get all idle workers
-            if (workers.length > 0) {
-                for (const worker of workers) {
-                    const queue_entry = queue.take();
-                    if (queue_entry != null) {
-                        // set worker busy otherwise the same worker gets multiple actions send
-                        worker.status = WorkerStatus.busy;
-                        // send the data to the worker
-                        WorkerController.send_action(
-                            worker,
-                            queue_entry.action,
-                            queue_entry.data
-                        );
-                    }
-                }
+        if (queue.length === 0 || workers.length === 0) {
+            return false;
+        }
+        // get all idle workers
+        for (const worker of workers) {
+            const queue_entry = queue.take();
+            if (queue_entry != null) {
+                // set worker busy otherwise the same worker gets multiple actions send
+                worker.status = WorkerStatus.busy;
+                // send the data to the worker
+                WorkerController.send_action(
+                    worker,
+                    queue_entry.action,
+                    queue_entry.data
+                );
             }
         }
         return false;
@@ -464,7 +470,7 @@ export class WorkerController {
             const done_listener_id = Event.on(
                 'worker_status',
                 WorkerStatus.done,
-                (worker) => {
+                ({ worker }) => {
                     if (worker.pid === workers[0].pid) {
                         Event.off(
                             'worker_status',
@@ -573,7 +579,11 @@ export class WorkerController {
             const done_listener_id = Event.on(
                 'worker_status',
                 WorkerStatus.done,
-                () => {
+                ({ action: worker_action }) => {
+                    // count only done from the given action, also not 100% accurate but a lot better
+                    if (worker_action !== action) {
+                        return;
+                    }
                     Logger.text(
                         name,
                         Logger.color.dim('...'),

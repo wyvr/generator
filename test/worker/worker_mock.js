@@ -2,6 +2,7 @@ import { WorkerStatus } from '../../src/struc/worker_status.js';
 import { Event } from '../../src/utils/event.js';
 import { WorkerController } from '../../src/worker/controller.js';
 
+// biome-ignore lint/complexity/noStaticOnlyClass:
 export class WorkerMock {
     static worker(pid) {
         return {
@@ -9,23 +10,27 @@ export class WorkerMock {
             status: WorkerStatus.idle,
             process: {
                 send: (data) => {
-                    this.data.push(data);
+                    WorkerMock.data.push(data);
                     setTimeout(() => {
                         WorkerController.workers.find((ref_worker) => {
-                            if (ref_worker.pid == pid) {
+                            if (ref_worker.pid === pid) {
                                 ref_worker.status = WorkerStatus.done;
                                 return true;
                             }
                         });
-                        Event.emit('worker_status', WorkerStatus.done, { pid });
+                        Event.emit('worker_status', WorkerStatus.done, {
+                            worker: { pid },
+                        });
                         setTimeout(() => {
                             WorkerController.workers.find((ref_worker) => {
-                                if (ref_worker.pid == pid) {
+                                if (ref_worker.pid === pid) {
                                     ref_worker.status = WorkerStatus.idle;
                                     return true;
                                 }
                             });
-                            Event.emit('worker_status', WorkerStatus.idle, { pid });
+                            Event.emit('worker_status', WorkerStatus.idle, {
+                                worker: { pid },
+                            });
                         }, 1);
                     }, 1);
                 },
@@ -35,14 +40,16 @@ export class WorkerMock {
 
     static workers(amount) {
         WorkerController.worker_amount = amount;
-        WorkerController.workers = new Array(amount).fill(true).map((item, index) => {
-            const pid = 1000 + index;
-            return this.worker(pid);
-        });
+        WorkerController.workers = new Array(amount)
+            .fill(true)
+            .map((item, index) => {
+                const pid = 1000 + index;
+                return WorkerMock.worker(pid);
+            });
     }
 
     static reset() {
-        this.data = [];
+        WorkerMock.data = [];
         WorkerController.worker_amount = undefined;
         WorkerController.workers = [];
         WorkerController.worker_ratio = 0;

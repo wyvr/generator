@@ -7,6 +7,7 @@ import { wyvr_props } from '@wyvr/generator/src/resource/props.js';
 const wyvr_media_classes = {};
 
 /* eslint-disable no-unused-vars */
+let wyvr_media_resize_throttle_bind = false;
 export function wyvr_hydrate_media(path, elements, name, cls, trigger) {
     wyvr_media_classes[name] = { cls, path, loaded: false, elements };
     for (const el of elements) {
@@ -23,26 +24,32 @@ export function wyvr_hydrate_media(path, elements, name, cls, trigger) {
             wyvr_media_checker();
         };
     }
+    if (!wyvr_media_resize_throttle_bind) {
+        wyvr_media_resize_throttle_bind = true;
+        window.addEventListener('resize', wyvr_media_resize_throttle);
+    }
     wyvr_media_checker();
 }
 function wyvr_media_checker() {
-    const loaded = Object.keys(wyvr_media_classes)
-        .map((name) => {
-            if (wyvr_media_classes[name].elements) {
-                Array.from(wyvr_media_classes[name].elements).map((el) => {
-                    if (name && !wyvr_media_classes[name].loaded) {
-                        if (window.matchMedia(el.getAttribute('data-media')).matches) {
-                            wyvr_media_init(name);
-                        }
-                    }
-                });
-                return wyvr_media_classes[name].loaded;
+    for (const name of Object.keys(wyvr_media_classes)) {
+        if (
+            !name ||
+            wyvr_media_classes[name].loaded ||
+            !wyvr_media_classes[name].elements
+        ) {
+            continue;
+        }
+        for (const el of wyvr_media_classes[name].elements) {
+            if (window.matchMedia(el.getAttribute('data-media')).matches) {
+                wyvr_media_init(name);
             }
-            return false;
-        })
-        .every((loaded) => loaded);
+        }
+    }
+    const loaded = !Object.values(wyvr_media_classes).find((c) => !c.loaded);
+
     // when evetrything is loaded remove resize listener
-    if (loaded) {
+    if (loaded && wyvr_media_resize_throttle_bind) {
+        wyvr_media_resize_throttle_bind= false;
         window.removeEventListener('resize', wyvr_media_resize_throttle);
     }
 }
@@ -50,7 +57,10 @@ function wyvr_media_checker() {
 function wyvr_media_init(name) {
     wyvr_media_classes[name].loaded = true;
     const script = document.createElement('script');
-    script.setAttribute('src', `${wyvr_media_classes[name].path}?bid=${window.build_id}`);
+    script.setAttribute(
+        'src',
+        `${wyvr_media_classes[name].path}?bid=${window.build_id}`
+    );
     document.body.appendChild(script);
 }
 
@@ -65,6 +75,3 @@ function wyvr_media_resize_throttle() {
         wyvr_media_checker();
     }, 250);
 }
-
-// resize event
-window.addEventListener('resize', wyvr_media_resize_throttle);

@@ -20,7 +20,7 @@ export async function help_command(config, commands) {
 
 export async function show_help(config, commands) {
     let selected_commands = { builtin: {}, custom: {} };
-    const is_searching = is_array(config?.search);
+    const is_searching = is_array(config?.search) && config.search.length > 0;
     let found_something = false;
     let exact_match = false;
     const fn_match = (key) => {

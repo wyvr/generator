@@ -1,7 +1,7 @@
 import { collect_data_from_cli } from '../cli/interactive.js';
 import { execute_custom_command } from '../command.js';
 import { Logger } from '../utils/logger.js';
-import { filled_string } from '../utils/validate.js';
+import { filled_string, is_array } from '../utils/validate.js';
 import { show_help } from './help.js';
 
 export async function unknown_command(config, commands) {
@@ -14,7 +14,7 @@ export async function unknown_command(config, commands) {
     const search_result = await show_help(
         {
             flags: false,
-            search: config?.cli?.command
+            search: config?.cli?.command,
         },
         commands
     );
@@ -28,9 +28,9 @@ export async function unknown_command(config, commands) {
                             type: 'confirm',
                             message: `should the command ${search_result.command} be executed instead of ${search_command}?`,
                             name: 'execute',
-                            default: false
-                        }
-                    ]
+                            default: false,
+                        },
+                    ],
                 ],
                 {}
             );
@@ -40,8 +40,16 @@ export async function unknown_command(config, commands) {
                 return;
             }
         }
-        const result = await execute_custom_command(config, search_result.command, commands);
+        const result = await execute_custom_command(
+            config,
+            search_result.command,
+            commands
+        );
         return result;
+    }
+    if (is_array(config?.cli?.command) && config.cli.command.length === 0) {
+        Logger.info('no command provided');
+        return;
     }
     Logger.error('unknown command', search_command);
     process.exit(1);

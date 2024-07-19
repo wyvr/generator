@@ -23,6 +23,7 @@ export function wyvr_hydrate_media(path, elements, name, cls, trigger) {
             wyvr_media_checker();
         };
     }
+    wyvr_media_checker();
 }
 function wyvr_media_checker() {
     const loaded = Object.keys(wyvr_media_classes)
@@ -67,10 +68,3 @@ function wyvr_media_resize_throttle() {
 
 // resize event
 window.addEventListener('resize', wyvr_media_resize_throttle);
-
-// initial execution
-window.requestIdleCallback
-    ? requestIdleCallback(() => {
-          wyvr_media_checker();
-      })
-    : wyvr_media_checker();

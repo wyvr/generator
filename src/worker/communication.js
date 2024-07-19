@@ -38,7 +38,7 @@ export function send_action(action, data) {
     // add human readable info when in debug mode
     if (Env.is_debug()) {
         data_to_send.action.key_name = name;
-        if (action == WorkerAction.status) {
+        if (action === WorkerAction.status) {
             data_to_send.action.value_name = get_status_name(data);
         }
     }
@@ -48,11 +48,6 @@ export function send_action(action, data) {
 export function send_status(status) {
     const enum_status = get_status(status);
     send_action(WorkerAction.status, enum_status);
-}
-export function send_complete() {
-    send_status(WorkerStatus.done);
-    // @TODO check memory limit, if near kill process
-    send_status(WorkerStatus.idle);
 }
 export function get_status(status) {
     if (!is_number(status)) {

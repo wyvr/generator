@@ -6,12 +6,21 @@ import { Event } from '../utils/event.js';
 import { collect_files } from '../utils/file.js';
 import { Plugin } from '../utils/plugin.js';
 import { sleep } from '../utils/sleep.js';
-import { is_array, is_null, is_object, match_interface } from '../utils/validate.js';
+import {
+    is_array,
+    is_null,
+    is_object,
+    match_interface,
+} from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { WorkerController } from '../worker/controller.js';
 import { measure_action } from './helper.js';
 
-export async function transform(data, file_configs = {}, minimize_output = false) {
+export async function transform(
+    data,
+    file_configs = {},
+    minimize_output = false
+) {
     const name = 'transform';
 
     await measure_action(
@@ -27,7 +36,10 @@ export async function transform(data, file_configs = {}, minimize_output = false
 
             // add listeners
             const config_id = Event.on('emit', config_name, (data) => {
-                if (is_null(data) || !match_interface(data, { file: true, config: true })) {
+                if (
+                    is_null(data) ||
+                    !match_interface(data, { file: true, config: true })
+                ) {
                     return;
                 }
                 file_configs[data.file] = data.config;
@@ -36,11 +48,13 @@ export async function transform(data, file_configs = {}, minimize_output = false
             // wrap in plugin
             const caller = await Plugin.process(name, data);
             await caller(async (data) => {
-                await WorkerController.process_in_workers(WorkerAction.transform, data, 10, minimize_output);
+                await WorkerController.process_in_workers(
+                    WorkerAction.transform,
+                    data,
+                    10,
+                    minimize_output
+                );
             });
-            // @TODO buggy
-            // fix that too much dependencies gets processed, error in process_in_workers
-            await sleep(1000);
             // remove listeners
             Event.off('emit', config_name, config_id);
 

@@ -95,8 +95,6 @@ export async function process_pages(
     if (mtime) {
         WorkerController.set_all_workers('mtime', undefined);
     }
-    // @TODO events gets triggered after the message arives at the main thread
-    await sleep(1000);
 
     // remove listeners
     Event.off('emit', identifier_name, identifier_id);

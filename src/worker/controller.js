@@ -561,11 +561,6 @@ export class WorkerController {
                             WorkerStatus.idle,
                             listener_id
                         );
-                        // wait some time that the events can catch up
-                        if (!WorkerController.multi_threading) {
-                            await sleep(10);
-                        }
-                        resolve(true);
                     }
                 }
             );
@@ -597,6 +592,15 @@ export class WorkerController {
                             WorkerStatus.done,
                             done_listener_id
                         );
+
+                        if (WorkerController.multi_threading) {
+                            resolve(true);
+                        } else {
+                            // wait some time that the events can catch up in single threaded mode
+                            sleep(10).then(() => {
+                                resolve(true);
+                            });
+                        }
                     }
                 }
             );

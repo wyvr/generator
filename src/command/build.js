@@ -19,7 +19,7 @@ export async function build_command(config) {
     const critical_result = await critical();
 
     // Optimize Pages
-    await optimize(media_query_files, critical_result);
+    // await optimize(media_query_files, critical_result);
 
     // Publish the new release
     await publish();

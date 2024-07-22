@@ -20,6 +20,7 @@ export class WorkerMock {
                         });
                         Event.emit('worker_status', WorkerStatus.done, {
                             worker: { pid },
+                            action: data?.action?.key
                         });
                         setTimeout(() => {
                             WorkerController.workers.find((ref_worker) => {

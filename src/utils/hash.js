@@ -4,6 +4,7 @@ import { exists, read } from './file.js';
 import { to_relative_path } from './to.js';
 import { extname } from 'node:path';
 import { statSync } from 'node:fs';
+import { ReleasePath } from '../vars/release_path.js';
 
 /**
  * Creates a hash value for the given input value using the SHA256 algorithm.
@@ -36,13 +37,13 @@ export function get_files_hashes(files) {
         if (!exists(file)) {
             continue;
         }
-        const rel_path = to_relative_path(file);
         const hash = get_file_hash(file);
-        const ext = extname(file);
+        const rel_path = file.replace(ReleasePath.get(), '');
+        const ext = extname(rel_path);
         result[rel_path] = {
             hash,
             rel_path,
-            path: rel_path.replace(ext, `_${hash}${ext}`)
+            path: rel_path.replace(ext, `_${hash}${ext}`),
         };
     }
     return result;

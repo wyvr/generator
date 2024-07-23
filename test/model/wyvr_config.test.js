@@ -15,6 +15,7 @@ describe('model/wyvr_config', () => {
             'releases',
             'url',
             'worker',
+            'critical',
         ]);
     });
 });

@@ -66,4 +66,10 @@ describe('utils/to/to_snake_case', () => {
     it('regex', () => {
         strictEqual(to_snake_case(/.*/), undefined);
     });
+    it('file path', () => {
+        strictEqual(to_snake_case('/path/file.ext'), 'path_file_ext');
+    });
+    it('unit with number', () => {
+        strictEqual(to_snake_case('11 inches'), '11_inches');
+    });
 });

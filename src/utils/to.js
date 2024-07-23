@@ -41,8 +41,8 @@ export function to_snake_case(value) {
     return value
         .replace(/([A-Z])/g, '_$1')
         .toLowerCase()
+        .replace(/[^a-z0-9_]/g, '_')
         .replace(/^_/, '')
-        .replace(/[^a-z_]/g, '_')
         .replace(/_+/g, '_');
 }
 export function to_escaped(value) {

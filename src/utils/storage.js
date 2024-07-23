@@ -2,15 +2,24 @@ import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 import { basename, dirname, join, sep } from 'node:path';
 import { Cwd } from '../vars/cwd.js';
-import { filled_array, filled_string, is_null, match_interface } from './validate.js';
+import {
+    filled_array,
+    filled_string,
+    is_null,
+    match_interface,
+} from './validate.js';
 import { create_dir, exists, remove, collect_files } from './file.js';
 import { to_escaped, to_snake_case } from './to.js';
 import { Logger } from './logger.js';
-import { StorageCacheStructure, StorageDetailsStructure } from '../struc/storage.js';
+import {
+    StorageCacheStructure,
+    StorageDetailsStructure,
+} from '../struc/storage.js';
 import { get_error_message } from './error.js';
 import { parse } from './json.js';
 import { search_segment } from './segment.js';
 
+// biome-ignore lint/complexity/noStaticOnlyClass: just for now
 export class Storage {
     /**
      * Set the location of the base storage folder
@@ -22,7 +31,7 @@ export class Storage {
             return undefined;
         }
         const location = Cwd.get(path);
-        this.location = location;
+        Storage.location = location;
         return location;
     }
 
@@ -34,7 +43,7 @@ export class Storage {
      */
     static async create(name, db) {
         if (!match_interface(db, StorageDetailsStructure)) {
-            db = this.details(name);
+            db = Storage.details(name);
         }
         if (db.exists && db.connected) {
             return true;
@@ -45,19 +54,33 @@ export class Storage {
         }
         try {
             // save and store the connection
-            this.cache[db.name] = await open({
+            Storage.cache[db.name] = await open({
                 filename: db.path,
-                driver: sqlite3.Database
+                driver: sqlite3.Database,
             });
 
             // tables
-            await this.cache[db.name].exec(`CREATE TABLE IF NOT EXISTS "data" (
+            await Storage.cache[db.name]
+                .exec(`CREATE TABLE IF NOT EXISTS "data" (
             key VARCHAR(255) NOT NULL PRIMARY KEY,
             value TEXT
             );`);
-            const check = await this.cache[db.name].all(`PRAGMA table_info(data);`);
-            if (!filled_array(check) || check[0].name !== 'key' || check[0].type !== 'VARCHAR(255)' || check[0].pk !== 1 || check[1].name !== 'value' || check[1].type !== 'TEXT') {
-                Logger.error('the structure of the storage is not correct', check, db);
+            const check = await Storage.cache[db.name].all(
+                'PRAGMA table_info(data);'
+            );
+            if (
+                !filled_array(check) ||
+                check[0].name !== 'key' ||
+                check[0].type !== 'VARCHAR(255)' ||
+                check[0].pk !== 1 ||
+                check[1].name !== 'value' ||
+                check[1].type !== 'TEXT'
+            ) {
+                Logger.error(
+                    'the structure of the storage is not correct',
+                    check,
+                    db
+                );
                 return false;
             }
         } catch (error) {
@@ -72,16 +95,16 @@ export class Storage {
      * @returns {object} database details
      */
     static async open(name) {
-        let db = this.details(name);
+        const db = Storage.details(name);
 
         if (db.exists && db.connected) {
             return db;
         }
-        const created = await this.create(name, db);
+        const created = await Storage.create(name, db);
         if (!created) {
             return undefined;
         }
-        return this.details(db.name);
+        return Storage.details(db.name);
     }
     /**
      * Get details about the given databasename
@@ -93,14 +116,14 @@ export class Storage {
             name: undefined,
             path: undefined,
             exists: false,
-            connected: false
+            connected: false,
         };
         if (!filled_string(name)) {
             return result;
         }
-        const db_name = to_snake_case(name);
-        const normalized = `${db_name}.db`.replace(/\.db\.db$/, '.db');
-        const path = join(this.location, normalized);
+        const db_name = to_snake_case(name).replace(/_db$/, '');
+        const normalized = `${db_name}.db`;
+        const path = join(Storage.location, normalized);
 
         result.name = db_name;
         result.path = path;
@@ -109,7 +132,12 @@ export class Storage {
             result.exists = true;
         }
         // check connect only when file exists
-        if (result.exists && this.cache && this.cache[db_name] && match_interface(this.cache[db_name], StorageCacheStructure)) {
+        if (
+            result.exists &&
+            Storage.cache &&
+            Storage.cache[db_name] &&
+            match_interface(Storage.cache[db_name], StorageCacheStructure)
+        ) {
             result.connected = true;
         }
 
@@ -120,14 +148,14 @@ export class Storage {
      * @returns {string[]} available databases
      */
     static get_tables() {
-        if (is_null(this.location)) {
+        if (is_null(Storage.location)) {
             return [];
         }
-        const names = collect_files(this.location, '.db')
+        const names = collect_files(Storage.location, '.db')
             .map((database) => {
                 // get the name
-                const path = database.replace(this.location + sep, '');
-                if (dirname(path) != '.') {
+                const path = database.replace(Storage.location + sep, '');
+                if (dirname(path) !== '.') {
                     return undefined;
                 }
                 return basename(path, '.db');
@@ -144,20 +172,22 @@ export class Storage {
         if (!filled_string(name) || !filled_string(key)) {
             return undefined;
         }
-        const db = await this.open(name);
+        const db = await Storage.open(name);
         const load_all = key === '*';
         if (load_all) {
             try {
-                const result = await this.cache[db.name].all('SELECT * FROM "data";');
+                const result = await Storage.cache[db.name].all(
+                    'SELECT * FROM "data";'
+                );
                 const parsed = {};
-                result.forEach((entry) => {
+                for (const entry of result) {
                     /* c8 ignore start */
                     if (!entry.key || !entry.value) {
-                        return;
+                        continue;
                     }
                     /* c8 ignore end */
                     parsed[entry.key] = parse(entry.value);
-                });
+                }
                 return parsed;
             } catch (e) {
                 Logger.error(get_error_message(e, name, 'storage'));
@@ -168,7 +198,10 @@ export class Storage {
         const segment_key = parts.shift();
         const data_key = parts.join('.');
         try {
-            const result = await this.cache[db.name].get('SELECT value FROM "data" WHERE key=?;', segment_key);
+            const result = await Storage.cache[db.name].get(
+                'SELECT value FROM "data" WHERE key=?;',
+                segment_key
+            );
             const parsed = parse(result?.value) || result?.value;
             if (filled_string(data_key)) {
                 return search_segment(parsed, data_key);
@@ -196,7 +229,7 @@ export class Storage {
             data = {};
             data[key_or_data] = value;
         }
-        const db = await this.open(name);
+        const db = await Storage.open(name);
         if (is_null(db)) {
             return false;
         }
@@ -206,12 +239,19 @@ export class Storage {
                     const value = data[key];
                     // delete when value is null
                     if (is_null(value)) {
-                        await this.cache[db.name].run('DELETE from "data" WHERE key = ?;', key);
+                        await Storage.cache[db.name].run(
+                            'DELETE from "data" WHERE key = ?;',
+                            key
+                        );
                         return false;
                     }
                     // insert or replace entry
                     // https://stackoverflow.com/questions/418898/sqlite-upsert-not-insert-or-replace
-                    await this.cache[db.name].run('INSERT OR REPLACE INTO "data" (key, value) VALUES (?, ?);', key, to_escaped(value));
+                    await Storage.cache[db.name].run(
+                        'INSERT OR REPLACE INTO "data" (key, value) VALUES (?, ?);',
+                        key,
+                        to_escaped(value)
+                    );
                     return true;
                 } catch (e) {
                     Logger.error(e);
@@ -220,7 +260,10 @@ export class Storage {
             })
         );
         // check if at least one value is true or false
-        return filled_array(results) && results.find((r) => !is_null(r)) != undefined;
+        return (
+            filled_array(results) &&
+            results.find((r) => !is_null(r)) !== undefined
+        );
     }
     /**
      * Remove the entries in the database
@@ -231,13 +274,13 @@ export class Storage {
         if (!filled_string(name)) {
             return false;
         }
-        const db = this.details(name);
+        const db = Storage.details(name);
         if (!db.connected) {
             return false;
         }
         try {
             // delete entries from database && remove unused space
-            await this.cache[db.name].run('DELETE FROM "data";VACUUM;');
+            await Storage.cache[db.name].run('DELETE FROM "data";VACUUM;');
             return true;
         } catch (e) {
             Logger.error(e);
@@ -250,12 +293,12 @@ export class Storage {
      * @returns {boolean} whether the database where deleted or not
      */
     static destroy(name) {
-        const db = this.details(name);
+        const db = Storage.details(name);
         if (is_null(db.name)) {
             return false;
         }
-        let removed = db.exists;
-        this.cache[db.name] = undefined;
+        const removed = db.exists;
+        Storage.cache[db.name] = undefined;
         remove(db.path);
         return removed;
     }

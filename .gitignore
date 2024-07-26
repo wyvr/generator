@@ -11,6 +11,7 @@
 /lib
 /test/utils/file/_tests/not_writeable.txt
 /test/**/svelte_internal.mjs
+/storage
 tmp
 pub
 not_writeable.txt

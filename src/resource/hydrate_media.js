@@ -49,7 +49,7 @@ function wyvr_media_checker() {
 
     // when evetrything is loaded remove resize listener
     if (loaded && wyvr_media_resize_throttle_bind) {
-        wyvr_media_resize_throttle_bind= false;
+        wyvr_media_resize_throttle_bind = false;
         window.removeEventListener('resize', wyvr_media_resize_throttle);
     }
 }
@@ -57,10 +57,7 @@ function wyvr_media_checker() {
 function wyvr_media_init(name) {
     wyvr_media_classes[name].loaded = true;
     const script = document.createElement('script');
-    script.setAttribute(
-        'src',
-        `${wyvr_media_classes[name].path}?bid=${window.build_id}`
-    );
+    script.setAttribute('src', wyvr_media_classes[name].path);
     document.body.appendChild(script);
 }
 

@@ -31,7 +31,7 @@ const wyvr_idle_observer = new IntersectionObserver((entries) => {
             if (name && !wyvr_idle_classes[name].loaded) {
                 wyvr_idle_classes[name].loaded = true;
                 const script = document.createElement('script');
-                script.setAttribute('src', `${wyvr_idle_classes[name].path}?bid=${window.build_id}`);
+                script.setAttribute('src', wyvr_idle_classes[name].path);
                 document.body.appendChild(script);
             }
             wyvr_idle_observer.unobserve(entry.target);

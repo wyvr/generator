@@ -24,7 +24,7 @@ export function wyvr_hydrate_none(path, elements, name, cls, trigger) {
                 if (name && !wyvr_none_classes[name].loaded) {
                     wyvr_none_classes[name].loaded = true;
                     const script = document.createElement('script');
-                    script.setAttribute('src', `${wyvr_none_classes[name].path}?bid=${window.build_id}`);
+                    script.setAttribute('src', wyvr_none_classes[name].path);
                     document.body.appendChild(script);
                 }
             });

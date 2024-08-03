@@ -1,7 +1,14 @@
 import { dirname, extname, join } from 'node:path';
 import { FOLDER_DEVTOOLS, FOLDER_GEN } from '../constants/folder.js';
 import { compile_svelte_from_code } from '../utils/compile_svelte.js';
-import { collect_files, read, remove, to_extension, write, write_json } from '../utils/file.js';
+import {
+    collect_files,
+    read,
+    remove,
+    to_extension,
+    write,
+    write_json,
+} from '../utils/file.js';
 import { Plugin } from '../utils/plugin.js';
 import { build } from '../utils/build.js';
 import { Cwd } from '../vars/cwd.js';
@@ -29,6 +36,7 @@ export async function build_wyvr_internal() {
     copy_folder(Cwd.get(FOLDER_GEN), [FOLDER_DEVTOOLS], ReleasePath.get());
     const folder = join(ReleasePath.get(), FOLDER_DEVTOOLS);
     const files = collect_files(folder);
+    // @TODO process in the workers
     const devtools_modules = await Promise.all(
         files.map(async (file) => {
             // ignore compiled svelte files
@@ -40,7 +48,12 @@ export async function build_wyvr_internal() {
             // compile svelte components
             if (file.match(/\.svelte$/)) {
                 const svelte_content = replace_file_paths(content, file);
-                const result = await compile_svelte_from_code(svelte_content, file, 'client', true);
+                const result = await compile_svelte_from_code(
+                    svelte_content,
+                    file,
+                    'client',
+                    true
+                );
                 if (!result?.js?.code) {
                     return undefined;
                 }
@@ -55,7 +68,10 @@ export async function build_wyvr_internal() {
                 return undefined;
             }
             // create file of all available debug modules
-            const module_content = replace_svelte_paths(replace_file_paths(content, file), folder);
+            const module_content = replace_svelte_paths(
+                replace_file_paths(content, file),
+                folder
+            );
             write(file, module_content);
             return file.replace(ReleasePath.get(), '');
         })
@@ -73,7 +89,10 @@ export function replace_svelte_paths(content, folder) {
         if (extname(path) === '.svelte') {
             path = to_extension(path, 'svelte.js');
         }
-        const new_path = `./${path.replace(/^\.\//, '').replace(folder, '').replace(/^\//, '')}`;
+        const new_path = `./${path
+            .replace(/^\.\//, '')
+            .replace(folder, '')
+            .replace(/^\//, '')}`;
         return `from '${new_path}'`;
     });
 }
@@ -83,5 +102,8 @@ export function replace_file_paths(content, file) {
         return '';
     }
     const rel_path = dirname(file);
-    return content.replace(/from ['"](\.\/[^'"]+)['"]/g, (_, path) => `from '${join(rel_path, path)}'`);
+    return content.replace(
+        /from ['"](\.\/[^'"]+)['"]/g,
+        (_, path) => `from '${join(rel_path, path)}'`
+    );
 }

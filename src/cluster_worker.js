@@ -1,4 +1,4 @@
-import process from 'process';
+import process from 'node:process';
 import { WorkerStatus } from './struc/worker_status.js';
 import { IsWorker } from './vars/is_worker.js';
 import { send_status } from './worker/communication.js';
@@ -38,7 +38,11 @@ export async function ClusterWorker() {
         }
 
         send_status(WorkerStatus.busy);
-        if (action === WorkerAction.mode && value?.mode === 'app' && !Number.isNaN(value?.port)) {
+        if (
+            action === WorkerAction.mode &&
+            value?.mode === 'app' &&
+            !Number.isNaN(value?.port)
+        ) {
             await app_server(value?.port);
             return;
         }

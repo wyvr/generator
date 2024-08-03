@@ -325,6 +325,7 @@ async function generate_server(
     fallback
 ) {
     register_stack();
+
     server(port, undefined, async (req, res, uid) => {
         // check if pub is available
         pub_healthcheck();
@@ -357,6 +358,7 @@ async function generate_server(
                 }
             }
         }
+
         await static_server(req, res, uid, async (err) => {
             if (err) {
                 // check if css or js files should be generated
@@ -377,6 +379,7 @@ async function generate_server(
                 );
                 const shadow_path = to_extension(ghost_path, '.shadow');
                 let ghost_delivered = false;
+
                 if (exists(ghost_path)) {
                     const content = read(ghost_path);
                     if (content) {
@@ -398,6 +401,7 @@ async function generate_server(
                     uid,
                     force_generating_of_resources
                 );
+
                 // when ghost file was delivered, remove it and also the shadow file
                 if (ghost_delivered) {
                     remove(ghost_path);

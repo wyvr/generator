@@ -4,7 +4,7 @@ import { match_interface } from '../utils/validate.js';
 import { Plugin } from '../utils/plugin.js';
 import { SerializableRequest } from '../model/serializable/request.js';
 import { route, send_process_route_request } from '../action_worker/route.js';
-import { STATUS_CODES } from 'http';
+import { STATUS_CODES } from 'node:http';
 import { stringify } from '../utils/json.js';
 import { get_error_message } from '../utils/error.js';
 import { Env } from '../vars/env.js';
@@ -17,7 +17,12 @@ import { Env } from '../vars/env.js';
  * @param {boolean} force_generating_of_resources
  * @returns {Response|false} response
  */
-export async function route_request(req, res, uid, force_generating_of_resources) {
+export async function route_request(
+    req,
+    res,
+    uid,
+    force_generating_of_resources
+) {
     const name = 'route';
 
     let response;
@@ -25,7 +30,7 @@ export async function route_request(req, res, uid, force_generating_of_resources
     // create serializable request object
     const ser_req = SerializableRequest(req, {
         uid,
-        force_generating_of_resources
+        force_generating_of_resources,
     });
 
     // wrap in plugin
@@ -48,7 +53,13 @@ export async function fallback_route_request(req, res, uid) {
     if (!fallback_route) {
         return false;
     }
-    const response = await send_process_route_request(req, res, uid, fallback_route, false);
+    const response = await send_process_route_request(
+        req,
+        res,
+        uid,
+        fallback_route,
+        false
+    );
     return response;
 }
 
@@ -66,7 +77,10 @@ export function clean_header_text(value, allow_spaces = true) {
                         ; any VCHAR, except delimiters
     */
     // Replace any non-allowed characters with a percent-encoded value
-    const regexp = new RegExp(`[^${allow_spaces ? ' ' : ''}\\w"'!#$%&*+-/.:,;^=\`|?]+`, 'g');
+    const regexp = new RegExp(
+        `[^${allow_spaces ? ' ' : ''}\\w"'!#$%&*+-/.:,;^=\`|?]+`,
+        'g'
+    );
     return value.replace(/\n\t\r/g, '').replace(regexp, (match) => {
         return encodeURIComponent(match);
     });
@@ -93,14 +107,28 @@ export function apply_response(response, ser_response) {
             for (const [key, value] of Object.entries(ser_response.headers)) {
                 const clean_key = clean_header_text(key, false);
                 const clean_value = clean_header_text(value);
-                if (Env.is_dev() && (clean_key !== key || JSON.stringify(clean_value) !== JSON.stringify(value))) {
+                if (
+                    Env.is_dev() &&
+                    (clean_key !== key ||
+                        JSON.stringify(clean_value) !== JSON.stringify(value))
+                ) {
                     if (clean_key !== key) {
-                        Logger.warning(`cleaned response header entry key ${JSON.stringify(key)} => ${JSON.stringify(clean_key)}`);
+                        Logger.warning(
+                            `cleaned response header entry key ${JSON.stringify(
+                                key
+                            )} => ${JSON.stringify(clean_key)}`
+                        );
                     }
                     if (JSON.stringify(clean_value) !== JSON.stringify(value)) {
-                        Logger.warning(`cleaned response header entry value ${JSON.stringify(clean_key)}`);
+                        Logger.warning(
+                            `cleaned response header entry value ${JSON.stringify(
+                                clean_key
+                            )}`
+                        );
                         Logger.debug(`- orig ${JSON.stringify(value)}`);
-                        Logger.debug(`- cleaned ${JSON.stringify(clean_value)}`);
+                        Logger.debug(
+                            `- cleaned ${JSON.stringify(clean_value)}`
+                        );
                     }
                 }
 
@@ -109,7 +137,9 @@ export function apply_response(response, ser_response) {
             ser_response.headers = cleaned_headers;
         }
     } catch (e) {
-        Logger.error(get_error_message(e, ser_response.url, 'response clean header'));
+        Logger.error(
+            get_error_message(e, ser_response.url, 'response clean header')
+        );
     }
     // when the response is real
     if (headerable_response) {
@@ -118,7 +148,9 @@ export function apply_response(response, ser_response) {
                 response.setHeader(key, value);
             }
         } catch (e) {
-            Logger.error(get_error_message(e, ser_response.url, 'response set header'));
+            Logger.error(
+                get_error_message(e, ser_response.url, 'response set header')
+            );
         }
     } else {
         // when headers should be contained multiple times, like multiple set-cookie headers this is not possible here
@@ -133,7 +165,9 @@ export function apply_response(response, ser_response) {
     try {
         response.writeHead(response.statusCode, response.headers);
     } catch (e) {
-        Logger.error(get_error_message(e, response.url, 'response write header'));
+        Logger.error(
+            get_error_message(e, response.url, 'response write header')
+        );
     }
 
     if (Buffer.isBuffer(ser_response.data)) {
@@ -154,6 +188,12 @@ export function apply_response(response, ser_response) {
         return response;
     }
     const data = stringify(ser_response.data);
-    Logger.warning('Response data has unknown format', typeof ser_response.data, Logger.color.dim(data.length > 100 ? `${data.substring(0, 100)}...` : data));
+    Logger.warning(
+        'Response data has unknown format',
+        typeof ser_response.data,
+        Logger.color.dim(
+            data.length > 100 ? `${data.substring(0, 100)}...` : data
+        )
+    );
     return response;
 }

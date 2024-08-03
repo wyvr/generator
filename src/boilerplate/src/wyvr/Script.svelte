@@ -1,8 +1,8 @@
 <script>
     /* 
-        import Stylesheet from '$src/wyvr/Stylesheet.svelte';
+        import Script from '$src/wyvr/Script.svelte';
         
-        <Stylesheet src="/assets/global.css" /> 
+        <Script src="/assets/script.css" /> 
         */
     import { append_query_string } from '$src/wyvr/append_query_string.js';
 

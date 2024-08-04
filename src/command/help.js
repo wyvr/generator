@@ -10,7 +10,7 @@ export async function help_command(config, commands) {
     await show_help(
         {
             flags: true,
-            search: search.length > 0 ? search : undefined
+            search: search.length > 0 ? search : undefined,
         },
         commands
     );
@@ -33,7 +33,9 @@ export async function show_help(config, commands) {
         });
     };
     const fn_match_unsave = (scoped_commands, key) => {
-        return config.search.find((c) => (scoped_commands[key]?.desc ?? '').indexOf(c) !== -1);
+        return config.search.find(
+            (c) => (scoped_commands[key]?.desc ?? '').indexOf(c) !== -1
+        );
     };
     if (is_searching) {
         // check if builtin commands contains the text
@@ -87,7 +89,9 @@ export async function show_help(config, commands) {
     if (filled_object(selected_commands.builtin)) {
         Logger.block('builtin commands');
         Logger.inset = true;
-        for (const [key, command] of Object.entries(selected_commands.builtin)) {
+        for (const [key, command] of Object.entries(
+            selected_commands.builtin
+        )) {
             show_command(key, command, config);
         }
         Logger.inset = false;
@@ -109,10 +113,14 @@ export async function show_help(config, commands) {
         }
         Logger.inset = false;
     }
-    const matching_commands = [].concat(Object.keys(selected_commands.builtin), Object.keys(selected_commands.custom ?? {}));
+    const matching_commands = [].concat(
+        Object.keys(selected_commands.builtin),
+        Object.keys(selected_commands.custom ?? {})
+    );
     return {
-        command: matching_commands.length === 1 ? matching_commands[0] : undefined,
-        exact_match
+        command:
+            matching_commands.length === 1 ? matching_commands[0] : undefined,
+        exact_match,
     };
 }
 
@@ -120,7 +128,9 @@ export function show_command(key, command, config = {}) {
     let name = key;
     if (is_array(config?.search)) {
         for (const search of config.search) {
-            name = name.replace(new RegExp(`(${search})`, 'gi'), (_) => Logger.color.bgBlue(_));
+            name = name.replace(new RegExp(`(${search})`, 'gi'), (_) =>
+                Logger.color.bgBlue(_)
+            );
         }
     }
     Logger.present(name, command?.desc);

@@ -2,8 +2,8 @@
 
 /* eslint-disable no-console */
 /* eslint-disable no-undef */
-import process from 'process';
-import { isPrimary } from 'cluster';
+import process from 'node:process';
+import { isPrimary } from 'node:cluster';
 import { extract_cli_config, get_wyvr_version } from '../src/cli/config.js';
 import { command } from '../src/command.js';
 import { Cwd } from '../src/vars/cwd.js';

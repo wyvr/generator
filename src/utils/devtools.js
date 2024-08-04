@@ -5,6 +5,8 @@ import { read, to_extension, write_json } from './file.js';
 import { to_dirname } from './to.js';
 import { filled_string } from './validate.js';
 import { get_config_cache } from './config_cache.js';
+import { STORAGE_PACKAGE_TREE } from '../constants/storage.js';
+import { KeyValue } from './database/key_value.js';
 
 const resource_dir = join(to_dirname(import.meta.url), '..', 'resource');
 
@@ -39,7 +41,9 @@ export function add_dev_note(file, content) {
     if (!filled_string(file) || Env.is_prod()) {
         return content;
     }
-    const ptree = get_config_cache('package_tree');
+    const package_tree_db = new KeyValue(STORAGE_PACKAGE_TREE);
+
+    const ptree = package_tree_db.all();
     const file_info = ptree[file] ? [`package: ${ptree[file].name}`, `path: ${join(ptree[file].path, file)}`] : [`source: ${file}`];
     const note = `/*${['', 'wyvr generated file', 'changes made in this file will not processed by the dev command', ...file_info].join('\n   ')}\n*/\n`;
     const extension = extname(file);

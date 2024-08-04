@@ -14,7 +14,6 @@ import {
     FOLDER_COMMANDS,
 } from '../constants/folder.js';
 import { Config } from '../utils/config.js';
-import { set_config_cache } from '../utils/config_cache.js';
 import {
     collect_files,
     copy as copy_file,
@@ -29,6 +28,8 @@ import { replace_src_path, replace_wyvr_magic } from '../utils/transform.js';
 import { filled_array, filled_string, is_func } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { measure_action } from './helper.js';
+import { KeyValue } from '../../storage.js';
+import { STORAGE_MTIME, STORAGE_PACKAGE_TREE } from '../constants/storage.js';
 
 export async function copy(available_packages) {
     const name = 'copy';
@@ -72,8 +73,12 @@ export async function copy(available_packages) {
                     }
                 );
             }
-            await set_config_cache('package_tree', package_tree);
-            await set_config_cache('mtime', mtime);
+            const package_tree_db = new KeyValue(STORAGE_PACKAGE_TREE);
+            package_tree_db.setObject(package_tree);
+
+            const mtime_db = new KeyValue(STORAGE_MTIME);
+            mtime_db.setObject(mtime);
+
             Logger.info('copied files');
 
             // Copy configured asset files

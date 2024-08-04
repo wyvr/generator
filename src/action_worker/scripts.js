@@ -13,12 +13,19 @@ import { filled_array, filled_string, is_null } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
 import { ReleasePath } from '../vars/release_path.js';
-import { build_hydrate_file, insert_script_import, write_hydrate_file } from '../utils/script.js';
+import {
+    build_hydrate_file,
+    insert_script_import,
+    write_hydrate_file,
+} from '../utils/script.js';
 import { UniqId } from '../vars/uniq_id.js';
+import { KeyValue } from '../utils/database/key_value.js';
+import { STORAGE_PACKAGE_TREE } from '../constants/storage.js';
 
 const __dirname = to_dirname(import.meta.url);
 const lib_dir = join(__dirname, '..');
 const resouce_dir = join(lib_dir, 'resource');
+// const package_tree_db = new KeyValue(STORAGE_PACKAGE_TREE);
 
 export async function scripts(identifiers) {
     if (!filled_array(identifiers)) {
@@ -26,9 +33,11 @@ export async function scripts(identifiers) {
     }
     const file_config = get_config_cache('dependencies.config');
     const tree = get_config_cache('dependencies.top');
-    const package_tree = Env.is_dev() ? get_config_cache('package_tree') : undefined;
+    // const package_tree = Env.is_dev() ? package_tree_db.all() : undefined;
     const build_id = UniqId.get();
-    const build_id_var = `window.build_id = '${build_id ? build_id.substr(0, 8) : '_'}';`;
+    const build_id_var = `window.build_id = '${
+        build_id ? build_id.substr(0, 8) : '_'
+    }';`;
     for (const identifier of identifiers) {
         if (is_null(identifier)) {
             Logger.warning('empty identifier found');
@@ -42,7 +51,7 @@ export async function scripts(identifiers) {
             build_id_var,
             insert_script_import(join(resouce_dir, 'events.js')),
             insert_script_import(join(resouce_dir, 'stack.js')),
-            insert_script_import(join(resouce_dir, 'i18n.js'))
+            insert_script_import(join(resouce_dir, 'i18n.js')),
         ];
 
         try {
@@ -51,13 +60,24 @@ export async function scripts(identifiers) {
             if (is_shortcode) {
                 dependencies = [].concat(
                     ...Object.keys(identifier.imports).map((key) => {
-                        return get_hydrate_dependencies(tree, file_config, to_relative_path_of_gen(identifier.imports[key]));
+                        return get_hydrate_dependencies(
+                            tree,
+                            file_config,
+                            to_relative_path_of_gen(identifier.imports[key])
+                        );
                     })
                 );
             } else {
                 dependencies = [].concat(
                     ...['doc', 'layout', 'page'].map((type) => {
-                        return get_hydrate_dependencies(tree, file_config, `src/${type}/${to_extension(identifier[type], 'svelte')}`);
+                        return get_hydrate_dependencies(
+                            tree,
+                            file_config,
+                            `src/${type}/${to_extension(
+                                identifier[type],
+                                'svelte'
+                            )}`
+                        );
                     })
                 );
             }
@@ -71,7 +91,10 @@ export async function scripts(identifiers) {
             content = (
                 await Promise.all(
                     dependencies.map(async (file) => {
-                        const file_result = await build_hydrate_file(file, resouce_dir);
+                        const file_result = await build_hydrate_file(
+                            file,
+                            resouce_dir
+                        );
                         if (!file_result) {
                             return undefined;
                         }
@@ -91,7 +114,12 @@ export async function scripts(identifiers) {
             ).filter(Boolean);
             // add the wyvr hydrate scripts
             for (const key of Object.keys(has)) {
-                scripts.push(insert_script_import(join(resouce_dir, `hydrate_${key}.js`), `wyvr_hydrate_${key}`));
+                scripts.push(
+                    insert_script_import(
+                        join(resouce_dir, `hydrate_${key}.js`),
+                        `wyvr_hydrate_${key}`
+                    )
+                );
             }
             scripts.push(`
                 const wyvr_identifier = ${stringify(identifier)};
@@ -115,9 +143,14 @@ export async function scripts(identifiers) {
                 }, 500);
             }`);
 
-            identifier_file = Cwd.get(FOLDER_GEN_JS, `${identifier.identifier}.js`);
+            identifier_file = Cwd.get(
+                FOLDER_GEN_JS,
+                `${identifier.identifier}.js`
+            );
         } catch (e) {
-            Logger.error(get_error_message(e, identifier.identifier, 'script create'));
+            Logger.error(
+                get_error_message(e, identifier.identifier, 'script create')
+            );
             Logger.debug(e);
             continue;
         }
@@ -136,7 +169,7 @@ export async function scripts(identifiers) {
                         build_id_var,
                         insert_script_import(join(resouce_dir, 'events.js')),
                         insert_script_import(join(resouce_dir, 'stack.js')),
-                        insert_script_import(join(resouce_dir, 'i18n.js'))
+                        insert_script_import(join(resouce_dir, 'i18n.js')),
                     ].join('\n');
                 }
             }
@@ -145,7 +178,9 @@ export async function scripts(identifiers) {
                 result = await build(build_content, identifier_file);
             }
         } catch (e) {
-            Logger.error(get_error_message(e, identifier.identifier, 'script build'));
+            Logger.error(
+                get_error_message(e, identifier.identifier, 'script build')
+            );
             continue;
         }
         if (!result?.code && has_content) {
@@ -153,17 +188,35 @@ export async function scripts(identifiers) {
             continue;
         }
         try {
-            const code = result.code.replace('%sourcemap%', `# sourceMappingURL=/js/${identifier.identifier}.js.map`);
+            const code = result.code.replace(
+                '%sourcemap%',
+                `# sourceMappingURL=/js/${identifier.identifier}.js.map`
+            );
 
             write(identifier_file, code);
-            write(join(ReleasePath.get(), FOLDER_JS, `${identifier.identifier}.js`), code);
+            write(
+                join(
+                    ReleasePath.get(),
+                    FOLDER_JS,
+                    `${identifier.identifier}.js`
+                ),
+                code
+            );
 
             write(`${identifier_file}.map`, result.sourcemap);
-            write(join(ReleasePath.get(), FOLDER_JS, `${identifier.identifier}.js.map`), result.sourcemap);
+            write(
+                join(
+                    ReleasePath.get(),
+                    FOLDER_JS,
+                    `${identifier.identifier}.js.map`
+                ),
+                result.sourcemap
+            );
             Logger.debug('identifier', identifier, dependencies);
         } catch (e) {
-            Logger.error(get_error_message(e, identifier.identifier, 'script write'));
+            Logger.error(
+                get_error_message(e, identifier.identifier, 'script write')
+            );
         }
     }
 }
-

@@ -4,10 +4,11 @@ import { filled_array, in_array, is_func } from './validate.js';
 import { watch } from 'chokidar';
 import { uniq_values } from './uniq.js';
 import { regenerate } from '../action/regenerate.js';
-import { get_config_cache, set_config_cache } from './config_cache.js';
 import { extname, join } from 'node:path';
 import { exists, to_extension } from './file.js';
 import { get_config_path } from './config.js';
+import { STORAGE_PACKAGE_TREE } from '../constants/storage.js';
+import { KeyValue } from './database/key_value.js';
 
 let watcher;
 let working = false;
@@ -15,6 +16,8 @@ let debouncer;
 let changed_files = {};
 let pkgs;
 let restart_required = false;
+
+const package_tree_db = new KeyValue(STORAGE_PACKAGE_TREE);
 
 export async function package_watcher(packages, restart_required_callback) {
     if (!filled_array(packages)) {
@@ -77,7 +80,7 @@ export function watcher_event(event, path, restart_required_callback) {
 /* c8 ignore start */
 export async function process_changed_files(changed_files, packages) {
     const events = Object.keys(changed_files);
-    const package_tree = get_config_cache('package_tree');
+    const package_tree = package_tree_db.all();
 
     const changed_config_files = [];
     const result = [];
@@ -165,7 +168,7 @@ export async function process_changed_files(changed_files, packages) {
                 changed_tree = true;
                 package_tree[rel_path] = undefined;
 
-                const remaining_packages = packages.filter((p) => p != pkg);
+                const remaining_packages = packages.filter((p) => p !== pkg);
                 if (remaining_packages) {
                     const fallback_package = remaining_packages.find((p) =>
                         exists(join(p.path, rel_path))
@@ -187,7 +190,7 @@ export async function process_changed_files(changed_files, packages) {
         }
     }
     if (changed_tree) {
-        await set_config_cache('package_tree', package_tree);
+        package_tree_db.setObject(package_tree);
     }
 
     await regenerate(result);

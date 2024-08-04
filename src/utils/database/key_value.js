@@ -50,7 +50,7 @@ export class KeyValue {
             return undefined;
         }
         const result = this.db.getFirst(
-            `SELECT value FROM ${this.table} WHERE key = ?;`,
+            `SELECT value FROM ${this.table} WHERE key = ? LIMIT 1;`,
             [key]
         );
         if (!result?.value) {

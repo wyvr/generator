@@ -1,9 +1,10 @@
+import { KeyValue } from '../../storage.js';
+import { STORAGE_COLLECTION } from '../constants/storage.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
 import { Event } from '../utils/event.js';
 import { to_index } from '../utils/file.js';
 import { Plugin } from '../utils/plugin.js';
-import { Storage } from '../utils/storage.js';
 import { Env } from '../vars/env.js';
 import { WorkerController } from '../worker/controller.js';
 import { measure_action } from './helper.js';
@@ -16,9 +17,11 @@ export async function critical() {
     const name = 'critical';
     const critical_name = get_name(WorkerEmit.critical);
     const critical = {};
-
+    
     await measure_action(name, async () => {
-        const identifier_files = await Storage.get('collection', 'identifier_files');
+        const collection_db = new KeyValue(STORAGE_COLLECTION);
+
+        const identifier_files = collection_db.get('identifier_files');
         const data = [];
         for (const identifier of Object.keys(identifier_files)) {
             const files = identifier_files[identifier].map((file) => to_index(file));

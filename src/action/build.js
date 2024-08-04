@@ -1,12 +1,12 @@
 import { FOLDER_GEN_DATA } from '../constants/folder.js';
+import { STORAGE_COLLECTION } from '../constants/storage.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
-import { set_config_cache } from '../utils/config_cache.js';
+import { KeyValue } from '../utils/database/key_value.js';
 import { Event } from '../utils/event.js';
 import { collect_files } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
-import { Storage } from '../utils/storage.js';
 import { WorkerController } from '../worker/controller.js';
 import { measure_action } from './helper.js';
 
@@ -38,33 +38,47 @@ export async function build() {
                 media[key] = data.media[key];
             }
         });
-        const media_query_files_id = Event.on('emit', media_query_files_name, (data) => {
-            if (!data || !data.media_query_files) {
-                return;
-            }
-            for (const file of Object.keys(data.media_query_files)) {
-                media_query_files[file] = data.media_query_files[file];
-            }
-        });
-
-        const identifier_files_id = Event.on('emit', identifier_files_name, (data) => {
-            if (!data || !data.identifier_files) {
-                return;
-            }
-            for (const identifier of Object.keys(data.identifier_files)) {
-                if (!identifier_files[identifier]) {
-                    identifier_files[identifier] = [];
+        const media_query_files_id = Event.on(
+            'emit',
+            media_query_files_name,
+            (data) => {
+                if (!data || !data.media_query_files) {
+                    return;
                 }
-                identifier_files[identifier].push(...data.identifier_files[identifier]);
+                for (const file of Object.keys(data.media_query_files)) {
+                    media_query_files[file] = data.media_query_files[file];
+                }
             }
-        });
+        );
+
+        const identifier_files_id = Event.on(
+            'emit',
+            identifier_files_name,
+            (data) => {
+                if (!data || !data.identifier_files) {
+                    return;
+                }
+                for (const identifier of Object.keys(data.identifier_files)) {
+                    if (!identifier_files[identifier]) {
+                        identifier_files[identifier] = [];
+                    }
+                    identifier_files[identifier].push(
+                        ...data.identifier_files[identifier]
+                    );
+                }
+            }
+        );
 
         const data = collect_files(FOLDER_GEN_DATA, 'json');
 
         // wrap in plugin
         const caller = await Plugin.process(name, data);
         await caller(async (data) => {
-            await WorkerController.process_in_workers(WorkerAction.build, data, 100);
+            await WorkerController.process_in_workers(
+                WorkerAction.build,
+                data,
+                100
+            );
         });
 
         // remove listeners
@@ -75,17 +89,22 @@ export async function build() {
 
         // store the identifier_files in the collection storage
         // used to create the critical files, here is the reference with identifier has which file assigned to them
-        await Storage.set('collection', 'identifier_files', identifier_files);
-        await set_config_cache('identifier.files', identifier_files);
+        const collection_db = new KeyValue(STORAGE_COLLECTION);
+        collection_db.set('identifier_files', identifier_files);
 
         const identifier_length = Object.keys(identifiers).length;
-        Logger.info('found', identifier_length, identifier_length === 1 ? 'identifier' : 'identifiers', Logger.color.dim('different layout combinations'));
+        Logger.info(
+            'found',
+            identifier_length,
+            identifier_length === 1 ? 'identifier' : 'identifiers',
+            Logger.color.dim('different layout combinations')
+        );
         Logger.info('found', Object.keys(media).length, 'media files');
     });
 
     return {
         identifiers,
         media,
-        media_query_files
+        media_query_files,
     };
 }

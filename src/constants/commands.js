@@ -3,7 +3,12 @@ import { LogType } from "../struc/log.js";
 export const COMMANDS = {
     app: {
         desc: 'run as a service for server side execution',
-        flags: []
+        flags: [
+            {
+                key: 'clear',
+                desc: 'delete cache, gen and storage which causes a build before starting the service'
+            }
+        ]
     },
     build: {
         desc: 'statically generate site',

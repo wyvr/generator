@@ -1,4 +1,4 @@
-import cluster from 'cluster';
+import cluster from 'node:cluster';
 import { check_env } from '../action/check_env.js';
 import { clear_releases } from '../action/clear_releases.js';
 import { critical } from '../action/critical.js';
@@ -19,6 +19,7 @@ import { WorkerController } from '../worker/controller.js';
 import { WorkerStatus } from '../struc/worker_status.js';
 import { Event } from '../utils/event.js';
 import { chat_start } from '../utils/chat.js';
+import { clear } from './clear.js';
 
 export const app_command = async (config) => {
     if (config?.cli?.flags?.single) {
@@ -26,6 +27,9 @@ export const app_command = async (config) => {
         return;
     }
     await check_env();
+    if (config?.cli?.flags?.clear) {
+        await clear(['hard']);
+    }
     const { port } = await get_ports(config);
 
     let build_id = UniqId.load();
@@ -46,7 +50,7 @@ export const app_command = async (config) => {
         const critical_result = await critical();
 
         // Optimize Pages
-        // await optimize(media_query_files, critical_result);
+        await optimize(media_query_files, critical_result);
 
         // Publish the new release
         await publish();
@@ -114,7 +118,7 @@ export const app_command = async (config) => {
                 clearTimeout(safe_guard);
                 safe_guard = null;
             }
-            if (busy == amount) {
+            if (busy === amount) {
                 clearInterval(interval);
                 interval = null;
                 Logger.info('all worker started');

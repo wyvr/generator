@@ -4,6 +4,8 @@ import { get_error_message } from './error.js';
 import { Logger } from './logger.js';
 import { filled_string, is_null } from './validate.js';
 import { Config } from './config.js';
+import { KeyValue } from './database/key_value.js';
+import { STORAGE_OPTIMIZE_CRITICAL } from '../constants/storage.js';
 
 const critical_options = {
     // default options
@@ -53,4 +55,32 @@ export async function generate_critical_css(content, file) {
         Logger.error(get_error_message(e, file, 'critical'));
     }
     return undefined;
+}
+
+const critical_db = new KeyValue(STORAGE_OPTIMIZE_CRITICAL);
+
+export function insert_critical_css(content, identifier) {
+    if (!filled_string(content) || !filled_string(identifier)) {
+        return content;
+    }
+
+    const css = critical_db.get(identifier)?.css;
+    if (!css) {
+        return content;
+    }
+    return content.replace(
+        '</head>',
+        `<style id="critical">${css}</style></head>`
+    );
+}
+
+export function critical_css_exists(identifier) {
+    return critical_db.exists(identifier);
+}
+
+export function critical_css_set(identifier, css, files) {
+    return critical_db.set(identifier, {
+        css,
+        files,
+    });
 }

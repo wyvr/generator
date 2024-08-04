@@ -1,3 +1,4 @@
+import { appendFileSync } from 'node:fs';
 import { filled_array, filled_string, in_array } from '../utils/validate.js';
 import { WorkerEmit } from '../struc/worker_emit.js';
 import { WorkerAction } from '../struc/worker_action.js';
@@ -19,7 +20,7 @@ import { copy, exists, write, to_index } from '../utils/file.js';
 import { scripts } from './scripts.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
-import { appendFileSync } from 'node:fs';
+import { optimize_content } from './../utils/optimize.js';
 
 export async function route(requests) {
     if (!filled_array(requests)) {
@@ -142,7 +143,6 @@ export async function process_route_request(
         const generate_identifiers = Object.keys(identifiers)
             .map((key) => identifiers[key])
             .filter(Boolean);
-        // await scripts(identifiers, true);
         // @TODO extract most of this whole file into worker_actions or a util
         await scripts(generate_identifiers);
     }
@@ -156,6 +156,14 @@ export async function process_route_request(
 
     // remove query parameters to avoid generating wrong files
     const [url] = req.url.split('?');
+
+    // optimize the content
+    if (result?.result?.html) {
+        result.result.html = await optimize_content(
+            result.result.html,
+            result.data._wyvr.identifier
+        );
+    }
 
     // persist the result
     // except:

@@ -1,5 +1,11 @@
+import {
+    STORAGE_OPTIMIZE_CRITICAL,
+    STORAGE_OPTIMIZE_HASHES,
+    STORAGE_OPTIMIZE_MEDIA_QUERY_FILES,
+} from '../constants/storage.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { Config } from '../utils/config.js';
+import { KeyValue } from '../utils/database/key_value.js';
 import { collect_files } from '../utils/file.js';
 import { get_files_hashes } from '../utils/hash.js';
 import { Plugin } from '../utils/plugin.js';
@@ -16,19 +22,39 @@ export async function optimize(media_query_files, critical) {
     const name = 'optimize';
     await measure_action(name, async () => {
         const ignored_folder = Config.get('optimize.ignore_folder');
-        const files = collect_files(ReleasePath.get(), undefined, ignored_folder);
-        const optimize_files = files.filter((file) => file.match(/\.(html|htm|css|[mc]?js)$/));
-        const hashes = get_files_hashes(files.filter((file) => file.match(/\.(css|[mc]?js)$/)));
-        WorkerController.set_all_workers('hashes', hashes);
-        WorkerController.set_all_workers('media_query_files', media_query_files);
-        WorkerController.set_all_workers('critical', critical);
+        const files = collect_files(
+            ReleasePath.get(),
+            undefined,
+            ignored_folder
+        );
+        const optimize_files = files.filter((file) =>
+            file.match(/\.(html|htm|css|[mc]?js)$/)
+        );
+        const hashes = get_files_hashes(
+            files.filter((file) => file.match(/\.(css|[mc]?js)$/))
+        );
+        const hashes_db = new KeyValue(STORAGE_OPTIMIZE_HASHES);
+        hashes_db.setObject(hashes);
+        hashes_db.close();
+
+        const media_query_files_db = new KeyValue(
+            STORAGE_OPTIMIZE_MEDIA_QUERY_FILES
+        );
+        media_query_files_db.setObject(media_query_files);
+        media_query_files_db.close();
+
+        const critical_db = new KeyValue(STORAGE_OPTIMIZE_CRITICAL);
+        critical_db.setObject(critical);
+        critical_db.close();
+
         // wrap in plugin
         const caller = await Plugin.process(name, optimize_files);
         await caller(async (files) => {
-            await WorkerController.process_in_workers(WorkerAction.optimize, files, 10);
+            await WorkerController.process_in_workers(
+                WorkerAction.optimize,
+                files,
+                10
+            );
         });
-        WorkerController.set_all_workers('hashes', undefined);
-        WorkerController.set_all_workers('media_query_files', undefined);
-        WorkerController.set_all_workers('critical', undefined);
     });
 }

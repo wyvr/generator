@@ -46,57 +46,67 @@ export async function command(base_config) {
 
     Event.emit('project', 'config', config);
 
+    const command_help = !!config?.cli?.flags?.help;
     const command = get_command(config);
-    switch (command) {
-        case 'app':
-            result = await app_command(config);
-            break;
-        case 'dev':
-            result = await dev_command(config);
-            break;
-        case 'build':
-            result = await build_command(config);
-            break;
-        case 'health':
-            result = await health_command(config);
-            break;
-        case 'help': {
-            const commands = await get_commands();
-            result = await help_command(config, commands);
-            break;
-        }
-        case 'info':
-            result = await info_command(config);
-            break;
-        case 'clear':
-            result = await clear_command(config);
-            break;
-        case 'create':
-            result = await create_command(config);
-            break;
-        case 'cron':
-            result = await cron_command(config);
-            break;
-        case 'test':
-            result = await test_command(config);
-            break;
-        case 'version':
-            result = await version_command(config);
-            break;
-        default:
-            {
-                // try to execute the custom command
+    if (command_help) {
+        const command_details = await get_commands(command);
+        result = await help_command(config, command_details);
+    } else {
+        switch (command) {
+            case 'app':
+                result = await app_command(config);
+                break;
+            case 'dev':
+                result = await dev_command(config);
+                break;
+            case 'build':
+                result = await build_command(config);
+                break;
+            case 'health':
+                result = await health_command(config);
+                break;
+            case 'help': {
                 const commands = await get_commands();
-                const command_result = await execute_custom_command(config, command, commands);
-
-                if (command_result?.executed) {
-                    result = command_result.result;
-                    break;
-                }
-                // fallback to unknown command
-                result = await unknown_command(config, commands);
+                result = await help_command(config, commands);
+                break;
             }
-            break;
+            case 'info':
+                result = await info_command(config);
+                break;
+            case 'clear':
+                result = await clear_command(config);
+                break;
+            case 'create':
+                result = await create_command(config);
+                break;
+            case 'cron':
+                result = await cron_command(config);
+                break;
+            case 'test':
+                result = await test_command(config);
+                break;
+            case 'version':
+                result = await version_command(config);
+                break;
+            default:
+                {
+                    // try to execute the custom command
+                    const commands = await get_commands();
+                    const command_result = await execute_custom_command(
+                        config,
+                        command,
+                        commands
+                    );
+
+                    if (command_result?.executed) {
+                        result = command_result.result;
+                        break;
+                    }
+                    // fallback to unknown command
+                    result = await unknown_command(config, commands);
+                }
+                break;
+        }
     }
     WorkerController.exit();
     const duration = nano_to_milli(process.hrtime.bigint() - start);
@@ -114,10 +124,15 @@ export async function command(base_config) {
  * @returns {Promise<object|undefined>} - A promise that resolves to an object with the result of the command execution, or undefined if the command is not valid.
  */
 export async function execute_custom_command(config, command, commands) {
-    if (!filled_string(command) || !is_func(commands?.custom?.[command]?.execute)) {
+    if (
+        !filled_string(command) ||
+        !is_func(commands?.custom?.[command]?.execute)
+    ) {
         return undefined;
     }
     const build_id = UniqId.load();
-    const result = await commands.custom[command].execute(get_config_data(config, build_id));
+    const result = await commands.custom[command].execute(
+        get_config_data(config, build_id)
+    );
     return { executed: true, result };
 }

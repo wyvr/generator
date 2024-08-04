@@ -88,6 +88,10 @@ export const GLOBAL_FLAGS = [
         desc: 'set the environment to development mode'
     },
     {
+        key: 'help',
+        desc: 'show help for the command'
+    },
+    {
         key: 'plain',
         desc: 'remove colors from the logger'
     },

@@ -62,6 +62,16 @@ export class KeyValue {
             return undefined;
         }
     }
+    exists(key) {
+        if (!this.db) {
+            return undefined;
+        }
+        const result = this.db.getFirst(
+            `SELECT key FROM ${this.table} WHERE key = ? LIMIT 1;`,
+            [key]
+        );
+        return result !== undefined;
+    }
     all() {
         if (!this.db) {
             return undefined;

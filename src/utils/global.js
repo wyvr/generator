@@ -1,20 +1,15 @@
 import { I18N } from '../model/i18n.js';
-import { Storage } from './storage.js';
 import { get_error_message } from './error.js';
 import { Logger } from './logger.js';
 import { filled_string, is_func, is_null } from './validate.js';
-import {
-    FOLDER_GEN,
-    FOLDER_PROP,
-    FOLDER_STORAGE,
-} from '../constants/folder.js';
+import { FOLDER_PROP } from '../constants/folder.js';
 import { create_hash } from './hash.js';
 import { exists, write } from './file.js';
 import { stringify } from './json.js';
-import { Cwd } from '../vars/cwd.js';
 import { join } from 'node:path';
 import { ReleasePath } from '../vars/release_path.js';
 import { getRequestId } from '../vars/request_id.js';
+import { KeyValue } from './database/key_value.js';
 
 export function register_inject(file) {
     global._inject_file = file;
@@ -27,8 +22,8 @@ export function register_inject(file) {
                 const type = parts.shift();
                 const parent_key = parts.join('.');
 
-                Storage.set_location(FOLDER_STORAGE);
-                value = await Storage.get(type, parent_key);
+                const db = new KeyValue(type);
+                value = db.get(parent_key);
             }
             if (is_null(value)) {
                 value = fallback;

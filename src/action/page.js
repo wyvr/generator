@@ -9,9 +9,7 @@ import { measure_action } from './helper.js';
 import { merge_collections } from '../utils/collections.js';
 import { filled_object } from '../utils/validate.js';
 import { set_config_cache } from '../utils/config_cache.js';
-import { sleep } from '../utils/sleep.js';
-
-export async function pages(package_tree, mtime) {
+export async function pages(package_tree) {
     const name = 'page';
     let identifiers = {};
     let collections = {};
@@ -20,7 +18,7 @@ export async function pages(package_tree, mtime) {
     await measure_action(name, async () => {
         const pages = collect_pages(undefined, package_tree);
 
-        result = await process_pages(name, pages, mtime);
+        result = await process_pages(name, pages);
 
         identifiers = result.identifiers;
         collections = result.collections;
@@ -38,12 +36,7 @@ export async function pages(package_tree, mtime) {
     return { identifiers, collections };
 }
 
-export async function process_pages(
-    name,
-    data,
-    mtime = undefined,
-    show_name = false
-) {
+export async function process_pages(name, data, show_name = false) {
     const identifier_name = get_name(WorkerEmit.identifier);
     const identifiers = {};
     const collections_name = get_name(WorkerEmit.collections);
@@ -77,9 +70,6 @@ export async function process_pages(
             pages.push(...data.data_pages);
         }
     });
-    if (mtime) {
-        WorkerController.set_all_workers('mtime', mtime);
-    }
 
     // wrap in plugin
     const caller = await Plugin.process(name, data);
@@ -91,10 +81,6 @@ export async function process_pages(
             show_name
         );
     });
-
-    if (mtime) {
-        WorkerController.set_all_workers('mtime', undefined);
-    }
 
     // remove listeners
     Event.off('emit', identifier_name, identifier_id);

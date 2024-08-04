@@ -281,7 +281,7 @@ export async function regenerate_pages({ change, add, unlink }, identifiers, pag
                 pkg: file.pkg
             });
         });
-        const result = await process_pages('page', pages_data, undefined, true);
+        const result = await process_pages('page', pages_data, true);
         if (result) {
             collections = result.collections;
             page_objects = result.page_objects;

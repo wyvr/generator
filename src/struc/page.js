@@ -4,5 +4,5 @@ export const PageStructure = {
     initial: true,
     path: true,
     pkg: true,
-    rel_path: true
+    rel_path: true,
 };

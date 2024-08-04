@@ -1,6 +1,6 @@
 export const WyvrHydrateDisplay = {
     inline: 'inline',
-    block: 'block'
+    block: 'block',
 };
 
 export const WyvrFileRender = { static: 'static', hydrate: 'hydrate' };
@@ -11,7 +11,7 @@ export const WyvrFileLoading = {
     idle: 'idle',
     interact: 'interact',
     media: 'media',
-    none: 'none'
+    none: 'none',
 };
 
 export const WyvrFileConfig = {
@@ -22,5 +22,5 @@ export const WyvrFileConfig = {
     portal: undefined,
     trigger: undefined,
     media: 'all',
-    condition: undefined
+    condition: undefined,
 };

@@ -53,8 +53,8 @@ export async function pre_initial_build(build_id, config_data) {
     ReleasePath.set(Cwd.get(FOLDER_RELEASES, build_id));
 
     // Build Global(storage) Data
-    Storage.set_location(FOLDER_STORAGE);
-    await Storage.set('config', config_data);
+    const config_db = new KeyValue(STORAGE_CONFIG);
+    config_db.setObject(config_data);
 
     // Collect packages
     const package_json = read_json('package.json');
@@ -63,8 +63,8 @@ export async function pre_initial_build(build_id, config_data) {
     );
     package_report(available_packages, disabled_packages);
 
-    await Storage.set('config', Config.get());
-
+    config_db.setObject(Config.get());
+    
     await WorkerController.initialize(
         Config.get('worker.ratio', 1),
         config_data?.cli?.flags?.single

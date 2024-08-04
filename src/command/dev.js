@@ -21,6 +21,8 @@ import { Config } from '../utils/config.js';
 import { configure } from '../action/configure.js';
 import { Storage } from '../utils/storage.js';
 import { reload } from '../action/regenerate.js';
+import { KeyValue } from '../utils/database/key_value.js';
+import { STORAGE_CONFIG } from '../constants/storage.js';
 
 export async function dev_command(config) {
     // dev command has forced dev state, when nothing is defined

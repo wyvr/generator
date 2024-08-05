@@ -37,7 +37,7 @@ export async function clear_command(config) {
         ? Object.keys(config_data.cli.flags)
         : default_flags;
 
-    clear(flags_array);
+    const clear_folders = clear(flags_array);
     return clear_folders.join(' ');
 }
 

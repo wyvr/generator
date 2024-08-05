@@ -16,3 +16,5 @@ tmp
 pub
 not_writeable.txt
 .vscode
+*.db-shm
+*.db-wal

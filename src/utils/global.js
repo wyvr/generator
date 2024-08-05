@@ -22,8 +22,14 @@ export function register_inject(file) {
                 const type = parts.shift();
                 const parent_key = parts.join('.');
 
-                const db = new KeyValue(type);
-                value = db.get(parent_key);
+                try {
+                    const db = new KeyValue(type);
+                    value = db.get(parent_key);
+                } catch (e) {
+                    Logger.error(
+                        get_error_message(e, global._inject_file, 'inject')
+                    );
+                }
             }
             if (is_null(value)) {
                 value = fallback;

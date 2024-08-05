@@ -77,15 +77,21 @@ export async function dev_command(config) {
         package_report(available_packages, disabled_packages);
 
         // store new config
-        await Storage.set('config', Config.get());
+        const config_db = new KeyValue(STORAGE_CONFIG);
+        config_db.set(Config.get());
 
-        if(prev_config.packages?.map((pkg) => pkg.name).join(',') !== Config.get().packages?.map((pkg) => pkg.name).join(',')) {
+        if (
+            prev_config.packages?.map((pkg) => pkg.name).join(',') !==
+            Config.get()
+                .packages?.map((pkg) => pkg.name)
+                .join(',')
+        ) {
             Logger.warning('packages changed in config, restart required');
             return;
         }
 
         await configure();
-        
+
         reload();
         Logger.success('reloaded');
     });

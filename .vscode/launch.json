@@ -30,7 +30,7 @@
             "program": "${workspaceFolder}/node_modules/mocha/bin/mocha",
             "request": "launch",
             "skipFiles": ["<node_internals>/**"],
-            "type": "pwa-node"
+            "type": "node"
         },
         {
             "args": [
@@ -46,7 +46,7 @@
             "program": "${workspaceFolder}/node_modules/mocha/bin/mocha",
             "request": "launch",
             "skipFiles": ["<node_internals>/**"],
-            "type": "pwa-node"
+            "type": "node"
         }
     ]
 }

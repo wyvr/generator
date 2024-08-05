@@ -19,7 +19,6 @@ import { collect_packages } from '../action/package.js';
 import { package_report } from '../presentation/package_report.js';
 import { Config } from '../utils/config.js';
 import { configure } from '../action/configure.js';
-import { Storage } from '../utils/storage.js';
 import { reload } from '../action/regenerate.js';
 import { KeyValue } from '../utils/database/key_value.js';
 import { STORAGE_CONFIG } from '../constants/storage.js';

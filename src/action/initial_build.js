@@ -5,14 +5,12 @@ import {
     FOLDER_GEN_EVENTS,
     FOLDER_MEDIA,
     FOLDER_RELEASES,
-    FOLDER_STORAGE,
 } from '../constants/folder.js';
 import { package_report } from '../presentation/package_report.js';
 import { Config } from '../utils/config.js';
 import { read_json, symlink } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
-import { Storage } from '../utils/storage.js';
 import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { WorkerController } from '../worker/controller.js';
@@ -40,6 +38,8 @@ import { Env } from '../vars/env.js';
 import { build_cache as build_media_cache } from '../utils/media.js';
 import { cronjobs } from './cronjobs.js';
 import { update_project_events } from '../utils/project_events.js';
+import { KeyValue } from '../../storage.js';
+import { STORAGE_CONFIG } from '../constants/storage.js';
 
 export async function pre_initial_build(build_id, config_data) {
     try {

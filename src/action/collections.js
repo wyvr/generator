@@ -7,7 +7,6 @@ import { KeyValue } from '../utils/database/key_value.js';
 import { Event } from '../utils/event.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
-import { Storage } from '../utils/storage.js';
 import { filled_object } from '../utils/validate.js';
 import { WorkerController } from '../worker/controller.js';
 import { measure_action } from './helper.js';

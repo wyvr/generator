@@ -115,8 +115,7 @@ export async function process_route_request(
         result?.result?.css?.code
     ) {
         // @TODO use hash path from storage hashes
-        const css_file_path = join(
-            ReleasePath.get(),
+        const css_file_path = ReleasePath.get(
             FOLDER_CSS,
             `${result.data._wyvr.identifier}.css`
         );
@@ -179,7 +178,7 @@ export async function process_route_request(
         response.statusCode < 300
     ) {
         const file = to_index(url, 'html');
-        const persisted_path = join(ReleasePath.get(), file);
+        const persisted_path = ReleasePath.get(file);
         write(persisted_path, result.result.html);
         Logger.improve('persisted', file);
         // add marker to identify which file where generated before

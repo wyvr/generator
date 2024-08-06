@@ -11,6 +11,10 @@ describe('vars/ReleasePath', () => {
         ReleasePath.set('huhu');
         strictEqual(ReleasePath.get(), 'huhu');
     });
+    it('params', () => {
+        ReleasePath.set('huhu');
+        strictEqual(ReleasePath.get('test','test.js'), 'huhu/test/test.js');
+    });
     afterEach(() => {
         ReleasePath.value = undefined;
     });

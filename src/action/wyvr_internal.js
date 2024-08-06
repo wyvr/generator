@@ -34,7 +34,7 @@ export async function wyvr_internal() {
 
 export async function build_wyvr_internal() {
     copy_folder(Cwd.get(FOLDER_GEN), [FOLDER_DEVTOOLS], ReleasePath.get());
-    const folder = join(ReleasePath.get(), FOLDER_DEVTOOLS);
+    const folder = ReleasePath.get(FOLDER_DEVTOOLS);
     const files = collect_files(folder);
     // @TODO process in the workers
     const devtools_modules = await Promise.all(

@@ -30,7 +30,6 @@ import { copy } from './copy.js';
 import { set_config_cache } from '../utils/config_cache.js';
 import { build_cache } from '../utils/routes.js';
 import { wyvr_internal } from './wyvr_internal.js';
-import { join } from 'node:path';
 import { modify_svelte } from './modify_svelte.mjs';
 import { get_error_message } from '../utils/error.js';
 import { collections } from './collections.js';
@@ -64,14 +63,14 @@ export async function pre_initial_build(build_id, config_data) {
     package_report(available_packages, disabled_packages);
 
     config_db.setObject(Config.get());
-    
+
     await WorkerController.initialize(
         Config.get('worker.ratio', 1),
         config_data?.cli?.flags?.single
     );
 
     // Create required symlinks
-    symlink(Cwd.get(FOLDER_MEDIA), join(ReleasePath.get(), FOLDER_MEDIA));
+    symlink(Cwd.get(FOLDER_MEDIA), ReleasePath.get(FOLDER_MEDIA));
     // build media cache
     build_media_cache();
 

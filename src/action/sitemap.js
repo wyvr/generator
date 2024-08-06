@@ -1,8 +1,6 @@
-import { join } from 'node:path';
 import { to_index, write } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
-import { Storage } from '../utils/storage.js';
 import { is_array } from '../utils/validate.js';
 import { Env } from '../vars/env.js';
 import { ReleasePath } from '../vars/release_path.js';
@@ -41,7 +39,7 @@ export async function sitemap() {
                         .join('\n'),
                     '</urlset>',
                 ].join('\n');
-                write(join(ReleasePath.get(), 'sitemap.xml'), sitemap_content);
+                write(ReleasePath.get('sitemap.xml'), sitemap_content);
             }
         });
     });

@@ -6,7 +6,6 @@ import { FOLDER_PROP } from '../constants/folder.js';
 import { create_hash } from './hash.js';
 import { exists, write } from './file.js';
 import { stringify } from './json.js';
-import { join } from 'node:path';
 import { ReleasePath } from '../vars/release_path.js';
 import { getRequestId } from '../vars/request_id.js';
 import { KeyValue } from './database/key_value.js';
@@ -89,7 +88,7 @@ export function register_prop(file) {
         if (converted.length > 1000) {
             const hash = create_hash(converted, 64);
             const file_name = `/${FOLDER_PROP}/${prop}_${hash}.json`;
-            const release_path = join(ReleasePath.get(), file_name);
+            const release_path = ReleasePath.get(file_name);
             if (!exists(release_path)) {
                 write(release_path, converted);
             }

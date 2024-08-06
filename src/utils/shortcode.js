@@ -10,7 +10,12 @@ import { write_css_file } from './css.js';
 import { to_extension } from './file.js';
 import { create_hash } from './hash.js';
 import { Logger } from './logger.js';
-import { filled_object, filled_string, is_null, match_interface } from './validate.js';
+import {
+    filled_object,
+    filled_string,
+    is_null,
+    match_interface,
+} from './validate.js';
 
 export async function replace_shortcode(html, data, file) {
     if (!filled_string(html) || !filled_string(file)) {
@@ -25,19 +30,32 @@ export async function replace_shortcode(html, data, file) {
         if (!shortcode_parts) {
             // ignore found shortcode when something went wrong or it doesn't match
             if (Env.is_dev()) {
-                Logger.warning('shortcode can not be replaced in', file, shortcode_parts);
+                Logger.warning(
+                    'shortcode can not be replaced in',
+                    file,
+                    shortcode_parts
+                );
             }
             return shortcode_parts;
         }
         /* c8 ignore end */
 
-        const shortcode = get_shortcode_data(shortcode_parts[1], shortcode_parts[2], file);
+        const shortcode = get_shortcode_data(
+            shortcode_parts[1],
+            shortcode_parts[2],
+            file
+        );
 
         /* c8 ignore start */
         if (!match_interface(shortcode, { tag: true, path: true })) {
             // ignore shortcode when something went wrong
             if (Env.is_dev()) {
-                Logger.warning('shortcode can not be replaced in', file, shortcode_parts, 'because there was an error');
+                Logger.warning(
+                    'shortcode can not be replaced in',
+                    file,
+                    shortcode_parts,
+                    'because there was an error'
+                );
             }
             return shortcode_parts;
         }
@@ -64,22 +82,44 @@ export async function replace_shortcode(html, data, file) {
         const keys = Object.keys(shortcode_imports);
         const identifier = create_hash(keys.join('|'));
         const shortcode_content = `<script>${keys
-            .map((key) => `import ${key} from '${dev_cache_breaker(to_extension(shortcode_imports[key], 'js'))}';`)
+            .map(
+                (key) =>
+                    `import ${key} from '${dev_cache_breaker(
+                        to_extension(shortcode_imports[key], 'js')
+                    )}';`
+            )
             .join('\n')}</script>${replaced_content}`;
-        const exec_result = await compile_server_svelte(shortcode_content, file);
+        const exec_result = await compile_server_svelte(
+            shortcode_content,
+            file
+        );
 
-        const rendered_result = await render_server_compiled_svelte(exec_result, data, file);
+        const rendered_result = await render_server_compiled_svelte(
+            exec_result,
+            data,
+            file
+        );
 
         // write css
         if (rendered_result?.result?.css?.code) {
-            const css_file_path = join(ReleasePath.get(), FOLDER_CSS, `${identifier}.css`);
-            media_query_files = write_css_file(css_file_path, rendered_result.result.css.code, media_query_files);
+            const css_file_path = ReleasePath.get(
+                FOLDER_CSS,
+                `${identifier}.css`
+            );
+            media_query_files = write_css_file(
+                css_file_path,
+                rendered_result.result.css.code,
+                media_query_files
+            );
         }
 
         if (rendered_result?.result?.html) {
             // inject shortcode files
             const html = rendered_result.result.html
-                .replace(/<\/body>/, `<script defer src="/js/${identifier}.js"></script></body>`)
+                .replace(
+                    /<\/body>/,
+                    `<script defer src="/js/${identifier}.js"></script></body>`
+                )
                 .replace(
                     /<\/head>/,
                     `<link rel="preload" href="/css/${identifier}.css" as="style" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="/css/${identifier}.css"></noscript></head>`
@@ -91,7 +131,7 @@ export async function replace_shortcode(html, data, file) {
         html: replaced_content,
         shortcode_imports: undefined,
         identifier: undefined,
-        media_query_files: undefined
+        media_query_files: undefined,
     };
 }
 
@@ -101,7 +141,8 @@ export function get_shortcode_data(name, props_value, file) {
     }
     const src_path = Cwd.get(FOLDER_GEN_SRC);
 
-    let tag, path;
+    let tag;
+    let path;
 
     // check wheter the path was given or the name
     if (name.indexOf('/') > -1) {
@@ -113,7 +154,9 @@ export function get_shortcode_data(name, props_value, file) {
         tag = name;
         path = join(src_path, to_extension(name.replace(/_/g, '/'), 'svelte'));
     }
-    tag = tag.replace(/_(.)/g, (_, $1) => $1.toUpperCase()).replace(/^(.)/g, (m, $1) => $1.toUpperCase());
+    tag = tag
+        .replace(/_(.)/g, (_, $1) => $1.toUpperCase())
+        .replace(/^(.)/g, (m, $1) => $1.toUpperCase());
 
     const props = parse_props(props_value, file);
 
@@ -137,10 +180,14 @@ export function parse_props(prop_content, file) {
         prop_name = prop_name.trim();
         try {
             const prop_exec = `JSON.stringify(${prop_value})`;
+            // biome-ignore lint/security/noGlobalEval: <explanation>
             prop_value = eval(prop_exec);
             props[prop_name] = prop_value.replace(/\n\s*/gm, ''); //.replace(/"/g, '&quot;');
         } catch (e) {
-            Logger.warning('shortcode', `shortcode prop "${prop_name}" can not be converted in ${file}`);
+            Logger.warning(
+                'shortcode',
+                `shortcode prop "${prop_name}" can not be converted in ${file}`
+            );
         }
         prop_name = '';
         prop_value = '';
@@ -149,33 +196,38 @@ export function parse_props(prop_content, file) {
     };
     for (let i = 0; i < data_length; i++) {
         const char = prop_content[i];
-        if (char == '{') {
+        if (char === '{') {
             parentese++;
-            if (parentese == 1) {
+            if (parentese === 1) {
                 continue;
             }
         }
-        if (char == '}') {
+        if (char === '}') {
             parentese--;
-            if (parentese == 0) {
+            if (parentese === 0) {
                 set_prop();
                 continue;
             }
         }
-        if (char != '=' && parentese == 0 && !name_is_done) {
+        if (char !== '=' && parentese === 0 && !name_is_done) {
             prop_name += char;
             continue;
         }
-        if (char == '=' && parentese == 0) {
+        if (char === '=' && parentese === 0) {
             name_is_done = true;
             continue;
         }
-        if (name_is_done && parentese == 0 && (char == '"' || char == "'")) {
+        if (name_is_done && parentese === 0 && (char === '"' || char === "'")) {
             parentese++;
             is_string = true;
             continue;
         }
-        if (name_is_done && parentese == 1 && is_string && (char == '"' || char == "'")) {
+        if (
+            name_is_done &&
+            parentese === 1 &&
+            is_string &&
+            (char === '"' || char === "'")
+        ) {
             prop_value = `"${prop_value}"`;
             set_prop();
             continue;

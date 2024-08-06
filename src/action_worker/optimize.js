@@ -1,7 +1,7 @@
 import { filled_array } from '../utils/validate.js';
 import { read, write } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
-import { extname, join } from 'node:path';
+import { extname } from 'node:path';
 import postcss from 'postcss';
 import autoprefixer from 'autoprefixer';
 import cssnano from 'cssnano';
@@ -89,10 +89,7 @@ export async function optimize(files) {
                         ]).process(content, {
                             from: undefined,
                         });
-                        write(
-                            join(ReleasePath.get(), file_hash.path),
-                            result.css
-                        );
+                        write(ReleasePath.get(file_hash.path), result.css);
                     } catch (e) {
                         Logger.error(get_error_message(e, file, 'css'));
                     }
@@ -105,7 +102,7 @@ export async function optimize(files) {
                     if (!file_hash) {
                         break;
                     }
-                    write(join(ReleasePath.get(), file_hash.path), content);
+                    write(ReleasePath.get(file_hash.path), content);
                     break;
                 }
             }

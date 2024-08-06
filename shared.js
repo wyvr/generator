@@ -183,6 +183,6 @@ export function get_cache_path(cache_name, scope = 'default') {
  * @returns {Promise} - A promise that resolves to the converted ghost file.
  */
 export function convert_to_ghost_file(url) {
-    const file_path = join(ReleasePath.get(), to_index(url));
+    const file_path = ReleasePath.get(to_index(url));
     return rename(file_path, 'index.ghost');
 }

@@ -10,7 +10,7 @@ export function get_structure(file, tree, file_config, package_tree) {
         return undefined;
     }
     let src_file = file;
-    if (src_file.indexOf(FOLDER_SRC) != 0) {
+    if (src_file.indexOf(FOLDER_SRC) !== 0) {
         src_file = join(FOLDER_SRC, file);
     }
     const components = uniq_values(tree[src_file] || []).map((child) =>
@@ -48,8 +48,5 @@ export function write_identifier_structure(
         const root = to_extension(join(type, identifier[type]), 'svelte');
         struct[type] = get_structure(root, tree, file_config, package_tree);
     }
-    write_json(
-        join(ReleasePath.get(), `${identifier.identifier}.json`),
-        struct
-    );
+    write_json(ReleasePath.get(`${identifier.identifier}.json`), struct);
 }

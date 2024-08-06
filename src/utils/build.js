@@ -114,25 +114,37 @@ export function get_stack_script() {
     return `window._stack = ${stringify(stack)};`;
 }
 
-export async function inject(rendered_result, data, file, identifier, shortcode_callback) {
-    const release_path = ReleasePath.get();
+export async function inject(
+    rendered_result,
+    data,
+    file,
+    identifier,
+    shortcode_callback
+) {
     const media_files = {};
     let has_media = false;
     let media_query_files = {};
 
     let content = rendered_result?.result?.html || '';
 
-    const path = join(release_path, to_index(data?.url, data?._wyvr?.extension));
+    const path = ReleasePath.get(to_index(data?.url, data?._wyvr?.extension));
     try {
         if (content) {
             // replace shortcodes
-            const shortcode_result = await replace_shortcode(content, data, file);
+            const shortcode_result = await replace_shortcode(
+                content,
+                data,
+                file
+            );
             if (shortcode_result) {
-                if (shortcode_result.identifier && shortcode_result.shortcode_imports) {
+                if (
+                    shortcode_result.identifier &&
+                    shortcode_result.shortcode_imports
+                ) {
                     const shortcode_emit = {
                         type: WorkerEmit.identifier,
                         identifier: shortcode_result.identifier,
-                        imports: shortcode_result.shortcode_imports
+                        imports: shortcode_result.shortcode_imports,
                     };
 
                     if (shortcode_result.media_query_files) {

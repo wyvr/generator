@@ -125,7 +125,7 @@ export async function execute_page(page) {
 
             return [data];
         }
-        /* eslint-disable no-case-declarations */
+         
         case '.mjs':
         case '.cjs':
         case '.js': {
@@ -181,7 +181,7 @@ export async function execute_page(page) {
                 return page;
             });
         }
-        /* eslint-enable no-case-declarations */
+         
 
         default: {
             Logger.warning(

@@ -7,7 +7,7 @@ SHELL := /bin/bash
 .PHONY: test coverage
 # @see https://spin.atomicobject.com/2021/03/22/makefiles-vs-package-json-scripts/
 # base commands
-WYVR_LINT=npx eslint src --ext .js
+WYVR_LINT=npx eslint src
 WYVR_TEST=npx mocha -R dot './test/**/*.test.js'
 WYVR_COVERAGE=npx c8 -x src/command -x src/resource -x src/templates -x src/boilerplate -x src/utils/create -x src/model/create --skip-full --clean $(WYVR_TEST)
 READONLY_FILES=if [ ! -f test/utils/file/_tests/not_writeable.txt ]; then echo -n "readonly" > test/utils/file/_tests/not_writeable.txt; chmod -rw test/utils/file/_tests/not_writeable.txt; fi;

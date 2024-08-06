@@ -33,6 +33,7 @@
         "marked-gfm-heading-id": "^4.0.0",
         "mocha": "10.7.0",
         "ora": "8.0.1",
+        "patch-package": "^8.0.0",
         "postcss": "^8.4.40",
         "sass": "1.77.8",
         "serve-static": "^1.15.0",
@@ -60,5 +61,8 @@
         "singleQuote": true,
         "useTabs": false,
         "prettier.printWidth": 180
+    },
+    "scripts": {
+        "postinstall": "patch-package"
     }
 }

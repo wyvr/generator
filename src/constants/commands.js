@@ -110,7 +110,7 @@ export const GLOBAL_FLAGS = [
     },
     {
         key: 'single',
-        desc: 'run the generator in single threaded mode'
+        desc: 'run in single threaded mode'
     },
     {
         key: 'worker',

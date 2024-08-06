@@ -37,8 +37,10 @@ import { IsWorker } from '../vars/is_worker.js';
 import { build_hydrate_file_from_url } from './script.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { setRequestId } from '../vars/request_id.js';
+import { Config } from './config.js';
 
 let show_requests = true;
+let app_performance_limit_warning;
 
 export function server(port, on_request, on_end) {
     if (!is_number(port)) {
@@ -206,11 +208,31 @@ export function get_done_log_infos(message, status, start, uid) {
 }
 export function get_time_log_infos(start = undefined, uid = undefined) {
     const date = new Date();
+    const end = process.hrtime.bigint();
+    let text = undefined;
+    if (start) {
+        const ms = nano_to_milli(end - (start ?? end));
+        text = ms + Logger.color.dim('ms');
+        // get the value when not already set 
+        if (!app_performance_limit_warning) {
+            app_performance_limit_warning = Config.get(
+                'worker.app_performance_limit_warning',
+                false
+            );
+        }
+        // add formating when the value is set
+        if (is_number(app_performance_limit_warning)) {
+            if (ms > app_performance_limit_warning * 0.8) {
+                if (ms > app_performance_limit_warning) {
+                    text = Logger.color.red(`${text}(slow)`);
+                } else {
+                    text = Logger.color.yellow(`${text}(sluggish)`);
+                }
+            }
+        }
+    }
     return [
-        start
-            ? nano_to_milli(process.hrtime.bigint() - start) +
-              Logger.color.dim('ms')
-            : undefined,
+        text,
         date.toLocaleTimeString(),
         Logger.color.dim(date.toLocaleDateString()),
         uid ? Logger.color.dim(uid) : undefined,

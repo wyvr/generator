@@ -1,5 +1,11 @@
 import { search_segment } from '../utils/segment.js';
-import { filled_string, is_object, is_null, is_string, is_number } from '../utils/validate.js';
+import {
+    filled_string,
+    is_object,
+    is_null,
+    is_string,
+    is_number,
+} from '../utils/validate.js';
 
 export class I18N {
     constructor(translations) {
@@ -32,16 +38,17 @@ export class I18N {
                 }
                 return '';
             });
-            keys.forEach((key) => {
+            for (const key of keys) {
                 // allow only strings and numbers in the result
                 if (!is_string(options[key]) && !is_number(options[key])) {
                     options[key] = JSON.stringify(options[key]);
                 }
-                /* eslint-disable no-useless-escape */
                 // escaping is here not useless
-                result = result.replace(new RegExp(`\{${key}\}`, 'g'), options[key]);
-                /* eslint-enable */
-            });
+                result = result.replace(
+                    new RegExp(`\{${key}\}`, 'g'),
+                    options[key]
+                );
+            }
         }
         return result;
     }
@@ -61,7 +68,10 @@ export class I18N {
         const keys = Object.keys(value);
         // check greater then
         keys.filter((plural) => plural.indexOf('>') > -1)
-            .map((key) => ({ key, value: parseFloat(key.replace('>', '').trim()) }))
+            .map((key) => ({
+                key,
+                value: Number.parseFloat(key.replace('>', '').trim()),
+            }))
             .sort((a, b) => b.value - a.value)
             .find((entry) => {
                 const found = options.count > entry.value;
@@ -75,7 +85,10 @@ export class I18N {
         }
         // check lighter then
         keys.filter((plural) => plural.indexOf('<') > -1)
-            .map((key) => ({ key, value: parseFloat(key.replace('<', '').trim()) }))
+            .map((key) => ({
+                key,
+                value: Number.parseFloat(key.replace('<', '').trim()),
+            }))
             .sort((a, b) => a.value - b.value)
             .find((entry) => {
                 const found = options.count < entry.value;

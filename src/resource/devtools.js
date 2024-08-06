@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 /* eslint-disable no-console */
 if (!window.wyvr_debug_initialized) {
     window.wyvr_debug_initialized = true;
@@ -15,9 +14,11 @@ async function wyvr_devtools_initialize() {
         await Promise.all(
             modules_list.map(async (path) => {
                 try {
-                    let path_parts = (location?.origin + path).split('?');
+                    const path_parts = (location?.origin + path).split('?');
                     path_parts.push(cb);
-                    const imported_module = await import(path_parts.join('&').replace('&', '?'));
+                    const imported_module = await import(
+                        path_parts.join('&').replace('&', '?')
+                    );
                     const module = imported_module?.default;
                     if (module) {
                         if (!module.order) {
@@ -26,7 +27,7 @@ async function wyvr_devtools_initialize() {
                     }
                     return module;
                 } catch (e) {
-                    console.error('can not load module ' + path, e);
+                    console.error(`can not load module ${path}`, e);
                     return undefined;
                 }
             })
@@ -36,7 +37,8 @@ async function wyvr_devtools_initialize() {
             if (!module) {
                 return false;
             }
-            const result = typeof module?.onInit != 'function' || module.onInit();
+            const result =
+                typeof module?.onInit !== 'function' || module.onInit();
             if (result === undefined) {
                 return true;
             }
@@ -46,7 +48,7 @@ async function wyvr_devtools_initialize() {
             return a.order - b.order;
         });
 
-    if (modules.length == 0) {
+    if (modules.length === 0) {
         return;
     }
     // styles
@@ -66,10 +68,17 @@ async function wyvr_devtools_initialize() {
         <span><img width="48" height="17" src="${icon}" alt="wyvr Debug toolbar"/></span>
         <nav>${modules
             .map(
-                (module, index) => `<button id="wyvr_debug_toolbar_${index}" class="wyvr_debug_toolbar_button">
+                (
+                    module,
+                    index
+                ) => `<button id="wyvr_debug_toolbar_${index}" class="wyvr_debug_toolbar_button">
         <span class="wyvr_debug_toolbar_icon">${module.icon || '•'}</span>
         <span class="wyvr_debug_toolbar_name">${module.name || ''}</span>
-        ${module.description ? `<span class="wyvr_debug_toolbar_description">${module.description}</span>` : ''}
+        ${
+            module.description
+                ? `<span class="wyvr_debug_toolbar_description">${module.description}</span>`
+                : ''
+        }
         </button>`
             )
             .join('')}</nav>
@@ -78,14 +87,14 @@ async function wyvr_devtools_initialize() {
     // add click handler
     modules.map((module, index) => {
         const button = document.querySelector(`#wyvr_debug_toolbar_${index}`);
-        if (typeof module.onClick == 'function') {
+        if (typeof module.onClick === 'function') {
             button.addEventListener('click', (e) => {
                 module.onClick(button, e, module);
             });
         } else {
             button.disabled = true;
         }
-        if (typeof module.onMount == 'function') {
+        if (typeof module.onMount === 'function') {
             module.onMount(button, module);
         }
         if (module.instant === true) {
@@ -93,10 +102,10 @@ async function wyvr_devtools_initialize() {
         }
     });
 }
-// eslint-disable-next-line no-unused-vars
+
 function wyvr_debug_event(id, callback, immediately) {
     const element = document.getElementById(id);
-    if (element && callback && typeof callback == 'function') {
+    if (element && callback && typeof callback === 'function') {
         element.addEventListener('click', callback);
         if (immediately) {
             window.setTimeout(() => {
@@ -155,14 +164,16 @@ if (window.location.search.indexOf('wyvr_debug_measure_cwv') > -1) {
             });
             if (cls > 0 || nodes.length > 0) {
                 console.group(`Cumulative Layout Shift: ${cls}ms`);
-                console.log(`Shifting nodes`, nodes);
+                console.log('Shifting nodes', nodes);
                 console.groupEnd();
             }
         }).observe({ type: 'layout-shift', buffered: true });
 
         // FCP
         new PerformanceObserver((entryList) => {
-            (entryList.getEntriesByName('first-contentful-paint') || []).forEach((entry) => {
+            (
+                entryList.getEntriesByName('first-contentful-paint') || []
+            ).forEach((entry) => {
                 console.group(`First Contentful Paint: ${entry.startTime}ms`);
                 console.groupEnd();
             });
@@ -170,11 +181,11 @@ if (window.location.search.indexOf('wyvr_debug_measure_cwv') > -1) {
 
         // FID
         new PerformanceObserver((entryList) => {
-            let entry = (entryList.getEntries() || []).find((x) => x);
+            const entry = (entryList.getEntries() || []).find((x) => x);
             if (!entry) {
                 return;
             }
-            let fid = entry.processingStart - entry.startTime;
+            const fid = entry.processingStart - entry.startTime;
             console.group(`First Input Delay: ${fid}ms`);
             console.log(entry);
             console.groupEnd();

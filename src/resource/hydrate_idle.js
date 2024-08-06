@@ -1,10 +1,6 @@
-/* eslint-disable no-console */
-/* eslint-disable no-undef */
-
 import { wyvr_portal } from '@wyvr/generator/src/resource/portal.js';
 import { wyvr_props } from '@wyvr/generator/src/resource/props.js';
 
-/* eslint-disable no-unused-vars */
 const wyvr_idle_classes = {};
 
 export function wyvr_hydrate_idle(path, elements, name, cls, trigger) {

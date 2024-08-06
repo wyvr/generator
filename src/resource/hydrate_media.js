@@ -1,12 +1,8 @@
-/* eslint-disable no-undef */
-/* eslint-disable no-console */
-
 import { wyvr_portal } from '@wyvr/generator/src/resource/portal.js';
 import { wyvr_props } from '@wyvr/generator/src/resource/props.js';
 
 const wyvr_media_classes = {};
 
-/* eslint-disable no-unused-vars */
 let wyvr_media_resize_throttle_bind = false;
 export function wyvr_hydrate_media(path, elements, name, cls, trigger) {
     wyvr_media_classes[name] = { cls, path, loaded: false, elements };

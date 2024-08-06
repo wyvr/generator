@@ -1,6 +1,6 @@
-/* eslint-disable no-undef */
+ 
 /* eslint-disable no-console */
-/* eslint-disable no-unused-vars */
+ 
 async function wyvr_fetch(path) {
     if (!path) {
         return null;

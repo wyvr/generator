@@ -1,7 +1,3 @@
-/* eslint-disable no-console */
-/* eslint-disable no-undef */
-/* eslint-disable no-unused-vars */
-
 import { wyvr_portal } from '@wyvr/generator/src/resource/portal.js';
 import { wyvr_props } from '@wyvr/generator/src/resource/props.js';
 

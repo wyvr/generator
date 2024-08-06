@@ -1,7 +1,8 @@
-/* eslint-disable no-undef*/
 /* eslint-disable no-console*/
 (function wyvr_server_communication() {
-    window.wyvr_tab_id = sessionStorage.getItem('wyvr_tab_id') || btoa(`${new Date().getTime()}${Math.random()}`);
+    window.wyvr_tab_id =
+        sessionStorage.getItem('wyvr_tab_id') ||
+        btoa(`${new Date().getTime()}${Math.random()}`);
     sessionStorage.setItem('wyvr_tab_id', window.wyvr_tab_id);
     add_to_history();
     // build server connection
@@ -24,7 +25,7 @@
     let socket = null;
     let errors = [];
 
-    window.wyvr_close_error = function (btn) {
+    window.wyvr_close_error = (btn) => {
         if (!btn) {
             return;
         }
@@ -32,7 +33,7 @@
         if (!id) {
             return;
         }
-        errors = errors.filter((e, i) => i != +id);
+        errors = errors.filter((e, i) => i !== +id);
         wyvr_update_errors();
     };
 
@@ -42,14 +43,16 @@
         if (path.match(/.*\.[^.]+$/) || path.match(/\/$/)) {
             return path;
         }
-        return path.trim() + '/';
+        return `${path.trim()}/`;
     }
     function connect() {
         const connected = check_state();
         if (!connected) {
-            const socket_url = 'ws' + (location.protocol === 'https:' ? 's' : '') + '://' + location.hostname + '/ws';
+            const socket_url = `${
+                location.protocol === 'https:' ? 'wss' : 'ws'
+            }://${location.hostname}/ws`;
             socket = new WebSocket(socket_url);
-            socket.onmessage = function (event) {
+            socket.onmessage = (event) => {
                 check_state();
                 let data = event.data;
                 try {
@@ -66,7 +69,7 @@
                                 if (window.data?._wyvr?.page) {
                                     send({
                                         action: 'rebuild',
-                                        data: window.data._wyvr.page
+                                        data: window.data._wyvr.page,
                                     });
                                 }
                                 add_to_history(window.wyvr_tab_id);
@@ -92,12 +95,15 @@
                         break;
                     }
                     case 'get_config_cache': {
-                        trigger('wyvr_devtools_get_config_cache_result', data.data);
+                        trigger(
+                            'wyvr_devtools_get_config_cache_result',
+                            data.data
+                        );
                         break;
                     }
                 }
             };
-            socket.onclose = function () {
+            socket.onclose = () => {
                 check_state();
                 setTimeout(connect, 5000);
             };
@@ -130,9 +136,12 @@
                     .replace(/</g, '&lt;')
                     .replace(/>/g, '&gt;')
                     .replace(/\n/g, '<br>')
-                    .replace(/\\n/g, '<br>')}<button onclick="wyvr_close_error(this)" data-id="${index}" title="close"></button></li>`;
+                    .replace(
+                        /\\n/g,
+                        '<br>'
+                    )}<button onclick="wyvr_close_error(this)" data-id="${index}" title="close"></button></li>`;
             }),
-            '</ul>'
+            '</ul>',
         ];
         content.innerHTML = html.join('');
         return true;
@@ -174,21 +183,20 @@
     }
     function reload(list) {
         if (Array.isArray(list) && list.length > 0) {
-            list.forEach((asset) => {
+            for (const asset of list) {
                 if (asset.match(/\.css$/)) {
                     reload_resource(asset, 'link', 'href');
-                    return;
+                    continue;
                 }
                 if (asset.match(/\.js$/)) {
                     reload_resource(asset, 'script', 'src');
-                    return;
+                    continue;
                 }
                 if (asset.match(/\.jpg|jpe|jpeg|gif|png|webp|avif|heif$/)) {
                     reload_resource(asset, 'img', 'src');
                     reload_resource(asset, 'link', 'href');
-                    return;
                 }
-            });
+            }
         }
         // reload page
         if (list === '*') {
@@ -196,15 +204,20 @@
         }
     }
     function reload_resource(file_path, tag, attribute) {
-        Array.from(document.querySelectorAll(`${tag}[${attribute}*="${file_path}"]`)).forEach((ref) => {
+        for (const ref of document.querySelectorAll(
+            `${tag}[${attribute}*="${file_path}"]`
+        )) {
             const value = ref.getAttribute(attribute);
             if (value) {
                 // @see https://stackoverflow.com/questions/2024486/is-there-an-easy-way-to-reload-css-without-reloading-the-page
                 // add cache breaker to the resource
                 const cb = new Date().getTime().toString();
-                ref.setAttribute(attribute, value + (value.indexOf('?') > -1 ? '&' : '?') + cb);
+                ref.setAttribute(
+                    attribute,
+                    value + (value.indexOf('?') > -1 ? '&' : '?') + cb
+                );
             }
-        });
+        }
     }
 
     connect();

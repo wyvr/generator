@@ -45,6 +45,7 @@ let app_performance_limit_warning;
 export function server(port, on_request, on_end) {
     if (!is_number(port)) {
         Logger.warning('server could not be started because port is missing');
+        return;
     }
     createServer(async (req, res) => {
         const start = process.hrtime.bigint();

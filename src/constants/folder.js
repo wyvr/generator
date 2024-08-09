@@ -25,7 +25,6 @@ export const FOLDER_GEN_ROUTES = join(FOLDER_GEN, FOLDER_ROUTES);
 export const FOLDER_PAGES = 'pages';
 export const FOLDER_GEN_PAGES = join(FOLDER_GEN, FOLDER_PAGES);
 export const FOLDER_CSS = 'css';
-export const FOLDER_GEN_CSS = join(FOLDER_GEN, FOLDER_CSS);
 export const FOLDER_JS = 'js';
 export const FOLDER_GEN_JS = join(FOLDER_GEN, FOLDER_JS);
 export const FOLDER_PROP = 'prop';

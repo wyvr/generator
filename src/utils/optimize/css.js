@@ -12,7 +12,11 @@ import { get_file_hash_entry } from '../hash.js';
 import { uniq_values } from '../uniq.js';
 
 const hashes_db = new KeyValue(STORAGE_OPTIMIZE_HASHES);
-
+/**
+ * Optimize the css content and store the file hash
+ * @param {string} content
+ * @param {string} rel_path
+ */
 export async function optimize_css(content, rel_path) {
     try {
         let file_hash = hashes_db.get(rel_path);
@@ -37,6 +41,6 @@ export async function optimize_css(content, rel_path) {
         const css = result.css.split('\n').filter((line) => line.trim() !== '');
         write(target, uniq_values(css).join('\n'));
     } catch (e) {
-        Logger.error(get_error_message(e, file, 'css'));
+        Logger.error(get_error_message(e, rel_path, 'css'));
     }
 }

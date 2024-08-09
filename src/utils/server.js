@@ -214,7 +214,7 @@ export function get_time_log_infos(start = undefined, uid = undefined) {
     if (start) {
         const ms = nano_to_milli(end - (start ?? end));
         text = ms + Logger.color.dim('ms');
-        // get the value when not already set 
+        // get the value when not already set
         if (!app_performance_limit_warning) {
             app_performance_limit_warning = Config.get(
                 'worker.app_performance_limit_warning',
@@ -222,7 +222,7 @@ export function get_time_log_infos(start = undefined, uid = undefined) {
             );
         }
         // add formating when the value is set
-        if (is_number(app_performance_limit_warning)) {
+        if (Env.is_prod() && is_number(app_performance_limit_warning)) {
             if (ms > app_performance_limit_warning * 0.8) {
                 if (ms > app_performance_limit_warning) {
                     text = Logger.color.red(`${text}(slow)`);

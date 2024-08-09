@@ -15,6 +15,7 @@ import { build } from './build.js';
 import { get_config_cache } from './config_cache.js';
 import { WyvrFile } from '../model/wyvr_file.js';
 import { ReleasePath } from '../vars/release_path.js';
+import { optimize_js } from './optimize/js.js';
 
 /**
  * Get the js selector for all elements with the given name
@@ -158,7 +159,9 @@ export function write_hydrate_file(file_result) {
     if (file_result.code) {
         if (file_result.path) {
             write(ReleasePath.get(file_result.path), file_result.code);
+            optimize_js(file_result.code, file_result.path)
         }
+        // js in gen folder
         if (file_result.real_path) {
             write(file_result.real_path, file_result.code);
         }

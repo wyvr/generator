@@ -21,6 +21,7 @@ import {
 import { UniqId } from '../vars/uniq_id.js';
 import { KeyValue } from '../utils/database/key_value.js';
 import { STORAGE_PACKAGE_TREE } from '../constants/storage.js';
+import { optimize_js } from '../utils/optimize/js.js';
 
 const __dirname = to_dirname(import.meta.url);
 const lib_dir = join(__dirname, '..');
@@ -44,7 +45,7 @@ export async function scripts(identifiers) {
             continue;
         }
         let result = { code: '', sourcemap: '' };
-        let identifier_file;
+        let gen_identifier_file;
         let dependencies = [];
         let content;
         const scripts = [
@@ -143,7 +144,7 @@ export async function scripts(identifiers) {
                 }, 500);
             }`);
 
-            identifier_file = Cwd.get(
+            gen_identifier_file = Cwd.get(
                 FOLDER_GEN_JS,
                 `${identifier.identifier}.js`
             );
@@ -175,7 +176,7 @@ export async function scripts(identifiers) {
             }
 
             if (filled_string(build_content)) {
-                result = await build(build_content, identifier_file);
+                result = await build(build_content, gen_identifier_file);
             }
         } catch (e) {
             Logger.error(
@@ -193,17 +194,17 @@ export async function scripts(identifiers) {
                 `# sourceMappingURL=/js/${identifier.identifier}.js.map`
             );
 
-            write(identifier_file, code);
-            write(
-                join(
-                    ReleasePath.get(),
-                    FOLDER_JS,
-                    `${identifier.identifier}.js`
-                ),
-                code
-            );
+            write(gen_identifier_file, code);
 
-            write(`${identifier_file}.map`, result.sourcemap);
+            const rel_path = `/${join(
+                FOLDER_JS,
+                `${identifier.identifier}.js`
+            )}`;
+            write(ReleasePath.get(rel_path), code);
+            optimize_js(code, rel_path);
+
+            // source map
+            write(`${gen_identifier_file}.map`, result.sourcemap);
             write(
                 join(
                     ReleasePath.get(),

@@ -137,16 +137,13 @@ export async function process_route_request(
         identifiers[result.data._wyvr.identifier_data.identifier] =
             result?.data._wyvr.identifier_data;
         // save the file to gen
-    }
-    if (Object.keys(identifiers).length > 0) {
-        const generate_identifiers = Object.keys(identifiers)
-            .map((key) => identifiers[key])
-            .filter(Boolean);
-        // @TODO extract most of this whole file into worker_actions or a util
-        await scripts(generate_identifiers);
-    }
-    if (generate_identifier) {
-        // @TODO use hash path from storage hashes
+        if (Object.keys(identifiers).length > 0) {
+            const generate_identifiers = Object.keys(identifiers)
+                .map((key) => identifiers[key])
+                .filter(Boolean);
+            // @TODO extract most of this whole file into worker_actions or a util
+            await scripts(generate_identifiers);
+        }
         copy(
             Cwd.get(FOLDER_GEN_JS, `${result.data._wyvr.identifier}.js`),
             js_path

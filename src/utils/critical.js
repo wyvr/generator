@@ -18,6 +18,7 @@ const critical_options = {
             { width: 1280, height: 1024 },
             { width: 1920, height: 1080 },
         ],
+        rebase: false
     },
     // project settings
     ...Config.get('critical', {}),

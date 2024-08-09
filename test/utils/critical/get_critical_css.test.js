@@ -63,9 +63,7 @@ describe('utils/css/get_critical_css', () => {
             ),
             'a{color:red}'
         );
-        deepStrictEqual(log, [
-            'Not rebasing assets for a {color:red}. Use "rebase" option\n',
-        ]);
+        deepStrictEqual(log, []);
     });
     it('no css found', async () => {
         deepStrictEqual(

@@ -28,7 +28,8 @@ export function replace_files_with_content_hash(content) {
     if (!filled_string(content)) {
         return undefined;
     }
-    return hashes_db.keys().reduce((acc, cur) => {
+    const keys = hashes_db.keys();
+    return keys.reduce((acc, cur) => {
         if (acc.indexOf(cur) === -1) {
             return acc;
         }
@@ -40,25 +41,30 @@ export function replace_files_with_content_hash(content) {
 }
 
 export async function optimize_content(content, identifier) {
-    if (Env.is_dev() || !filled_string(content) || !filled_string(identifier)) {
+    if (Env.is_dev() || !filled_string(content)) {
         return content;
     }
     if (content.indexOf('<html') === -1) {
         // avoid minifying the content if it's not an html file
         return content;
     }
-    if (!critical_css_exists(identifier)) {
-        // @NOTE generate as late as possible otherwise some resources are not available
-        Logger.warning('generate critical css for', identifier);
-        const css = await get_critical_css(content, identifier);
-        if (css) {
-            critical_css_set(identifier, css, []);
+
+    const steps = [replace_files_with_content_hash, insert_media_query_files];
+    // when identifier is given try to generate the critical css
+    if (filled_string(identifier)) {
+        steps.push((content) => insert_critical_css(content, identifier));
+        if (!critical_css_exists(identifier)) {
+            // @NOTE generate as late as possible otherwise some resources are not available
+            Logger.warning('generate critical css for', identifier);
+            const css = await get_critical_css(content, identifier);
+            if (css) {
+                critical_css_set(identifier, css, []);
+            }
         }
     }
+
     // replace the files with the hash path and add the critical css
-    const replaced_content = replace_files_with_content_hash(
-        insert_critical_css(insert_media_query_files(content), identifier)
-    );
+    const replaced_content = steps.reduce((acc, cur) => cur(acc), content);
 
     try {
         const minified_content = minify(replaced_content, {

@@ -1,5 +1,5 @@
-import { FOLDER_PUBLISH } from '../constants/folder.js';
-import { symlink } from '../utils/file.js';
+import { FOLDER_ASSETS, FOLDER_PUBLISH } from '../constants/folder.js';
+import { exists, symlink } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
 import { Cwd } from '../vars/cwd.js';
@@ -14,6 +14,12 @@ export async function publish() {
     await measure_action(name, async () => {
         const build_id = UniqId.get();
         const release_path = ReleasePath.get();
+
+        // symlink special files like favicon.ico
+        const favicon_ico = ReleasePath.get(FOLDER_ASSETS, 'favicon.ico');
+        if (exists(favicon_ico)) {
+            symlink(favicon_ico, ReleasePath.get('favicon.ico'));
+        }
 
         // wrap in plugin
         const caller = await Plugin.process(name, build_id, release_path);

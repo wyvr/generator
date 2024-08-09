@@ -49,7 +49,7 @@ export async function optimize_content(content, identifier) {
         return content;
     }
 
-    const steps = [replace_files_with_content_hash, insert_media_query_files];
+    const steps = [insert_media_query_files, replace_files_with_content_hash];
     // when identifier is given try to generate the critical css
     if (filled_string(identifier)) {
         steps.push((content) => insert_critical_css(content, identifier));

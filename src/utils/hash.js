@@ -48,7 +48,11 @@ export function get_file_hash_entry(file) {
         return undefined;
     }
     const hash = get_file_hash(file);
-    const rel_path = to_relative_path(file);
+    let rel_path = file.replace(ReleasePath.get(), '');//to_relative_path(file);
+    // enforce that the path starts with a slash
+    if (!rel_path.startsWith('/')) {
+        rel_path = `/${rel_path}`;
+    }
     const ext = extname(rel_path);
     return {
         hash,

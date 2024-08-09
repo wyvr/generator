@@ -47,9 +47,9 @@ describe('utils/hash/get_files_hashes', () => {
         const file_path = join(path, rel_path);
         const result = get_files_hashes([file_path]);
         const test = {};
-        test[rel_path] = {
+        test['/js/src/test/test.js'] = {
             hash: '90d776e518e46065',
-            path: rel_path.replace('.js', '_90d776e518e46065.js'),
+            path: '/js/src/test/test_90d776e518e46065.js',
             rel_path,
         };
         deepStrictEqual(result, test);

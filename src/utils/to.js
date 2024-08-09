@@ -5,6 +5,7 @@ import {
     FOLDER_GEN_CLIENT,
     FOLDER_GEN_SERVER,
     FOLDER_GEN_SRC,
+    FOLDER_JS,
     FOLDER_SERVER,
     FOLDER_SRC,
 } from '../constants/folder.js';
@@ -99,10 +100,15 @@ export function to_relative_path(path) {
     let splitted = path.split('/');
     const gen_index = splitted.indexOf(FOLDER_GEN);
     const src_index = splitted.indexOf(FOLDER_SRC);
+    const js_index = splitted.indexOf(FOLDER_JS);
+
     if (gen_index > -1 || src_index > -1) {
         // gen and the next child or when only src is inside the path
-        const index = Math.max(gen_index + 1, src_index);
-        splitted = splitted.slice(index + 1);
+        let index = Math.max(gen_index + 1, src_index) + 1;
+        if (js_index > -1 && src_index - 1 === js_index) {
+            index = js_index;
+        }
+        splitted = splitted.slice(index);
     }
 
     return splitted.join('/').replace(ReleasePath.get(), '');

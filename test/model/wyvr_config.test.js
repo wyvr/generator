@@ -16,6 +16,7 @@ describe('model/wyvr_config', () => {
             'url',
             'worker',
             'critical',
+            'optimize'
         ]);
     });
 });

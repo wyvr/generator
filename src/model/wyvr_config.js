@@ -25,4 +25,5 @@ export const WyvrConfig = Object.freeze({
             atrule: ['@font-face'],
         },
     },
+    optimize: {},
 });

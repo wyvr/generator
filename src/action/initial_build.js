@@ -44,6 +44,7 @@ import { update_project_events } from '../utils/project_events.js';
 import { KeyValue } from '../../storage.js';
 import { STORAGE_CONFIG } from '../constants/storage.js';
 import { optimize_assets } from './optimize_assets.js';
+import { optimize_pages } from './optimize_pages.js';
 
 export async function pre_initial_build(build_id, config_data) {
     try {
@@ -160,6 +161,9 @@ export async function intial_build(build_id, config) {
         };
     }
     await scripts(identifiers);
+
+    // replace the js files in the generated pages
+    await optimize_pages();
 
     // Generate Media/Images
     // @TODO currently there are never medias returned from build

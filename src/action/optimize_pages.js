@@ -1,10 +1,5 @@
-import { FOLDER_ASSETS } from '../constants/folder.js';
-import { STORAGE_OPTIMIZE_HASHES } from '../constants/storage.js';
 import { WorkerAction } from '../struc/worker_action.js';
-import { KeyValue } from '../utils/database/key_value.js';
-import { collect_files, read, write } from '../utils/file.js';
-import { get_files_hashes } from '../utils/hash.js';
-import { replace_files_with_content_hash } from '../utils/optimize.js';
+import { collect_files } from '../utils/file.js';
 import { Plugin } from '../utils/plugin.js';
 import { Env } from '../vars/env.js';
 import { ReleasePath } from '../vars/release_path.js';

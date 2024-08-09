@@ -46,3 +46,19 @@ lint: ## Use ESLint on the codebase
 coverage-watch: ## Watches changes in the tests
 	@$(READONLY_FILES)
 	@npx nodemon --watch src --watch test --ignore test/**/_tests/**/*.js -e js --exec "$(WYVR_LINT); $(WYVR_COVERAGE)"
+
+format: ## Format the codebase
+	@npx @biomejs/biome format --write ./src/action
+	@npx @biomejs/biome format --write ./src/action_worker
+	@npx @biomejs/biome format --write ./src/boilerplate
+	@npx @biomejs/biome format --write ./src/cli
+	@npx @biomejs/biome format --write ./src/command
+	@npx @biomejs/biome format --write ./src/constants
+	@npx @biomejs/biome format --write ./src/model
+	@npx @biomejs/biome format --write ./src/presentation
+	@npx @biomejs/biome format --write ./src/resource
+	@npx @biomejs/biome format --write ./src/struc
+	@npx @biomejs/biome format --write ./src/utils
+	@npx @biomejs/biome format --write ./src/vars
+	@npx @biomejs/biome format --write ./src/worker
+	@npx @biomejs/biome format --write ./src/*.js

@@ -9,7 +9,6 @@ import cssnano from 'cssnano';
 import { STORAGE_OPTIMIZE_HASHES } from '../../constants/storage.js';
 import { KeyValue } from '../database/key_value.js';
 import { get_file_hash_entry } from '../hash.js';
-import { uniq_values } from '../uniq.js';
 
 const hashes_db = new KeyValue(STORAGE_OPTIMIZE_HASHES);
 /**
@@ -33,13 +32,12 @@ export async function optimize_css(content, rel_path) {
             return;
         }
         const result = await postcss([
-            cssnano({ plugins: [autoprefixer] }),
+            autoprefixer,
+            cssnano({ preset: 'default' }),
         ]).process(content, {
             from: undefined,
         });
-        // remove duplicated code in the files
-        const css = result.css.split('\n').filter((line) => line.trim() !== '');
-        write(target, uniq_values(css).join('\n'));
+        write(target, result.css);
     } catch (e) {
         Logger.error(get_error_message(e, rel_path, 'css'));
     }

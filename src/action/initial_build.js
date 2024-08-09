@@ -2,8 +2,12 @@ import { get_config_data } from './get_config_data.js';
 import { collect_packages } from './package.js';
 import { present } from './present.js';
 import {
+    FOLDER_ASSETS,
     FOLDER_GEN_EVENTS,
+    FOLDER_I18N,
+    FOLDER_JS,
     FOLDER_MEDIA,
+    FOLDER_PROP,
     FOLDER_RELEASES,
 } from '../constants/folder.js';
 import { package_report } from '../presentation/package_report.js';
@@ -39,6 +43,7 @@ import { cronjobs } from './cronjobs.js';
 import { update_project_events } from '../utils/project_events.js';
 import { KeyValue } from '../../storage.js';
 import { STORAGE_CONFIG } from '../constants/storage.js';
+import { optimize_assets } from './optimize_assets.js';
 
 export async function pre_initial_build(build_id, config_data) {
     try {
@@ -103,6 +108,11 @@ export async function intial_build(build_id, config) {
     // Create Translations/I18N
     await i18n(available_packages);
 
+    await copy_static_generated([FOLDER_ASSETS, FOLDER_I18N]);
+
+    // @TODO optimize assets
+    await optimize_assets();
+
     // Transform Svelte files to client and server components
     await transform();
 
@@ -156,7 +166,7 @@ export async function intial_build(build_id, config) {
     await media(build_result.media);
 
     // Copy static and generated files into release
-    await copy_static_generated();
+    await copy_static_generated([FOLDER_JS, FOLDER_PROP]);
 
     // Copy wyvr internal files into release in dev mode
     await wyvr_internal();

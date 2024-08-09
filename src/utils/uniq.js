@@ -12,5 +12,5 @@ export function uniq_values(list) {
     if (!is_array(list)) {
         list = [list];
     }
-    return list.filter((x, index, arr) => arr.indexOf(x) == index);
+    return list.filter((x, index, arr) => arr.indexOf(x) === index);
 }

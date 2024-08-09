@@ -120,8 +120,8 @@ export class KeyValue {
         if (!filled_object(obj)) {
             return false;
         }
-        for (const key of Object.keys(obj)) {
-            this.set(key, obj[key]);
+        for (const [key, value] of Object.entries(obj)) {
+            this.set(key, value);
         }
     }
 }

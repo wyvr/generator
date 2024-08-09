@@ -1,7 +1,10 @@
 import esbuild from 'esbuild';
 import sveltePlugin from 'esbuild-svelte';
-import { join } from 'node:path';
-import { FOLDER_CLIENT, FOLDER_GEN_CSS, FOLDER_GEN_TEMP } from '../constants/folder.js';
+import {
+    FOLDER_CLIENT,
+    FOLDER_CSS,
+    FOLDER_GEN_TEMP,
+} from '../constants/folder.js';
 import { WorkerEmit } from '../struc/worker_emit.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
@@ -20,6 +23,10 @@ import { replace_shortcode } from './shortcode.js';
 import { uniq_id } from './uniq.js';
 import { filled_array, filled_string, is_func } from './validate.js';
 import { Config } from './config.js';
+import { STORAGE_OPTIMIZE_MEDIA_QUERY_FILES } from '../constants/storage.js';
+import { KeyValue } from './database/key_value.js';
+
+const media_query_files_db = new KeyValue(STORAGE_OPTIMIZE_MEDIA_QUERY_FILES);
 
 export async function build(content, file, format = 'iife') {
     if (!filled_string(content) || !filled_string(content)) {
@@ -48,17 +55,25 @@ export async function build(content, file, format = 'iife') {
                             return false;
                         }
                         // ignore some warnings
-                        if (warning.code === 'css-unused-selector' && warning.message.indexOf('[data-slot=') > -1) {
+                        if (
+                            warning.code === 'css-unused-selector' &&
+                            warning.message.indexOf('[data-slot=') > -1
+                        ) {
                             return false;
                         }
-                        Logger.warning(get_error_message(warning, file, 'svelte'));
+                        Logger.warning(
+                            get_error_message(warning, file, 'svelte')
+                        );
                         return false;
-                    }
-                })
-            ]
+                    },
+                }),
+            ],
         });
         code = insert_import(read(tmp_file), file, FOLDER_CLIENT);
-        code = code.replace(/\/\/# sourceMappingURL=[^.]+\.js\.map/g, '// %sourcemap%');
+        code = code.replace(
+            /\/\/# sourceMappingURL=[^.]+\.js\.map/g,
+            '// %sourcemap%'
+        );
     } catch (e) {
         Logger.error(get_error_message(e, file, 'build'));
     }
@@ -148,8 +163,11 @@ export async function inject(
                     };
 
                     if (shortcode_result.media_query_files) {
-                        for (const key of Object.keys(shortcode_result.media_query_files)) {
-                            media_query_files[key] = shortcode_result.media_query_files[key];
+                        for (const key of Object.keys(
+                            shortcode_result.media_query_files
+                        )) {
+                            media_query_files[key] =
+                                shortcode_result.media_query_files[key];
                         }
                     }
                     if (is_func(shortcode_callback)) {
@@ -177,7 +195,7 @@ export async function inject(
                     // add the current stack to the page
                     get_stack_script(),
                     // add the devtools
-                    add_devtools_code(path, data)
+                    add_devtools_code(path, data),
                 ])
             );
 
@@ -186,7 +204,10 @@ export async function inject(
             }
 
             // write css
-            const css_file_path = Cwd.get(FOLDER_GEN_CSS, `${identifier}.css`);
+            const css_file_path = ReleasePath.get(
+                FOLDER_CSS,
+                `${identifier}.css`
+            );
             if (!global.cache) {
                 global.cache = {};
             }
@@ -194,12 +215,26 @@ export async function inject(
             if (search_segment(rendered_result?.result, 'css.code')) {
                 css_code = rendered_result.result.css.code;
             }
-            if (!exists(css_file_path) || global.cache.force_media_query_files) {
-                media_query_files = write_css_file(css_file_path, css_code, media_query_files);
+            if (
+                !exists(css_file_path) ||
+                global.cache.force_media_query_files
+            ) {
+                media_query_files = write_css_file(
+                    css_file_path,
+                    css_code,
+                    media_query_files
+                );
+                // store the media query files in the db
+                const entries = Object.entries(media_query_files);
+                for (const [key, value] of entries) {
+                    if (!media_query_files_db.exists(key)) {
+                        media_query_files_db.set(key, value);
+                    }
+                }
             }
         }
     } catch (e) {
         Logger.error(get_error_message(e, file, 'inject build'));
     }
-    return { content: content || '', has_media, path };
+    return { content: content || '', has_media, path, media_query_files };
 }

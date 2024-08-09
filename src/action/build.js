@@ -1,5 +1,5 @@
 import { FOLDER_GEN_DATA } from '../constants/folder.js';
-import { STORAGE_COLLECTION } from '../constants/storage.js';
+import { STORAGE_COLLECTION, STORAGE_OPTIMIZE_MEDIA_QUERY_FILES } from '../constants/storage.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
 import { KeyValue } from '../utils/database/key_value.js';
@@ -91,6 +91,13 @@ export async function build() {
         // used to create the critical files, here is the reference with identifier has which file assigned to them
         const collection_db = new KeyValue(STORAGE_COLLECTION);
         collection_db.set('identifier_files', identifier_files);
+
+        // set the media query files from the generated pages
+        const media_query_files_db = new KeyValue(
+            STORAGE_OPTIMIZE_MEDIA_QUERY_FILES
+        );
+        media_query_files_db.setObject(media_query_files);
+        media_query_files_db.close();
 
         const identifier_length = Object.keys(identifiers).length;
         Logger.info(

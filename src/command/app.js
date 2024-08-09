@@ -4,7 +4,6 @@ import { clear_releases } from '../action/clear_releases.js';
 import { critical } from '../action/critical.js';
 import { get_config_data } from '../action/get_config_data.js';
 import { intial_build, pre_initial_build } from '../action/initial_build.js';
-import { optimize } from '../action/optimize.js';
 import { get_ports } from '../action/port.js';
 import { present } from '../action/present.js';
 import { publish } from '../action/publish.js';
@@ -42,13 +41,10 @@ export const app_command = async (config) => {
         UniqId.persist();
         Logger.warning('no build id or pub folder found, build is required');
 
-        const { media_query_files } = await intial_build(build_id, config);
+        await intial_build(build_id, config);
 
         // Generate critical css
-        const critical_result = await critical();
-
-        // Optimize Pages
-        await optimize(media_query_files, critical_result);
+        await critical();
 
         // Publish the new release
         await publish();

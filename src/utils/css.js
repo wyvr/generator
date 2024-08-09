@@ -4,13 +4,19 @@ import { Env } from '../vars/env.js';
 import { exists, write } from './file.js';
 import { to_relative_from_markers } from './to.js';
 import { filled_string, is_null, is_object } from './validate.js';
+import { optimize_css } from './optimize/css.js';
+import { ReleasePath } from '../vars/release_path.js';
 
 export function write_css_file(file, code, media_query_files) {
     if (!filled_string(file)) {
         return {};
     }
     write(file, code);
-    if (!filled_string(code) || is_null(media_query_files) || !is_object(media_query_files)) {
+    if (
+        !filled_string(code) ||
+        is_null(media_query_files) ||
+        !is_object(media_query_files)
+    ) {
         return {};
     }
     // file must exists before it can be splitted
@@ -24,17 +30,30 @@ export function get_css_path(file) {
     if (!filled_string(file)) {
         return undefined;
     }
-    return sep + join(FOLDER_CSS, to_relative_from_markers(to_relative_from_markers(file, FOLDER_SRC, FOLDER_GEN), FOLDER_CSS));
+    return (
+        sep +
+        join(
+            FOLDER_CSS,
+            to_relative_from_markers(
+                to_relative_from_markers(file, FOLDER_SRC, FOLDER_GEN),
+                FOLDER_CSS
+            )
+        )
+    );
 }
 export function split_css_into_media_query_files(content, file) {
-    if (Env.is_prod()) {
-        const media_files = {};
-        const media_query_files = {};
-        if (!filled_string(content) || !exists(file)) {
-            return media_query_files;
-        }
-        // extract the media queries from the css_code
-        const remaining_content = content.replace(/@media([^{]*)\{((?:(?!\}\s*\}).)*\})}/g, (_, media, code) => {
+    if (Env.is_dev()) {
+        return undefined;
+    }
+    const media_files = {};
+    const media_query_files = {};
+    if (!filled_string(content) || !exists(file)) {
+        return media_query_files;
+    }
+    // extract the media queries from the css_code
+    const remaining_content = content.replace(
+        /@media([^{]*)\{((?:(?!\}\s*\}).)*\})}/g,
+        (_, media, code) => {
             const key = media.trim();
             if (!media_files[key]) {
                 media_files[key] = '';
@@ -42,21 +61,25 @@ export function split_css_into_media_query_files(content, file) {
             // append to the media query to generate a single file
             media_files[key] += code;
             return '';
+        }
+    );
+    // write remaining content without media queries
+    write(file, remaining_content);
+    // async!!! this will finish sometime later
+    optimize_css(remaining_content, file.replace(ReleasePath.get(), ''));
+    // write the media query files
+    Object.keys(media_files)
+        .sort()
+        .forEach((key, index) => {
+            const path = file.replace(/\.css$/, `_${index}.css`);
+            if (!exists(path)) {
+                const content = `/*for media query "${key}"*/\n${media_files[key]}`;
+                write(path, content);
+                // async!!! this will finish sometime later
+                optimize_css(content, path.replace(ReleasePath.get(), ''));
+            }
+            media_query_files[key] = get_css_path(path);
         });
-        // write remaining content without media queries
-        write(file, remaining_content);
-        // write the media query files
-        Object.keys(media_files)
-            .sort()
-            .forEach((key, index) => {
-                const path = file.replace(/\.css$/, `_${index}.css`);
-                if (!exists(path)) {
-                    write(path, `/*for media query "${key}"*/\n` + media_files[key]);
-                }
-                media_query_files[key] = get_css_path(path);
-            });
 
-        return media_query_files;
-    }
-    return undefined;
+    return media_query_files;
 }

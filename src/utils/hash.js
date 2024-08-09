@@ -34,19 +34,27 @@ export function get_files_hashes(files) {
         return result;
     }
     for (const file of files) {
-        if (!exists(file)) {
+        const entry = get_file_hash_entry(file);
+        if (!entry) {
             continue;
         }
-        const hash = get_file_hash(file);
-        const rel_path = file.replace(ReleasePath.get(), '');
-        const ext = extname(rel_path);
-        result[rel_path] = {
-            hash,
-            rel_path,
-            path: rel_path.replace(ext, `_${hash}${ext}`),
-        };
+        result[entry.rel_path] = entry;
     }
     return result;
+}
+
+export function get_file_hash_entry(file) {
+    if (!exists(file)) {
+        return undefined;
+    }
+    const hash = get_file_hash(file);
+    const rel_path = to_relative_path(file);
+    const ext = extname(rel_path);
+    return {
+        hash,
+        rel_path,
+        path: rel_path.replace(ext, `_${hash}${ext}`),
+    };
 }
 
 /**

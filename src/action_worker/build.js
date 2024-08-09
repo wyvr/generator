@@ -9,6 +9,7 @@ import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerEmit } from '../struc/worker_emit.js';
 import { inject } from '../utils/build.js';
 import { get_error_message } from '../utils/error.js';
+import { optimize_content } from '../utils/optimize.js';
 
 export async function build(files) {
     if (!filled_array(files)) {
@@ -38,16 +39,37 @@ export async function build(files) {
 
             const exec_result = await compile_server_svelte(content, file);
 
-            const rendered_result = await render_server_compiled_svelte(exec_result, data, file);
-            const injected_result = await inject(rendered_result, data, file, identifier, (shortcode_emit) => {
-                send_action(WorkerAction.emit, shortcode_emit);
-            });
+            const rendered_result = await render_server_compiled_svelte(
+                exec_result,
+                data,
+                file
+            );
+            const injected_result = await inject(
+                rendered_result,
+                data,
+                file,
+                identifier,
+                (shortcode_emit) => {
+                    send_action(WorkerAction.emit, shortcode_emit);
+                }
+            );
             if (injected_result.has_media) {
                 has_media = true;
             }
+            if (injected_result.media_query_files) {
+                for (const key of Object.keys(
+                    injected_result.media_query_files
+                )) {
+                    media_query_files[key] =
+                        injected_result.media_query_files[key];
+                }
+            }
 
             // write the html code
-            write(injected_result.path, injected_result.content);
+            write(
+                injected_result.path,
+                await optimize_content(injected_result.content, identifier)
+            );
         } catch (e) {
             Logger.error(get_error_message(e, file, 'build'));
         }
@@ -56,7 +78,7 @@ export async function build(files) {
     if (has_media) {
         const media_emit = {
             type: WorkerEmit.media,
-            media: media_files
+            media: media_files,
         };
         send_action(WorkerAction.emit, media_emit);
     }
@@ -64,13 +86,13 @@ export async function build(files) {
     if (filled_object(media_query_files)) {
         const media_query_files_emit = {
             type: WorkerEmit.media_query_files,
-            media_query_files
+            media_query_files,
         };
         send_action(WorkerAction.emit, media_query_files_emit);
     }
     const identifier_files_emit = {
         type: WorkerEmit.identifier_files,
-        identifier_files
+        identifier_files,
     };
     send_action(WorkerAction.emit, identifier_files_emit);
 }

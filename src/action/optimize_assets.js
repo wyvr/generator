@@ -29,8 +29,6 @@ export async function optimize_assets() {
         hashes_db.setObject(hashes);
         hashes_db.close();
 
-        // console.log('hashes', hashes);
-
         // wrap in plugin
         const caller = await Plugin.process(name, optimize_files);
         await caller(async (files) => {

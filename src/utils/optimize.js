@@ -1,5 +1,8 @@
 import { minify } from 'html-minifier';
-import { STORAGE_OPTIMIZE_HASHES } from '../constants/storage.js';
+import {
+    STORAGE_OPTIMIZE_HASHES,
+    STORAGE_OPTIMIZE_MEDIA_QUERY_FILES,
+} from '../constants/storage.js';
 import { Env } from '../vars/env.js';
 import {
     critical_css_exists,
@@ -10,10 +13,10 @@ import {
 import { KeyValue } from './database/key_value.js';
 import { get_error_message } from './error.js';
 import { Logger } from './logger.js';
-import { filled_string } from './validate.js';
+import { filled_array, filled_string } from './validate.js';
 
-let hash_keys;
 const hashes_db = new KeyValue(STORAGE_OPTIMIZE_HASHES);
+const media_query_files_db = new KeyValue(STORAGE_OPTIMIZE_MEDIA_QUERY_FILES);
 
 /**
  * Replace all file references in the content with the hash path
@@ -25,10 +28,7 @@ export function replace_files_with_content_hash(content) {
     if (!filled_string(content)) {
         return undefined;
     }
-    if (!hash_keys) {
-        hash_keys = hashes_db.keys();
-    }
-    return hash_keys.reduce((acc, cur) => {
+    return hashes_db.keys().reduce((acc, cur) => {
         if (acc.indexOf(cur) === -1) {
             return acc;
         }
@@ -47,19 +47,19 @@ export async function optimize_content(content, identifier) {
         // avoid minifying the content if it's not an html file
         return content;
     }
-    // replace the files with the hash path and add the critical css
-    const replaced_content = replace_files_with_content_hash(
-        insert_critical_css(content, identifier)
-    );
-
     if (!critical_css_exists(identifier)) {
         // @NOTE generate as late as possible otherwise some resources are not available
         Logger.warning('generate critical css for', identifier);
-        const css = await get_critical_css(replaced_content, identifier);
+        const css = await get_critical_css(content, identifier);
         if (css) {
             critical_css_set(identifier, css, []);
         }
     }
+    // replace the files with the hash path and add the critical css
+    const replaced_content = replace_files_with_content_hash(
+        insert_critical_css(insert_media_query_files(content), identifier)
+    );
+
     try {
         const minified_content = minify(replaced_content, {
             collapseBooleanAttributes: true,
@@ -77,4 +77,30 @@ export async function optimize_content(content, identifier) {
         Logger.error(get_error_message(e, null, 'minify'));
         return replaced_content;
     }
+}
+
+export function insert_media_query_files(content) {
+    if (!filled_string(content)) {
+        return '';
+    }
+    const media_query_links = [];
+
+    const keys = media_query_files_db.keys();
+    for (const css_file of keys) {
+        if (content.indexOf(css_file) > -1) {
+            const medias_query_files = media_query_files_db.get(css_file);
+            if (!media_query_files_db) {
+                continue;
+            }
+            for (const media of Object.keys(medias_query_files)) {
+                media_query_links.push(
+                    `<link href="${medias_query_files[media]}" rel="stylesheet" media="${media}">`
+                );
+            }
+        }
+    }
+    if (!filled_array(media_query_links)) {
+        return content;
+    }
+    return content.replace('</head>', `${media_query_links.join('')}</head>`);
 }

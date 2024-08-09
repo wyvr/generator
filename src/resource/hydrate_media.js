@@ -28,11 +28,7 @@ export function wyvr_hydrate_media(path, elements, name, cls, trigger) {
 }
 function wyvr_media_checker() {
     for (const name of Object.keys(wyvr_media_classes)) {
-        if (
-            !name ||
-            wyvr_media_classes[name].loaded ||
-            !wyvr_media_classes[name].elements
-        ) {
+        if (!name || wyvr_media_classes[name].loaded || !wyvr_media_classes[name].elements) {
             continue;
         }
         for (const el of wyvr_media_classes[name].elements) {

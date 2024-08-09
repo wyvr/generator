@@ -1,8 +1,5 @@
 import { KeyValue } from '../utils/database/key_value.js';
-import {
-    STORAGE_COLLECTION,
-    STORAGE_OPTIMIZE_CRITICAL,
-} from '../constants/storage.js';
+import { STORAGE_COLLECTION, STORAGE_OPTIMIZE_CRITICAL } from '../constants/storage.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
 import { Event } from '../utils/event.js';
@@ -27,16 +24,14 @@ export async function critical() {
         const identifier_files = collection_db.get('identifier_files');
         const data = [];
         for (const identifier of Object.keys(identifier_files)) {
-            const files = identifier_files[identifier].map((file) =>
-                to_index(file)
-            );
+            const files = identifier_files[identifier].map((file) => to_index(file));
             const file = files.find((file) => file.match(/\.html?$/));
             if (file) {
                 data.push({ identifier, file });
             }
             critical[identifier] = {
                 css: '',
-                files,
+                files
             };
         }
 
@@ -52,11 +47,7 @@ export async function critical() {
         // wrap in plugin
         const caller = await Plugin.process(name, data);
         await caller(async (data) => {
-            await WorkerController.process_in_workers(
-                WorkerAction.critical,
-                data,
-                1
-            );
+            await WorkerController.process_in_workers(WorkerAction.critical, data, 1);
         });
 
         Event.off('emit', critical_name, critical_id);

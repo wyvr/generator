@@ -1,5 +1,5 @@
 <script>
-    export let data = null;
+export let data = null;
 </script>
 
 <slot />

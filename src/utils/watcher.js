@@ -33,10 +33,8 @@ export async function package_watcher(packages, restart_required_callback) {
         }
 
         watcher = watch(watch_folder, {
-            ignoreInitial: true,
-        }).on('all', (event, path) =>
-            watcher_event(event, path, restart_required_callback)
-        );
+            ignoreInitial: true
+        }).on('all', (event, path) => watcher_event(event, path, restart_required_callback));
 
         Logger.success('watching', packages.length, 'packages');
         set_waiting();
@@ -68,9 +66,7 @@ export function watcher_event(event, path, restart_required_callback) {
                 restart_required_callback();
                 restart_required = false;
             } else {
-                Logger.warning(
-                    'wyvr restart required because of config changes'
-                );
+                Logger.warning('wyvr restart required because of config changes');
             }
         }
     }, 250);
@@ -101,22 +97,12 @@ export async function process_changed_files(changed_files, packages) {
                 const used_index = packages.findIndex((p) => p === used_pkg);
                 const current_index = packages.findIndex((p) => p === pkg);
                 if (current_index > -1 && current_index >= used_index) {
-                    Logger.warning(
-                        `ignoring ${event} of ${rel_path} from ${
-                            pkg.name
-                        }, it is used from ${used_pkg.name} ${Logger.color.dim(
-                            used_pkg.path
-                        )}`
-                    );
+                    Logger.warning(`ignoring ${event} of ${rel_path} from ${pkg.name}, it is used from ${used_pkg.name} ${Logger.color.dim(used_pkg.path)}`);
                     return;
                 }
             }
 
-            Logger.info(
-                'detect',
-                event,
-                Logger.color.dim(`${pkg_path}/`) + rel_path
-            );
+            Logger.info('detect', event, Logger.color.dim(`${pkg_path}/`) + rel_path);
 
             // when config file is changed restart
             if (path.match(/wyvr\.[mc]?js$/)) {
@@ -130,12 +116,7 @@ export async function process_changed_files(changed_files, packages) {
             // special behaviour when css or js from svelte file gets changed or edited, only the svelte file should be edited
             if (event === 'add' || event === 'change') {
                 const extension = extname(path);
-                if (
-                    in_array(
-                        ['.css', '.scss', '.js', '.mjs', '.cjs', '.ts'],
-                        extension
-                    )
-                ) {
+                if (in_array(['.css', '.scss', '.js', '.mjs', '.cjs', '.ts'], extension)) {
                     const svelte_rel_path = to_extension(rel_path, '.svelte');
                     const pkg = package_tree[svelte_rel_path];
                     if (pkg) {
@@ -146,7 +127,7 @@ export async function process_changed_files(changed_files, packages) {
                         result.change.push({
                             path,
                             rel_path: svelte_rel_path,
-                            pkg,
+                            pkg
                         });
                     }
                 }
@@ -159,7 +140,7 @@ export async function process_changed_files(changed_files, packages) {
             result[event].push({
                 path,
                 rel_path,
-                pkg,
+                pkg
             });
 
             // when a file is remove add the next file to the list of changed files
@@ -170,9 +151,7 @@ export async function process_changed_files(changed_files, packages) {
 
                 const remaining_packages = packages.filter((p) => p !== pkg);
                 if (remaining_packages) {
-                    const fallback_package = remaining_packages.find((p) =>
-                        exists(join(p.path, rel_path))
-                    );
+                    const fallback_package = remaining_packages.find((p) => exists(join(p.path, rel_path)));
                     if (fallback_package) {
                         if (!result.change) {
                             result.change = [];
@@ -182,7 +161,7 @@ export async function process_changed_files(changed_files, packages) {
                         result.change.push({
                             path: join(fallback_package.path, rel_path),
                             rel_path,
-                            pkg: fallback_package,
+                            pkg: fallback_package
                         });
                     }
                 }

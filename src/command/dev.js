@@ -47,10 +47,7 @@ export async function dev_command(config) {
         const config_data = get_config_data(config, build_id);
         present(config_data);
 
-        const { available_packages } = await pre_initial_build(
-            build_id,
-            config_data
-        );
+        const { available_packages } = await pre_initial_build(build_id, config_data);
 
         await Plugin.initialize();
 
@@ -72,8 +69,7 @@ export async function dev_command(config) {
         Config.replace(undefined);
 
         const package_json = read_json('package.json');
-        const { available_packages, disabled_packages } =
-            await collect_packages(package_json);
+        const { available_packages, disabled_packages } = await collect_packages(package_json);
         package_report(available_packages, disabled_packages);
 
         // store new config
@@ -99,9 +95,5 @@ export async function dev_command(config) {
     return build_id;
 }
 export function is_fast_build(config, build_id) {
-    return (
-        config?.cli?.flags?.fast &&
-        exists(Cwd.get(FOLDER_RELEASES, build_id)) &&
-        exists(Cwd.get(FOLDER_GEN))
-    );
+    return config?.cli?.flags?.fast && exists(Cwd.get(FOLDER_RELEASES, build_id)) && exists(Cwd.get(FOLDER_GEN));
 }

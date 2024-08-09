@@ -1,13 +1,7 @@
 import { check_env } from '../action/check_env.js';
 import { get_config_data } from '../action/get_config_data.js';
 import { get_present_command } from '../action/present.js';
-import {
-    FOLDER_CACHE,
-    FOLDER_GEN,
-    FOLDER_MEDIA,
-    FOLDER_RELEASES,
-    FOLDER_STORAGE,
-} from '../constants/folder.js';
+import { FOLDER_CACHE, FOLDER_GEN, FOLDER_MEDIA, FOLDER_RELEASES, FOLDER_STORAGE } from '../constants/folder.js';
 import { remove } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { filled_array, is_object } from '../utils/validate.js';
@@ -25,17 +19,12 @@ export async function clear_command(config) {
 
     const config_data = get_config_data(config, build_id);
 
-    const { command, flags } = get_present_command(
-        config_data?.cli?.command,
-        config_data?.cli?.flags
-    );
+    const { command, flags } = get_present_command(config_data?.cli?.command, config_data?.cli?.flags);
     process.title = `wyvr ${command}`;
     Logger.present('command', command, Logger.color.dim(flags));
 
     const default_flags = ['cache'];
-    const flags_array = is_object(config_data?.cli?.flags)
-        ? Object.keys(config_data.cli.flags)
-        : default_flags;
+    const flags_array = is_object(config_data?.cli?.flags) ? Object.keys(config_data.cli.flags) : default_flags;
 
     const clear_folders = clear(flags_array);
     return clear_folders.join(' ');

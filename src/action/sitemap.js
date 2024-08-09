@@ -29,15 +29,8 @@ export async function sitemap() {
                 const sitemap_content = [
                     '<?xml version="1.0" encoding="UTF-8"?>',
                     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-                    active_entries
-                        .map(
-                            (entry) =>
-                                `<url><loc>${to_index(
-                                    entry.url
-                                )}</loc><lastmod>${entry.mtime}</lastmod></url>`
-                        )
-                        .join('\n'),
-                    '</urlset>',
+                    active_entries.map((entry) => `<url><loc>${to_index(entry.url)}</loc><lastmod>${entry.mtime}</lastmod></url>`).join('\n'),
+                    '</urlset>'
                 ].join('\n');
                 write(ReleasePath.get('sitemap.xml'), sitemap_content);
             }

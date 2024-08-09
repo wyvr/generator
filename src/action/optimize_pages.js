@@ -19,11 +19,7 @@ export async function optimize_pages() {
 
         const caller = await Plugin.process(name, pages);
         await caller(async (pages) => {
-            await WorkerController.process_in_workers(
-                WorkerAction.optimize,
-                pages,
-                10
-            );
+            await WorkerController.process_in_workers(WorkerAction.optimize, pages, 10);
         });
     });
 }

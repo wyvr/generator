@@ -20,10 +20,7 @@ export async function optimize_js(content, rel_path) {
         let file_content = content;
         if (!file_hash) {
             file_content = replace_files_with_content_hash(content);
-            const entry = get_content_hash_entry(
-                file_content,
-                ReleasePath.get(rel_path)
-            );
+            const entry = get_content_hash_entry(file_content, ReleasePath.get(rel_path));
             if (!entry) {
                 return;
             }

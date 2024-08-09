@@ -7,13 +7,7 @@ import { Cwd } from '../vars/cwd.js';
 import { get_error_message } from './error.js';
 import { collect_files } from './file.js';
 import { Logger } from './logger.js';
-import {
-    filled_array,
-    filled_string,
-    in_array,
-    is_func,
-    is_null,
-} from './validate.js';
+import { filled_array, filled_string, in_array, is_func, is_null } from './validate.js';
 import { nano_to_milli } from './convert.js';
 import { search_segment } from './segment.js';
 import { ReleasePath } from '../vars/release_path.js';
@@ -44,15 +38,9 @@ export class Plugin {
             files.map(async (file_path) => {
                 let plugin;
                 try {
-                    plugin = (
-                        await import(join(cwd, append_cache_breaker(file_path)))
-                    ).default;
+                    plugin = (await import(join(cwd, append_cache_breaker(file_path)))).default;
                 } catch (e) {
-                    Logger.error(
-                        'error in plugin',
-                        file_path,
-                        get_error_message(e, file_path, 'plugin')
-                    );
+                    Logger.error('error in plugin', file_path, get_error_message(e, file_path, 'plugin'));
                     return undefined;
                 }
 
@@ -66,25 +54,15 @@ export class Plugin {
                     // iterate of the keys
                     for (const type in plugin[name]) {
                         if (!in_array(['before', 'after', 'around'], type)) {
-                            Logger.warning(
-                                'unkown plugin type',
-                                type,
-                                file_path
-                            );
+                            Logger.warning('unkown plugin type', type, file_path);
                             continue;
                         }
 
                         result[name][type].push({
                             source: file_path,
-                            fn: plugin[name][type],
+                            fn: plugin[name][type]
                         });
-                        Logger.debug(
-                            'add plugin',
-                            name,
-                            type,
-                            'from',
-                            file_path
-                        );
+                        Logger.debug('add plugin', name, type, 'from', file_path);
                     }
                 });
                 return null;
@@ -98,14 +76,10 @@ export class Plugin {
     }
 
     static async before(name, ...args) {
-        return await (
-            await this.execute(name, 'before')
-        )(undefined, ...args);
+        return await (await this.execute(name, 'before'))(undefined, ...args);
     }
     static async after(name, result, ...args) {
-        return await (
-            await this.execute(name, 'after')
-        )(result, ...args);
+        return await (await this.execute(name, 'after'))(result, ...args);
     }
 
     /**
@@ -120,19 +94,17 @@ export class Plugin {
                 return {
                     error: 'missing plugin name or type',
                     args: undefined,
-                    result,
+                    result
                 };
             };
         }
-        const plugins = search_segment(this.cache, `${name}.${type}`)?.filter(
-            Boolean
-        );
+        const plugins = search_segment(this.cache, `${name}.${type}`)?.filter(Boolean);
         if (is_null(plugins)) {
             return async (result, ...args) => {
                 return {
                     error: `no ${type} plugin for "${name}" found`,
                     args,
-                    result,
+                    result
                 };
             };
         }
@@ -149,9 +121,9 @@ export class Plugin {
                 config: {
                     cwd: Cwd.get(),
                     release_path: ReleasePath.get(),
-                    env: Env.name(),
+                    env: Env.name()
                 },
-                result,
+                result
             };
             for (let i = 0, len = plugins.length; i < len; i++) {
                 const start = hrtime.bigint();
@@ -161,21 +133,10 @@ export class Plugin {
                         data.result = partial_result;
                     }
                 } catch (e) {
-                    Logger.error(
-                        'error in plugin for',
-                        Logger.color.bold(name),
-                        Logger.color.bold(type),
-                        get_error_message(e, plugins[i].source, 'plugin')
-                    );
+                    Logger.error('error in plugin for', Logger.color.bold(name), Logger.color.bold(type), get_error_message(e, plugins[i].source, 'plugin'));
                 }
                 const duration = nano_to_milli(hrtime.bigint() - start);
-                Logger.report(
-                    duration,
-                    'plugin',
-                    name,
-                    type,
-                    plugins[i].source
-                );
+                Logger.report(duration, 'plugin', name, type, plugins[i].source);
             }
             return data;
         };
@@ -185,7 +146,7 @@ export class Plugin {
             const out = {
                 error: undefined,
                 args,
-                result: undefined,
+                result: undefined
             };
             if (!is_func(original_function)) {
                 out.error = ['missing plugin function'];

@@ -1,15 +1,7 @@
 import { get_config_data } from './get_config_data.js';
 import { collect_packages } from './package.js';
 import { present } from './present.js';
-import {
-    FOLDER_ASSETS,
-    FOLDER_GEN_EVENTS,
-    FOLDER_I18N,
-    FOLDER_JS,
-    FOLDER_MEDIA,
-    FOLDER_PROP,
-    FOLDER_RELEASES,
-} from '../constants/folder.js';
+import { FOLDER_ASSETS, FOLDER_GEN_EVENTS, FOLDER_I18N, FOLDER_JS, FOLDER_MEDIA, FOLDER_PROP, FOLDER_RELEASES } from '../constants/folder.js';
 import { package_report } from '../presentation/package_report.js';
 import { Config } from '../utils/config.js';
 import { read_json, symlink } from '../utils/file.js';
@@ -63,17 +55,12 @@ export async function pre_initial_build(build_id, config_data) {
 
     // Collect packages
     const package_json = read_json('package.json');
-    const { available_packages, disabled_packages } = await collect_packages(
-        package_json
-    );
+    const { available_packages, disabled_packages } = await collect_packages(package_json);
     package_report(available_packages, disabled_packages);
 
     config_db.setObject(Config.get());
 
-    await WorkerController.initialize(
-        Config.get('worker.ratio', 1),
-        config_data?.cli?.flags?.single
-    );
+    await WorkerController.initialize(Config.get('worker.ratio', 1), config_data?.cli?.flags?.single);
 
     // Create required symlinks
     symlink(Cwd.get(FOLDER_MEDIA), ReleasePath.get(FOLDER_MEDIA));
@@ -83,7 +70,7 @@ export async function pre_initial_build(build_id, config_data) {
     return {
         package_json,
         available_packages,
-        disabled_packages,
+        disabled_packages
     };
 }
 
@@ -95,10 +82,7 @@ export async function intial_build(build_id, config) {
     // clear gen folder
     clear_gen();
 
-    const { available_packages } = await pre_initial_build(
-        build_id,
-        config_data
-    );
+    const { available_packages } = await pre_initial_build(build_id, config_data);
 
     // Copy static files from packages
     // Copy files from packages and override in the package order
@@ -144,10 +128,7 @@ export async function intial_build(build_id, config) {
     const build_result = await build();
 
     // combine identifiers
-    const identifiers = to_identifiers(
-        pages_result.identifiers,
-        build_result.identifiers
-    );
+    const identifiers = to_identifiers(pages_result.identifiers, build_result.identifiers);
     await set_config_cache('identifiers', identifiers);
 
     // Build Scripts
@@ -157,7 +138,7 @@ export async function intial_build(build_id, config) {
             identifier: 'wyvr_development',
             doc: '',
             layout: '',
-            page: '',
+            page: ''
         };
     }
     await scripts(identifiers);
@@ -181,6 +162,6 @@ export async function intial_build(build_id, config) {
         packages: available_packages,
         identifiers,
         media: build_result.media,
-        media_query_files: build_result.media_query_files,
+        media_query_files: build_result.media_query_files
     };
 }

@@ -3,11 +3,7 @@ import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerEmit } from '../struc/worker_emit.js';
 import { clone } from '../utils/json.js';
 import { Logger } from '../utils/logger.js';
-import {
-    execute_page,
-    get_page_data_path,
-    write_pages,
-} from '../utils/pages.js';
+import { execute_page, get_page_data_path, write_pages } from '../utils/pages.js';
 import { filled_array, filled_object, is_null } from '../utils/validate.js';
 import { send_action } from '../worker/communication.js';
 import { process_page_data } from './process_page_data.js';
@@ -52,23 +48,12 @@ export async function page(files) {
                 page_data._wyvr.pkg = page.pkg.name;
                 if (page_data._wyvr.collection) {
                     for (const entry of page_data._wyvr.collection) {
-                        append_entry_to_collections(
-                            collections,
-                            collection_entry(entry)
-                        );
+                        append_entry_to_collections(collections, collection_entry(entry));
                     }
                 }
-                if (
-                    page_data._wyvr.identifier &&
-                    page_data._wyvr.identifier_data
-                ) {
-                    if (
-                        !identifiers_cache[page_data._wyvr.identifier] &&
-                        !page_data._wyvr.static
-                    ) {
-                        const identifier_emit = clone(
-                            page_data._wyvr.identifier_data
-                        );
+                if (page_data._wyvr.identifier && page_data._wyvr.identifier_data) {
+                    if (!identifiers_cache[page_data._wyvr.identifier] && !page_data._wyvr.static) {
+                        const identifier_emit = clone(page_data._wyvr.identifier_data);
                         identifier_emit.type = WorkerEmit.identifier;
                         // emit identifier only when it was not added to the cache before
                         // or avoid when the given data has to be static => no JS
@@ -86,13 +71,13 @@ export async function page(files) {
     if (filled_object(collections)) {
         const collections_emit = {
             type: WorkerEmit.collections,
-            collections,
+            collections
         };
         send_action(WorkerAction.emit, collections_emit);
     }
     send_action(WorkerAction.emit, {
         type: WorkerEmit.page,
         pages,
-        data_pages,
+        data_pages
     });
 }

@@ -32,7 +32,7 @@ export async function critical(entries) {
     if (filled_object(critical)) {
         const critical_emit = {
             type: WorkerEmit.critical,
-            critical,
+            critical
         };
         send_action(WorkerAction.emit, critical_emit);
     }

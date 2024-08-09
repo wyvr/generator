@@ -1,11 +1,27 @@
 <script>
-    /* Created with wyvr {{version}} */
-{{wyvr_imports}}
-{{wyvr_file_config}}
-    export let value = 'default';
+/* Created with wyvr {{version}} */
+{
+    {
+        wyvr_imports;
+    }
+}
+{
+    {
+        wyvr_file_config;
+    }
+}
+export let value = 'default';
 
-{{wyvr_split_js}}
-{{wyvr_code}}
+{
+    {
+        wyvr_split_js;
+    }
+}
+{
+    {
+        wyvr_code;
+    }
+}
 </script>
 
 <div class="content">

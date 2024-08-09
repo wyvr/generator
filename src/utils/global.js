@@ -25,9 +25,7 @@ export function register_inject(file) {
                     const db = new KeyValue(type);
                     value = db.get(parent_key);
                 } catch (e) {
-                    Logger.error(
-                        get_error_message(e, global._inject_file, 'inject')
-                    );
+                    Logger.error(get_error_message(e, global._inject_file, 'inject'));
                 }
             }
             if (is_null(value)) {
@@ -40,9 +38,7 @@ export function register_inject(file) {
             try {
                 value = await callback(value);
             } catch (e) {
-                Logger.warning(
-                    get_error_message(e, global._inject_file, 'inject')
-                );
+                Logger.warning(get_error_message(e, global._inject_file, 'inject'));
             }
             return value;
         };
@@ -62,13 +58,7 @@ export function register_i18n(translations, file) {
         global.__ = (key, options) => {
             const error = global._i18n.get_error(key, options);
             if (error) {
-                Logger.warning(
-                    get_error_message(
-                        { name: 'i18n', message: error },
-                        global._i18n_file,
-                        'inject'
-                    )
-                );
+                Logger.warning(get_error_message({ name: 'i18n', message: error }, global._i18n_file, 'inject'));
             }
             return global._i18n.tr(key, options);
         };
@@ -94,9 +84,7 @@ export function register_prop(file) {
             }
             return `|${prop}|:|@(${file_name})|`;
         }
-        return `|${prop}|:${converted
-            .replace(/\|/g, '§|§')
-            .replace(/"/g, '|')}`;
+        return `|${prop}|:${converted.replace(/\|/g, '§|§').replace(/"/g, '|')}`;
     };
 }
 const stackContext = new Map();

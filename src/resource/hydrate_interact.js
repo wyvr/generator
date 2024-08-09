@@ -32,10 +32,7 @@ const wyvr_interact_init = (e) => {
     let el = e.target;
     let last_element;
     while (el && el.tagName !== 'HTML') {
-        if (
-            el.getAttribute('data-hydrate') &&
-            el.getAttribute('data-loading') === 'interact'
-        ) {
+        if (el.getAttribute('data-hydrate') && el.getAttribute('data-loading') === 'interact') {
             last_element = el;
         }
         el = el.parentNode;
@@ -48,11 +45,7 @@ const wyvr_interact_init = (e) => {
     wyvr_props(last_element).then((props) => {
         const target = wyvr_portal(last_element, props);
         const name = target.getAttribute('data-hydrate');
-        if (
-            name &&
-            wyvr_interact_classes[name] &&
-            !wyvr_interact_classes[name].loaded
-        ) {
+        if (name && wyvr_interact_classes[name] && !wyvr_interact_classes[name].loaded) {
             wyvr_interact_classes[name].loaded = true;
             const script = document.createElement('script');
             script.setAttribute('src', wyvr_interact_classes[name].path);
@@ -89,9 +82,7 @@ const wyvr_interact_init = (e) => {
 
 function get_dom_path(el, parent) {
     const stack = [];
-    const id = `${parent.getAttribute(
-        'data-hydrate-path'
-    )}_${new Date().getTime()}`;
+    const id = `${parent.getAttribute('data-hydrate-path')}_${new Date().getTime()}`;
     // set the unique value only once
     if (parent.getAttribute('data-hydrate-id')) {
         return undefined;

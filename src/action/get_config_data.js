@@ -37,7 +37,7 @@ export function get_config_data(cli_config, build_id) {
         }
         if (is_number(cli_config.cli.flags.worker)) {
             const worker_ratio = Math.max(0, Math.min(1, cli_config.cli.flags.worker));
-            if(!config.worker) {
+            if (!config.worker) {
                 config.worker = {};
             }
             config.worker.ratio = worker_ratio;

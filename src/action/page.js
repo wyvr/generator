@@ -24,12 +24,7 @@ export async function pages(package_tree) {
         collections = result.collections;
 
         const identifier_length = Object.keys(identifiers).length;
-        Logger.info(
-            'found',
-            identifier_length,
-            identifier_length === 1 ? 'identifier' : 'identifiers',
-            Logger.color.dim('different layout combinations')
-        );
+        Logger.info('found', identifier_length, identifier_length === 1 ? 'identifier' : 'identifiers', Logger.color.dim('different layout combinations'));
     });
     await set_config_cache('page.cache', result?.page_objects, false);
 
@@ -74,12 +69,7 @@ export async function process_pages(name, data, show_name = false) {
     // wrap in plugin
     const caller = await Plugin.process(name, data);
     await caller(async (data) => {
-        await WorkerController.process_in_workers(
-            WorkerAction.page,
-            data,
-            10,
-            show_name
-        );
+        await WorkerController.process_in_workers(WorkerAction.page, data, 10, show_name);
     });
 
     // remove listeners

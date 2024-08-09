@@ -16,12 +16,12 @@ const critical_options = {
             { width: 480, height: 800 },
             { width: 1024, height: 768 },
             { width: 1280, height: 1024 },
-            { width: 1920, height: 1080 },
+            { width: 1920, height: 1080 }
         ],
         rebase: false
     },
     // project settings
-    ...Config.get('critical', {}),
+    ...Config.get('critical', {})
 };
 
 export async function get_critical_css(content, file) {
@@ -46,8 +46,8 @@ export async function generate_critical_css(content, file) {
             ...{
                 inline: false, // generates CSS
                 base: ReleasePath.get(),
-                html: content,
-            },
+                html: content
+            }
         };
         // create above the fold inline css
         const result = await generate(options);
@@ -69,10 +69,7 @@ export function insert_critical_css(content, identifier) {
     if (!css) {
         return content;
     }
-    return content.replace(
-        '</head>',
-        `<style id="critical">${css}</style></head>`
-    );
+    return content.replace('</head>', `<style id="critical">${css}</style></head>`);
 }
 
 export function critical_css_exists(identifier) {
@@ -82,6 +79,6 @@ export function critical_css_exists(identifier) {
 export function critical_css_set(identifier, css, files) {
     return critical_db.set(identifier, {
         css,
-        files,
+        files
     });
 }

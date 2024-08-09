@@ -38,47 +38,33 @@ export async function build() {
                 media[key] = data.media[key];
             }
         });
-        const media_query_files_id = Event.on(
-            'emit',
-            media_query_files_name,
-            (data) => {
-                if (!data || !data.media_query_files) {
-                    return;
-                }
-                for (const file of Object.keys(data.media_query_files)) {
-                    media_query_files[file] = data.media_query_files[file];
-                }
+        const media_query_files_id = Event.on('emit', media_query_files_name, (data) => {
+            if (!data || !data.media_query_files) {
+                return;
             }
-        );
+            for (const file of Object.keys(data.media_query_files)) {
+                media_query_files[file] = data.media_query_files[file];
+            }
+        });
 
-        const identifier_files_id = Event.on(
-            'emit',
-            identifier_files_name,
-            (data) => {
-                if (!data || !data.identifier_files) {
-                    return;
-                }
-                for (const identifier of Object.keys(data.identifier_files)) {
-                    if (!identifier_files[identifier]) {
-                        identifier_files[identifier] = [];
-                    }
-                    identifier_files[identifier].push(
-                        ...data.identifier_files[identifier]
-                    );
-                }
+        const identifier_files_id = Event.on('emit', identifier_files_name, (data) => {
+            if (!data || !data.identifier_files) {
+                return;
             }
-        );
+            for (const identifier of Object.keys(data.identifier_files)) {
+                if (!identifier_files[identifier]) {
+                    identifier_files[identifier] = [];
+                }
+                identifier_files[identifier].push(...data.identifier_files[identifier]);
+            }
+        });
 
         const data = collect_files(FOLDER_GEN_DATA, 'json');
 
         // wrap in plugin
         const caller = await Plugin.process(name, data);
         await caller(async (data) => {
-            await WorkerController.process_in_workers(
-                WorkerAction.build,
-                data,
-                100
-            );
+            await WorkerController.process_in_workers(WorkerAction.build, data, 100);
         });
 
         // remove listeners
@@ -93,25 +79,18 @@ export async function build() {
         collection_db.set('identifier_files', identifier_files);
 
         // set the media query files from the generated pages
-        const media_query_files_db = new KeyValue(
-            STORAGE_OPTIMIZE_MEDIA_QUERY_FILES
-        );
+        const media_query_files_db = new KeyValue(STORAGE_OPTIMIZE_MEDIA_QUERY_FILES);
         media_query_files_db.setObject(media_query_files);
         media_query_files_db.close();
 
         const identifier_length = Object.keys(identifiers).length;
-        Logger.info(
-            'found',
-            identifier_length,
-            identifier_length === 1 ? 'identifier' : 'identifiers',
-            Logger.color.dim('different layout combinations')
-        );
+        Logger.info('found', identifier_length, identifier_length === 1 ? 'identifier' : 'identifiers', Logger.color.dim('different layout combinations'));
         Logger.info('found', Object.keys(media).length, 'media files');
     });
 
     return {
         identifiers,
         media,
-        media_query_files,
+        media_query_files
     };
 }

@@ -11,7 +11,7 @@ export const LogType = {
     improve: 8,
     success: 9,
     warning: 10,
-    error: 11,
+    error: 11
 };
 
 export function get_type_name(type) {
@@ -29,7 +29,7 @@ export const LogIcon = {
     improve: '…',
     report: '≡',
     block: '⬢',
-    start: '┌',
+    start: '┌'
 };
 export const LogColor = {
     log: undefined,
@@ -42,7 +42,7 @@ export const LogColor = {
     improve: kleur.magenta,
     report: kleur.cyan,
     block: kleur.blue,
-    start: kleur.dim,
+    start: kleur.dim
 };
 export const LogFirstValueColor = {
     log: undefined,
@@ -55,5 +55,5 @@ export const LogFirstValueColor = {
     improve: undefined,
     report: undefined,
     block: undefined,
-    start: undefined,
+    start: undefined
 };

@@ -34,7 +34,15 @@ export function insert_import(content, file, to) {
             path = `${splits.join(sep)}${sep}_${try_file}.scss`;
         }
         if (!exists(path)) {
-            Logger.warning(get_error_message({ message: `can not import ${path} into ${file}, maybe the file doesn't exist` }, file, 'import'));
+            Logger.warning(
+                get_error_message(
+                    {
+                        message: `can not import ${path} into ${file}, maybe the file doesn't exist`
+                    },
+                    file,
+                    'import'
+                )
+            );
             return '';
         }
         let import_content = read(path);
@@ -80,8 +88,8 @@ export function compile_markdown(code) {
     if (!filled_string(code)) {
         return undefined;
     }
-    let data,
-        front_matter = fm(code);
+    let data;
+    const front_matter = fm(code);
     if (is_object(front_matter.attributes)) {
         data = front_matter.attributes;
     }

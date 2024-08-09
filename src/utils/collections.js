@@ -1,14 +1,6 @@
 import { collection_entry } from '../model/collection.js';
 import { clone } from './json.js';
-import {
-    filled_array,
-    filled_object,
-    filled_string,
-    in_array,
-    is_array,
-    is_null,
-    is_object,
-} from './validate.js';
+import { filled_array, filled_object, filled_string, in_array, is_array, is_null, is_object } from './validate.js';
 
 /**
  * Append single CollectionEntry to a collection
@@ -55,9 +47,7 @@ export function build_collection(data, url, name, mtime) {
     if (is_array(data)) {
         // search if all scope is already there and avoid adding multiple entries
         if (!data.find((entry) => entry?.scope === 'all')) {
-            collections.push(
-                collection_entry({ url, name, scope: 'all', mtime })
-            );
+            collections.push(collection_entry({ url, name, scope: 'all', mtime }));
         }
         const keys = [];
         for (const raw_entry of data.filter((x) => filled_object(x))) {

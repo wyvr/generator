@@ -16,9 +16,7 @@ async function wyvr_devtools_initialize() {
                 try {
                     const path_parts = (location?.origin + path).split('?');
                     path_parts.push(cb);
-                    const imported_module = await import(
-                        path_parts.join('&').replace('&', '?')
-                    );
+                    const imported_module = await import(path_parts.join('&').replace('&', '?'));
                     const module = imported_module?.default;
                     if (module) {
                         if (!module.order) {
@@ -37,8 +35,7 @@ async function wyvr_devtools_initialize() {
             if (!module) {
                 return false;
             }
-            const result =
-                typeof module?.onInit !== 'function' || module.onInit();
+            const result = typeof module?.onInit !== 'function' || module.onInit();
             if (result === undefined) {
                 return true;
             }
@@ -68,17 +65,10 @@ async function wyvr_devtools_initialize() {
         <span><img width="48" height="17" src="${icon}" alt="wyvr Debug toolbar"/></span>
         <nav>${modules
             .map(
-                (
-                    module,
-                    index
-                ) => `<button id="wyvr_debug_toolbar_${index}" class="wyvr_debug_toolbar_button">
+                (module, index) => `<button id="wyvr_debug_toolbar_${index}" class="wyvr_debug_toolbar_button">
         <span class="wyvr_debug_toolbar_icon">${module.icon || '•'}</span>
         <span class="wyvr_debug_toolbar_name">${module.name || ''}</span>
-        ${
-            module.description
-                ? `<span class="wyvr_debug_toolbar_description">${module.description}</span>`
-                : ''
-        }
+        ${module.description ? `<span class="wyvr_debug_toolbar_description">${module.description}</span>` : ''}
         </button>`
             )
             .join('')}</nav>
@@ -171,9 +161,7 @@ if (window.location.search.indexOf('wyvr_debug_measure_cwv') > -1) {
 
         // FCP
         new PerformanceObserver((entryList) => {
-            (
-                entryList.getEntriesByName('first-contentful-paint') || []
-            ).forEach((entry) => {
+            (entryList.getEntriesByName('first-contentful-paint') || []).forEach((entry) => {
                 console.group(`First Contentful Paint: ${entry.startTime}ms`);
                 console.groupEnd();
             });

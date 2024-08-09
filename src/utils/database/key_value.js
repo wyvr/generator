@@ -41,7 +41,7 @@ export class KeyValue {
 
         this.db.create(this.table, {
             key: { type: 'TEXT', primary: true, null: false },
-            value: { type: 'TEXT' },
+            value: { type: 'TEXT' }
         });
     }
 
@@ -49,10 +49,7 @@ export class KeyValue {
         if (!this.db) {
             return undefined;
         }
-        const result = this.db.getFirst(
-            `SELECT value FROM ${this.table} WHERE key = ? LIMIT 1;`,
-            [key]
-        );
+        const result = this.db.getFirst(`SELECT value FROM ${this.table} WHERE key = ? LIMIT 1;`, [key]);
         if (!result?.value) {
             return undefined;
         }
@@ -66,10 +63,7 @@ export class KeyValue {
         if (!this.db) {
             return undefined;
         }
-        const result = this.db.getFirst(
-            `SELECT key FROM ${this.table} WHERE key = ? LIMIT 1;`,
-            [key]
-        );
+        const result = this.db.getFirst(`SELECT key FROM ${this.table} WHERE key = ? LIMIT 1;`, [key]);
         return result !== undefined;
     }
     all() {
@@ -77,27 +71,20 @@ export class KeyValue {
             return undefined;
         }
         const result = this.db.getAll(`SELECT * FROM ${this.table};`);
-        return Object.fromEntries(
-            result?.map(({ key, value }) => [key, JSON.parse(value)])
-        );
+        return Object.fromEntries(result?.map(({ key, value }) => [key, JSON.parse(value)]));
     }
 
     set(key, value) {
         if (!this.db) {
             return undefined;
         }
-        return this.db.run(
-            `INSERT OR REPLACE INTO ${this.table} (key, value) VALUES (?, ?);`,
-            [key, JSON.stringify(value)]
-        );
+        return this.db.run(`INSERT OR REPLACE INTO ${this.table} (key, value) VALUES (?, ?);`, [key, JSON.stringify(value)]);
     }
     keys() {
         if (!this.db) {
             return undefined;
         }
-        return this.db
-            .getAll(`SELECT key FROM ${this.table};`)
-            ?.map((entry) => entry?.key);
+        return this.db.getAll(`SELECT key FROM ${this.table};`)?.map((entry) => entry?.key);
     }
     close() {
         if (!this.db) {

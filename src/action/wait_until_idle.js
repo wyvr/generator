@@ -12,28 +12,20 @@ export async function wait_until_idle(emergency_timeout_seconds = 1800) {
     // check in an interval if all workers are idle
     return new Promise((resolve, reject) => {
         const complete = () => {
-            Logger.debug(
-                'waited',
-                nano_to_milli(process.hrtime.bigint() - start)
-            );
+            Logger.debug('waited', nano_to_milli(process.hrtime.bigint() - start));
             clearInterval(interval);
             interval = null;
             resolve();
         };
         let interval = setInterval(() => {
-            const idle_workers_amount = WorkerController.get_workers_by_status(
-                WorkerStatus.idle
-            ).length;
+            const idle_workers_amount = WorkerController.get_workers_by_status(WorkerStatus.idle).length;
             if (worker_amount === idle_workers_amount) {
                 clearTimeout(emergency);
                 emergency = null;
                 complete();
             }
         }, 10);
-        if (
-            worker_amount ===
-            WorkerController.get_workers_by_status(WorkerStatus.idle).length
-        ) {
+        if (worker_amount === WorkerController.get_workers_by_status(WorkerStatus.idle).length) {
             complete();
             return;
         }
@@ -41,10 +33,7 @@ export async function wait_until_idle(emergency_timeout_seconds = 1800) {
         let emergency = setTimeout(() => {
             clearInterval(interval);
             interval = null;
-            Logger.error(
-                'emergency stop, waited',
-                nano_to_milli(process.hrtime.bigint() - start)
-            );
+            Logger.error('emergency stop, waited', nano_to_milli(process.hrtime.bigint() - start));
             reject();
             process.exit(1);
         }, emergency_timeout_seconds * 1000);

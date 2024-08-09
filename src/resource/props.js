@@ -13,10 +13,7 @@ export function wyvr_props(el) {
     /* eslint-ensable no-unused-vars */
     return new Promise((resolve) => {
         let props = {};
-        const json = `{${el
-            .getAttribute('data-props')
-            .replace(/\|/g, '"')
-            .replace(/§"§/g, '|')}}`;
+        const json = `{${el.getAttribute('data-props').replace(/\|/g, '"').replace(/§"§/g, '|')}}`;
         try {
             props = JSON.parse(json);
         } catch (e) {

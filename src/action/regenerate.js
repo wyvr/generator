@@ -2,16 +2,7 @@ import { join } from 'node:path';
 import { copy_folder } from './copy.js';
 import { measure_action } from './helper.js';
 import { build_wyvr_internal } from './wyvr_internal.js';
-import {
-    FOLDER_CSS,
-    FOLDER_GEN,
-    FOLDER_I18N,
-    FOLDER_JS,
-    FOLDER_DEVTOOLS,
-    FOLDER_PLUGINS,
-    FOLDER_EVENTS,
-    FOLDER_COMMANDS,
-} from '../constants/folder.js';
+import { FOLDER_CSS, FOLDER_GEN, FOLDER_I18N, FOLDER_JS, FOLDER_DEVTOOLS, FOLDER_PLUGINS, FOLDER_EVENTS, FOLDER_COMMANDS } from '../constants/folder.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
 import { Config } from '../utils/config.js';
@@ -36,7 +27,7 @@ import {
     regenerate_src,
     regeneration_static_file,
     regenerate_events,
-    regenerate_commands,
+    regenerate_commands
 } from '../utils/regenerate.js';
 import { RegenerateFragment } from '../model/regenerate_fragment.mjs';
 import { run_tests } from '../utils/tests.js';
@@ -55,10 +46,7 @@ export async function regenerate(raw_changed_files) {
         // find all dependencies
         const dependencies_bottom = get_config_cache('dependencies.bottom');
 
-        const changed_files = append_dependencies_as_changed_files(
-            raw_changed_files,
-            dependencies_bottom
-        );
+        const changed_files = append_dependencies_as_changed_files(raw_changed_files, dependencies_bottom);
 
         const frag_files = split_changed_files_by_fragment(changed_files);
         const fragments = Object.keys(frag_files);
@@ -78,24 +66,15 @@ export async function regenerate(raw_changed_files) {
         const all_identifiers = get_config_cache('identifiers');
 
         if (in_array(fragments, FOLDER_DEVTOOLS)) {
-            regeneration_static_file(
-                RegenerateFragment(frag_files?.devtools),
-                gen_folder
-            );
+            regeneration_static_file(RegenerateFragment(frag_files?.devtools), gen_folder);
             await build_wyvr_internal();
         }
 
         // cron
-        regeneration_static_file(
-            RegenerateFragment(frag_files?.cron),
-            gen_folder
-        );
+        regeneration_static_file(RegenerateFragment(frag_files?.cron), gen_folder);
 
         // assets
-        const reload_assets = regenerate_assets(
-            RegenerateFragment(frag_files?.assets),
-            gen_folder
-        );
+        const reload_assets = regenerate_assets(RegenerateFragment(frag_files?.assets), gen_folder);
         reload_files.push(...reload_assets);
 
         // i18n
@@ -107,31 +86,20 @@ export async function regenerate(raw_changed_files) {
         }
 
         // routes
-        const routes_reload = await regenerate_routes(
-            RegenerateFragment(frag_files?.routes),
-            gen_folder
-        );
+        const routes_reload = await regenerate_routes(RegenerateFragment(frag_files?.routes), gen_folder);
         if (routes_reload) {
             reload_page = true;
         }
 
         // src
-        const src_result = await regenerate_src(
-            RegenerateFragment(frag_files?.src),
-            dependencies_bottom,
-            all_identifiers,
-            gen_folder
-        );
+        const src_result = await regenerate_src(RegenerateFragment(frag_files?.src), dependencies_bottom, all_identifiers, gen_folder);
         let identifiers = src_result.identifiers;
         let pages = src_result.pages;
         test_files.push(...src_result.test_files);
 
         // plugins
         if (in_array(fragments, FOLDER_PLUGINS)) {
-            await regenerate_plugins(
-                RegenerateFragment(frag_files?.plugins),
-                gen_folder
-            );
+            await regenerate_plugins(RegenerateFragment(frag_files?.plugins), gen_folder);
 
             // reload whole page
             reload_page = true;
@@ -139,10 +107,7 @@ export async function regenerate(raw_changed_files) {
 
         // events
         if (in_array(fragments, FOLDER_EVENTS)) {
-            await regenerate_events(
-                RegenerateFragment(frag_files?.events),
-                gen_folder
-            );
+            await regenerate_events(RegenerateFragment(frag_files?.events), gen_folder);
 
             // reload whole page
             reload_page = true;
@@ -150,19 +115,11 @@ export async function regenerate(raw_changed_files) {
 
         // commands
         if (in_array(fragments, FOLDER_COMMANDS)) {
-            await regenerate_commands(
-                RegenerateFragment(frag_files?.commands),
-                gen_folder
-            );
+            await regenerate_commands(RegenerateFragment(frag_files?.commands), gen_folder);
         }
 
         // pages
-        const pages_result = await regenerate_pages(
-            RegenerateFragment(frag_files?.pages),
-            identifiers,
-            pages,
-            gen_folder
-        );
+        const pages_result = await regenerate_pages(RegenerateFragment(frag_files?.pages), identifiers, pages, gen_folder);
         if (pages_result.reload_page) {
             reload_page = true;
         }
@@ -190,12 +147,7 @@ export async function regenerate(raw_changed_files) {
                 data.type = undefined;
                 identifiers[data.identifier] = data;
             });
-            await WorkerController.process_in_workers(
-                WorkerAction.build,
-                pages,
-                100,
-                true
-            );
+            await WorkerController.process_in_workers(WorkerAction.build, pages, 100, true);
             Event.off('emit', identifier_name, identifier_id);
             reload_page = true;
         }
@@ -205,18 +157,9 @@ export async function regenerate(raw_changed_files) {
             const data = Object.keys(identifiers)
                 .map((key) => all_identifiers[key])
                 .filter((x) => x);
-            await WorkerController.process_in_workers(
-                WorkerAction.scripts,
-                data,
-                1,
-                true
-            );
+            await WorkerController.process_in_workers(WorkerAction.scripts, data, 1, true);
             reload_page = true;
-            copy_folder(
-                Cwd.get(FOLDER_GEN),
-                [FOLDER_CSS, FOLDER_JS],
-                ReleasePath.get()
-            );
+            copy_folder(Cwd.get(FOLDER_GEN), [FOLDER_CSS, FOLDER_JS], ReleasePath.get());
         }
 
         // update the identifiers cache
@@ -270,19 +213,14 @@ export function reload(files) {
     Event.emit('client', 'reload', filled_array(files) ? files : '*');
 }
 
-function append_dependencies_as_changed_files(
-    changed_files,
-    dependencies_bottom
-) {
+function append_dependencies_as_changed_files(changed_files, dependencies_bottom) {
     const package_tree = package_tree_db.all();
 
     const mod_files_rel_path = uniq_values(
         []
             .concat(changed_files.change || [], changed_files.add || [])
             .map((file) => file.rel_path)
-            .map((rel_path) =>
-                get_parents_of_file_recursive(dependencies_bottom, rel_path)
-            )
+            .map((rel_path) => get_parents_of_file_recursive(dependencies_bottom, rel_path))
             .flat(128)
     );
     // add the dependencies as "changed" files to the current batch
@@ -291,7 +229,7 @@ function append_dependencies_as_changed_files(
             changed_files.change = [];
         }
         const entry = {
-            rel_path,
+            rel_path
         };
         const pkg = package_tree[rel_path];
         if (!pkg) {

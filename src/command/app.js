@@ -83,7 +83,7 @@ export const app_command = async (config) => {
         Event.on('worker_status', WorkerStatus.exists, ({ worker }) => {
             WorkerController.send_action(worker, WorkerAction.mode, {
                 mode: 'app',
-                port,
+                port
             });
         });
         const app_worker_ratio = config?.cli?.flags?.worker || 1;
@@ -104,9 +104,7 @@ export const app_command = async (config) => {
                 reject('creating cluster worker timeout');
             }, 30000);
             let interval = setInterval(() => {
-                const busy = WorkerController.get_workers_by_status(
-                    WorkerStatus.busy
-                ).length;
+                const busy = WorkerController.get_workers_by_status(WorkerStatus.busy).length;
                 Logger.debug('busy', busy);
                 // when a single worker come active end safe guard
                 if (busy > 0) {

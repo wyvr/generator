@@ -31,11 +31,8 @@ export async function optimize_css(content, rel_path) {
         if (exists(target)) {
             return;
         }
-        const result = await postcss([
-            autoprefixer,
-            cssnano({ preset: 'default' }),
-        ]).process(content, {
-            from: undefined,
+        const result = await postcss([autoprefixer, cssnano({ preset: 'default' })]).process(content, {
+            from: undefined
         });
         write(target, result.css);
     } catch (e) {

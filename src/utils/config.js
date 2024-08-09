@@ -89,7 +89,7 @@ function config() {
         },
         persist: (config) => {
             write_json(config_cache_path, config);
-        },
+        }
     };
 }
 
@@ -100,9 +100,7 @@ export async function inject(content, file) {
         return '';
     }
     const search_string = '_inject(';
-    const found = content.match(
-        new RegExp(`\\W${search_string.replace('(', '\\(')}`)
-    );
+    const found = content.match(new RegExp(`\\W${search_string.replace('(', '\\(')}`));
     // when not found or part of another word
     if (!found) {
         return content;
@@ -134,10 +132,7 @@ export async function inject(content, file) {
         const result = await eval(func_content); // @NOTE throw error, must be catched outside
 
         // insert result of getGlobal
-        const replaced =
-            content.substr(0, start_index) +
-            JSON.stringify(result) +
-            content.substr(index);
+        const replaced = content.substr(0, start_index) + JSON.stringify(result) + content.substr(index);
         // check if more onServer handlers are used
         return await inject(replaced);
     }

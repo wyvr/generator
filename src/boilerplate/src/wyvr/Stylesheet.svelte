@@ -1,13 +1,13 @@
 <script>
-    /* 
+/* 
         import Stylesheet from '$src/wyvr/Stylesheet.svelte';
 
         <Stylesheet src="/assets/global.css" /> 
     */
 
-    export let src = null;
-    export let critical = false;
-    export let media;
+export let src = null;
+export let critical = false;
+export let media;
 </script>
 
 {#if src}

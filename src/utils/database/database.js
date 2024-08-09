@@ -43,7 +43,7 @@ export class Database {
                     type: 'text',
                     primary: false,
                     default: undefined,
-                    unique: false,
+                    unique: false
                 },
                 structure[key]
             );
@@ -54,15 +54,11 @@ export class Database {
                     !config.null ? 'NOT NULL' : '',
                     config.primary ? 'PRIMARY KEY' : '',
                     config.unique ? 'UNIQUE' : '',
-                    config.default !== undefined
-                        ? `DEFAULT ${config.default}`
-                        : '',
+                    config.default !== undefined ? `DEFAULT ${config.default}` : ''
                 ].join(' ')
             );
         }
-        return this.run(
-            `CREATE TABLE IF NOT EXISTS "${name}" (${fields.join(', ')});`
-        );
+        return this.run(`CREATE TABLE IF NOT EXISTS "${name}" (${fields.join(', ')});`);
     }
     close() {
         if (this.db !== undefined) {
@@ -93,11 +89,7 @@ export class Database {
             }
             return stmt[type](data);
         } catch (e) {
-            Logger.error(
-                get_error_message(e, import.meta.url, 'sql'),
-                sql,
-                data
-            );
+            Logger.error(get_error_message(e, import.meta.url, 'sql'), sql, data);
             return undefined;
         }
     }

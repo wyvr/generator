@@ -19,12 +19,8 @@ export async function optimize_assets() {
     await measure_action(name, async () => {
         // optimize files in the assets folder
         const files = collect_files(ReleasePath.get(FOLDER_ASSETS));
-        const optimize_files = files.filter((file) =>
-            file.match(/\.(html|htm|css|[mc]?js)$/)
-        );
-        const hashes = get_files_hashes(
-            files.filter((file) => file.match(/\.(css|[mc]?js)$/))
-        );
+        const optimize_files = files.filter((file) => file.match(/\.(html|htm|css|[mc]?js)$/));
+        const hashes = get_files_hashes(files.filter((file) => file.match(/\.(css|[mc]?js)$/)));
         const hashes_db = new KeyValue(STORAGE_OPTIMIZE_HASHES);
         hashes_db.setObject(hashes);
         hashes_db.close();
@@ -32,11 +28,7 @@ export async function optimize_assets() {
         // wrap in plugin
         const caller = await Plugin.process(name, optimize_files);
         await caller(async (files) => {
-            await WorkerController.process_in_workers(
-                WorkerAction.optimize,
-                files,
-                10
-            );
+            await WorkerController.process_in_workers(WorkerAction.optimize, files, 10);
         });
     });
 }

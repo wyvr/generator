@@ -1,6 +1,5 @@
- 
 /* eslint-disable no-console */
- 
+
 async function wyvr_fetch(path) {
     if (!path) {
         return null;

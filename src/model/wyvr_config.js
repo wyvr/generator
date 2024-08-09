@@ -7,23 +7,23 @@ export const WyvrConfig = Object.freeze({
     env: Env.name(),
     https: true,
     i18n: {
-        fallback: 'en',
+        fallback: 'en'
     },
     packages: [], // list of the packages which should be used
     releases: {
-        keep: 0,
+        keep: 0
     },
     url: 'localhost',
     worker: {
         ratio: 0.3,
         force_initial_build: false,
-        app_performance_limit_warning: 500, // in ms or false to disable it
+        app_performance_limit_warning: 500 // in ms or false to disable it
     },
     critical: {
         rebase: undefined,
         ignore: {
-            atrule: ['@font-face'],
-        },
+            atrule: ['@font-face']
+        }
     },
-    optimize: {},
+    optimize: {}
 });

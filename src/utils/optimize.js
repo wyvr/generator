@@ -1,15 +1,7 @@
 import { minify } from 'html-minifier';
-import {
-    STORAGE_OPTIMIZE_HASHES,
-    STORAGE_OPTIMIZE_MEDIA_QUERY_FILES,
-} from '../constants/storage.js';
+import { STORAGE_OPTIMIZE_HASHES, STORAGE_OPTIMIZE_MEDIA_QUERY_FILES } from '../constants/storage.js';
 import { Env } from '../vars/env.js';
-import {
-    critical_css_exists,
-    critical_css_set,
-    get_critical_css,
-    insert_critical_css,
-} from './critical.js';
+import { critical_css_exists, critical_css_set, get_critical_css, insert_critical_css } from './critical.js';
 import { KeyValue } from './database/key_value.js';
 import { get_error_message } from './error.js';
 import { Logger } from './logger.js';
@@ -33,10 +25,7 @@ export function replace_files_with_content_hash(content) {
         if (acc.indexOf(cur) === -1) {
             return acc;
         }
-        return acc.replace(
-            new RegExp(cur, 'g'),
-            hashes_db.get(cur)?.path ?? cur
-        );
+        return acc.replace(new RegExp(cur, 'g'), hashes_db.get(cur)?.path ?? cur);
     }, content);
 }
 
@@ -76,7 +65,7 @@ export async function optimize_content(content, identifier) {
             removeComments: true,
             removeScriptTypeAttributes: true,
             removeStyleLinkTypeAttributes: true,
-            useShortDoctype: true,
+            useShortDoctype: true
         });
         return minified_content;
     } catch (e) {
@@ -99,9 +88,7 @@ export function insert_media_query_files(content) {
                 continue;
             }
             for (const media of Object.keys(medias_query_files)) {
-                media_query_links.push(
-                    `<link href="${medias_query_files[media]}" rel="stylesheet" media="${media}">`
-                );
+                media_query_links.push(`<link href="${medias_query_files[media]}" rel="stylesheet" media="${media}">`);
             }
         }
     }

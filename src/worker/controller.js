@@ -1,22 +1,11 @@
 import os from 'os';
 import { Worker } from '../model/worker.js';
 import { Logger } from '../utils/logger.js';
-import {
-    filled_array,
-    filled_string,
-    is_null,
-    is_number,
-    is_object,
-    is_int,
-    is_func,
-} from '../utils/validate.js';
+import { filled_array, filled_string, is_null, is_number, is_object, is_int, is_func } from '../utils/validate.js';
 import { search_segment } from '../utils/segment.js';
 import { Event } from '../utils/event.js';
 import { get_name, WorkerAction } from '../struc/worker_action.js';
-import {
-    get_name as get_status_name,
-    WorkerStatus,
-} from '../struc/worker_status.js';
+import { get_name as get_status_name, WorkerStatus } from '../struc/worker_status.js';
 import { get_name as get_emit_name } from '../struc/worker_emit.js';
 import { get_type_name } from '../struc/log.js';
 import { inject_worker_message_errors } from '../utils/error.js';
@@ -29,32 +18,19 @@ let die_counter = 0;
 let cpu_cores;
 // biome-ignore lint/complexity/noStaticOnlyClass:
 export class WorkerController {
-    static async initialize(
-        ratio = 1,
-        single_threaded = false,
-        fork_fn = undefined
-    ) {
+    static async initialize(ratio = 1, single_threaded = false, fork_fn = undefined) {
         // set worker ratio
         WorkerController.set_worker_ratio(ratio);
 
         if (single_threaded) {
-            Logger.warning(
-                'running in single threaded mode, no workers will be started'
-            );
+            Logger.warning('running in single threaded mode, no workers will be started');
 
             await WorkerController.single_threaded();
         } else {
             // Create the workers for the processing
-            const worker_amount =
-                WorkerController.get_worker_amount_from_ratio();
+            const worker_amount = WorkerController.get_worker_amount_from_ratio();
             WorkerController.worker_amount = worker_amount;
-            Logger.present(
-                'worker',
-                worker_amount,
-                Logger.color.dim(
-                    `of ${WorkerController.get_cpu_cores()} threads`
-                )
-            );
+            Logger.present('worker', worker_amount, Logger.color.dim(`of ${WorkerController.get_cpu_cores()} threads`));
             WorkerController.create_workers(worker_amount, fork_fn);
         }
     }
@@ -80,7 +56,7 @@ export class WorkerController {
                     Event.on('master', key, async (...args) => {
                         await fn(...args);
                     });
-                },
+                }
             };
         });
         // only import when needed
@@ -119,9 +95,7 @@ export class WorkerController {
         // get amount of cores
         // at least one and left 1 core for the main worker
         const cpu_cores = WorkerController.get_cpu_cores();
-        const cpu_cores_ratio = Math.round(
-            cpu_cores * WorkerController.worker_ratio
-        );
+        const cpu_cores_ratio = Math.round(cpu_cores * WorkerController.worker_ratio);
         const max_cores = Math.max(1, cpu_cores_ratio - 1);
 
         // store the value
@@ -145,10 +119,7 @@ export class WorkerController {
             Logger.debug('process', worker.pid, 'message', msg);
             const current_worker = WorkerController.get_message(msg);
             if (current_worker !== false) {
-                WorkerController.livecycle(
-                    worker,
-                    msg?.data?.action?.value?.action
-                );
+                WorkerController.livecycle(worker, msg?.data?.action?.value?.action);
             }
         });
         worker.process.on('error', (msg) => {
@@ -164,18 +135,12 @@ export class WorkerController {
             }
             const cpu = WorkerController.get_cpu_cores();
             die_counter++;
-            Logger.warning(
-                'create new worker because of exit from',
-                worker.pid,
-                code
-            );
+            Logger.warning('create new worker because of exit from', worker.pid, code);
             WorkerController.remove_worker(worker.pid);
             // wait some time before respawning, otherwise in total broken states the server will run at 100% cpu and is not responsive
             setTimeout(() => {
                 if (die_counter > cpu * 2) {
-                    Logger.error(
-                        `Suicide: ${die_counter} workers died in the last second, which brings the application into an unhealthy state, shutting down`
-                    );
+                    Logger.error(`Suicide: ${die_counter} workers died in the last second, which brings the application into an unhealthy state, shutting down`);
                     process.exit(1);
                 }
                 WorkerController.workers.push(WorkerController.create(fork_fn));
@@ -208,19 +173,13 @@ export class WorkerController {
         WorkerController.worker_ratio = 0;
     }
     static remove_worker(pid) {
-        WorkerController.workers = WorkerController.workers.filter(
-            (worker) => worker.pid !== pid
-        );
+        WorkerController.workers = WorkerController.workers.filter((worker) => worker.pid !== pid);
     }
     static get_worker(pid) {
         return WorkerController.workers.find((worker) => worker.pid === pid);
     }
     static get_message(msg) {
-        if (
-            filled_string(msg) ||
-            is_null(search_segment(msg, 'data.action.key')) ||
-            is_null(search_segment(msg, 'data.action.value'))
-        ) {
+        if (filled_string(msg) || is_null(search_segment(msg, 'data.action.key')) || is_null(search_segment(msg, 'data.action.value'))) {
             return false;
         }
         const worker = WorkerController.get_worker(msg.pid);
@@ -247,9 +206,7 @@ export class WorkerController {
                     }
                 });
 
-                const workers = WorkerController.get_workers_by_status(
-                    WorkerStatus.idle
-                );
+                const workers = WorkerController.get_workers_by_status(WorkerStatus.idle);
                 if (Env.is_debug()) {
                     Logger.debug(
                         'status',
@@ -288,35 +245,24 @@ export class WorkerController {
         return worker;
     }
     static livecycle(worker, action) {
-        if (
-            !WorkerController.is_worker(worker) ||
-            !get_status_name(worker.status)
-        ) {
+        if (!WorkerController.is_worker(worker) || !get_status_name(worker.status)) {
             return false;
         }
         switch (worker.status) {
             case WorkerStatus.exists: {
-                WorkerController.send_action(
-                    worker,
-                    WorkerAction.configure,
-                    get_configure_data()
-                );
+                WorkerController.send_action(worker, WorkerAction.configure, get_configure_data());
                 break;
             }
         }
         Event.emit('worker_status', worker.status, {
             worker,
-            action,
+            action
         });
         return true;
     }
 
     static is_worker(worker) {
-        return (
-            is_object(worker) &&
-            is_number(worker.pid) &&
-            !is_null(worker.process)
-        );
+        return is_object(worker) && is_number(worker.pid) && !is_null(worker.process);
     }
 
     static send_message(worker, data) {
@@ -342,8 +288,8 @@ export class WorkerController {
         WorkerController.send_message(worker, {
             action: {
                 key: action,
-                value: data,
-            },
+                value: data
+            }
         });
         return false;
     }
@@ -360,7 +306,7 @@ export class WorkerController {
         }
         WorkerController.send_action_all_workers(WorkerAction.set, {
             key,
-            value,
+            value
         });
         return true;
     }
@@ -388,13 +334,10 @@ export class WorkerController {
             return false;
         }
         if (WorkerController.multi_threading) {
-            WorkerController.send_action_all_workers(
-                WorkerAction.set_config_cache,
-                {
-                    segment,
-                    value,
-                }
-            );
+            WorkerController.send_action_all_workers(WorkerAction.set_config_cache, {
+                segment,
+                value
+            });
         }
         return true;
     }
@@ -404,9 +347,7 @@ export class WorkerController {
         if (is_null(name)) {
             return [];
         }
-        return WorkerController.workers.filter(
-            (worker) => worker.status === status
-        );
+        return WorkerController.workers.filter((worker) => worker.status === status);
     }
 
     /**
@@ -418,14 +359,9 @@ export class WorkerController {
         if (is_null(queue)) {
             return true;
         }
-        const workers = WorkerController.get_workers_by_status(
-            WorkerStatus.idle
-        );
+        const workers = WorkerController.get_workers_by_status(WorkerStatus.idle);
         // stop when queue is empty and all workers are idle
-        if (
-            queue.length === 0 &&
-            workers.length === WorkerController.get_worker_amount()
-        ) {
+        if (queue.length === 0 && workers.length === WorkerController.get_worker_amount()) {
             return true;
         }
         if (queue.length === 0 || workers.length === 0) {
@@ -438,11 +374,7 @@ export class WorkerController {
                 // set worker busy otherwise the same worker gets multiple actions send
                 worker.status = WorkerStatus.busy;
                 // send the data to the worker
-                WorkerController.send_action(
-                    worker,
-                    queue_entry.action,
-                    queue_entry.data
-                );
+                WorkerController.send_action(worker, queue_entry.action, queue_entry.data);
             }
         }
         return false;
@@ -454,9 +386,7 @@ export class WorkerController {
             Logger.error('unknown action', action);
             return false;
         }
-        const workers = WorkerController.get_workers_by_status(
-            WorkerStatus.idle
-        );
+        const workers = WorkerController.get_workers_by_status(WorkerStatus.idle);
         return new Promise((resolve) => {
             // retry when no idle workers are available
             if (workers.length === 0) {
@@ -467,20 +397,12 @@ export class WorkerController {
             }
             workers[0].status = WorkerStatus.busy;
             WorkerController.send_action(workers[0], action, data);
-            const done_listener_id = Event.on(
-                'worker_status',
-                WorkerStatus.done,
-                ({ worker }) => {
-                    if (worker.pid === workers[0].pid) {
-                        Event.off(
-                            'worker_status',
-                            WorkerStatus.done,
-                            done_listener_id
-                        );
-                        resolve(true);
-                    }
+            const done_listener_id = Event.on('worker_status', WorkerStatus.done, ({ worker }) => {
+                if (worker.pid === workers[0].pid) {
+                    Event.off('worker_status', WorkerStatus.done, done_listener_id);
+                    resolve(true);
                 }
-            );
+            });
         });
     }
 
@@ -500,10 +422,7 @@ export class WorkerController {
         }
         const amount = list.length;
         if (amount === 0) {
-            Logger.improve(
-                'no items to process, batch size',
-                Logger.color.cyan(batch_size.toString())
-            );
+            Logger.improve('no items to process, batch size', Logger.color.cyan(batch_size.toString()));
             return true;
         }
         if (!is_int(batch_size)) {
@@ -513,25 +432,14 @@ export class WorkerController {
         if (!WorkerController.multi_threading) {
             batch_size = amount;
         }
-        Logger.info(
-            'process',
-            amount,
-            amount === 1 ? 'item' : 'items',
-            show_name ? Logger.color.blue(`in ${name}`) : '',
-            Logger.color.dim(`batch size ${batch_size}`)
-        );
+        Logger.info('process', amount, amount === 1 ? 'item' : 'items', show_name ? Logger.color.blue(`in ${name}`) : '', Logger.color.dim(`batch size ${batch_size}`));
 
         // create new queue
         WorkerController.queue = new Queue();
 
         // correct batch size when there are more workers available
-        const worker_based_batch_size = Math.ceil(
-            list.length / WorkerController.get_worker_amount()
-        );
-        if (
-            worker_based_batch_size > list.length / batch_size &&
-            worker_based_batch_size < batch_size
-        ) {
+        const worker_based_batch_size = Math.ceil(list.length / WorkerController.get_worker_amount());
+        if (worker_based_batch_size > list.length / batch_size && worker_based_batch_size < batch_size) {
             batch_size = worker_based_batch_size;
         }
 
@@ -541,69 +449,43 @@ export class WorkerController {
         for (let i = 0; i < iterations; i++) {
             const queue_data = {
                 action,
-                data: list.slice(i * batch_size, (i + 1) * batch_size),
+                data: list.slice(i * batch_size, (i + 1) * batch_size)
             };
             WorkerController.queue.push(queue_data);
         }
         const size = WorkerController.queue.length;
         let done = 0;
         return new Promise((resolve) => {
-            const idle = WorkerController.get_workers_by_status(
-                WorkerStatus.idle
-            );
-            const listener_id = Event.on(
-                'worker_status',
-                WorkerStatus.idle,
-                async () => {
-                    if (WorkerController.tick(WorkerController.queue)) {
-                        Event.off(
-                            'worker_status',
-                            WorkerStatus.idle,
-                            listener_id
-                        );
-                    }
+            const idle = WorkerController.get_workers_by_status(WorkerStatus.idle);
+            const listener_id = Event.on('worker_status', WorkerStatus.idle, async () => {
+                if (WorkerController.tick(WorkerController.queue)) {
+                    Event.off('worker_status', WorkerStatus.idle, listener_id);
                 }
-            );
+            });
             // when all workers are idle, emit on first
-            if (
-                idle.length > 0 &&
-                idle.length === WorkerController.get_worker_amount()
-            ) {
+            if (idle.length > 0 && idle.length === WorkerController.get_worker_amount()) {
                 WorkerController.livecycle(idle[0]);
             }
-            const done_listener_id = Event.on(
-                'worker_status',
-                WorkerStatus.done,
-                ({ action: worker_action }) => {
-                    // count only done from the given action, also not 100% accurate but a lot better
-                    if (worker_action !== action) {
-                        return;
-                    }
-                    Logger.text(
-                        name,
-                        Logger.color.dim('...'),
-                        `${Math.round((100 / size) * done)}%`,
-                        Logger.color.dim(`${done}/${size}`)
-                    );
-                    done++;
-                    if (done >= size) {
-                        Event.off(
-                            'worker_status',
-                            WorkerStatus.done,
-                            done_listener_id
-                        );
+            const done_listener_id = Event.on('worker_status', WorkerStatus.done, ({ action: worker_action }) => {
+                // count only done from the given action, also not 100% accurate but a lot better
+                if (worker_action !== action) {
+                    return;
+                }
+                Logger.text(name, Logger.color.dim('...'), `${Math.round((100 / size) * done)}%`, Logger.color.dim(`${done}/${size}`));
+                done++;
+                if (done >= size) {
+                    Event.off('worker_status', WorkerStatus.done, done_listener_id);
 
-                        if (WorkerController.multi_threading) {
+                    if (WorkerController.multi_threading) {
+                        resolve(true);
+                    } else {
+                        // wait some time that the events can catch up in single threaded mode
+                        sleep(10).then(() => {
                             resolve(true);
-                        } else {
-                            // wait some time that the events can catch up in single threaded mode
-                            sleep(10).then(() => {
-                                resolve(true);
-                            });
-                        }
+                        });
                     }
                 }
-            );
+            });
         });
     }
     static set_multi_threading(value) {

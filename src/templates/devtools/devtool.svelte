@@ -1,12 +1,12 @@
 <script>
-    /* Created with wyvr {{version}} */
-    import { onMount } from 'svelte';
+/* Created with wyvr {{version}} */
+import { onMount } from 'svelte';
 
-    export let name;
+export let name;
 
-    onMount(() => {
-        console.log('mounted');
-    });
+onMount(() => {
+    console.log('mounted');
+});
 </script>
 
 <div class="grid">

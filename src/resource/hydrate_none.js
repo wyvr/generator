@@ -11,12 +11,7 @@ export function wyvr_hydrate_none(path, elements, name, cls, trigger) {
         window.wyvr = {};
     }
     if (window.wyvr[trigger]) {
-        console.warn(
-            path,
-            'hydrate trigger',
-            trigger,
-            'is already defined, please use another trigger'
-        );
+        console.warn(path, 'hydrate trigger', trigger, 'is already defined, please use another trigger');
         return null;
     }
     window.wyvr[trigger] = () => {

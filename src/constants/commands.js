@@ -1,4 +1,4 @@
-import { LogType } from "../struc/log.js";
+import { LogType } from '../struc/log.js';
 
 export const COMMANDS = {
     app: {

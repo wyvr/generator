@@ -13,14 +13,12 @@ export function wyvr_hydrate_instant(elements, cls) {
             target.innerHTML = '';
             new cls({
                 target,
-                props,
+                props
             });
             if (slots) {
                 Array.from(slots).map((slot) => {
                     const slot_name = slot.getAttribute('data-slot');
-                    const client_slot = target.querySelector(
-                        `[data-client-slot="${slot_name}"]`
-                    );
+                    const client_slot = target.querySelector(`[data-client-slot="${slot_name}"]`);
                     if (client_slot) {
                         client_slot.parentNode.insertBefore(slot, client_slot);
                         client_slot.remove();

@@ -63,7 +63,7 @@ export function get_content_hash_entry(content, file) {
     return {
         hash,
         rel_path,
-        path: rel_path.replace(ext, `_${hash}${ext}`),
+        path: rel_path.replace(ext, `_${hash}${ext}`)
     };
 }
 

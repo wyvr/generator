@@ -1,5 +1,5 @@
 import { sep } from 'node:path';
-import { Config } from '../utils/config.js';
+import { Config, merge_config } from '../utils/config.js';
 import { exists } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { filled_array } from '../utils/validate.js';
@@ -7,34 +7,21 @@ import { Cwd } from '../vars/cwd.js';
 import { WyvrConfig } from '../model/wyvr_config.js';
 import { readdirSync } from 'node:fs';
 
-export async function collect_packages(package_json, update_config = true) {
-    if (update_config) {
-        // clear persisted config cache
-        Config.clear();
-    }
-
+export async function collect_packages(package_json) {
     Logger.debug('package.json', package_json);
 
     // read & validate package.json
     // read packages from wyvr.js
     const root_config = await Config.load(Cwd.get());
-    const new_base_config = Config.merge(WyvrConfig, root_config);
-    Config.replace(new_base_config);
+    const new_base_config = merge_config(WyvrConfig, root_config);
 
-    let packages = Config.get('packages');
+    let packages = new_base_config.packages;
     const disabled_packages = [];
     const available_packages = [];
 
     if (!filled_array(packages)) {
         packages = [];
     }
-
-    // add boilerplate package
-    const boilerplate = {
-        name: 'wyvr',
-        path: Cwd.get('node_modules', '@wyvr', 'generator', 'src', 'boilerplate')
-    };
-    packages.push(boilerplate);
 
     // iterate over packages
     let packages_config = {};
@@ -55,7 +42,7 @@ export async function collect_packages(package_json, update_config = true) {
             continue;
         }
         if (proc_pkg.config) {
-            packages_config = Config.merge(packages_config, proc_pkg.config);
+            packages_config = merge_config(packages_config, proc_pkg.config);
             // add sub packages
             if (filled_array(proc_pkg.config?.packages))
                 for (const subpkg of proc_pkg.config.packages) {
@@ -68,20 +55,23 @@ export async function collect_packages(package_json, update_config = true) {
     }
 
     // update config, but keep the main config values
-    const merged_config = Config.merge(packages_config, new_base_config);
+    const merged_config = merge_config(packages_config, new_base_config);
 
     const result = {
         available_packages: available_packages.filter((x) => x),
         disabled_packages: disabled_packages.filter((x) => x)
     };
+    // add boilerplate package
+    const boilerplate = {
+        name: 'wyvr',
+        path: Cwd.get('node_modules', '@wyvr', 'generator', 'src', 'boilerplate')
+    };
+    result.available_packages.push(boilerplate);
+
     // update the packages in the config
     merged_config.packages = result.available_packages;
 
-    // set config with package values
-    Config.replace(merged_config);
-    if (update_config) {
-        Config.persist(merged_config);
-    }
+    result.config = merged_config;
 
     return result;
 }

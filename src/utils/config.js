@@ -4,7 +4,7 @@ import { is_file, find_file, write_json, read_json, remove } from './file.js';
 import { register_inject } from './global.js';
 import { Logger } from './logger.js';
 import { search_segment } from './segment.js';
-import { filled_string, is_string } from './validate.js';
+import { filled_object, filled_string, is_string } from './validate.js';
 import { FOLDER_CACHE } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { append_cache_breaker } from './cache_breaker.js';
@@ -12,18 +12,11 @@ import { append_cache_breaker } from './cache_breaker.js';
 // location of the persisted config cache
 const config_cache_path = Cwd.get(FOLDER_CACHE, 'config.json');
 
-function merge_config(config1, config2) {
+export function merge_config(config1, config2) {
     if (config1 === undefined && config2 === undefined) {
         return undefined;
     }
-    if (config1 === undefined) {
-        config1 = {};
-    }
-    if (config2 === undefined) {
-        config2 = {};
-    }
-
-    return merge(config1, config2);
+    return merge(config1 ?? {}, config2 ?? {});
 }
 
 function config() {
@@ -88,7 +81,13 @@ function config() {
             return {};
         },
         persist: (config) => {
+            if (!filled_object(config)) {
+                return;
+            }
             write_json(config_cache_path, config);
+            // store new config
+            const config_db = new KeyValue(STORAGE_CONFIG);
+            config_db.set(config);
         }
     };
 }
@@ -129,6 +128,7 @@ export async function inject(content, file) {
         // extract the function content, to execute it
         register_inject(file);
         const func_content = content.substr(start_index, index - start_index);
+        // biome-ignore lint/security/noGlobalEval: inject has to be evaluated
         const result = await eval(func_content); // @NOTE throw error, must be catched outside
 
         // insert result of getGlobal

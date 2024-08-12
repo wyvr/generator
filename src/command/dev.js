@@ -17,7 +17,7 @@ import { Plugin } from '../utils/plugin.js';
 import { chat_start } from '../utils/chat.js';
 import { collect_packages } from '../action/package.js';
 import { package_report } from '../presentation/package_report.js';
-import { Config } from '../utils/config.js';
+import { Config, merge_config } from '../utils/config.js';
 import { configure } from '../action/configure.js';
 import { reload } from '../action/regenerate.js';
 import { KeyValue } from '../utils/database/key_value.js';
@@ -42,9 +42,12 @@ export async function dev_command(config) {
         Logger.warning('fast build is not available');
     }
 
+    let base_config;
+
     let packages;
     if (is_fast) {
         const config_data = get_config_data(config, build_id);
+        base_config = config_data;
         present(config_data);
 
         const { available_packages } = await pre_initial_build(build_id, config_data);
@@ -55,6 +58,7 @@ export async function dev_command(config) {
     } else {
         const result = await intial_build(build_id, config);
         packages = result.packages;
+        base_config = result.base_config;
     }
 
     await publish();
@@ -70,11 +74,13 @@ export async function dev_command(config) {
 
         const package_json = read_json('package.json');
         const { available_packages, disabled_packages } = await collect_packages(package_json);
-        package_report(available_packages, disabled_packages);
 
-        // store new config
-        const config_db = new KeyValue(STORAGE_CONFIG);
-        config_db.set(Config.get());
+        // create new config
+        Config.clear();
+        Config.replace(merge_config(config, base_config));
+        Config.persist();
+
+        package_report(available_packages, disabled_packages);
 
         if (
             prev_config.packages?.map((pkg) => pkg.name).join(',') !==

@@ -3,7 +3,7 @@ import { collect_packages } from './package.js';
 import { present } from './present.js';
 import { FOLDER_ASSETS, FOLDER_GEN_EVENTS, FOLDER_I18N, FOLDER_JS, FOLDER_MEDIA, FOLDER_PROP, FOLDER_RELEASES } from '../constants/folder.js';
 import { package_report } from '../presentation/package_report.js';
-import { Config } from '../utils/config.js';
+import { Config, merge_config } from '../utils/config.js';
 import { read_json, symlink } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
@@ -50,15 +50,17 @@ export async function pre_initial_build(build_id, config_data) {
     ReleasePath.set(Cwd.get(FOLDER_RELEASES, build_id));
 
     // Build Global(storage) Data
-    const config_db = new KeyValue(STORAGE_CONFIG);
-    config_db.setObject(config_data);
 
     // Collect packages
     const package_json = read_json('package.json');
-    const { available_packages, disabled_packages } = await collect_packages(package_json);
-    package_report(available_packages, disabled_packages);
+    const { available_packages, disabled_packages, config } = await collect_packages(package_json);
 
-    config_db.setObject(Config.get());
+    // set config
+    Config.clear();
+    Config.replace(merge_config(config, config_data));
+    Config.persist();
+
+    package_report(available_packages, disabled_packages);
 
     await WorkerController.initialize(Config.get('worker.ratio', 1), config_data?.cli?.flags?.single);
 
@@ -162,6 +164,7 @@ export async function intial_build(build_id, config) {
         packages: available_packages,
         identifiers,
         media: build_result.media,
-        media_query_files: build_result.media_query_files
+        media_query_files: build_result.media_query_files,
+        base_config: config_data
     };
 }

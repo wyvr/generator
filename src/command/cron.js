@@ -33,7 +33,7 @@ export async function cron_command(config) {
 
     // Collect packages
     const package_json = read_json('package.json');
-    const { available_packages, disabled_packages } = await collect_packages(package_json, false);
+    const { available_packages, disabled_packages } = await collect_packages(package_json);
     package_report(available_packages, disabled_packages);
 
     if (Env.is_dev()) {

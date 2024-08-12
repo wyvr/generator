@@ -50,7 +50,6 @@ coverage-watch: ## Watches changes in the tests
 format: ## Format the codebase
 	@npx @biomejs/biome format --write ./src/action
 	@npx @biomejs/biome format --write ./src/action_worker
-	@npx @biomejs/biome format --write ./src/boilerplate
 	@npx @biomejs/biome format --write ./src/cli
 	@npx @biomejs/biome format --write ./src/command
 	@npx @biomejs/biome format --write ./src/constants

@@ -78,7 +78,10 @@ export class KeyValue {
         if (!this.db) {
             return undefined;
         }
-        return this.db.run(`INSERT OR REPLACE INTO ${this.table} (key, value) VALUES (?, ?);`, [key, JSON.stringify(value)]);
+        if (this.exists(key)) {
+            return this.db.run(`UPDATE ${this.table} SET value = ? WHERE key = ?;`, [JSON.stringify(value), key]);
+        }
+        return this.db.run(`INSERT INTO ${this.table} (key, value) VALUES (?, ?);`, [key, JSON.stringify(value)]);
     }
     keys() {
         if (!this.db) {

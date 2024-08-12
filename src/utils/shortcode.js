@@ -77,12 +77,14 @@ export async function replace_shortcode(html, data, file) {
         }
 
         if (rendered_result?.result?.html) {
+            const cache_breaker = Env.is_dev() ? `?ts=${Date.now()}` : '';
+
             // inject shortcode files
             const html = rendered_result.result.html
-                .replace(/<\/body>/, `<script defer src="/js/${identifier}.js"></script></body>`)
+                .replace(/<\/body>/, `<script defer src="/js/${identifier}.js${cache_breaker}"></script></body>`)
                 .replace(
                     /<\/head>/,
-                    `<link rel="preload" href="/css/${identifier}.css" as="style" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="/css/${identifier}.css"></noscript></head>`
+                    `<link rel="preload" href="/css/${identifier}.css${cache_breaker}" as="style" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="/css/${identifier}.css${cache_breaker}"></noscript></head>`
                 );
             return { html, shortcode_imports, identifier, media_query_files };
         }

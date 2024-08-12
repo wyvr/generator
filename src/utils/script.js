@@ -94,8 +94,9 @@ export async function build_hydrate_file(file, resouce_dir) {
     result.has[file.config.loading] = true;
     // loading none requires a trigger property, but everything except instant can be triggered
     const trigger = file.config.loading !== WyvrFileLoading.instant && file.config.trigger ? `, '${file.config.trigger}'` : '';
+    const cache_breaker = Env.is_dev() ? `?ts=${Date.now()}` : '';
     result.include_code = `${target}
-                wyvr_hydrate_${file.config.loading}('${lazy_file_path}', ${file.name}_target, '${file.name}', '${file.name}'${trigger});`;
+                wyvr_hydrate_${file.config.loading}('${lazy_file_path}${cache_breaker}', ${file.name}_target, '${file.name}', '${file.name}'${trigger});`;
     return result;
 }
 

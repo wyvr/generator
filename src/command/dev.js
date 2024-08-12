@@ -6,7 +6,7 @@ import { FOLDER_GEN, FOLDER_RELEASES } from '../constants/folder.js';
 import { EnvType } from '../struc/env.js';
 import { exists, read_json } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
-import { watch_server } from '../utils/server.js';
+import { dev_server } from '../utils/server/dev_server.js';
 import { package_watcher } from '../utils/watcher.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
@@ -65,7 +65,7 @@ export async function dev_command(config) {
 
     chat_start();
 
-    watch_server(port, wsport, packages);
+    dev_server(port, wsport, packages);
 
     await package_watcher(packages, async () => {
         Logger.block('reload the packages and the config');

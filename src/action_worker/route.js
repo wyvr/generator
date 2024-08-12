@@ -6,7 +6,7 @@ import { send_action } from '../worker/communication.js';
 import { Logger } from '../utils/logger.js';
 import { uniq_id } from '../utils/uniq.js';
 import { SerializableResponse } from '../model/serializable/response.js';
-import { send_content, send_head } from '../utils/server.js';
+import { send_content, send_head } from '../utils/server/helpers.js';
 import { get_route_request, run_route } from '../utils/routes.js';
 import { join } from 'node:path';
 import { ReleasePath } from '../vars/release_path.js';

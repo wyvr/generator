@@ -19,7 +19,7 @@ import { WorkerStatus } from '../struc/worker_status.js';
 import { Event } from '../utils/event.js';
 import { chat_start } from '../utils/chat.js';
 import { clear } from './clear.js';
-import { app_server } from '../utils/server.js';
+import { app_server } from '../utils/server/app_server.js';
 
 export const app_command = async (config) => {
     const single_threaded = !!config?.cli?.flags?.single;

@@ -1,11 +1,7 @@
 import { Logger } from './../logger.js';
 import { is_func } from './../validate.js';
 import { Cwd } from '../../vars/cwd.js';
-import {
-    route_request,
-    fallback_route_request,
-    apply_response,
-} from '../../action/route.js';
+import { route_request, fallback_route_request, apply_response } from '../../action/route.js';
 import { config_from_url, get_buffer } from './../media.js';
 import { wait_for } from './../wait.js';
 import { exists, read, remove, to_extension, write } from './../file.js';
@@ -22,12 +18,7 @@ import { server } from './server.js';
 import { static_server } from './static_server.js';
 import { ServerShowRequests } from '../../vars/server_show_requests.js';
 
-export async function generate_server(
-    port,
-    force_generating_of_resources,
-    onEnd,
-    fallback
-) {
+export async function generate_server(port, force_generating_of_resources, onEnd, fallback) {
     register_stack();
 
     server(port, undefined, async (req, res, uid) => {
@@ -45,20 +36,14 @@ export async function generate_server(
                 if (IsWorker.get()) {
                     await media([media_config]);
                 } else {
-                    await WorkerController.process_data(WorkerAction.media, [
-                        media_config,
-                    ]);
+                    await WorkerController.process_data(WorkerAction.media, [media_config]);
                 }
                 // the file needs some time to be available after generation started
                 const success = await wait_for(() => {
                     return exists(Cwd.get(media_config.result));
                 });
                 if (ServerShowRequests.get()) {
-                    Logger[success ? 'success' : 'error'](
-                        'media',
-                        name,
-                        ...get_time_log_infos(start, uid)
-                    );
+                    Logger[success ? 'success' : 'error']('media', name, ...get_time_log_infos(start, uid));
                 }
             }
         }
@@ -67,9 +52,7 @@ export async function generate_server(
             if (err) {
                 // check if css or js files should be generated
                 if (req.url.indexOf('/js') === 0) {
-                    const file_content = await build_hydrate_file_from_url(
-                        req.url
-                    );
+                    const file_content = await build_hydrate_file_from_url(req.url);
                     if (file_content) {
                         res = send_head(res, 200, 'application/javascript');
                         res.end(file_content);
@@ -77,10 +60,7 @@ export async function generate_server(
                     }
                 }
 
-                const ghost_path = join(
-                    ReleasePath.get(),
-                    req.url.replace(/\/(?:index\.html)?$/, '/index.ghost')
-                );
+                const ghost_path = join(ReleasePath.get(), req.url.replace(/\/(?:index\.html)?$/, '/index.ghost'));
                 const shadow_path = to_extension(ghost_path, '.shadow');
                 let ghost_delivered = false;
 
@@ -99,12 +79,7 @@ export async function generate_server(
                     write(shadow_path, '');
                 }
 
-                const route_response = await route_request(
-                    req,
-                    res,
-                    uid,
-                    force_generating_of_resources
-                );
+                const route_response = await route_request(req, res, uid, force_generating_of_resources);
 
                 // when ghost file was delivered, remove it and also the shadow file
                 if (ghost_delivered) {
@@ -122,8 +97,7 @@ export async function generate_server(
                         return false;
                     }
                     // fallback_route_request returns an response
-                    const fallback_route_response =
-                        await fallback_route_request(req, res, uid);
+                    const fallback_route_response = await fallback_route_request(req, res, uid);
                     if (fallback_route_response) {
                         res = apply_response(res, fallback_route_response);
                         return;

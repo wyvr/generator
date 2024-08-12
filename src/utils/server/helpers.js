@@ -10,17 +10,11 @@ export function is_data_method(method) {
     return ['post', 'patch', 'put'].indexOf(method.toLowerCase()) > -1;
 }
 export async function return_not_found(req, res, uid, message, status, start) {
-    Logger.error(
-        req.method,
-        req.url,
-        ...get_done_log_infos(message, status, start, uid)
-    );
+    Logger.error(req.method, req.url, ...get_done_log_infos(message, status, start, uid));
     let return_content = message;
     if (Env.is_dev()) {
         // use full page in dev mode to add devtools, which allow autoreloading the page
-        const content = read(
-            join(to_dirname(import.meta.url), '..', 'resource', '404.html')
-        );
+        const content = read(join(to_dirname(import.meta.url), '..', 'resource', '404.html'));
         if (content) {
             const url = req.url;
             try {
@@ -31,8 +25,8 @@ export async function return_not_found(req, res, uid, message, status, start) {
                                 .replace(/\{message\}/g, message)
                                 .replace(/\{status\}/g, status)
                                 .replace(/\{uid\}/g, uid)
-                                .replace(/\{url\}/g, url),
-                        },
+                                .replace(/\{url\}/g, url)
+                        }
                     },
                     { url, message, status, uid },
                     url,

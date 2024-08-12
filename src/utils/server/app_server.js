@@ -6,9 +6,7 @@ import { generate_server } from './generate_server.js';
 export async function app_server(port) {
     return new Promise((resolve, reject) => {
         generate_server(port, false, undefined, undefined).catch((e) => {
-            Logger.error(
-                get_error_message(e, undefined, `worker error ${process.pid}`)
-            );
+            Logger.error(get_error_message(e, undefined, `worker error ${process.pid}`));
             reject();
         });
     });

@@ -14,30 +14,16 @@ export async function static_server(req, res, uid, on_end) {
             cacheControl: Env.is_prod(),
             etag: Env.is_prod(),
             maxAge: Env.is_prod() ? 3600 : false,
-            dotfiles: 'ignore',
+            dotfiles: 'ignore'
         });
     }
     // static server is not able to handle other requests then get, avoid post, put, patch
     if (!is_data_method(req.method)) {
         static_server_instance(req, res, async () => {
-            await static_server_final(
-                { message: 'Not found', status: 404 },
-                req,
-                res,
-                uid,
-                on_end,
-                start
-            );
+            await static_server_final({ message: 'Not found', status: 404 }, req, res, uid, on_end, start);
         });
     } else {
-        await static_server_final(
-            { message: 'Not found', status: 404 },
-            req,
-            res,
-            uid,
-            on_end,
-            start
-        );
+        await static_server_final({ message: 'Not found', status: 404 }, req, res, uid, on_end, start);
     }
 }
 
@@ -46,14 +32,7 @@ async function static_server_final(err, req, res, uid, on_end, start) {
         await on_end(err, req, res, uid);
 
         if (!res.writableEnded) {
-            return await return_not_found(
-                req,
-                res,
-                uid,
-                err.message,
-                err.status,
-                start
-            );
+            return await return_not_found(req, res, uid, err.message, err.status, start);
         }
     }
     if (res.writableEnded) {

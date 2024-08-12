@@ -50,9 +50,7 @@ export function websocket_server(port, packages) {
                 try {
                     data = JSON.parse(message.toString('utf8'));
                 } catch (e) {
-                    Logger.warning(
-                        get_error_message(e, undefined, 'websocket')
-                    );
+                    Logger.warning(get_error_message(e, undefined, 'websocket'));
                 }
             }
             Logger.debug('client message', data);
@@ -67,17 +65,9 @@ export function websocket_server(port, packages) {
                             let path;
                             Logger.block('rebuild', data.data);
                             // check if the url is a route
-                            const route = get_route(
-                                data.data,
-                                'get',
-                                get_config_cache('route.cache')
-                            );
+                            const route = get_route(data.data, 'get', get_config_cache('route.cache'));
                             if (route) {
-                                const found_route = packages
-                                    .map((pkg) =>
-                                        join(pkg.path, route.rel_path)
-                                    )
-                                    .find((file) => exists(file));
+                                const found_route = packages.map((pkg) => join(pkg.path, route.rel_path)).find((file) => exists(file));
                                 if (found_route) {
                                     path = found_route;
                                 }
@@ -96,8 +86,8 @@ export function websocket_server(port, packages) {
                                     action: 'get_config_cache',
                                     data: {
                                         key: data.data,
-                                        value: get_config_cache(data.data),
-                                    },
+                                        value: get_config_cache(data.data)
+                                    }
                                 })
                             );
                         }
@@ -112,15 +102,8 @@ export function websocket_server(port, packages) {
                             remove(data.data.path);
                             return;
                         }
-                        if (
-                            data.data?.action === 'copy' &&
-                            data.data?.path &&
-                            data.data?.to
-                        ) {
-                            if (
-                                !data.data?.path.startsWith(cwd) ||
-                                !data.data.to.startsWith(cwd)
-                            ) {
+                        if (data.data?.action === 'copy' && data.data?.path && data.data?.to) {
+                            if (!data.data?.path.startsWith(cwd) || !data.data.to.startsWith(cwd)) {
                                 return;
                             }
                             copy(data.data.path, data.data.to);

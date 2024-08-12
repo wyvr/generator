@@ -30,12 +30,9 @@ export function server(port, on_request, on_end) {
         const question_mark = url.indexOf('?');
         const hash = url.indexOf('#');
         if (!extname(clean_url) && clean_url[clean_url.length - 1] !== '/') {
-            const params_pos = Math.min(
-                question_mark > -1 ? question_mark : Number.MAX_SAFE_INTEGER,
-                hash > -1 ? hash : Number.MAX_SAFE_INTEGER
-            );
+            const params_pos = Math.min(question_mark > -1 ? question_mark : Number.MAX_SAFE_INTEGER, hash > -1 ? hash : Number.MAX_SAFE_INTEGER);
             res.writeHead(Env.is_dev() ? 302 : 301, undefined, {
-                location: `${clean_url}/${url.substring(params_pos)}`,
+                location: `${clean_url}/${url.substring(params_pos)}`
             });
             res.end();
             return;
@@ -48,9 +45,7 @@ export function server(port, on_request, on_end) {
         const query = {};
         // add query parameters to the request
         if (question_mark > -1) {
-            const params = new URLSearchParams(
-                url.substring(question_mark + 1)
-            );
+            const params = new URLSearchParams(url.substring(question_mark + 1));
             for (const key of params.keys()) {
                 query[key] = params.get(key);
             }
@@ -68,7 +63,7 @@ export function server(port, on_request, on_end) {
             keepExtensions: true,
             uploadDir: tmpdir(),
             allowEmptyFiles: true,
-            minFileSize: 0,
+            minFileSize: 0
         });
         try {
             [body, files] = await form.parse(req);
@@ -83,9 +78,7 @@ export function server(port, on_request, on_end) {
     }).listen({ port }, () => {
         const pre_text = 'server started at';
         const text = `http://localhost:${port}`;
-        const filler = new Array(2 + pre_text.length + 1 + text.length)
-            .fill('─')
-            .join('');
+        const filler = new Array(2 + pre_text.length + 1 + text.length).fill('─').join('');
         Logger.output(undefined, undefined, Logger.color.dim(filler));
         Logger.success(pre_text, text);
         Logger.output(undefined, undefined, Logger.color.dim(filler));

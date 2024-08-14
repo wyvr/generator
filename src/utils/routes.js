@@ -348,13 +348,14 @@ export async function run_route(request, response, uid, route) {
     /* c8 ignore start */
     // safeguard
     if (!rendered_result) {
+        // @TODO add error page & show detailed error in dev mode with the last error messages
+        response = end_response(response, 'error in rendering', 500, header, response_cookies);
         return [undefined, response];
     }
     /* c8 ignore end */
 
-    if (rendered_result) {
-        rendered_result.data = page_data;
-    }
+    rendered_result.data = page_data;
+
     const identifier = rendered_result.data?._wyvr?.identifier || 'default';
     const injected_result = await inject(rendered_result, page_data, route.path, identifier, (shortcode_emit) => {
         Logger.debug('shortcode', shortcode_emit);

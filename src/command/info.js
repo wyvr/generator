@@ -8,6 +8,9 @@ export async function info_command(config) {
     const wyvr_version = search_segment(config, 'version', '');
     const node_version = process.versions.node;
     Logger.present('wyvr', wyvr_version);
+    if (process.versions.bun) {
+        Logger.present('bun', process.versions.bun);
+    }
     Logger.present('node', node_version);
     Logger.present('id', UniqId.load());
     if (config?.cli?.flags?.config) {

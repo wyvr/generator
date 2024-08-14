@@ -1,3 +1,4 @@
+import { terminate } from '../cli/terminate.js';
 import { FOLDER_GEN_DATA } from '../constants/folder.js';
 import { STORAGE_COLLECTION, STORAGE_OPTIMIZE_MEDIA_QUERY_FILES } from '../constants/storage.js';
 import { WorkerAction } from '../struc/worker_action.js';
@@ -20,6 +21,7 @@ export async function build() {
     const media_query_files = {};
     const identifier_files_name = get_name(WorkerEmit.identifier_files);
     const identifier_files = {};
+    const errors_name = get_name(WorkerEmit.errors);
 
     await measure_action(name, async () => {
         const identifier_id = Event.on('emit', identifier_name, (data) => {
@@ -59,6 +61,14 @@ export async function build() {
             }
         });
 
+        const errors_id = Event.on('emit', errors_name, (data) => {
+            if (!data || !data.errors) {
+                return;
+            }
+            Logger.error('terminated because of build errors');
+            terminate(true);
+        });
+
         const data = collect_files(FOLDER_GEN_DATA, 'json');
 
         // wrap in plugin
@@ -72,6 +82,7 @@ export async function build() {
         Event.off('emit', media_name, media_id);
         Event.off('emit', media_query_files_name, media_query_files_id);
         Event.off('emit', identifier_files_name, identifier_files_id);
+        Event.off('emit', errors_name, errors_id);
 
         // store the identifier_files in the collection storage
         // used to create the critical files, here is the reference with identifier has which file assigned to them

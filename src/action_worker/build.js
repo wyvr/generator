@@ -19,6 +19,7 @@ export async function build(files) {
     let has_media = false;
     const media_query_files = {};
     const identifier_files = {};
+    const errors = [];
 
     for (const file of files) {
         Logger.debug('build', file);
@@ -40,6 +41,13 @@ export async function build(files) {
             const exec_result = await compile_server_svelte(content, file);
 
             const rendered_result = await render_server_compiled_svelte(exec_result, data, file);
+            if (rendered_result === undefined) {
+                errors.push({
+                    file,
+                    message: 'render error'
+                });
+                continue;
+            }
             const injected_result = await inject(rendered_result, data, file, identifier, (shortcode_emit) => {
                 send_action(WorkerAction.emit, shortcode_emit);
             });
@@ -56,7 +64,18 @@ export async function build(files) {
             write(injected_result.path, await optimize_content(injected_result.content, identifier));
         } catch (e) {
             Logger.error(get_error_message(e, file, 'build'));
+            errors.push({
+                file,
+                message: e.message
+            });
         }
+    }
+    if (filled_array(errors)) {
+        const error_emit = {
+            type: WorkerEmit.errors,
+            errors
+        };
+        send_action(WorkerAction.emit, error_emit);
     }
     // emit media files
     if (has_media) {

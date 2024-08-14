@@ -13,6 +13,7 @@ import { measure_action } from './helper.js';
 
 export async function transform(data, file_configs = {}, minimize_output = false) {
     const name = 'transform';
+    const errors_name = get_name(WorkerEmit.errors);
 
     await measure_action(
         name,
@@ -33,6 +34,14 @@ export async function transform(data, file_configs = {}, minimize_output = false
                 file_configs[data.file] = data.config;
             });
 
+            const errors_id = Event.on('emit', errors_name, (data) => {
+                if (!data || !data.errors) {
+                    return;
+                }
+                Logger.error('terminated because of transform errors');
+                terminate(true);
+            });
+
             // wrap in plugin
             const caller = await Plugin.process(name, data);
             await caller(async (data) => {
@@ -40,6 +49,7 @@ export async function transform(data, file_configs = {}, minimize_output = false
             });
             // remove listeners
             Event.off('emit', config_name, config_id);
+            Event.off('emit', errors_name, errors_id);
 
             await set_config_cache('dependencies.config', file_configs);
         },

@@ -78,6 +78,11 @@ export async function transform(files) {
             symlink(file, to_client_path(file));
         } catch (e) {
             Logger.error(get_error_message(e, file, 'transform'));
+            const error_emit = {
+                type: WorkerEmit.errors,
+                errors: [{ file, message: e.message }]
+            };
+            send_action(WorkerAction.emit, error_emit);
         }
     }
     return true;

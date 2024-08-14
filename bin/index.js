@@ -13,6 +13,13 @@ import { Logger } from '../src/utils/logger.js';
 import { bind_error_events, get_error_message } from '../src/utils/error.js';
 import { ClusterWorker } from '../src/cluster_worker.js';
 
+if (process.versions.bun) {
+    Logger.error('Bun is not supported');
+
+    process.exitCode = 1;
+    process.exit(1);
+}
+
 Cwd.set(process.cwd());
 Storage.set_location(FOLDER_STORAGE);
 

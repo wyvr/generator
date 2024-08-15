@@ -136,7 +136,15 @@ export async function execute_server_compiled_svelte(compiled, file) {
 }
 
 export async function render_server_compiled_svelte(exec_result, data, file) {
-    if (!match_interface(exec_result, { compiled: true, component: true, result: true }) || !filled_string(file) || is_null(data)) {
+    if (
+        !match_interface(exec_result, {
+            compiled: true,
+            component: true,
+            result: true
+        }) ||
+        !filled_string(file) ||
+        is_null(data)
+    ) {
         return undefined;
     }
     register_inject(file);
@@ -213,7 +221,12 @@ export function make_svelte_code_async(code) {
         .replace(/\$\{each\(([^,]+), ([^=]+)=> \{/g, '${await each($1, async $2=> {')
         // make arrow functions async
         //.replace(/((?:\(\)|[^()]+?) => \{)/g, 'async $1')
-        .replace(/: (\([^)]*?\) => \{)/g, ': async $1');
+        .replace(/: (\([^)]*?\) => \{)/g, ': async $1')
+        // make await block async
+        .replace(/\$\{\(function \(/g, '${await (async function (')
+        .replace(/return \(function \(/g, 'return await (async function (')
+        // when is_promise is called it is used inside the await tag
+        .replace(/if \(is_promise\(([^)]+)\)\) \{/g, '$1 = await $1; if (is_promise($1)) {');
 
     return code.substring(0, template_index) + template;
 }

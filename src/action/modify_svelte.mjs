@@ -49,7 +49,7 @@ function modify_create_ssr_component(lines, i, len) {
             lines[j] = lines[j].replace(/(\$\$render\()/, 'await $1');
             continue;
         }
-        if (lines[j] == '}') {
+        if (lines[j] === '}') {
             return j;
         }
     }
@@ -70,7 +70,7 @@ function modify_each(lines, i, len) {
             lines[j] = lines[j].replace('fn(', 'await fn(');
             continue;
         }
-        if (lines[j] == '}') {
+        if (lines[j] === '}') {
             return j;
         }
     }

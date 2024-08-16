@@ -226,7 +226,7 @@ export function make_svelte_code_async(code) {
         .replace(/\$\{\(function \(/g, '${await (async function (')
         .replace(/return \(function \(/g, 'return await (async function (')
         // when is_promise is called it is used inside the await tag
-        .replace(/if \(is_promise\(([^)]+)\)\) \{/g, '$1 = await $1; if (is_promise($1)) {');
+        .replace(/if \(is_promise\(([^)]+)\)\) \{/g, 'try {$1 = await $1;} catch(e) {$1 = undefined}; if (is_promise($1)) {');
 
     return code.substring(0, template_index) + template;
 }

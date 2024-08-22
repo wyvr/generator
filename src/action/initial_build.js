@@ -37,6 +37,7 @@ import { KeyValue } from '../../storage.js';
 import { STORAGE_CONFIG } from '../constants/storage.js';
 import { optimize_assets } from './optimize_assets.js';
 import { optimize_pages } from './optimize_pages.js';
+import { clear_dependencies } from '../utils/dep.js';
 
 export async function pre_initial_build(build_id, config_data) {
     try {
@@ -83,6 +84,8 @@ export async function intial_build(build_id, config) {
 
     // clear gen folder
     clear_gen();
+    // clear the old dependencies
+    clear_dependencies();
 
     const { available_packages } = await pre_initial_build(build_id, config_data);
 

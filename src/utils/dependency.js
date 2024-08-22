@@ -13,6 +13,7 @@ import { Identifier } from '../model/identifier.js';
 import { get_error_message } from './error.js';
 import { set_config_cache } from './config_cache.js';
 
+
 export function dependencies_from_content(content, file) {
     if (!filled_string(content) || !filled_string(file)) {
         return undefined;
@@ -100,6 +101,7 @@ export function flip_dependency_tree(dependencies) {
     }
     return result;
 }
+// @obsolete
 export function get_dependencies(tree, file, callback) {
     if (!filled_object(tree) || is_null(tree[file])) {
         return [];
@@ -113,6 +115,8 @@ export function get_dependencies(tree, file, callback) {
 }
 
 export function get_hydrate_dependencies(tree, file_config_tree, file) {
+    
+
     if (!filled_object(tree) || !filled_object(file_config_tree) || is_null(file_config_tree[file])) {
         return [];
     }

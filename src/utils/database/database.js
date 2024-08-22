@@ -1,6 +1,6 @@
 import SQLite from 'better-sqlite3';
 import { create_dir, exists } from '../file.js';
-import { filled_string, is_func } from '../validate.js';
+import { filled_object, filled_string, is_func } from '../validate.js';
 import { Logger } from '../logger.js';
 import { get_error_message } from '../error.js';
 
@@ -36,6 +36,9 @@ export class Database {
             return undefined;
         }
         const fields = [];
+        if (!filled_object(structure)) {
+            return undefined;
+        }
         for (const key in structure) {
             const config = Object.assign(
                 {
@@ -43,7 +46,7 @@ export class Database {
                     type: 'text',
                     primary: false,
                     default: undefined,
-                    unique: false
+                    unique: false,
                 },
                 structure[key]
             );
@@ -54,16 +57,28 @@ export class Database {
                     !config.null ? 'NOT NULL' : '',
                     config.primary ? 'PRIMARY KEY' : '',
                     config.unique ? 'UNIQUE' : '',
-                    config.default !== undefined ? `DEFAULT ${config.default}` : ''
+                    config.default !== undefined
+                        ? `DEFAULT ${config.default}`
+                        : '',
                 ].join(' ')
             );
         }
-        return this.run(`CREATE TABLE IF NOT EXISTS "${name}" (${fields.join(', ')});`);
+        return this.run(
+            `CREATE TABLE IF NOT EXISTS "${name}" (${fields.join(', ')});`
+        );
     }
     close() {
         if (this.db !== undefined) {
             this.db.close();
         }
+    }
+    clear(name) {
+        if (!this.db) {
+            return undefined;
+        }
+        // delete entries from database && remove unused space
+        this.run(`DELETE FROM "${name}";`);
+        this.run('VACUUM;');
     }
 
     run(sql, data) {
@@ -89,7 +104,11 @@ export class Database {
             }
             return stmt[type](data);
         } catch (e) {
-            Logger.error(get_error_message(e, import.meta.url, 'sql'), sql, data);
+            Logger.error(
+                get_error_message(e, import.meta.url, 'sql'),
+                sql,
+                data
+            );
             return undefined;
         }
     }

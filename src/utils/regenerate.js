@@ -22,6 +22,7 @@ import { transform } from '../action/transform.js';
 import { process_pages } from '../action/page.js';
 import { update_project_events } from './project_events.js';
 import { add_dev_note } from './devtools.js';
+import { parse_content, update_file } from './dep.js';
 
 function regenerate_server_files({ change, add, unlink }, gen_folder, scope) {
     const modified = [].concat(change, add);
@@ -103,7 +104,14 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
         // get dependencies of the file and copy them to the gen folder
         const files = mod_files.map((file) => {
             const rel_path = file.rel_path.replace(/^\/?(src\/)/, '$1');
-            const dep_result = dependencies_from_content(read(file.path), rel_path);
+            const content = read(file.path);
+            const parsed = parse_content(content, file.path);
+            if(parsed) {
+                console.log(parsed)
+                update_file(parsed.rel_path, parsed.dependencies, parsed?.config?.render);
+            }
+            // @TODO OLD
+            const dep_result = dependencies_from_content(content, rel_path);
             if (dep_result?.dependencies) {
                 if (!dependencies) {
                     dependencies = {};

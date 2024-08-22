@@ -18,7 +18,7 @@ $: attr_value = Object.keys(attr)
         if (value === true) {
             return key;
         }
-        if (typeof value != 'string') {
+        if (typeof value !== 'string') {
             return undefined;
         }
         return `${key}="${quote(value)}"`;

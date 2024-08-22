@@ -2,7 +2,6 @@ import { extname, join, sep } from 'node:path';
 import { FOLDER_GEN, FOLDER_SRC } from '../constants/folder.js';
 import { RESERVED_KEYWORDS } from '../constants/keywords.js';
 import { WyvrFileConfig } from '../struc/wyvr_file.js';
-import { clone } from '../utils/json.js';
 import { filled_string, in_array } from '../utils/validate.js';
 
 export function WyvrFile(path) {
@@ -44,7 +43,7 @@ export function WyvrFile(path) {
 }
 
 export function extract_wyvr_file_config(content) {
-    const config = clone(WyvrFileConfig);
+    const config = structuredClone(WyvrFileConfig);
     if (!filled_string(content)) {
         return config;
     }

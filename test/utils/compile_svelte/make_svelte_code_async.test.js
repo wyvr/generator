@@ -1,14 +1,9 @@
-import { deepStrictEqual, strictEqual } from 'node:assert';
+import { deepStrictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { make_svelte_code_async } from '../../../src/utils/compile_svelte.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 import { join } from 'node:path';
-import { to_plain } from '../../../src/utils/to.js';
-import Sinon from 'sinon';
-import { Logger } from '../../../src/utils/logger.js';
 import { read } from '../../../src/utils/file.js';
-import { Env } from '../../../src/vars/env.js';
-import { EnvType } from '../../../src/struc/env.js';
 
 describe('utils/compile_svelte/make_svelte_code_async', () => {
     const path = join(process.cwd(), 'test', 'utils', 'compile_svelte', '_tests');

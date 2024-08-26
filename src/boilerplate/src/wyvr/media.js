@@ -15,7 +15,7 @@ export function to_media_config(hash) {
         const part = p.trim();
         const [key, value] = part.split(':');
         if (!map[key]) {
-            return;
+            continue;
         }
         config[map[key]] =
             ['w', 'h', 'q'].indexOf(key) > -1

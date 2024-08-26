@@ -29,7 +29,7 @@ describe('resource/media/to_media_config', () => {
             width: 100,
         });
     });
-    it('unknown', () => {
+    it('unknown prop', () => {
         deepStrictEqual(to_media_config('w:100,?:100'), {
             width: 100,
         });

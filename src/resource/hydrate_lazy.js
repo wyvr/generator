@@ -1,7 +1,7 @@
 import { wyvr_portal } from '@wyvr/generator/src/resource/portal.js';
 import { wyvr_props } from '@wyvr/generator/src/resource/props.js';
 
-if(!window.wyvr_classes) {
+if (!window.wyvr_classes) {
     window.wyvr_classes = {};
 }
 

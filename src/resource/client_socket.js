@@ -197,6 +197,10 @@
         for (const ref of document.querySelectorAll(`${tag}[${attribute}*="${file_path}"]`)) {
             const value = ref.getAttribute(attribute);
             if (value) {
+                if (file_path.indexOf('.js') >= 0) {
+                    location.reload();
+                    return;
+                }
                 // @see https://stackoverflow.com/questions/2024486/is-there-an-easy-way-to-reload-css-without-reloading-the-page
                 // add cache breaker to the resource
                 const cb = new Date().getTime().toString();

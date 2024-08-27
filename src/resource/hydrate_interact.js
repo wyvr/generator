@@ -3,10 +3,12 @@
 import { wyvr_portal } from '@wyvr/generator/src/resource/portal.js';
 import { wyvr_props } from '@wyvr/generator/src/resource/props.js';
 
-const wyvr_interact_classes = {};
+if(!window.wyvr_classes) {
+    window.wyvr_classes = {};
+}
 
 export function wyvr_hydrate_interact(path, elements, name, cls, trigger) {
-    wyvr_interact_classes[name] = { cls, path, loaded: false };
+    window.wyvr_classes[name] = { cls, path, loaded: false };
 
     for (const el of elements) {
         el.addEventListener('mouseover', wyvr_interact_init);
@@ -45,10 +47,10 @@ const wyvr_interact_init = (e) => {
     wyvr_props(last_element).then((props) => {
         const target = wyvr_portal(last_element, props);
         const name = target.getAttribute('data-hydrate');
-        if (name && wyvr_interact_classes[name] && !wyvr_interact_classes[name].loaded) {
-            wyvr_interact_classes[name].loaded = true;
+        if (name && window.wyvr_classes[name] && !window.wyvr_classes[name].loaded) {
+            window.wyvr_classes[name].loaded = true;
             const script = document.createElement('script');
-            script.setAttribute('src', wyvr_interact_classes[name].path);
+            script.setAttribute('src', window.wyvr_classes[name].path);
             if (path) {
                 script.onload = () => {
                     // restore original event

@@ -1,10 +1,12 @@
 import { wyvr_portal } from '@wyvr/generator/src/resource/portal.js';
 import { wyvr_props } from '@wyvr/generator/src/resource/props.js';
 
-const wyvr_lazy_classes = {};
+if(!window.wyvr_classes) {
+    window.wyvr_classes = {};
+}
 
 export function wyvr_hydrate_lazy(path, elements, name, cls, trigger) {
-    wyvr_lazy_classes[name] = { cls, path, loaded: false };
+    window.wyvr_classes[name] = { cls, path, loaded: false };
 
     for (const el of elements) {
         wyvr_props(el).then((props) => {
@@ -35,10 +37,10 @@ const wyvr_lazy_observer = new IntersectionObserver((entries) => {
 
 function wyvr_lazy_init(element) {
     const name = element.getAttribute('data-hydrate');
-    if (name && !wyvr_lazy_classes[name].loaded) {
-        wyvr_lazy_classes[name].loaded = true;
+    if (name && !window.wyvr_classes[name].loaded) {
+        window.wyvr_classes[name].loaded = true;
         const script = document.createElement('script');
-        script.setAttribute('src', wyvr_lazy_classes[name].path);
+        script.setAttribute('src', window.wyvr_classes[name].path);
         document.body.appendChild(script);
     }
 }

@@ -33,7 +33,7 @@ function config() {
             }
             // when nothing is specified as segment return whole config
             if (!is_string(segment)) {
-                return Object.assign({}, cache);
+                return structuredClone(cache);
             }
             return search_segment(cache, segment, fallback_value);
         },
@@ -80,14 +80,11 @@ function config() {
             }
             return {};
         },
-        persist: (config) => {
-            if (!filled_object(config)) {
+        persist: () => {
+            if (!filled_object(cache)) {
                 return;
             }
-            write_json(config_cache_path, config);
-            // store new config
-            const config_db = new KeyValue(STORAGE_CONFIG);
-            config_db.set(config);
+            write_json(config_cache_path, cache);
         }
     };
 }

@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 import { wyvr_portal } from '@wyvr/generator/src/resource/portal.js';
 import { wyvr_props } from '@wyvr/generator/src/resource/props.js';
 

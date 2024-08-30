@@ -4,7 +4,7 @@ import { is_file, find_file, write_json, read_json, remove } from './file.js';
 import { register_inject } from './global.js';
 import { Logger } from './logger.js';
 import { search_segment } from './segment.js';
-import { filled_object, filled_string, is_string } from './validate.js';
+import { filled_object, filled_string, is_array, is_object, is_string } from './validate.js';
 import { FOLDER_CACHE } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { append_cache_breaker } from './cache_breaker.js';
@@ -16,7 +16,31 @@ export function merge_config(config1, config2) {
     if (config1 === undefined && config2 === undefined) {
         return undefined;
     }
-    return merge(config1 ?? {}, config2 ?? {});
+    const config = merge(config1 ?? {}, config2 ?? {});
+    // correct the packages and assets
+    return dedup(config);
+}
+
+function dedup(obj) {
+    if (is_array(obj)) {
+        // Deduplicate array and handle nested objects
+        const seen = new Map();
+        return obj
+            .filter((item) => {
+                const serializedItem = JSON.stringify(item);
+                return seen.has(serializedItem) ? false : seen.set(serializedItem, true);
+            })
+            .map(dedup);
+    }
+    if (is_object(obj)) {
+        // Iterate over object properties
+        for (const key in obj) {
+            if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                obj[key] = dedup(obj[key]);
+            }
+        }
+    }
+    return obj;
 }
 
 function config() {

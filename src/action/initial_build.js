@@ -33,11 +33,9 @@ import { Env } from '../vars/env.js';
 import { build_cache as build_media_cache } from '../utils/media.js';
 import { cronjobs } from './cronjobs.js';
 import { update_project_events } from '../utils/project_events.js';
-import { KeyValue } from '../../storage.js';
-import { STORAGE_CONFIG } from '../constants/storage.js';
 import { optimize_assets } from './optimize_assets.js';
 import { optimize_pages } from './optimize_pages.js';
-import { clear_dependencies } from '../utils/dep.js';
+import { Dependency } from '../model/dependency.js';
 
 export async function pre_initial_build(build_id, config_data) {
     try {
@@ -88,7 +86,7 @@ export async function intial_build(build_id, config) {
     // clear gen folder
     clear_gen();
     // clear the old dependencies
-    clear_dependencies();
+    new Dependency().clear();
 
     const { available_packages } = await pre_initial_build(build_id, config_data);
 

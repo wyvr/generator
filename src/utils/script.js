@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { FOLDER_GEN, FOLDER_GEN_CLIENT, FOLDER_JS } from '../constants/folder.js';
-import { WyvrFileLoading } from '../struc/wyvr_file.js';
+import { WyvrFileLoading, WyvrFileRender } from '../struc/wyvr_file.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
 import { exists, to_extension, write } from './file.js';
@@ -8,10 +8,10 @@ import { get_file_time_hash } from './hash.js';
 import { to_dirname, to_relative_path } from './to.js';
 import { filled_string, in_array, match_interface } from './validate.js';
 import { build } from './build.js';
-import { get_config_cache } from './config_cache.js';
 import { WyvrFile } from '../model/wyvr_file.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { optimize_js } from './optimize/js.js';
+import { Dependency } from '../model/dependency.js';
 
 /**
  * Get the js selector for all elements with the given name
@@ -100,8 +100,8 @@ export async function build_hydrate_file(file, resouce_dir) {
     return result;
 }
 
+let dep_db;
 export async function build_hydrate_file_from_url(url) {
-    const file_config = get_config_cache('dependencies.config');
     const resouce_dir = join(to_dirname(import.meta.url), '..', 'resource');
 
     const [clean_url] = url
@@ -109,10 +109,13 @@ export async function build_hydrate_file_from_url(url) {
         .replace(/\/[^/]+\//, '')
         .split('?');
     const svelte_file = to_extension(clean_url, 'svelte');
-    const config = file_config[svelte_file];
-    if (config) {
+    if (!dep_db) {
+        dep_db = new Dependency();
+    }
+    const entry = dep_db.get_file(svelte_file);
+    if (entry?.config && entry?.standalone === WyvrFileRender.hydrate) {
         const file = WyvrFile(svelte_file);
-        file.config = config;
+        file.config = entry.config;
         const file_result = await build_hydrate_file(file, resouce_dir);
         write_hydrate_file(file_result);
         return file_result.code;

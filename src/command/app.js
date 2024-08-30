@@ -66,8 +66,6 @@ export const app_command = async (config) => {
         }
 
         // set config cache for the workers to operate correctly
-        pub_config_cache('dependencies.config');
-        pub_config_cache('dependencies.top');
         pub_config_cache('i18n');
         pub_config_cache('route.cache');
         pub_config_cache('page.cache');

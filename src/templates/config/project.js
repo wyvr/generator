@@ -46,7 +46,7 @@ export default {
             when: '* * * * *', // every minute
             what: 'relative_path_to_file_from_cron_folder',
             options: {
-                custom: 'options
+                custom: 'options'
             }
         }
     },*/

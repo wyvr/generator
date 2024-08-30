@@ -65,6 +65,9 @@ export async function pre_initial_build(build_id, config_data) {
 
     await WorkerController.initialize(Config.get('worker.ratio', 1), config_data?.cli?.flags?.single);
 
+    // Reload the events
+    await update_project_events(FOLDER_GEN_EVENTS);
+
     // Create required symlinks
     symlink(Cwd.get(FOLDER_MEDIA), ReleasePath.get(FOLDER_MEDIA));
     // build media cache
@@ -105,9 +108,6 @@ export async function intial_build(build_id, config) {
 
     // Transform Svelte files to client and server components
     await transform();
-
-    // Reload the events
-    await update_project_events(FOLDER_GEN_EVENTS);
 
     // Initialize Plugins
     await Plugin.initialize();

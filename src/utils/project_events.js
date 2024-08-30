@@ -1,11 +1,12 @@
 import { join } from 'node:path';
 import { Cwd } from '../vars/cwd.js';
 import { collect_files } from './file.js';
-import { filled_array, filled_string, is_func } from './validate.js';
+import { filled_array, filled_string, is_func, is_null } from './validate.js';
 import { append_cache_breaker } from './cache_breaker.js';
 import { Logger } from './logger.js';
 import { get_error_message } from './error.js';
 import { Event } from './event.js';
+import { PROJECT_EVENT } from '../constants/project_events.js';
 
 let active_events = {};
 
@@ -25,6 +26,9 @@ export async function collect_project_events(folder) {
             try {
                 const file = join(cwd, append_cache_breaker(file_path));
                 const event_result = (await import(file)).default;
+                if (is_null(event_result)) {
+                    return undefined;
+                }
                 for (const [name, event] of Object.entries(event_result)) {
                     if (!events[name]) {
                         events[name] = [];
@@ -57,7 +61,7 @@ export function apply_project_events(events) {
     // remove the old events
     for (const [name, ids] of Object.entries(active_events)) {
         for (const id of ids) {
-            Event.off('project', name, id);
+            Event.off(PROJECT_EVENT, name, id);
         }
     }
     active_events = {};
@@ -68,7 +72,7 @@ export function apply_project_events(events) {
             if (!is_func(entry?.fn)) {
                 continue;
             }
-            const id = Event.on('project', name, entry.fn);
+            const id = Event.on(PROJECT_EVENT, name, entry.fn);
             active_events[name].push(id);
         }
     }

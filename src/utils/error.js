@@ -4,6 +4,7 @@ import { Cwd } from '../vars/cwd.js';
 import { Logger } from './logger.js';
 import { filled_array, filled_string, is_null, is_object } from './validate.js';
 import { Event } from './event.js';
+import { PROJECT_EVENT, PROJECT_EVENT_ERROR } from '../constants/project_events.js';
 
 export function extract_error(e, source) {
     const root_dir = Cwd.get();
@@ -181,10 +182,10 @@ export function inject_worker_message_errors(messages) {
 export function bind_error_events() {
     // @see https://nodejs.org/api/process.html#event-uncaughtexception
     process.on('uncaughtException', (error, origin) => {
-        Event.emit('project', 'error', { error, origin });
+        Event.emit(PROJECT_EVENT, PROJECT_EVENT_ERROR, { error, origin });
     });
     // when available it prevents the exit of the application
     process.on('unhandledRejection', (reason, promise) => {
-        Event.emit('project', 'error', { promise, reason });
+        Event.emit(PROJECT_EVENT, PROJECT_EVENT_ERROR, { promise, reason });
     });
 }

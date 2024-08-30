@@ -22,6 +22,9 @@ import { WorkerController } from './worker/controller.js';
 import { Event } from './utils/event.js';
 import { get_commands } from './command/available_commands.js';
 import { UniqId } from './vars/uniq_id.js';
+import { PROJECT_EVENT, PROJECT_EVENT_CONFIG } from './constants/project_events.js';
+import { update_project_events } from './utils/project_events.js';
+import { FOLDER_GEN_EVENTS } from './constants/folder.js';
 
 export function get_command(config) {
     const commands = config?.cli?.command;
@@ -44,7 +47,8 @@ export async function command(base_config) {
         /* eslint-enable */
     }
 
-    Event.emit('project', 'config', config);
+    await update_project_events(FOLDER_GEN_EVENTS);
+    Event.emit(PROJECT_EVENT, PROJECT_EVENT_CONFIG, config);
 
     const command_help = !!config?.cli?.flags?.help;
     const command = get_command(config);

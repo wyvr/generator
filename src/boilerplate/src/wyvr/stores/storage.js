@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 export function load(key, fallback) {
     if (!key || !localStorage) {
         return fallback;
@@ -22,7 +24,7 @@ export function save(key, value) {
         return true;
     }
     let store_value = '';
-    if (typeof value == 'string') {
+    if (typeof value === 'string') {
         store_value = value;
     } else {
         try {

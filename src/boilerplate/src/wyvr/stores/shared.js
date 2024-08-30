@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 import { context } from '$src/wyvr/context.js';
 import { writable } from 'svelte/store';
 

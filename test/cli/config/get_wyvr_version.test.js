@@ -5,6 +5,6 @@ import { get_wyvr_version } from '../../../src/cli/config.js';
 describe('cli/config/get_wyvr_version', () => {
     
     it('version', () => {
-        deepStrictEqual(get_wyvr_version(), '0.0.0');
+        deepStrictEqual(get_wyvr_version(), '0.1.0');
     });
 });

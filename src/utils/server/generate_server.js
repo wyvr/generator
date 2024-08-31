@@ -60,6 +60,11 @@ export async function generate_server(port, force_generating_of_resources, onEnd
                     }
                 }
 
+                // handle request and hydrequest component rendering
+                if (req.method.toLowerCase() === 'post' && req.url.indexOf('/$src/') === 0) {
+                    console.log('request rendering', req.url);
+                }
+
                 const ghost_path = join(ReleasePath.get(), req.url.replace(/\/(?:index\.html)?$/, '/index.ghost'));
                 const shadow_path = to_extension(ghost_path, '.shadow');
                 let ghost_delivered = false;

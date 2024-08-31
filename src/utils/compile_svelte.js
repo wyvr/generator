@@ -166,6 +166,8 @@ export async function render_server_compiled_svelte(exec_result, data, file) {
             return undefined;
         }
     };
+    // add registering onRequest, but never execute it on server
+    global.onRequest = async () => {};
 
     try {
         // svelte creates console log output themself inside
@@ -195,8 +197,8 @@ export function make_svelte_code_async(code) {
         // wrap main function in try catch
         .replace(/(create_ssr_component.*=> {)/, '$1 try {')
         .replace(/(\}\);[\n\s]+export default )/, "} catch(e) {console.log(import.meta.url, e); return '';}\n$1")
-        // make onServer async
-        .replace(/(onServer\()/g, 'await $1')
+        // make onServer and onRequest async
+        .replace(/(on(?:Server|Request)\()/g, 'await $1')
         // use own svelte internal, which is async
         .replace(/['"]svelte\/internal['"]/, `'${Cwd.get(FOLDER_GEN_SERVER, 'svelte_internal.mjs')}'`)
         // throw errors from server code instead of logging them to the console

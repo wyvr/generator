@@ -5,7 +5,7 @@ import { compile_sass, compile_typescript, insert_import } from './compile.js';
 import { Cwd } from '../vars/cwd.js';
 import { to_dirname } from './to.js';
 import { clone } from './json.js';
-import { WyvrFileLoading } from '../struc/wyvr_file.js';
+import { WyvrFileLoading, WyvrFileRender, WyvrFileRenderHydrequestAlias } from '../struc/wyvr_file.js';
 import { uniq_values } from './uniq.js';
 import { Env } from '../vars/env.js';
 import { Logger } from './logger.js';
@@ -307,7 +307,11 @@ export function insert_hydrate_tag(content, wyvr_file) {
     // debug info
     const debug_info = Env.is_dev() ? `data-hydrate-path="${wyvr_file.rel_path}"` : undefined;
     const attributes = [debug_info, props_include, loading, portal, media].filter((x) => x).join(' ');
-    content = `<${hydrate_tag} data-hydrate="${wyvr_file.name}" ${attributes}>${content}</${hydrate_tag}>`;
+    let render = wyvr_file?.config?.render;
+    if (WyvrFileRenderHydrequestAlias.indexOf(render) > -1) {
+        render = WyvrFileRender.hydrequest;
+    }
+    content = `<${hydrate_tag} data-render="${render}" data-hydrate="${wyvr_file.name}" ${attributes}>${content}</${hydrate_tag}>`;
     content = replace_slots_static(content);
     return scripts.tags.join('\n') + content + styles.tags.join('\n');
 }
@@ -350,11 +354,18 @@ export function replace_slots(content, fn) {
 export function replace_slots_static(content) {
     return replace_slots(content, (name, slot) => `<span data-slot="${name}">${slot}</span>`);
 }
-export function remove_on_server(content) {
+export function remove_server_events(content) {
+    return ['onServer', 'onRequest'].reduce((content, event_name) => remove_event(content, event_name), content);
+}
+
+function remove_event(content, event_name) {
     if (!filled_string(content)) {
         return '';
     }
-    const search_string = 'onServer(';
+    if (!filled_string(event_name)) {
+        return content;
+    }
+    const search_string = `${event_name}(`;
     const start_index = content.indexOf(search_string);
     if (start_index === -1) {
         return content;
@@ -381,7 +392,7 @@ export function remove_on_server(content) {
     if (found_closing) {
         const replaced = content.substr(0, start_index) + content.substr(index);
         // check if more onServer handlers are used
-        return remove_on_server(replaced);
+        return remove_server_events(replaced);
     }
     return content;
 }

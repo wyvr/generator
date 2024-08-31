@@ -3,7 +3,13 @@ export const WyvrHydrateDisplay = {
     block: 'block'
 };
 
-export const WyvrFileRender = { static: 'static', hydrate: 'hydrate' };
+export const WyvrFileRender = {
+    static: 'static',
+    hydrate: 'hydrate',
+    request: 'request',
+    hydrequest: 'hydrequest'
+};
+export const WyvrFileRenderHydrequestAlias = ['request|hydrate', 'hydrate|request'];
 
 export const WyvrFileLoading = {
     instant: 'instant',

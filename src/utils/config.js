@@ -57,7 +57,8 @@ function config() {
             }
             // when nothing is specified as segment return whole config
             if (!is_string(segment)) {
-                return structuredClone(cache);
+                // here should not be used structuredClone
+                return Object.assign({}, cache);
             }
             return search_segment(cache, segment, fallback_value);
         },

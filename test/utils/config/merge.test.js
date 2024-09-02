@@ -56,4 +56,27 @@ describe('utils/config/merge', () => {
             { packages: [{ name: '1' }, { name: '2' }] }
         );
     });
+    it('avoid cron merging', () => {
+        deepStrictEqual(
+            Config.merge(
+                {
+                    cron: {
+                        a: { what: ['a1.js'] },
+                    },
+                },
+                {
+                    cron: {
+                        a: { what: ['a2.js'] },
+                        b: { what: ['b.js'] },
+                    },
+                }
+            ),
+            {
+                cron: {
+                    a: { what: ['a2.js'] },
+                    b: { what: ['b.js'] },
+                },
+            }
+        );
+    });
 });

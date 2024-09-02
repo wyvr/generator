@@ -17,6 +17,12 @@ export function merge_config(config1, config2) {
         return undefined;
     }
     const config = merge(config1 ?? {}, config2 ?? {});
+    // avoid merging of the crons
+    if(filled_object(config2?.cron)) {
+        for(const [key, value] of Object.entries(config2.cron)){
+            config.cron[key] = value;
+        }
+    }
     // correct the packages and assets
     return dedup(config);
 }

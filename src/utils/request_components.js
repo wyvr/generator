@@ -1,13 +1,29 @@
 import { FOLDER_GEN_SERVER } from '../constants/folder.js';
+import { Dependency } from '../model/dependency.js';
 import { transform_prop_source } from '../resource/props.js';
 import { CodeContext } from '../struc/code_context.js';
 import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
+import { WyvrFileClassification } from '../vars/wyvr_file_classification.js';
 import { execute_server_code_from_file, render_server_compiled_svelte } from './compile_svelte.js';
 import { exists, read, read_json } from './file.js';
+import { Logger } from './logger.js';
 import { is_null } from './validate.js';
 
 export async function render_request_components(path, data) {
+    // check if the file is allowed to be rendered as component
+    const rel_path = path.replace(/\/$/, '.svelte').replace(/^\/\$request/, 'src');
+    const dep = new Dependency();
+    const file = dep.get_file(rel_path);
+    if (!file) {
+        Logger.error('file', rel_path, 'could not be found from path', path);
+        return undefined;
+    }
+    if (!WyvrFileClassification.is_server_request(file.standalone)) {
+        Logger.error('file', rel_path, 'is not allowed to be rendered, render:', file.standalone, 'from path', path);
+        return undefined;
+    }
+
     const component_path = path.replace(/\/$/, '.js').replace(/^\/\$request/, Cwd.get(FOLDER_GEN_SERVER));
 
     // Parse prop files from data

@@ -33,7 +33,21 @@ export function generate_page_code(data) {
     import Layout from '${remove_cache_breaker(tmpl_files.layout)}${cache_breaker}';
     import Page from '${remove_cache_breaker(tmpl_files.page)}${cache_breaker}';
     const data = ${JSON.stringify(data, null, Env.json_spaces())};
-    global.getWyvrData = (segment, fallback) => {
+    ${getWyvrData()}
+</script>
+
+<Doc {data}>
+    <Layout {data}>
+        <Page {data}>
+        {@html data.content || ''}
+        </Page>
+    </Layout>
+</Doc>`;
+    return code;
+}
+
+function getWyvrData() {
+    return `global.getWyvrData = (segment, fallback) => {
         if(!segment || typeof segment != 'string' || !data) {
             return fallback;
         }
@@ -43,15 +57,5 @@ export function generate_page_code(data) {
             }
             return fallback;
         }, data);
-    }
-</script>
-
-<Doc data={data}>
-    <Layout data={data}>
-        <Page data={data}>
-        {@html data.content || ''}
-        </Page>
-    </Layout>
-</Doc>`;
-    return code;
+    }`;
 }

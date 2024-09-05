@@ -15,6 +15,7 @@ import { inject } from './config.js';
 import { get_language } from './i18n.js';
 import { Plugin } from './plugin.js';
 import { to_dirname } from './to.js';
+import { CodeContext } from '../struc/code_context.js';
 
 export async function prepare_code_to_compile(content, file, type) {
     if (!in_array(['client', 'server'], type) || !filled_string(content) || !filled_string(file)) {
@@ -103,9 +104,16 @@ export async function execute_server_compiled_svelte(compiled, file) {
         Logger.warning("can't execute code without file");
         return undefined;
     }
+    return await execute_server_code_from_file(compiled.js.code, file);
+}
+
+export async function execute_server_code_from_file(code, file) {
+    if (!filled_string(code)) {
+        return undefined;
+    }
     let component;
     const tmp_file = Cwd.get(FOLDER_GEN_TEMP, `${uniq_id()}.js`);
-    write(tmp_file, compiled.js.code);
+    write(tmp_file, code);
     try {
         component = await import(tmp_file);
         // return default when available
@@ -135,7 +143,10 @@ export async function execute_server_compiled_svelte(compiled, file) {
     return component;
 }
 
-export async function render_server_compiled_svelte(exec_result, data, file) {
+export async function render_server_compiled_svelte(exec_result, data, file, context = 'server') {
+    if (context !== CodeContext.server && context !== CodeContext.request) {
+        return undefined;
+    }
     if (
         !match_interface(exec_result, {
             compiled: true,
@@ -156,6 +167,9 @@ export async function render_server_compiled_svelte(exec_result, data, file) {
 
     // add registering onServer
     global.onServer = async (callback) => {
+        if (context !== CodeContext.server) {
+            return undefined;
+        }
         if (!is_func(callback)) {
             return undefined;
         }
@@ -167,7 +181,20 @@ export async function render_server_compiled_svelte(exec_result, data, file) {
         }
     };
     // add registering onRequest, but never execute it on server
-    global.onRequest = async () => {};
+    global.onRequest = async (callback) => {
+        if (context !== CodeContext.request) {
+            return undefined;
+        }
+        if (!is_func(callback)) {
+            return undefined;
+        }
+        try {
+            return await callback();
+        } catch (e) {
+            Logger.error(get_error_message(e, file, 'svelte server onRequest'));
+            return undefined;
+        }
+    };
 
     try {
         // svelte creates console log output themself inside

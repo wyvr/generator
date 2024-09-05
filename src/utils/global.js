@@ -84,7 +84,7 @@ export function register_prop(file) {
             }
             return `|${prop}|:|@(${file_name})|`;
         }
-        return `|${prop}|:${converted.replace(/\|/g, '§|§').replace(/"/g, '|')}`;
+        return `|${prop}|:${converted.replace(/\|/g, '§|§').replace(/"/g, '|').replace(/\{/g, '«').replace(/\}/g, '»')}`;
     };
 }
 const stackContext = new Map();

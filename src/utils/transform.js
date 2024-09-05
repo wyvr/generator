@@ -13,6 +13,7 @@ import { FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC } from '../constan
 import { get_error_message } from './error.js';
 import { append_cache_breaker } from './cache_breaker.js';
 import { Config } from './config.js';
+import { WyvrFileClassification } from '../vars/wyvr_file_classification.js';
 
 const __dirname = join(to_dirname(import.meta.url), '..');
 
@@ -305,12 +306,10 @@ export function insert_hydrate_tag(content, wyvr_file) {
     // add hydrate tag
     const hydrate_tag = wyvr_file.config.display === 'inline' ? 'span' : 'div';
     // debug info
-    const debug_info = Env.is_dev() ? `data-hydrate-path="${wyvr_file.rel_path}"` : undefined;
+    const debug_info = undefined; //Env.is_dev() ? `data-hydrate-path="${wyvr_file.rel_path}"` : undefined;
     const attributes = [debug_info, props_include, loading, portal, media].filter((x) => x).join(' ');
-    let render = wyvr_file?.config?.render;
-    if (WyvrFileRenderHydrequestAlias.indexOf(render) > -1) {
-        render = WyvrFileRender.hydrequest;
-    }
+    const render = WyvrFileClassification.normalize(wyvr_file?.config?.render) ?? '';
+
     content = `<${hydrate_tag} data-render="${render}" data-hydrate="${wyvr_file.name}" ${attributes}>${content}</${hydrate_tag}>`;
     content = replace_slots_static(content);
     return scripts.tags.join('\n') + content + styles.tags.join('\n');

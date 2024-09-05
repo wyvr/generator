@@ -6,7 +6,7 @@ import { filled_array, filled_object, filled_string, in_array, is_null } from '.
 import { to_relative_path_of_gen } from './to.js';
 import { replace_src } from './transform.js';
 import { exists, find_file, to_extension } from './file.js';
-import { WyvrFileConfig } from '../struc/wyvr_file.js';
+import { WyvrFileConfig, WyvrFileRender } from '../struc/wyvr_file.js';
 import { uniq_values } from './uniq.js';
 import { Identifier } from '../model/identifier.js';
 
@@ -95,7 +95,7 @@ export function get_render_dependencies(file, index) {
         return [];
     }
     // do not search deeper when the file is renderable
-    if (entry.standalone === 'hydrate') {
+    if ([WyvrFileRender.hydrate, WyvrFileRender.request, WyvrFileRender.hydrequest].indexOf(entry.standalone) >= 0) {
         return [entry];
     }
     if (!entry.children) {

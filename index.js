@@ -30,6 +30,23 @@ export const isClient = false;
 export async function onServer() {}
 
 /**
+ * Callback which gets executed when the component is rendered as reqeusts, this callback can be asynchronous
+ *
+ * @callback onRequestCallback
+ * @returns void
+ * @example
+ * onSRequest(async () => { ... })
+ */
+
+/**
+ * Function which gets only executed when component gets rendered as request
+ *
+ * @param {onRequestCallback} callback Executed function on the server
+ * @returns void
+ */
+export async function onRequest() {}
+
+/**
  * Transform the value with this callback, this callback can be asynchronous
  *
  * @callback injectCallback

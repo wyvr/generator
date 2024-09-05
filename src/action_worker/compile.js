@@ -1,6 +1,5 @@
 import { extname } from 'node:path';
 import { WyvrFile } from '../model/wyvr_file.js';
-import { WyvrFileRender, WyvrFileRenderHydrequestAlias } from '../struc/wyvr_file.js';
 import { compile_client_svelte_from_code, compile_server_svelte_from_code } from '../utils/compile_svelte.js';
 import { get_error_message } from '../utils/error.js';
 import { exists, read, write } from '../utils/file.js';
@@ -9,13 +8,13 @@ import { to_client_path, to_relative_path_of_gen, to_server_path } from '../util
 import { insert_hydrate_tag, remove_server_events, replace_wyvr_magic } from '../utils/transform.js';
 import { filled_array } from '../utils/validate.js';
 import { Dependency } from '../model/dependency.js';
+import { WyvrFileClassification } from '../vars/wyvr_file_classification.js';
 
 export async function compile(files) {
     if (!filled_array(files)) {
         return false;
     }
     const dep_db = new Dependency();
-    const hydrate_names = [WyvrFileRender.hydrate, WyvrFileRender.request, WyvrFileRender.hydrequest, ...WyvrFileRenderHydrequestAlias];
     // const file_config = get_config_cache('dependencies.config');
     for (const file of files) {
         if (!exists(file) || extname(file) !== '.svelte') {
@@ -32,7 +31,7 @@ export async function compile(files) {
                 const dep_entry = dep_db.get_file(rel_path);
 
                 entry.config = dep_entry?.config;
-                if (hydrate_names.indexOf(entry?.config?.render) > -1) {
+                if (WyvrFileClassification.is_client_code_required(entry?.config?.render)) {
                     server_code = insert_hydrate_tag(server_code, entry);
                 }
                 const compiled = await compile_server_svelte_from_code(server_code, file);

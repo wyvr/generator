@@ -10,6 +10,7 @@ import { WorkerEmit } from '../struc/worker_emit.js';
 import { inject } from '../utils/build.js';
 import { get_error_message } from '../utils/error.js';
 import { optimize_content } from '../utils/optimize.js';
+import { CodeContext } from '../struc/code_context.js';
 
 export async function build(files) {
     if (!filled_array(files)) {
@@ -40,7 +41,7 @@ export async function build(files) {
 
             const exec_result = await compile_server_svelte(content, file);
 
-            const rendered_result = await render_server_compiled_svelte(exec_result, data, file);
+            const rendered_result = await render_server_compiled_svelte(exec_result, data, file, CodeContext.server);
             if (rendered_result === undefined) {
                 errors.push({
                     file,

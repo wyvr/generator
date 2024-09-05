@@ -23,16 +23,20 @@ export const questions_file = [
         },
         {
             type: 'list',
-            message: `Enable Hydration for this file${Logger.color.dim(`, Client Side Javascript`)}?`,
+            message: 'Which rendering should the file have?',
             name: 'wyvr_render',
             default: 0,
             choices: [
                 {
-                    name: `Yes`,
+                    name: `Hydrate${Logger.color.dim(', Client Side Javascript a.k.a CSR')}`,
                     value: 'hydrate'
                 },
                 {
-                    name: `No`,
+                    name: `Request${Logger.color.dim(', Rendered on Server, to add individual Content to statically generated pages ')}`,
+                    value: 'request'
+                },
+                {
+                    name: `Static${Logger.color.dim(', Only on Server')}`,
                     value: 'static'
                 }
             ]
@@ -45,32 +49,32 @@ export const questions_file = [
             [
                 {
                     type: 'list',
-                    message: `When should the file be hydrated?`,
+                    message: 'When should the file be hydrated?',
                     name: 'wyvr_loading',
                     default: 0,
                     choices: [
                         {
-                            name: `Lazy ${Logger.color.dim(`When in viewport`)}`,
+                            name: `Lazy ${Logger.color.dim('When in viewport')}`,
                             value: 'lazy'
                         },
                         {
-                            name: `Idle ${Logger.color.dim(`When browser is idle`)}`,
+                            name: `Idle ${Logger.color.dim('When browser is idle')}`,
                             value: 'idle'
                         },
                         {
-                            name: `Interact ${Logger.color.dim(`When user interacts with it`)}`,
+                            name: `Interact ${Logger.color.dim('When user interacts with it')}`,
                             value: 'interact'
                         },
                         {
-                            name: `Instant`,
+                            name: 'Instant',
                             value: 'instant'
                         },
                         {
-                            name: `Media ${Logger.color.dim(`When media query matches`)}`,
+                            name: `Media ${Logger.color.dim('When media query matches')}`,
                             value: 'media'
                         },
                         {
-                            name: `None ${Logger.color.dim(`When function is executed`)}`,
+                            name: `None ${Logger.color.dim('When function is executed')}`,
                             value: 'none'
                         }
                     ]

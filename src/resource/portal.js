@@ -1,3 +1,5 @@
+import { wyvr_parse_props } from '@wyvr/generator/src/resource/props.js';
+
 export function wyvr_portal(el, props) {
     const portal_prop = el.getAttribute('data-portal');
     if (portal_prop) {
@@ -5,6 +7,7 @@ export function wyvr_portal(el, props) {
         if (portal_target_selector) {
             const portal_target = document.querySelector(portal_target_selector);
             if (portal_target) {
+                // port all attributes to the new element
                 for (const attr of Array.from(el.attributes)) {
                     if (attr.name !== 'data-portal') {
                         portal_target.setAttribute(attr.name, attr.value);
@@ -18,4 +21,19 @@ export function wyvr_portal(el, props) {
         }
     }
     return el;
+}
+
+/**
+ *
+ * @param {NodeListOf<HTMLElementTagNameMap[keyof HTMLElementTagNameMap]>} elements
+ * @returns {HTMLElementTagNameMap[keyof HTMLElementTagNameMap][]} array of the portal targets
+ */
+export function wyvr_portal_targets(elements) {
+    const targets = [];
+    for (const el of elements) {
+        const pre_props = wyvr_parse_props(el);
+        const target = wyvr_portal(el, pre_props);
+        targets.push(target);
+    }
+    return targets;
 }

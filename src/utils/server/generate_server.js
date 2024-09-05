@@ -17,6 +17,9 @@ import { ReleasePath } from '../../vars/release_path.js';
 import { server } from './server.js';
 import { static_server } from './static_server.js';
 import { ServerShowRequests } from '../../vars/server_show_requests.js';
+import { render_request_components } from '../request_components.js';
+import { send_head } from './helpers.js';
+import { stringify } from '../json.js';
 
 export async function generate_server(port, force_generating_of_resources, onEnd, fallback) {
     register_stack();
@@ -61,8 +64,17 @@ export async function generate_server(port, force_generating_of_resources, onEnd
                 }
 
                 // handle request and hydrequest component rendering
-                if (req.method.toLowerCase() === 'post' && req.url.indexOf('/$src/') === 0) {
-                    console.log('request rendering', req.url);
+                if (req.method.toLowerCase() === 'post' && req.url.indexOf('/$request/') === 0) {
+                    const rrc = await render_request_components(req.url, req.body);
+
+                    const headers = {
+                        'Content-Type': 'application/json',
+                        'Cache-Control': 'no-cache, max-age=0',
+                        Pragma: 'no-cache'
+                    };
+                    res.writeHead(rrc ? 200 : 500, undefined, headers);
+                    res.end(rrc ? stringify(rrc) : '{}');
+                    return;
                 }
 
                 const ghost_path = join(ReleasePath.get(), req.url.replace(/\/(?:index\.html)?$/, '/index.ghost'));

@@ -9,28 +9,39 @@ function WyvrDeferred() {
         this.resolve = resolve;
     });
 }
+
+export function wyvr_parse_props(el) {
+    if (!el) {
+        return {};
+    }
+    const json = `{${transform_props(el.getAttribute('data-props'))}}`;
+    try {
+        return JSON.parse(json);
+    } catch (e) {
+        console.warn(json, e);
+        return {};
+    }
+}
 export function wyvr_props(el) {
     /* eslint-ensable no-unused-vars */
     return new Promise((resolve) => {
-        let props = {};
-        const json = `{${el.getAttribute('data-props').replace(/\|/g, '"').replace(/§"§/g, '|')}}`;
-        try {
-            props = JSON.parse(json);
-        } catch (e) {
-            console.warn(json, e);
-            resolve(props);
-            return;
+        const props = wyvr_parse_props(el);
+        if (!props) {
+            return resolve({});
         }
-
-        const load_props = Object.keys(props)
+        const keys = Object.keys(props);
+        if (!props || keys.length === 0) {
+            return resolve({});
+        }
+        const load_props = keys
             .map((prop) => {
                 const value = props[prop];
                 if (typeof value !== 'string') {
                     return undefined;
                 }
-                const match = value.match(/^@\(([^)]+)\)$/);
-                if (Array.isArray(match) && match.length === 2) {
-                    return { prop, url: match[1] };
+                const url = transform_prop_source(value);
+                if (url) {
+                    return { prop, url };
                 }
 
                 return undefined;
@@ -91,4 +102,25 @@ export function wyvr_props(el) {
                 });
         }
     });
+}
+
+export function transform_prop_source(value) {
+    if (typeof value !== 'string') {
+        return undefined;
+    }
+    const match = value.match(/^@\(([^)]+)\)$/);
+    if (Array.isArray(match) && match.length === 2) {
+        return match[1];
+    }
+}
+
+export function transform_props(value) {
+    if (typeof value !== 'string') {
+        return '';
+    }
+    return value
+        .replace(/\|/g, '"')
+        .replace(/§"§/g, '|')
+        .replace(/«/g, '{')
+        .replace(/»/g, '}');
 }

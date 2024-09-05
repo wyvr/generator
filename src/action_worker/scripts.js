@@ -31,6 +31,13 @@ export async function scripts(identifiers) {
     // const package_tree = Env.is_dev() ? package_tree_db.all() : undefined;
     const build_id = UniqId.get();
     const build_id_var = `window.build_id = '${build_id ? build_id.substr(0, 8) : '_'}';`;
+    const base_scripts = [
+        build_id_var,
+        insert_script_import(join(resouce_dir, 'events.js')),
+        insert_script_import(join(resouce_dir, 'stack.js')),
+        insert_script_import(join(resouce_dir, 'i18n.js')),
+        insert_script_import(join(resouce_dir, 'store_init.js'))
+    ];
     for (const identifier of identifiers) {
         if (is_null(identifier)) {
             Logger.warning('empty identifier found');
@@ -40,12 +47,7 @@ export async function scripts(identifiers) {
         let gen_identifier_file;
         // let dependencies = [];
         let content;
-        const scripts = [
-            build_id_var,
-            insert_script_import(join(resouce_dir, 'events.js')),
-            insert_script_import(join(resouce_dir, 'stack.js')),
-            insert_script_import(join(resouce_dir, 'i18n.js'))
-        ];
+        const scripts = [...base_scripts];
 
         const dependency_list = [];
         try {
@@ -69,7 +71,7 @@ export async function scripts(identifiers) {
             // @TODO memory leak ahead inside get_structure
             // write_identifier_structure(identifier, tree, file_config, package_tree);
 
-            const has = { instant: false };
+            const has = {};
             // build file content
             content = (
                 await Promise.all(
@@ -92,9 +94,9 @@ export async function scripts(identifiers) {
                     })
                 )
             ).filter(Boolean);
-            // add the wyvr hydrate scripts
+            // add the wyvr scripts
             for (const key of Object.keys(has)) {
-                scripts.push(insert_script_import(join(resouce_dir, `hydrate_${key}.js`), `wyvr_hydrate_${key}`));
+                scripts.push(insert_script_import(join(resouce_dir, `${key}.js`), `wyvr_${key}`));
             }
             scripts.push(`
                 const wyvr_identifier = ${stringify(identifier)};
@@ -135,12 +137,7 @@ export async function scripts(identifiers) {
                     build_content = scripts.join('\n');
                 } else {
                     // minimal set of js
-                    build_content = [
-                        build_id_var,
-                        insert_script_import(join(resouce_dir, 'events.js')),
-                        insert_script_import(join(resouce_dir, 'stack.js')),
-                        insert_script_import(join(resouce_dir, 'i18n.js'))
-                    ].join('\n');
+                    build_content = base_scripts.join('\n');
                 }
             }
 

@@ -3,17 +3,12 @@ import { transform_prop_source } from '../resource/props.js';
 import { CodeContext } from '../struc/code_context.js';
 import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
-import {
-    execute_server_code_from_file,
-    render_server_compiled_svelte,
-} from './compile_svelte.js';
+import { execute_server_code_from_file, render_server_compiled_svelte } from './compile_svelte.js';
 import { exists, read, read_json } from './file.js';
 import { is_null } from './validate.js';
 
 export async function render_request_components(path, data) {
-    const component_path = path
-        .replace(/\/$/, '.js')
-        .replace(/^\/\$request/, Cwd.get(FOLDER_GEN_SERVER));
+    const component_path = path.replace(/\/$/, '.js').replace(/^\/\$request/, Cwd.get(FOLDER_GEN_SERVER));
 
     // Parse prop files from data
     for (const [prop, value] of Object.entries(data)) {
@@ -38,7 +33,7 @@ export async function render_request_components(path, data) {
         {
             compiled: undefined,
             component,
-            result: true,
+            result: true
         },
         data ?? {},
         component_path,
@@ -51,6 +46,6 @@ export async function render_request_components(path, data) {
 
     return {
         html: rendered_result.result?.html ?? '',
-        css: rendered_result.result?.css?.code ?? '',
+        css: rendered_result.result?.css?.code ?? ''
     };
 }

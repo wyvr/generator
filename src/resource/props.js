@@ -118,9 +118,5 @@ export function transform_props(value) {
     if (typeof value !== 'string') {
         return '';
     }
-    return value
-        .replace(/\|/g, '"')
-        .replace(/§"§/g, '|')
-        .replace(/«/g, '{')
-        .replace(/»/g, '}');
+    return value.replace(/\|/g, '"').replace(/§"§/g, '|').replace(/«/g, '{').replace(/»/g, '}');
 }

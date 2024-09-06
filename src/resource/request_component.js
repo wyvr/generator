@@ -18,10 +18,12 @@ export function wyvr_request_component(el, request, fn) {
         .then((res) => res.json())
         .then((json) => {
             let content = '';
+            let attributes = undefined;
             if (json?.html) {
                 const container = document.createElement('div');
                 container.innerHTML = json.html.replace(/<script[^>]*>[.]+<\/script>/gm, '');
                 content = container.firstChild.innerHTML;
+                attributes = container.firstChild.attributes;
             }
             if (json.css) {
                 content += `<style>${json.css}</style>`;
@@ -29,10 +31,14 @@ export function wyvr_request_component(el, request, fn) {
             if (!content) {
                 return;
             }
+            el.innerHTML = content;
+            if (attributes) {
+                for (const attr of attributes) {
+                    el.setAttribute(attr.name, attr.value);
+                }
+            }
             if (typeof fn === 'function') {
-                fn(el, content, json);
-            } else {
-                el.innerHTML = content;
+                fn(el, content, json, attributes);
             }
         })
         .catch((e) => {

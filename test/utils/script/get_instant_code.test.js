@@ -13,14 +13,14 @@ describe('get_instant_code', () => {
     it('show error, when no target is present', () => {
         strictEqual(
             get_instant_code('test', '/some/path', ''),
-            `console.error('no target found for test from /some/path');`
+            ''
         );
     });
     it('all parameters are filled, so create result', () => {
         const target = get_target_code('test');
         strictEqual(
             get_instant_code('test', '/some/path', target),
-            [`import test from '/some/path';`, target, `wyvr_hydrate_instant(test_target, test);`].join('')
+            [`import test from '/some/path';`, target, `wyvr_hydrate_instant(test_target, test, 'test');`].join('')
         );
     });
 });

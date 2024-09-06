@@ -306,7 +306,7 @@ export function insert_hydrate_tag(content, wyvr_file) {
     // add hydrate tag
     const hydrate_tag = wyvr_file.config.display === 'inline' ? 'span' : 'div';
     // debug info
-    const debug_info = undefined; //Env.is_dev() ? `data-hydrate-path="${wyvr_file.rel_path}"` : undefined;
+    const debug_info = Env.is_dev() ? `data-hydrate-path="${wyvr_file.rel_path}"` : undefined;
     const attributes = [debug_info, props_include, loading, portal, media].filter((x) => x).join(' ');
     const render = WyvrFileClassification.normalize(wyvr_file?.config?.render) ?? '';
 

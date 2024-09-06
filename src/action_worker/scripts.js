@@ -11,7 +11,7 @@ import { filled_array, filled_string, is_null } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
 import { ReleasePath } from '../vars/release_path.js';
-import { build_file, build_hydrate_file, insert_script_import, write_hydrate_file } from '../utils/script.js';
+import { build_file, insert_script_import, write_file } from '../utils/script.js';
 import { UniqId } from '../vars/uniq_id.js';
 import { optimize_js } from '../utils/optimize/js.js';
 import { Dependency } from '../model/dependency.js';
@@ -81,7 +81,7 @@ export async function scripts(identifiers) {
                             return undefined;
                         }
                         // write files
-                        write_hydrate_file(file_result);
+                        write_file(file_result);
                         // apply additive has values
                         if (file_result.has) {
                             for (const key of Object.keys(file_result.has)) {

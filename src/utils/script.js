@@ -99,7 +99,7 @@ export async function build_file(file, resource_dir) {
 }
 
 let dep_db;
-export async function build_hydrate_file_from_url(url) {
+export async function build_file_from_url(url) {
     const resouce_dir = join(to_dirname(import.meta.url), '..', 'resource');
 
     const [clean_url] = url
@@ -114,14 +114,14 @@ export async function build_hydrate_file_from_url(url) {
     if (entry?.config && entry?.standalone === WyvrFileRender.hydrate) {
         const file = WyvrFile(svelte_file);
         file.config = entry.config;
-        const file_result = await build_hydrate_file(file, resouce_dir);
-        write_hydrate_file(file_result);
+        const file_result = await build_file(file, resouce_dir);
+        write_file(file_result);
         return file_result.code;
     }
     return undefined;
 }
 
-export function write_hydrate_file(file_result) {
+export function write_file(file_result) {
     if (!file_result?.code) {
         return;
     }

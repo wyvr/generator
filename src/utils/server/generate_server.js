@@ -12,7 +12,7 @@ import { pub_healthcheck } from './../health.js';
 import { register_stack } from './../global.js';
 import { media } from '../../action_worker/media.js';
 import { IsWorker } from '../../vars/is_worker.js';
-import { build_hydrate_file_from_url } from './../script.js';
+import { build_file_from_url } from './../script.js';
 import { ReleasePath } from '../../vars/release_path.js';
 import { server } from './server.js';
 import { static_server } from './static_server.js';
@@ -55,7 +55,7 @@ export async function generate_server(port, force_generating_of_resources, onEnd
             if (err) {
                 // check if css or js files should be generated
                 if (req.url.indexOf('/js') === 0) {
-                    const file_content = await build_hydrate_file_from_url(req.url);
+                    const file_content = await build_file_from_url(req.url);
                     if (file_content) {
                         res = send_head(res, 200, 'application/javascript');
                         res.end(file_content);

@@ -1,6 +1,9 @@
 import { wyvr_parse_props } from '@wyvr/generator/src/resource/props.js';
 
 export function wyvr_portal(el, props) {
+    if (!el) {
+        return el;
+    }
     const portal_prop = el.getAttribute('data-portal');
     if (portal_prop) {
         const portal_target_selector = props[portal_prop];

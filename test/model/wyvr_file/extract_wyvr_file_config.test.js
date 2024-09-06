@@ -173,6 +173,30 @@ describe('model/wyvr_file/extract_wyvr_file_config', () => {
             result
         );
     });
+    it('alias hydrate|request', () => {
+        const result = structuredClone(WyvrFileConfig);
+        result.render = 'hydrequest';
+        result.loading = 'instant';
+        deepStrictEqual(
+            extract_wyvr_file_config(`<script>wyvr: {
+                render: 'hydrate|request';
+                loading: 'instant';
+            }</script>`),
+            result
+        );
+    });
+    it('alias request|hydrate', () => {
+        const result = structuredClone(WyvrFileConfig);
+        result.render = 'hydrequest';
+        result.loading = 'instant';
+        deepStrictEqual(
+            extract_wyvr_file_config(`<script>wyvr: {
+                render: 'request|hydrate';
+                loading: 'instant';
+            }</script>`),
+            result
+        );
+    });
     it('more content', () => {
         const result = structuredClone(WyvrFileConfig);
         result.render = 'hydrate';

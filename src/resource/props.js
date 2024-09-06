@@ -9,16 +9,15 @@ function WyvrDeferred() {
         this.resolve = resolve;
     });
 }
-
 export function wyvr_parse_props(el) {
     if (!el) {
         return {};
     }
-    const json = `{${transform_props(el.getAttribute('data-props'))}}`;
     try {
+        const json = `{${transform_props(el.getAttribute('data-props'))}}`;
         return JSON.parse(json);
     } catch (e) {
-        console.warn(json, e);
+        console.warn(e, el);
         return {};
     }
 }

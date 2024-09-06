@@ -168,14 +168,14 @@ export function get_request_code(name, loading, request_url, target_code, trigge
 }
 
 export function get_hydrequest_instant_code(name, import_client_script_path, target_code, request_url, trigger) {
-    if (!filled_string(name) || !filled_string(import_client_script_path) || !filled_string(request_url) || !filled_string(target)) {
+    if (!filled_string(name) || !filled_string(import_client_script_path) || !filled_string(request_url) || !filled_string(target_code)) {
         return '';
     }
     return [get_import(name, import_client_script_path), target_code, `wyvr_hydrequest_instant(${name}_target, ${name}, '${name}', '${request_url}', ${trigger});`].join('');
 }
 
 export function get_hydrequest_code(name, loading, path, request_url, target_code, trigger) {
-    if (!filled_string(name) || !filled_string(loading) || !filled_string(path) || !filled_string(request_url) || !filled_string(target)) {
+    if (!filled_string(name) || !filled_string(loading) || !filled_string(path) || !filled_string(request_url) || !filled_string(target_code)) {
         return '';
     }
     return [target_code, `wyvr_hydrequest_${loading}('${path}', ${name}_target, '${name}', '${request_url}', ${trigger});`].join('');

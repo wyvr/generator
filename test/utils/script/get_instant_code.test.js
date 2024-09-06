@@ -1,6 +1,6 @@
 import { strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
-import { get_instant_code, get_target } from '../../../src/utils/script.js';
+import { get_instant_code, get_target_code } from '../../../src/utils/script.js';
 
 describe('get_instant_code', () => {
     it('empty name', () => {
@@ -17,7 +17,7 @@ describe('get_instant_code', () => {
         );
     });
     it('all parameters are filled, so create result', () => {
-        const target = get_target('test');
+        const target = get_target_code('test');
         strictEqual(
             get_instant_code('test', '/some/path', target),
             [`import test from '/some/path';`, target, `wyvr_hydrate_instant(test_target, test);`].join('')

@@ -19,7 +19,7 @@ import { WyvrFileClassification } from '../vars/wyvr_file_classification.js';
  * @param {string} name
  * @returns {string}
  */
-export function get_target(name) {
+export function get_target_code(name) {
     if (!filled_string(name)) {
         return '';
     }
@@ -73,7 +73,7 @@ export async function build_hydrate_file(file, resouce_dir) {
     if (!WyvrFileClassification.is_valid_loading_value(file.config.loading)) {
         return undefined;
     }
-    const target = get_target(file.name);
+    const target = get_target_code(file.name);
     const import_path = Cwd.get(FOLDER_GEN_CLIENT, to_relative_path(file.path));
     // code to instant execute the dependency
     const instant_code =

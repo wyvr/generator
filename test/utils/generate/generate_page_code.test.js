@@ -48,9 +48,9 @@ describe('utils/generate/generate_page_code', () => {
     }
 </script>
 
-<Doc data={data}>
-    <Layout data={data}>
-        <Page data={data}>
+<Doc {data}>
+    <Layout {data}>
+        <Page {data}>
         {@html data.content || ''}
         </Page>
     </Layout>
@@ -100,9 +100,9 @@ describe('utils/generate/generate_page_code', () => {
     }
 </script>
 
-<Doc data={data}>
-    <Layout data={data}>
-        <Page data={data}>
+<Doc {data}>
+    <Layout {data}>
+        <Page {data}>
         {@html data.content || ''}
         </Page>
     </Layout>

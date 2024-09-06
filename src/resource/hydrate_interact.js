@@ -4,12 +4,12 @@ import { wyvr_trigger } from '@wyvr/generator/src/resource/trigger.js';
 import { wyvr_load } from '@wyvr/generator/src/resource/load.js';
 import { wyvr_interact } from '@wyvr/generator/src/resource/interact.js';
 
-export function wyvr_hydrate_interact(path, elements, name, cls, trigger) {
+export function wyvr_hydrate_interact(path, elements, name, trigger) {
     if (!elements) {
         return;
     }
 
-    window.wyvr_classes[name] = { cls, path, loaded: false };
+    window.wyvr_classes[name] = { path, loaded: false };
 
     const targets = wyvr_portal_targets(elements);
 

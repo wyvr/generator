@@ -11,7 +11,7 @@ import { filled_array, filled_string, is_null } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
 import { ReleasePath } from '../vars/release_path.js';
-import { build_hydrate_file, insert_script_import, write_hydrate_file } from '../utils/script.js';
+import { build_file, build_hydrate_file, insert_script_import, write_hydrate_file } from '../utils/script.js';
 import { UniqId } from '../vars/uniq_id.js';
 import { optimize_js } from '../utils/optimize/js.js';
 import { Dependency } from '../model/dependency.js';
@@ -76,7 +76,7 @@ export async function scripts(identifiers) {
             content = (
                 await Promise.all(
                     dependency_list.map(async (file) => {
-                        const file_result = await build_hydrate_file(file, resouce_dir);
+                        const file_result = await build_file(file, resouce_dir);
                         if (!file_result) {
                             return undefined;
                         }

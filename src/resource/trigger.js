@@ -1,17 +1,10 @@
 export function wyvr_trigger(name, elements, fn) {
-    if (typeof name === 'string' && name && typeof fn === 'function') {
-        window.wyvr[name] = () => {
-            for (const el of elements) {
-                fn(el);
-            }
-        };
+    if (typeof name !== 'string' || !name || typeof fn !== 'function') {
+        return;
     }
-}
-
-export function wyvr_trigger_elements(name, elements, fn) {
-    if (typeof name === 'string' && name && typeof fn === 'function') {
-        window.wyvr[name] = () => {
-            fn(elements);
-        };
-    }
+    window.wyvr[name] = () => {
+        for (const el of elements) {
+            fn(el);
+        }
+    };
 }

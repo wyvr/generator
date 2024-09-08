@@ -21,7 +21,7 @@ export function modify_svelte() {
         const ssr_path = join(internal_path, 'src/runtime/internal/ssr.js');
         const ssr_content = read(ssr_path);
         write(
-            ssr_path.replace('.js', '.bak.js'),
+            ssr_path,
             modify_svelte_internal(ssr_content)
         );
     }

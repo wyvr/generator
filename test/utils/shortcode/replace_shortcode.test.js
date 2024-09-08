@@ -1,8 +1,8 @@
 import { deepStrictEqual } from 'node:assert';
 import { join } from 'node:path';
 import Sinon from 'sinon';
-import { modify_svelte_internal } from '../../../src/action/modify_svelte.mjs';
-import { FOLDER_GEN_SERVER } from '../../../src/constants/folder.js';
+import { copy_svelte, modify_svelte_internal } from '../../../src/action/modify_svelte.mjs';
+import { FOLDER_GEN, FOLDER_GEN_SERVER } from '../../../src/constants/folder.js';
 import { collect_files, exists, find_file, read, remove, write } from '../../../src/utils/file.js';
 import { replace_shortcode } from '../../../src/utils/shortcode.js';
 import { to_plain } from '../../../src/utils/to.js';
@@ -20,10 +20,27 @@ describe('utils/shortcode/replace_shortcode', () => {
             log.push(msg.map(to_plain));
         });
 
-        const internal_file = find_file('.', ['node_modules/svelte/internal/index.mjs']);
-        const internal_path = join(root, FOLDER_GEN_SERVER, 'svelte_internal.mjs');
-        if (!exists(internal_path)) {
-            write(internal_path, await modify_svelte_internal(read(internal_file)));
+        // const internal_file = find_file('.', ['node_modules/svelte/internal/index.mjs']);
+        // const internal_path = join(root, FOLDER_GEN_SERVER, 'svelte_internal.mjs');
+        // if (!exists(internal_path)) {
+        //     write(internal_path, await modify_svelte_internal(read(internal_file)));
+        // }
+
+        const internal_root_path = join(
+            root,
+            FOLDER_GEN,
+            'svelte'
+        );
+        if(!exists(internal_root_path)) {
+            const internal_path = join(
+                internal_root_path,
+                'src/runtime/internal/ssr.js'
+            );
+            copy_svelte('./node_modules/svelte', internal_root_path)
+            write(
+                internal_path,
+                await modify_svelte_internal(read(internal_path))
+            );
         }
     });
     afterEach(() => {

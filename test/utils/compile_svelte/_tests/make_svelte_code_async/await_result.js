@@ -1,4 +1,4 @@
-import { create_ssr_component, escape, is_promise, noop } from '[root]/gen/server/svelte_internal.mjs';
+import { create_ssr_component, escape, is_promise, noop } from '[root]/gen/svelte/src/runtime/internal/index.js';
 
 async function getRandomNumber() {
 	const res = await fetch(`/tutorial/random-number`);

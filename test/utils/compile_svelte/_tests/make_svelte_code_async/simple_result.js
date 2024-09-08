@@ -1,4 +1,4 @@
-import { create_ssr_component } from '[root]/gen/server/svelte_internal.mjs';
+import { create_ssr_component } from '[root]/gen/svelte/src/runtime/internal/index.js';
 
 const Component = await create_ssr_component(async ($$result, $$props, $$bindings, slots) => { try {
     let { data = null } = $$props;

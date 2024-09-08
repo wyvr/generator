@@ -45,7 +45,7 @@ export async function build(content, file, format = 'iife') {
             logLevel: 'silent',
             plugins: [
                 sveltePlugin({
-                    compilerOptions: { css: true, dev: Env.is_dev() },
+                    compilerOptions: { css: 'injected', dev: Env.is_dev() },
                     filterWarnings: (warning) => {
                         if (!Config.get('svelte.warnings', true)) {
                             return false;

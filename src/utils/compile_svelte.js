@@ -52,7 +52,6 @@ export async function compile_svelte_from_code(content, file, type, include_css 
     const options = {
         dev: Env.is_dev(),
         generate: type_value(type, 'dom', 'ssr'),
-        format: 'esm',
         immutable: true,
         hydratable: true,
         css: 'external'
@@ -227,7 +226,7 @@ export function make_svelte_code_async(code) {
         // make onServer and onRequest async
         .replace(/(on(?:Server|Request)\()/g, 'await $1')
         // use own svelte internal, which is async
-        .replace(/['"]svelte\/internal['"]/, `'${Cwd.get(FOLDER_GEN_SERVER, 'svelte_internal.mjs')}'`)
+        .replace(/['"]svelte\/internal['"]/, `'${Cwd.get(FOLDER_GEN, 'svelte/src/runtime/internal/index.js')}'`)
         // throw errors from server code instead of logging them to the console
         .replace(/catch\(e\) \{console.log\(import.meta.url, e\); return '';\}/g, 'catch(e) {throw e;}');
     const template_index = code.indexOf('await create_ssr_component');

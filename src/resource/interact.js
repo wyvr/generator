@@ -78,7 +78,7 @@ function wyvr_restore_event(path, e) {
         try {
             repathed_el = document.querySelector(path);
         } catch (e) {
-            console.log(e, path);
+            console.error(e, path); // eslint-disable-line no-console
         }
         if (repathed_el) {
             let event_name = e.type;

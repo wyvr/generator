@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { wyvr_portal_targets } from '@wyvr/generator/src/resource/portal.js';
 import { wyvr_trigger } from '@wyvr/generator/src/resource/trigger.js';
 import { wyvr_load } from '@wyvr/generator/src/resource/load.js';

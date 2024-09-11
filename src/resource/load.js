@@ -11,7 +11,7 @@ export function wyvr_load(el, fn) {
         } else {
             // when class is started to load, but not finished, wait some time
             const saveGuard = setTimeout(() => {
-                console.error('could not load class of', el);
+                console.error('could not load class of', el); // eslint-disable-line no-console
                 clearInterval(classChecker);
             }, 5000);
             const classChecker = setInterval(() => {

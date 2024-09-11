@@ -43,6 +43,6 @@ export function wyvr_request_component(el, request, fn) {
             }
         })
         .catch((e) => {
-            console.error(`error loading ${request}`, e);
+            console.error(`error loading ${request}`, e); // eslint-disable-line no-console
         });
 }

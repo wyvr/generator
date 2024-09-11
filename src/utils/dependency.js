@@ -31,50 +31,16 @@ export function parse_content(content, file) {
     const i18n = {};
     const config = ext === '.svelte' ? extract_wyvr_file_config(content) ?? structuredClone(WyvrFileConfig) : undefined;
     const rel_path = to_relative_path_of_gen(rel_path_file.replace(/^\//, ''));
-    content.replace(/import .*? from ["']([^"']+)["'];?/g, (_, dep) => {
-        // remove cache breaker
-        dep = dep.replace(/\?\d+$/, '');
-        // node dependency
-        if (
-            dep.indexOf('./') !== 0 &&
-            dep.indexOf('/') !== 0 &&
-            dep.indexOf('$src') !== 0 &&
-            dep.indexOf('@src') !== 0 // @deprecated
-        ) {
-            return;
+    // normlize the content for easier searching
+    const normalized_content = content.replace(/[\t\n]+/g, '').replace(/\s+/g, ' ');
+    // search all imports
+    const all_imports = get_dependency_matches(normalized_content);
+    for (const entry of all_imports) {
+        const src = extract_dependency_source(entry.groups?.src, rel_path, rel_base_path, file_dir_path);
+        if (src) {
+            deps.push(src);
         }
-        // replace $src
-        dep = replace_src(dep, '');
-        // fix relative paths of the dependencies
-        // './multiply.js' in folder 'local/src/test/import' must become '/test/import/multiply.js'
-        if (dep.indexOf('./') === 0) {
-            dep = join(rel_base_path, dep);
-        }
-        const dep_file_path_with_src = Cwd.get(FOLDER_GEN_SRC, to_relative_path_of_gen(dep).replace(/^\/?(?:server|src|client)\//, ''));
-        let dep_file;
-        if (exists(dep_file_path_with_src)) {
-            dep_file = dep_file_path_with_src;
-        } else {
-            if (dep[0] === '/' && extname(dep) && exists(dep)) {
-                dep_file = dep;
-            }
-        }
-        // search for the file
-        if (is_null(dep_file)) {
-            dep_file = find_file(
-                file_dir_path,
-                ['svelte', 'js', 'mjs', 'cjs', 'ts'].map((ext) => to_extension(dep, ext))
-            );
-        }
-        if (dep_file) {
-            dep_file = to_relative_path_of_gen(dep_file.replace(Cwd.get(), '.')).replace(/^server\//, 'src/');
-            // avoid self assigning as children
-            if (dep_file !== rel_path) {
-                deps.push(dep_file);
-            }
-        }
-        return;
-    });
+    }
 
     // @TODO currently disabled
     // content.replace(/__\(["']([^"']*)["']/g, (_, translation) => {
@@ -84,8 +50,63 @@ export function parse_content(content, file) {
     //     i18n[key].push(translation);
     // });
 
-    return { dependencies: deps, i18n, rel_path, config };
+    return {
+        dependencies: deps,
+        i18n,
+        rel_path,
+        config
+    };
 }
+
+export function extract_dependency_source(path, rel_path, rel_base_path, file_dir_path) {
+    if (!filled_string(path)) {
+        return undefined;
+    }
+    // remove cache breaker
+    let dep = path.replace(/\?\d+$/, '');
+    // node dependency
+    if (
+        dep.indexOf('./') !== 0 &&
+        dep.indexOf('/') !== 0 &&
+        dep.indexOf('$src') !== 0 &&
+        dep.indexOf('@src') !== 0 // @deprecated
+    ) {
+        return undefined;
+    }
+    // replace $src
+    dep = replace_src(dep, '');
+    // fix relative paths of the dependencies
+    // './multiply.js' in folder 'local/src/test/import' must become '/test/import/multiply.js'
+    if (dep.indexOf('./') === 0) {
+        dep = join(rel_base_path, dep);
+    }
+    const dep_file_path_with_src = Cwd.get(FOLDER_GEN_SRC, to_relative_path_of_gen(dep).replace(/^\/?(?:server|src|client)\//, ''));
+    let dep_file;
+    if (exists(dep_file_path_with_src)) {
+        dep_file = dep_file_path_with_src;
+    } else {
+        if (dep[0] === '/' && extname(dep) && exists(dep)) {
+            dep_file = dep;
+        }
+    }
+    // search for the file
+    if (is_null(dep_file)) {
+        dep_file = find_file(
+            file_dir_path,
+            ['svelte', 'js', 'mjs', 'cjs', 'ts'].map((ext) => to_extension(dep, ext))
+        );
+    }
+    if (!dep_file) {
+        return undefined;
+    }
+    dep_file = to_relative_path_of_gen(dep_file.replace(Cwd.get(), '.')).replace(/^server\//, 'src/');
+    // avoid self assigning as children
+    if (dep_file !== rel_path) {
+        // deps.push(dep_file);
+        return dep_file;
+    }
+}
+
 export function get_render_dependencies(file, index) {
     if (!filled_string(file) || !filled_object(index)) {
         return [];
@@ -165,4 +186,8 @@ export function get_identifiers_of_list(list) {
         }
     }
     return uniq_values(identifiers);
+}
+
+export function get_dependency_matches(content) {
+    return [].concat(Array.from(content.matchAll(/import .*? from ["'](?<src>[^"']+)["'];?/g)), Array.from(content.matchAll(/ import\(\s?["'](?<src>[^"']+)["']/g)));
 }

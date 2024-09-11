@@ -5,8 +5,16 @@ export async function wyvr_instant(el, Class) {
     if (window.wyvr_classes[name]) {
         window.wyvr_classes[name].cls = Class;
     }
-    const props = await wyvr_props(el);
+    let props = await wyvr_props(el);
     const slots = el.querySelectorAll('[data-slot]');
+
+    if (slots) {
+        if (!props) {
+            props = {};
+        }
+        props.$$slots = createSlots(slots);
+        props.$$scope = {};
+    }
 
     el.innerHTML = '';
     new Class({
@@ -15,14 +23,47 @@ export async function wyvr_instant(el, Class) {
     });
     el.setAttribute('data-hydrated', 'true');
     el.setAttribute('data-wyvr', 'done');
-    if (slots) {
-        Array.from(slots).map((slot) => {
-            const slot_name = slot.getAttribute('data-slot');
-            const client_slot = el.querySelector(`[data-client-slot="${slot_name}"]`);
-            if (client_slot) {
-                client_slot.parentNode.insertBefore(slot, client_slot);
-                client_slot.remove();
-            }
+}
+
+export function createSlots(slots) {
+    const svelteSlots = {};
+
+    for (const slot of slots) {
+        const name = slot.getAttribute('data-slot');
+        svelteSlots[name] = [createSlotFn(slot)];
+    }
+    function noop() {}
+
+    function createSlotFn(ele) {
+        if (typeof ele === 'function') {
+            const component = new ele({});
+            return () => ({
+                c() {
+                    create_component(component.$$.fragment);
+                    component.$set({}); // update props from the
+                },
+                m(target, anchor) {
+                    mount_component(component, target, anchor, null);
+                },
+                d(detaching) {
+                    destroy_component(component, detaching);
+                },
+                l: noop
+            });
+        }
+
+        return () => ({
+            c: noop,
+            m: function mount(target, anchor) {
+                target.insertBefore(ele, anchor || null);
+            },
+            d: function destroy(detaching) {
+                if (detaching) {
+                    detach(ele);
+                }
+            },
+            l: noop
         });
     }
+    return svelteSlots;
 }

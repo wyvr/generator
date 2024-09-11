@@ -28,6 +28,10 @@ export async function render_request_components(path, data) {
 
     // Parse prop files from data
     for (const [prop, value] of Object.entries(data)) {
+        // slots are not allowed on the server
+        if(prop === '$$slots') {
+            continue;
+        }
         const url = transform_prop_source(value);
         if (url) {
             data[prop] = read_json(ReleasePath.get(url));

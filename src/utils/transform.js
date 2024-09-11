@@ -180,9 +180,9 @@ export async function extract_and_load_split(path, content, tag, extensions) {
     result.tags = (
         await Promise.all(
             extracted.tags.map(async (code) => {
-                const is_style = tag == 'style';
+                const is_style = tag === 'style';
                 const contains_sass = (code.indexOf('type="text/scss"') > -1 || code.indexOf('lang="scss"') > -1 || code.indexOf('lang="sass"') > -1) && is_style;
-                const contains_typescript = code.indexOf('lang="ts"') > -1 && tag == 'script';
+                const contains_typescript = code.indexOf('lang="ts"') > -1 && tag === 'script';
                 code = code.replace(new RegExp(`^<${tag}[^>]*>`), '').replace(new RegExp(`<\\/${tag}>$`), '');
                 if (contains_sass) {
                     return await compile_sass(code, path);
@@ -339,6 +339,9 @@ export function extract_props(scripts) {
 export function replace_slots(content, fn) {
     if (!filled_string(content)) {
         return '';
+    }
+    if(content.indexOf('<slot') === -1) {
+        return content;
     }
     const content_replaced = content.replace(/(<slot[^>/]*>.*?<\/slot>|<slot[^>]*\/>)/g, (_, slot) => {
         const match = slot.match(/name="(.*)"/);

@@ -413,34 +413,46 @@ export function replace_imports(content, file, src_folder, scope, hooks) {
         return '';
     }
 
-    const replacer = (_, imported, path) => {
-        if (is_path(path)) {
-            // correct the path
-            path = replace_src_in_path(path, src_folder).replace(new RegExp(FOLDER_GEN_SRC, 'g'), src_folder);
-            // transform to js from svelte
-            const ext = extname(path);
-            if (is_func(hooks?.modify_path)) {
-                path = hooks.modify_path(path, ext);
-            }
-            // transform to js from ts
-            if (ext === '.ts') {
-                path = to_extension(path, 'js');
-            }
+    // avoid replacing, because its slow
+    if (content.indexOf('import') === -1) {
+        return content;
+    }
 
-            // force file ending when nothing is specified
-            if (!ext) {
-                const check_ext = ['.js', '.mjs', '.ts'];
-                const dir = dirname(file);
-                const new_ext = check_ext.find((search_ext) => exists(resolve(dir, `${path}${search_ext}`)));
-                if (!new_ext) {
-                    Logger.warning(get_error_message(new Error(`can't find import ${path} with the extensions ${check_ext.join(',')} in ${file}`), file, scope));
-                }
-                path = `${path}${new_ext || ''}`;
-            }
-            path = append_cache_breaker(path);
+    const result = content
+        .replace(/import ([\w\W]+?) from ['"]([^'"]+)['"]/g, (_, imported, path) => {
+            return `import ${imported} from '${transform_import_path(path, file, src_folder, scope, hooks)}'`;
+        })
+        .replace(/ import\([\s\n]*["']([^"']+)["']/g, (_, path) => {
+            return ` import('${transform_import_path(path, file, src_folder, scope, hooks)}'`;
+        });
+    return result;
+}
+
+export function transform_import_path(path, file, src_folder, scope, hooks) {
+    if (!is_path(path)) {
+        return path;
+    }
+    // correct the path
+    let internal_path = replace_src_in_path(path, src_folder).replace(new RegExp(FOLDER_GEN_SRC, 'g'), src_folder);
+    // transform to js from svelte
+    const ext = extname(internal_path);
+    if (is_func(hooks?.modify_path)) {
+        internal_path = hooks.modify_path(internal_path, ext);
+    }
+    // transform to js from ts
+    if (ext === '.ts') {
+        internal_path = to_extension(internal_path, 'js');
+    }
+
+    // force file ending when nothing is specified
+    if (!ext) {
+        const check_ext = ['.js', '.mjs', '.ts'];
+        const dir = dirname(file);
+        const new_ext = check_ext.find((search_ext) => exists(resolve(dir, `${internal_path}${search_ext}`)));
+        if (!new_ext) {
+            Logger.warning(get_error_message(new Error(`can't find import ${internal_path} with the extensions ${check_ext.join(',')} in ${file}`), file, scope));
         }
-
-        return `import ${imported} from '${path}'`;
-    };
-    return content.replace(/import ([\w\W]+?) from ['"]([^'"]+)['"]/g, replacer);
+        internal_path = `${internal_path}${new_ext || ''}`;
+    }
+    return append_cache_breaker(internal_path);
 }

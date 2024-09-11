@@ -5,6 +5,7 @@ export function wyvr_request_component(el, request, fn) {
         return;
     }
     el.setAttribute('data-hydrated', 'true');
+    el.setAttribute('data-wyvr', 'idle');
     const props = wyvr_parse_props(el);
 
     fetch(request, {

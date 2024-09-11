@@ -1,6 +1,10 @@
 import { wyvr_props } from '@wyvr/generator/src/resource/props.js';
 
 export async function wyvr_instant(el, Class) {
+    const name = el.getAttribute('data-hydrate');
+    if (window.wyvr_classes[name]) {
+        window.wyvr_classes[name].cls = Class;
+    }
     const props = await wyvr_props(el);
     const slots = el.querySelectorAll('[data-slot]');
 
@@ -9,6 +13,8 @@ export async function wyvr_instant(el, Class) {
         target: el,
         props
     });
+    el.setAttribute('data-hydrated', 'true');
+    el.setAttribute('data-wyvr', 'done');
     if (slots) {
         Array.from(slots).map((slot) => {
             const slot_name = slot.getAttribute('data-slot');
@@ -19,5 +25,4 @@ export async function wyvr_instant(el, Class) {
             }
         });
     }
-    el.setAttribute('data-hydrated', 'true');
 }

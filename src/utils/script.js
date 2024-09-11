@@ -54,14 +54,14 @@ export async function build_file(file, resource_dir) {
     const import_path = Cwd.get(FOLDER_GEN_CLIENT, to_relative_path(file.path));
     const cache_breaker = Env.is_dev() ? `?ts=${Date.now()}` : '';
 
-    const instant_code = get_instant_code(file.name, client_script_path, target_code);
+    const instant_code = get_class_code(file.name, client_script_path);
     const trigger = file.config.trigger ? `'${file.config.trigger}'` : 'undefined';
 
     switch (file.config.render) {
         case WyvrFileRender.hydrate: {
             // instant ends here, it is directly executed from the main script file
             if (file.config.loading === WyvrFileLoading.instant) {
-                result.include_code = instant_code;
+                result.include_code = get_instant_code(file.name, client_script_path, target_code);
                 return result;
             }
             result.include_code = [target_code, `wyvr_hydrate_${file.config.loading}('${result.path}${cache_breaker}', ${file.name}_target, '${file.name}', ${trigger});`].join('');
@@ -85,7 +85,7 @@ export async function build_file(file, resource_dir) {
 
     // build the lazy file from the instant_code
     if (instant_code && (!exists(result.real_path) || Env.is_dev() || !exists(ReleasePath.get(result.path)))) {
-        const content = [insert_script_import(join(resource_dir, 'hydrate_instant.js'), 'wyvr_hydrate_instant'), instant_code].join('\n');
+        const content = [insert_script_import(join(resource_dir, 'class.js'), 'wyvr_class'), instant_code].join('\n');
 
         const build_result = await build(content, result.real_path);
 
@@ -157,6 +157,12 @@ export function get_instant_code(name, import_client_script_path, target_code) {
         return '';
     }
     return [get_import(name, import_client_script_path), target_code, `wyvr_hydrate_instant(${name}_target, ${name}, '${name}');`].join('');
+}
+export function get_class_code(name, import_client_script_path) {
+    if (!filled_string(name) || !filled_string(import_client_script_path)) {
+        return '';
+    }
+    return [get_import(name, import_client_script_path), `wyvr_class(${name}, '${name}');`].join('');
 }
 
 export function get_request_code(name, loading, request_url, target_code, trigger) {

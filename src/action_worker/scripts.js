@@ -71,7 +71,9 @@ export async function scripts(identifiers) {
             // @TODO memory leak ahead inside get_structure
             // write_identifier_structure(identifier, tree, file_config, package_tree);
 
-            const has = {};
+            const has = {
+                class: true
+            };
             // build file content
             content = (
                 await Promise.all(

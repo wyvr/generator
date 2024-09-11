@@ -40,7 +40,7 @@ describe('utils/compile_svelte/compile_svelte_from_code', () => {
         const result = await compile_svelte_from_code(content, file, 'client', false);
         deepStrictEqual(Object.keys(result), ['js', 'css', 'ast', 'warnings', 'vars', 'stats']);
         deepStrictEqual(result.js.code.includes('append_styles('), false);
-        deepStrictEqual(result.css.code != '', true);
+        deepStrictEqual(result.css.code !== '', true);
         deepStrictEqual(log, []);
     });
     it('include the css into the js', async () => {
@@ -49,7 +49,7 @@ describe('utils/compile_svelte/compile_svelte_from_code', () => {
         const result = await compile_svelte_from_code(content, file, 'client', true);
         deepStrictEqual(Object.keys(result), ['js', 'css', 'ast', 'warnings', 'vars', 'stats']);
         deepStrictEqual(result.js.code.includes('append_styles('), true);
-        deepStrictEqual(result.css.code != '', true);
+        deepStrictEqual(result.css.code !== '', true);
         deepStrictEqual(log, []);
     });
 });

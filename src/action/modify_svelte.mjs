@@ -5,31 +5,22 @@ import { cpSync } from 'node:fs';
 
 export function modify_svelte() {
     // make the svelte/internal file asynchronous to allow onServer and onRequest to be executed correctly
-    const internal_file = find_file('.', [
-        'node_modules/svelte/src/runtime/internal/index.js',
-        'node_modules/@wyvr/generator/node_modules/svelte/src/runtime/internal/index.js',
-    ]);
+    const internal_file = find_file('.', ['node_modules/svelte/src/runtime/internal/index.js', 'node_modules/@wyvr/generator/node_modules/svelte/src/runtime/internal/index.js']);
     if (!is_file(internal_file)) {
         throw new Error('svelte is not installed');
     }
     const internal_path = `${join(FOLDER_GEN, 'svelte')}/`;
     if (!exists(internal_path)) {
-        copy_svelte(
-            internal_file.replace('/src/runtime/internal/index.js', ''),
-            internal_path
-        );
+        copy_svelte(internal_file.replace('/src/runtime/internal/index.js', ''), internal_path);
         const ssr_path = join(internal_path, 'src/runtime/internal/ssr.js');
         const ssr_content = read(ssr_path);
-        write(
-            ssr_path,
-            modify_svelte_internal(ssr_content)
-        );
+        write(ssr_path, modify_svelte_internal(ssr_content));
     }
 }
 
 export function copy_svelte(from, to) {
     cpSync(from, to, {
-        recursive: true,
+        recursive: true
     });
 }
 

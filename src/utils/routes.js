@@ -70,7 +70,11 @@ export async function load_route(file) {
     try {
         result = await import(uniq_path);
         if (result?.default) {
-            result = result.default;
+            if (is_func(result.default)) {
+                result = await result.default();
+            } else {
+                result = result.default;
+            }
         }
     } catch (e) {
         Logger.error(get_error_message(e, file, 'route'));

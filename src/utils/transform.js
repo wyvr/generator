@@ -231,7 +231,7 @@ export function replace_wyvr_magic(content, as_client) {
     }
     // modify __ => translation
     if (as_client) {
-        content = content.replace(/(\W)__\(/g, '$1window.__(');
+        content = content.replace(/(\W)__\(/g, '$1window.__(').replace(/([^\w])isRequest([^\w])/g, '$1false$2');
     }
     const is_server = as_client ? 'false' : 'true';
     const is_client = as_client ? 'true' : 'false';

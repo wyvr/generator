@@ -18,6 +18,6 @@
             "quoteStyle": "single",
             "trailingCommas": "none"
         },
-        "globals": ["isServer", "isClient"]
+        "globals": ["isServer", "isClient", "isRequest"]
     }
 }

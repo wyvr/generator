@@ -13,6 +13,13 @@ export const isServer = true;
 export const isClient = false;
 
 /**
+ * Indicates whether the current execution is made through a request or hydrequest component
+ * Magic value which which are replaced when the content is built
+ * @type {boolean}
+ */
+export const isRequest = false;
+
+/**
  * Callback which gets executed, this callback can be asynchronous
  *
  * @callback onServerCallback

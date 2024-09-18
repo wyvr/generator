@@ -44,7 +44,7 @@ export async function render_request_components(path, data) {
     if (!code) {
         return undefined;
     }
-    const component = await execute_server_code_from_file(code, component_path);
+    const component = await execute_server_code_from_file(code, component_path, CodeContext.request);
     if (is_null(component)) {
         return undefined;
     }

@@ -106,7 +106,7 @@ export async function execute_server_compiled_svelte(compiled, file) {
     return await execute_server_code_from_file(compiled.js.code, file);
 }
 
-export async function execute_server_code_from_file(code, file) {
+export async function execute_server_code_from_file(code, file, context = 'server') {
     if (!filled_string(code)) {
         return undefined;
     }
@@ -121,7 +121,7 @@ export async function execute_server_code_from_file(code, file) {
         }
     } catch (e) {
         component = undefined;
-        Logger.error(get_error_message(e, file, 'svelte server execute'));
+        Logger.error(get_error_message(e, file, `svelte ${context} execute`));
         if (Env.is_dev()) {
             // construct an error page
             component = {
@@ -194,6 +194,7 @@ export async function render_server_compiled_svelte(exec_result, data, file, con
             return undefined;
         }
     };
+    global.isRequest = context === CodeContext.request;
 
     try {
         // svelte creates console log output themself inside

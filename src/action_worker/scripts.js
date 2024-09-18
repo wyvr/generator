@@ -16,11 +16,13 @@ import { UniqId } from '../vars/uniq_id.js';
 import { optimize_js } from '../utils/optimize/js.js';
 import { Dependency } from '../model/dependency.js';
 import { get_render_dependency_wyvr_files } from '../utils/dependency.js';
+import { KeyValue } from '../../storage.js';
+import { STORAGE_PACKAGE_TREE } from '../constants/storage.js';
 
 const __dirname = to_dirname(import.meta.url);
 const lib_dir = join(__dirname, '..');
 const resouce_dir = join(lib_dir, 'resource');
-// const package_tree_db = new KeyValue(STORAGE_PACKAGE_TREE);
+const package_tree_db = new KeyValue(STORAGE_PACKAGE_TREE);
 
 export async function scripts(identifiers) {
     const dep_db = new Dependency();
@@ -28,7 +30,7 @@ export async function scripts(identifiers) {
     if (!filled_array(identifiers)) {
         return;
     }
-    // const package_tree = Env.is_dev() ? package_tree_db.all() : undefined;
+    const package_tree = Env.is_dev() ? package_tree_db.all() : undefined;
     const build_id = UniqId.get();
     const build_id_var = `window.build_id = '${build_id ? build_id.substr(0, 8) : '_'}';`;
     const base_scripts = [
@@ -50,12 +52,23 @@ export async function scripts(identifiers) {
         const scripts = [...base_scripts];
 
         const dependency_list = [];
+        const roots = {
+            shortcode: undefined,
+            doc: undefined,
+            layout: undefined,
+            page: undefined
+        };
         try {
             const is_shortcode = !!identifier.imports;
             // shortcode dependencies
             if (is_shortcode) {
                 for (const file of Object.values(identifier.imports)) {
-                    dependency_list.push(...get_render_dependency_wyvr_files(to_relative_path_of_gen(file), index));
+                    const rel_path = to_relative_path_of_gen(file);
+                    dependency_list.push(...get_render_dependency_wyvr_files(rel_path, index));
+                    if (!roots.shortcode) {
+                        roots.shortcode = [];
+                    }
+                    roots.shortcode.push(rel_path);
                 }
             } else {
                 for (const type of ['doc', 'layout', 'page']) {
@@ -64,13 +77,12 @@ export async function scripts(identifiers) {
                     }
                     const file = `src/${type}/${to_extension(identifier[type], 'svelte')}`;
                     dependency_list.push(...get_render_dependency_wyvr_files(file, index));
+                    if (!roots[type]) {
+                        roots[type] = [];
+                    }
+                    roots[type].push(file);
                 }
             }
-
-            // write dev structure
-            // @TODO memory leak ahead inside get_structure
-            // write_identifier_structure(identifier, tree, file_config, package_tree);
-
             const has = {
                 class: true
             };
@@ -119,6 +131,12 @@ export async function scripts(identifiers) {
             }`);
 
             gen_identifier_file = Cwd.get(FOLDER_GEN_JS, `${identifier.identifier}.js`);
+
+            // write dev structure
+            // @TODO memory leak ahead inside write_identifier_structure
+            if (Env.is_dev()) {
+                write_identifier_structure(identifier.identifier, roots, index, package_tree);
+            }
         } catch (e) {
             Logger.error(get_error_message(e, identifier.identifier, 'script create'));
             Logger.debug(e);

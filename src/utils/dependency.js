@@ -107,7 +107,7 @@ export function extract_dependency_source(path, rel_path, rel_base_path, file_di
     }
 }
 
-export function get_render_dependencies(file, index) {
+export function get_dependencies(file, index, fn_search_deeper) {
     if (!filled_string(file) || !filled_object(index)) {
         return [];
     }
@@ -115,18 +115,38 @@ export function get_render_dependencies(file, index) {
     if (!entry) {
         return [];
     }
-    // do not search deeper when the file is renderable
-    if ([WyvrFileRender.hydrate, WyvrFileRender.request, WyvrFileRender.hydrequest].indexOf(entry.standalone) >= 0) {
-        return [entry];
+    const list = [entry];
+    // check if the search should go deeper
+    if (typeof fn_search_deeper === 'function' && !fn_search_deeper(entry)) {
+        return list;
     }
-    if (!entry.children) {
-        return [];
+    if (!Array.isArray(entry.children) || entry.children.length === 0) {
+        return list;
     }
-    const list = [];
     for (const child of entry.children) {
-        list.push(...get_render_dependencies(child, index));
+        list.push(...get_dependencies(child, index, fn_search_deeper));
     }
     return list;
+}
+
+export function get_render_dependencies(file, index) {
+    const list = get_dependencies(file, index, search_deeper_render);
+    return Object.values(dependencies_to_object(list.filter((entry) => !search_deeper_render(entry))));
+}
+function search_deeper_render(entry) {
+    // when file has client code, avoid going deeper
+    return [WyvrFileRender.hydrate, WyvrFileRender.request, WyvrFileRender.hydrequest].indexOf(entry.standalone) === -1;
+}
+
+export function dependencies_to_object(list) {
+    const result = {};
+    if (!filled_array(list)) {
+        return result;
+    }
+    for (const entry of list) {
+        result[entry.file] = entry;
+    }
+    return result;
 }
 
 export function get_render_dependency_wyvr_files(file, index) {

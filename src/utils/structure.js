@@ -1,45 +1,49 @@
-import { join } from 'node:path';
-import { FOLDER_SRC } from '../constants/folder.js';
 import { ReleasePath } from '../vars/release_path.js';
-import { to_extension, write_json } from './file.js';
-import { filled_string, match_interface } from './validate.js';
-import { uniq_values } from './uniq.js';
+import { write_json } from './file.js';
+import { filled_array, filled_object, filled_string } from './validate.js';
 
-export function get_structure(file, tree, file_config, package_tree) {
-    if (!filled_string(file) || !tree || !file_config || !package_tree) {
-        return undefined;
-    }
-    let src_file = file;
-    if (src_file.indexOf(FOLDER_SRC) !== 0) {
-        src_file = join(FOLDER_SRC, file);
-    }
-    const components = uniq_values(tree[src_file] || []).map((child) => get_structure(child, tree, file_config, package_tree));
-    return {
-        file: src_file,
-        pkg: package_tree[src_file],
-        config: file_config[src_file],
-        components
-    };
-}
-
-export function write_identifier_structure(identifier, tree, file_config, package_tree) {
-    if (
-        !package_tree ||
-        !match_interface(identifier, {
-            identifier: true,
-            doc: true,
-            layout: true,
-            page: true
-        }) ||
-        !tree ||
-        !file_config
-    ) {
+export function write_identifier_structure(identifier_name, roots, index, package_tree) {
+    if (!filled_string(identifier_name) || !filled_object(roots)) {
         return;
     }
-    const struct = {};
-    for (const type of ['doc', 'layout', 'page']) {
-        const root = to_extension(join(type, identifier[type]), 'svelte');
-        struct[type] = get_structure(root, tree, file_config, package_tree);
+    const file_index = {};
+    const root_files = {};
+    // build index
+    for (const [key, value] of Object.entries(index)) {
+        file_index[key] = value;
+        if (!file_index[key]) {
+            file_index[key] = {};
+        }
+        file_index[key].pkg = package_tree[key];
     }
-    write_json(ReleasePath.get(`${identifier.identifier}.json`), struct);
+    // make the root files with the file index
+    for (const [key, value] of Object.entries(roots)) {
+        if (!filled_array(value)) {
+            continue;
+        }
+        const result = {};
+        for (const root of value) {
+            if (!file_index[root]) {
+                continue;
+            }
+            result[root] = build_tree(root, file_index);
+        }
+        root_files[key] = result;
+    }
+    write_json(ReleasePath.get(`${identifier_name}.wyvr.json`), root_files);
+}
+
+function build_tree(root, index) {
+    const branch = index[root];
+    if (!branch) {
+        return undefined;
+    }
+    if (!filled_array(branch.children)) {
+        return { ...branch, children: undefined };
+    }
+    const children = {};
+    for (const child of branch.children) {
+        children[child] = build_tree(child, index);
+    }
+    return { ...branch, children };
 }

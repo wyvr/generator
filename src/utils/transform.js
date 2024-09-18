@@ -313,7 +313,18 @@ export function insert_hydrate_tag(content, wyvr_file) {
     const attributes = [debug_info, props_include, loading, portal, media].filter((x) => x).join(' ');
     const render = WyvrFileClassification.normalize(wyvr_file?.config?.render) ?? '';
 
-    content = `<${hydrate_tag} data-render="${render}" data-hydrate="${wyvr_file.name}" ${attributes}>${content}</${hydrate_tag}>`;
+    // extract some special svelte tags, they have to be outside the hydrate tag
+    const outer_tags = [];
+    const svelte_tags = ['svelte:head', 'svelte:body', 'svelte:document', 'svelte:window'];
+    for (const tag of svelte_tags) {
+        if (content.indexOf(`<${tag}`) > -1) {
+            const tags = extract_tags_from_content(content, tag);
+            content = tags.content;
+            outer_tags.push(...tags.tags);
+        }
+    }
+
+    content = `${outer_tags.join('')}<${hydrate_tag} data-render="${render}" data-hydrate="${wyvr_file.name}" ${attributes}>${content}</${hydrate_tag}>`;
     content = replace_slots_static(content);
     return scripts.tags.join('\n') + content + styles.tags.join('\n');
 }

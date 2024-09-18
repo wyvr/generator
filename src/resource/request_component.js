@@ -29,6 +29,12 @@ export function wyvr_request_component(el, request, fn) {
             if (json.css) {
                 content += `<style>${json.css}</style>`;
             }
+            if (json.head) {
+                // include the head data when not already included
+                if (document.head.innerHTML.indexOf(json.head) === -1) {
+                    document.head.innerHTML += json.head;
+                }
+            }
             if (!content) {
                 return;
             }

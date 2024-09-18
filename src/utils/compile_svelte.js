@@ -200,7 +200,16 @@ export async function render_server_compiled_svelte(exec_result, data, file, con
         // svelte creates console log output themself inside
         exec_result.result = await exec_result.component.render(data);
         // remove svelte comments
-        const raw_html = exec_result.result.html.replace(/<!-- HTML_TAG_(?:START|END) -->/g, '');
+        let raw_html = exec_result.result.html.replace(/<!-- HTML_TAG_(?:START|END) -->/g, '');
+        // insert head from the svelte components
+        if (exec_result.result.head) {
+            exec_result.result.head = exec_result.result.head.replace(/<!--.*?-->/g, '');
+        }
+        if (context === CodeContext.server) {
+            if (exec_result.result.head && raw_html.indexOf('</head>') > -1 && raw_html.indexOf(exec_result.result.head) > -1) {
+                raw_html = raw_html.replace('</head>', `${exec_result.result.head}</head>`);
+            }
+        }
         // allow plugin to modify the html
         const render_html = await Plugin.process('render', raw_html);
         const render_html_result = await render_html((html) => {

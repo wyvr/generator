@@ -29,7 +29,7 @@ export async function render_request_components(path, data) {
     // Parse prop files from data
     for (const [prop, value] of Object.entries(data)) {
         // slots are not allowed on the server
-        if(prop === '$$slots') {
+        if (prop === '$$slots') {
             continue;
         }
         const url = transform_prop_source(value);
@@ -66,6 +66,7 @@ export async function render_request_components(path, data) {
 
     return {
         html: rendered_result.result?.html ?? '',
-        css: rendered_result.result?.css?.code ?? ''
+        css: rendered_result.result?.css?.code ?? '',
+        head: rendered_result.result?.head ?? ''
     };
 }

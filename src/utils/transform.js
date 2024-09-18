@@ -226,7 +226,7 @@ export async function extract_and_load_split(path, content, tag, extensions) {
     return result;
 }
 
-export function replace_wyvr_magic(content, code_context) {
+export function replace_wyvr_magic(content, code_context = CodeContext.server) {
     if (!filled_string(content)) {
         return '';
     }

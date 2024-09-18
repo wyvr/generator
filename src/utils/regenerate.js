@@ -23,6 +23,7 @@ import { update_project_events } from './project_events.js';
 import { add_dev_note } from './devtools.js';
 import { get_identifiers_of_list, get_parents_of_file, parse_content } from './dependency.js';
 import { Dependency } from '../model/dependency.js';
+import { CodeContext } from '../struc/code_context.js';
 
 let dep_db;
 
@@ -43,7 +44,7 @@ function regenerate_server_files({ change, add, unlink }, gen_folder, scope) {
             if (parsed) {
                 dep_db.update_file(parsed.rel_path, parsed.dependencies, parsed?.config);
             }
-            const replaced_content = add_dev_note(file.rel_path, replace_imports(replace_wyvr_magic(content, false), file.path, FOLDER_GEN_SERVER, scope));
+            const replaced_content = add_dev_note(file.rel_path, replace_imports(replace_wyvr_magic(content, CodeContext.server), file.path, FOLDER_GEN_SERVER, scope));
 
             write(join(gen_folder, file.rel_path), replaced_content);
             done = true;

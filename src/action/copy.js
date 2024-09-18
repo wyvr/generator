@@ -24,6 +24,7 @@ import { Cwd } from '../vars/cwd.js';
 import { measure_action } from './helper.js';
 import { KeyValue } from '../../storage.js';
 import { STORAGE_MTIME, STORAGE_PACKAGE_TREE } from '../constants/storage.js';
+import { CodeContext } from '../struc/code_context.js';
 
 export async function copy(available_packages) {
     const name = 'copy';
@@ -128,7 +129,7 @@ export function copy_executable_file(source, target) {
         return false;
     }
     // replace the wyvr content in the files, by make it server code
-    const content = replace_wyvr_magic(read(source), false);
+    const content = replace_wyvr_magic(read(source), CodeContext.server);
 
     write(target, replace_src_path(content, FOLDER_GEN_SERVER));
     return true;

@@ -9,6 +9,7 @@ import { insert_hydrate_tag, remove_server_events, replace_wyvr_magic } from '..
 import { filled_array } from '../utils/validate.js';
 import { Dependency } from '../model/dependency.js';
 import { WyvrFileClassification } from '../vars/wyvr_file_classification.js';
+import { CodeContext } from '../struc/code_context.js';
 
 export async function compile(files) {
     if (!filled_array(files)) {
@@ -24,7 +25,7 @@ export async function compile(files) {
             const content = read(file);
             // generate server file
             const server_file = to_server_path(file);
-            let server_code = replace_wyvr_magic(content, false);
+            let server_code = replace_wyvr_magic(content, CodeContext.server);
             if (server_code) {
                 const rel_path = to_relative_path_of_gen(file);
                 const entry = WyvrFile(rel_path);
@@ -44,7 +45,7 @@ export async function compile(files) {
             }
             // generate client file
             const client_file = to_client_path(file);
-            const client_code = remove_server_events(replace_wyvr_magic(content, true));
+            const client_code = remove_server_events(replace_wyvr_magic(content, CodeContext.client));
             const prepared_client_content = await compile_client_svelte_from_code(client_code, file);
             write(client_file, prepared_client_content);
         } catch (e) {

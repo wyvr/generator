@@ -12,6 +12,7 @@ import { combine_splits, replace_imports, replace_wyvr_magic } from '../utils/tr
 import { filled_array, filled_string, in_array } from '../utils/validate.js';
 import { send_action } from '../worker/communication.js';
 import { add_dev_note } from '../utils/devtools.js';
+import { CodeContext } from '../struc/code_context.js';
 
 export async function transform(files) {
     if (!filled_array(files)) {
@@ -67,8 +68,8 @@ export async function transform(files) {
 
                 // write client and server versions of scripts
                 if (in_array(['.mjs', '.cjs', '.js', '.ts'], extension)) {
-                    write(to_server_path(file), replace_wyvr_magic(expanded_content, false));
-                    write(to_client_path(file), replace_wyvr_magic(expanded_content, true));
+                    write(to_server_path(file), replace_wyvr_magic(expanded_content, CodeContext.server));
+                    write(to_client_path(file), replace_wyvr_magic(expanded_content, CodeContext.client));
                     continue;
                 }
             }

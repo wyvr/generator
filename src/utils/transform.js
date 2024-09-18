@@ -14,6 +14,7 @@ import { get_error_message } from './error.js';
 import { append_cache_breaker } from './cache_breaker.js';
 import { Config } from './config.js';
 import { WyvrFileClassification } from '../vars/wyvr_file_classification.js';
+import { CodeContext } from '../struc/code_context.js';
 
 const __dirname = join(to_dirname(import.meta.url), '..');
 
@@ -225,22 +226,24 @@ export async function extract_and_load_split(path, content, tag, extensions) {
     return result;
 }
 
-export function replace_wyvr_magic(content, as_client) {
+export function replace_wyvr_magic(content, code_context) {
     if (!filled_string(content)) {
         return '';
     }
+    const as_client = code_context === CodeContext.client;
     // modify __ => translation
+    // disable isRequest
     if (as_client) {
         content = content.replace(/(\W)__\(/g, '$1window.__(').replace(/([^\w])isRequest([^\w])/g, '$1false$2');
     }
-    const is_server = as_client ? 'false' : 'true';
-    const is_client = as_client ? 'true' : 'false';
+    const is_server = (code_context === CodeContext.server).toString();
+    const is_client = as_client.toString();
     const target_dir = as_client ? FOLDER_GEN_CLIENT : FOLDER_GEN_SERVER;
-    // use server implementation on the server
+    // use server implementation on the server and request
     if (!as_client) {
         content = content.replace(/(['"])@wyvr\/generator\/universal\.js(['"])/g, '$1@wyvr/generator/universal_server.js$2');
     }
-    // replace isServer and isClient and the imports
+    // replace isServer, isClient and the imports
     return content
         .replace(/([^\w])isServer([^\w])/g, `$1${is_server}$2`)
         .replace(/([^\w])isClient([^\w])/g, `$1${is_client}$2`)
@@ -340,7 +343,7 @@ export function replace_slots(content, fn) {
     if (!filled_string(content)) {
         return '';
     }
-    if(content.indexOf('<slot') === -1) {
+    if (content.indexOf('<slot') === -1) {
         return content;
     }
     const content_replaced = content.replace(/(<slot[^>/]*>.*?<\/slot>|<slot[^>]*\/>)/g, (_, slot) => {

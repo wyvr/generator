@@ -168,6 +168,9 @@ export function write_pages(page_entries) {
 }
 
 export function get_page_data_path(page) {
+    if (filled_string(page)) {
+        return get_data_page_path(page);
+    }
     if (is_null(page) || !filled_string(page.url)) {
         return undefined;
     }

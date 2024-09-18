@@ -102,16 +102,12 @@ export async function scripts(identifiers) {
             }
             scripts.push(`
                 const wyvr_identifier = ${stringify(identifier)};
-                const wyvr_dependencies = ${stringify(dependency_list)};
             `);
 
             if (Env.is_dev()) {
                 scripts.push(read(join(resouce_dir, 'devtools.js')));
                 scripts.push(`
-                console.group('wyvr');
-                console.log('identifier', wyvr_identifier);
-                console.log('dependencies', wyvr_dependencies);
-                console.groupEnd('wyvr');
+                console.log('wyvr: identifier', wyvr_identifier?.identifier, wyvr_identifier);
                 `);
             }
             // trigger ready event

@@ -11,7 +11,9 @@ import { WatcherPaths } from '../../vars/watcher_paths.js';
 import { copy, exists, remove } from './../file.js';
 import { join } from 'node:path';
 import { get_route } from './../routes.js';
-import { get_config_cache } from './../config_cache.js';
+import { STORAGE_PACKAGE_TREE } from '../../constants/storage.js';
+import { KeyValue } from '../database/key_value.js';
+import { Config } from '../config.js';
 
 export function websocket_server(port, packages) {
     const server = new WebSocketServer({ port });
@@ -65,7 +67,7 @@ export function websocket_server(port, packages) {
                             let path;
                             Logger.block('rebuild', data.data);
                             // check if the url is a route
-                            const route = get_route(data.data, 'get', get_config_cache('route.cache'));
+                            const route = get_route(data.data, 'get', Config.get('route.cache'));
                             if (route) {
                                 const found_route = packages.map((pkg) => join(pkg.path, route.rel_path)).find((file) => exists(file));
                                 if (found_route) {
@@ -79,18 +81,23 @@ export function websocket_server(port, packages) {
                         }
                         break;
                     }
-                    case 'get_config_cache': {
-                        if (typeof data.data === 'string') {
-                            ws.send(
-                                stringify({
-                                    action: 'get_config_cache',
-                                    data: {
-                                        key: data.data,
-                                        value: get_config_cache(data.data)
-                                    }
-                                })
-                            );
-                        }
+                    case 'config': {
+                        ws.send(
+                            stringify({
+                                action: 'config',
+                                data: Config.get()
+                            })
+                        );
+                        break;
+                    }
+                    case 'package_tree': {
+                        const package_tree_db = new KeyValue(STORAGE_PACKAGE_TREE);
+                        ws.send(
+                            stringify({
+                                action: 'package_tree',
+                                data: package_tree_db.all()
+                            })
+                        );
                         break;
                     }
                     case 'file_system': {

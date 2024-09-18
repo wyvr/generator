@@ -167,7 +167,7 @@ export async function inject(rendered_result, data, file, identifier, shortcode_
                     // add the current stack to the page
                     get_stack_script(),
                     // add the devtools
-                    add_devtools_code(path, data)
+                    add_devtools_code(path, shortcode_result?.identifier, data)
                 ])
             );
 

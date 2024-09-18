@@ -10,7 +10,7 @@ import { KeyValue } from './database/key_value.js';
 
 const resource_dir = join(to_dirname(import.meta.url), '..', 'resource');
 
-export function add_devtools_code(path, data) {
+export function add_devtools_code(path, shortcode_identifier, data) {
     if (!filled_string(path) || Env.is_prod()) {
         return '';
     }
@@ -21,10 +21,10 @@ export function add_devtools_code(path, data) {
     // add debug data
     const data_path = to_extension(path, 'wyvr.json');
     write_json(data_path, data);
+
     const debug_code_content = read(join(resource_dir, 'devtools_code.js'))
-        .replace(/\{release_path\}/g, data_path.replace(ReleasePath.get(), ''))
-        .replace(/\{shortcode_path\}/g, path.replace(ReleasePath.get(), ''))
-        .replace(/\{identifier\}/g, data._wyvr?.identifier);
+        .replace(/\{identifier\}/g, data._wyvr?.identifier || '')
+        .replace(/\{shortcode\}/g, shortcode_identifier || '');
 
     const ws_content = read(join(resource_dir, 'client_socket.js'));
 

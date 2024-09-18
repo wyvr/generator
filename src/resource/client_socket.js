@@ -7,15 +7,20 @@
     const check_on = setInterval(() => {
         if (window.on) {
             clearInterval(check_on);
-            on('wyvr_devtools_rebuild', () => {
-                const path = get_path();
-                send({ action: 'rebuild', data: path });
-            });
-            on('wyvr_devtools_get_config_cache', (data) => {
-                send({ action: 'get_config_cache', data });
-            });
-            on('wyvr_devtools_file_system', (data) => {
-                send({ action: 'file_system', data });
+            on('wyvr_devtools_action', (data) => {
+                switch (data?.type) {
+                    case 'rebuild':
+                        send({ action: 'rebuild', data: get_path() });
+                        break;
+                    case 'config':
+                    case 'file_system':
+                    case 'package_tree':
+                        send({ action: data.type, data });
+                        break;
+                    default:
+                        console.log('unknown wyvr_devtools_action', data);
+                        break;
+                }
             });
         }
     }, 1000);
@@ -50,11 +55,12 @@
             socket = new WebSocket(socket_url);
             socket.onmessage = (event) => {
                 check_state();
-                let data = event.data;
+                let data;
                 try {
-                    data = JSON.parse(data);
+                    data = JSON.parse(event.data);
                 } catch (e) {
                     console.error('wyvr socket error parsing data', data);
+                    return;
                 }
                 switch (data.action) {
                     case 'available': {
@@ -81,19 +87,16 @@
                         break;
                     }
                     case 'error': {
-                        // if (window.wyvr_generate_timeout) {
-                        //     clearTimeout(window.wyvr_generate_timeout);
-                        // }
                         errors.push(data.data.message);
                         if (!wyvr_update_errors()) {
                             console.error(data.data.char, ...data.data.message);
                         }
                         break;
                     }
-                    case 'get_config_cache': {
-                        trigger('wyvr_devtools_get_config_cache_result', data.data);
+                    case 'config':
+                    case 'package_tree':
+                        trigger('wyvr_devtools_action_result', data);
                         break;
-                    }
                 }
             };
             socket.onclose = () => {

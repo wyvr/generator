@@ -44,23 +44,25 @@ export async function page(files) {
                 }
                 page.urls.push(page_data.url);
                 // page is required to identify the correct page when rebuilding
-                page_data._wyvr.page = join(page.pkg.path, page.rel_path);
-                page_data._wyvr.pkg = page.pkg.name;
-                if (page_data._wyvr.collection) {
-                    for (const entry of page_data._wyvr.collection) {
+                page_data.$wyvr.page = join(page.pkg.path, page.rel_path);
+                page_data.$wyvr.pkg = page.pkg.name;
+                if (page_data.$wyvr.collection) {
+                    for (const entry of page_data.$wyvr.collection) {
                         append_entry_to_collections(collections, collection_entry(entry));
                     }
                 }
-                if (page_data._wyvr.identifier && page_data._wyvr.identifier_data) {
-                    if (!identifiers_cache[page_data._wyvr.identifier] && !page_data._wyvr.static) {
-                        const identifier_emit = clone(page_data._wyvr.identifier_data);
+                if (page_data.$wyvr.identifier && page_data.$wyvr.identifier_data) {
+                    if (!identifiers_cache[page_data.$wyvr.identifier] && !page_data.$wyvr.static) {
+                        const identifier_emit = clone(page_data.$wyvr.identifier_data);
                         identifier_emit.type = WorkerEmit.identifier;
                         // emit identifier only when it was not added to the cache before
                         // or avoid when the given data has to be static => no JS
-                        identifiers_cache[page_data._wyvr.identifier] = true;
+                        identifiers_cache[page_data.$wyvr.identifier] = true;
                         send_action(WorkerAction.emit, identifier_emit);
                     }
                 }
+                // @obsolete handle old obsolete _wyvr property
+                page_data._wyvr = page_data.$wyvr;
                 return page_data;
             })
         );

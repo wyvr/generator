@@ -6,7 +6,7 @@ export let data = null;
 </script>
 
 <!DOCTYPE html>
-<html lang={data._wyvr.language || 'en'}>
+<html lang={data.$wyvr.language || 'en'}>
     <head>
         <title>{data.title}</title>
 
@@ -19,15 +19,15 @@ export let data = null;
 
         <link rel="icon" href="/assets/favicon.png" />
         <Stylesheet src="/assets/global.css" />
-        {#if data._wyvr.identifier}
-            <Stylesheet src="/css/{data._wyvr.identifier}.css" />
+        {#if data.$wyvr.identifier}
+            <Stylesheet src="/css/{data.$wyvr.identifier}.css" />
         {/if}
     </head>
     <body>
         <slot />
 
-        {#if data._wyvr.identifier}
-            <Script src="/js/{data._wyvr.identifier}.js" />
+        {#if data.$wyvr.identifier}
+            <Script src="/js/{data.$wyvr.identifier}.js" />
         {/if}
     </body>
 </html>

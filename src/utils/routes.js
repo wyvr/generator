@@ -243,7 +243,7 @@ export async function run_route(request, response, uid, route) {
 
     if (is_func(code.onExec)) {
         /* c8 ignore next */
-        const language = data?._wyvr?.language || 'en';
+        const language = data?.$wyvr?.language || 'en';
         register_i18n(get_language(language), route.path);
         try {
             data = await code.onExec(route_context);
@@ -307,7 +307,7 @@ export async function run_route(request, response, uid, route) {
     };
 
     /* c8 ignore next */
-    const language = data?._wyvr?.language || 'en';
+    const language = data?.$wyvr?.language || 'en';
     register_i18n(get_language(language), route.path);
 
     // replace function properties
@@ -335,13 +335,17 @@ export async function run_route(request, response, uid, route) {
 
     data.url = clean_url;
     const page_data = await process_page_data(data, route.mtime);
-    page_data._wyvr.is_exec = true;
-    page_data._wyvr.route_pattern = route.url;
-
-    // add data for routes to handle more complex cases in the svelte files
-    page_data._wyvr.cookies = request_cookies;
-    page_data._wyvr.headers = request_headers;
-    page_data._wyvr.query = query;
+    page_data.$wyvr = {
+        ...page_data.$wyvr,
+        is_exec: true,
+        route_pattern: route.url,
+        // add data for routes to handle more complex cases in the svelte files
+        cookies: request_cookies,
+        headers: request_headers,
+        query: query
+    };
+    // handle the obsolete _wyvr property
+    page_data._wyvr = page_data.$wyvr;
 
     const page_content = generate_page_code(page_data);
 
@@ -360,7 +364,7 @@ export async function run_route(request, response, uid, route) {
 
     rendered_result.data = page_data;
 
-    const identifier = rendered_result.data?._wyvr?.identifier || 'default';
+    const identifier = rendered_result.data?.$wyvr?.identifier || 'default';
     const injected_result = await inject(rendered_result, page_data, route.path, identifier, (shortcode_emit) => {
         Logger.debug('shortcode', shortcode_emit);
         if (shortcode_emit) {
@@ -423,11 +427,11 @@ export async function extract_route_config(result, path) {
         .join('\\/')}\\/?$`.replace('\\/\\/?$', '\\/?$');
     let methods = ['get', 'head', 'post', 'put', 'delete', 'connect', 'options', 'trace', 'patch'];
     // execute _wyvr to get insights into the executable
-    if (typeof result?._wyvr === 'function') {
-        result._wyvr = await result._wyvr({});
+    if (typeof result?.$wyvr === 'function') {
+        result.$wyvr = await result.$wyvr({});
     }
-    if (filled_array(result?._wyvr?.methods)) {
-        methods = result?._wyvr?.methods.filter((method) => in_array(methods, method));
+    if (filled_array(result?.$wyvr?.methods)) {
+        methods = result?.$wyvr?.methods.filter((method) => in_array(methods, method));
     }
 
     // get specificity of the url, to detect the order of match checking

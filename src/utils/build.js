@@ -124,7 +124,7 @@ export async function inject(rendered_result, data, file, identifier, shortcode_
 
     let content = rendered_result?.result?.html || '';
 
-    const path = ReleasePath.get(to_index(data?.url, data?._wyvr?.extension));
+    const path = ReleasePath.get(to_index(data?.url, data?.$wyvr?.extension));
     try {
         if (content) {
             // replace shortcodes
@@ -161,7 +161,7 @@ export async function inject(rendered_result, data, file, identifier, shortcode_
             content = inject_events(
                 inject_script(content, [
                     // inject translations
-                    get_translations_script(data?._wyvr?.language),
+                    get_translations_script(data?.$wyvr?.language),
                     // add the media cache keys to avoid using the domains
                     get_media_script(),
                     // add the current stack to the page

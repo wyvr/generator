@@ -68,10 +68,10 @@
                         send({ action: 'path', data: path });
                         if (!in_history(path) || window.wyvr_generate_page) {
                             wyvr_devtools_inspect_data().then(() => {
-                                if (window.data?._wyvr?.page) {
+                                if (window.data?.$wyvr?.page) {
                                     send({
                                         action: 'rebuild',
-                                        data: window.data._wyvr.page
+                                        data: window.data.$wyvr.page
                                     });
                                 }
                                 add_to_history(window.wyvr_tab_id);

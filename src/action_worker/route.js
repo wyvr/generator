@@ -80,19 +80,19 @@ export async function process_route_request(req, res, uid, route, force_generati
     }
 
     // write css
-    if (filled_string(result?.data?._wyvr?.identifier) && result?.result?.css?.code) {
+    if (filled_string(result?.data?.$wyvr?.identifier) && result?.result?.css?.code) {
         // @TODO use hash path from storage hashes
-        const css_file_path = ReleasePath.get(FOLDER_CSS, `${result.data._wyvr.identifier}.css`);
+        const css_file_path = ReleasePath.get(FOLDER_CSS, `${result.data.$wyvr.identifier}.css`);
         if (!exists(css_file_path) || force_generating_of_resources) {
             write(css_file_path, result.result.css.code);
         }
     }
-    const js_path = join(ReleasePath.get(), FOLDER_JS, `${result?.data?._wyvr?.identifier || 'default'}.js`);
+    const js_path = join(ReleasePath.get(), FOLDER_JS, `${result?.data?.$wyvr?.identifier || 'default'}.js`);
     const identifiers = result?.shortcode || {};
-    const generate_identifier = result?.data?._wyvr?.identifier_data && (!exists(js_path) || force_generating_of_resources);
+    const generate_identifier = result?.data?.$wyvr?.identifier_data && (!exists(js_path) || force_generating_of_resources);
     if (generate_identifier) {
         // script only accepts an object
-        identifiers[result.data._wyvr.identifier_data.identifier] = result?.data._wyvr.identifier_data;
+        identifiers[result.data.$wyvr.identifier_data.identifier] = result?.data.$wyvr.identifier_data;
         // save the file to gen
         if (Object.keys(identifiers).length > 0) {
             const generate_identifiers = Object.keys(identifiers)
@@ -101,7 +101,7 @@ export async function process_route_request(req, res, uid, route, force_generati
             // @TODO extract most of this whole file into worker_actions or a util
             await scripts(generate_identifiers);
         }
-        copy(Cwd.get(FOLDER_GEN_JS, `${result.data._wyvr.identifier}.js`), js_path);
+        copy(Cwd.get(FOLDER_GEN_JS, `${result.data.$wyvr.identifier}.js`), js_path);
     }
 
     // remove query parameters to avoid generating wrong files
@@ -109,7 +109,7 @@ export async function process_route_request(req, res, uid, route, force_generati
 
     // optimize the content
     if (result?.result?.html) {
-        result.result.html = await optimize_content(result.result.html, result.data._wyvr.identifier);
+        result.result.html = await optimize_content(result.result.html, result.data.$wyvr.identifier);
     }
 
     // persist the result
@@ -118,7 +118,7 @@ export async function process_route_request(req, res, uid, route, force_generati
     // - if the response is a success 2XX
     // - if the result is empty
     // - if the route is not set to persist in the wyvr config object
-    if (result?.result?.html && result?.data?._wyvr?.persist && Env.is_prod() && response.statusCode >= 200 && response.statusCode < 300) {
+    if (result?.result?.html && result?.data?.$wyvr?.persist && Env.is_prod() && response.statusCode >= 200 && response.statusCode < 300) {
         const file = to_index(url, 'html');
         const persisted_path = ReleasePath.get(file);
         write(persisted_path, result.result.html);

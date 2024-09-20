@@ -30,7 +30,7 @@ export async function build(files) {
                 Logger.warning('empty data in', file);
                 continue;
             }
-            const identifier = data?._wyvr?.identifier || 'default';
+            const identifier = data?.$wyvr?.identifier || 'default';
             // add the current url to the used identifier
             if (!identifier_files[identifier]) {
                 identifier_files[identifier] = [];

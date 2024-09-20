@@ -23,7 +23,7 @@ export function add_devtools_code(path, shortcode_identifier, data) {
     write_json(data_path, data);
 
     const debug_code_content = read(join(resource_dir, 'devtools_code.js'))
-        .replace(/\{identifier\}/g, data._wyvr?.identifier || '')
+        .replace(/\{identifier\}/g, data.$wyvr?.identifier || '')
         .replace(/\{shortcode\}/g, shortcode_identifier || '');
 
     const ws_content = read(join(resource_dir, 'client_socket.js'));

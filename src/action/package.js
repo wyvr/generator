@@ -7,13 +7,17 @@ import { Cwd } from '../vars/cwd.js';
 import { WyvrConfig } from '../model/wyvr_config.js';
 import { readdirSync } from 'node:fs';
 
+const wyvr_package_path = Cwd.get('@wyvr', 'generator', 'src', 'boilerplate');
+const wyvr_package_real_path = Cwd.get('node_modules', wyvr_package_path);
+
 export async function collect_packages(package_json) {
     Logger.debug('package.json', package_json);
 
     // read & validate package.json
     // read packages from wyvr.js
     const root_config = await Config.load(Cwd.get());
-    const new_base_config = merge_config(WyvrConfig, root_config);
+    const boilerplate_config = await Config.load(wyvr_package_path);
+    const new_base_config = merge_config(WyvrConfig, merge_config(boilerplate_config, root_config));
 
     let packages = new_base_config.packages;
     const disabled_packages = [];
@@ -64,7 +68,7 @@ export async function collect_packages(package_json) {
     // add boilerplate package
     const boilerplate = {
         name: 'wyvr',
-        path: Cwd.get('node_modules', '@wyvr', 'generator', 'src', 'boilerplate')
+        path: wyvr_package_real_path
     };
     result.available_packages.push(boilerplate);
 

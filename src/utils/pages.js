@@ -14,6 +14,7 @@ import { filled_array, filled_string, in_array, is_array, is_func, is_null, matc
 import { get_config_cache, set_config_cache } from './config_cache.js';
 import { uniq_id, uniq_values } from './uniq.js';
 import { clone } from './json.js';
+import { PageIdentifier } from '../model/page_identifier.js';
 
 export function collect_pages(dir, package_tree) {
     if (!dir) {
@@ -150,6 +151,7 @@ export function write_pages(page_entries) {
     if (!filled_array(page_entries)) {
         return [];
     }
+    const db = new PageIdentifier();
     return page_entries
         .map((page) => {
             // filter out empty or invalid entries
@@ -159,6 +161,9 @@ export function write_pages(page_entries) {
             let path = page.data_path;
             if (!path) {
                 path = get_page_data_path(page);
+            }
+            if (page?.$wyvr?.identifier_data) {
+                db.update_file(path, page.$wyvr.identifier_data);
             }
             // create data json for the given file
             create_dir(dirname(path), { recursive: true });

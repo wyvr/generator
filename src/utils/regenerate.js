@@ -24,6 +24,7 @@ import { add_dev_note } from './devtools.js';
 import { get_identifiers_of_list, get_parents_of_file, parse_content } from './dependency.js';
 import { Dependency } from '../model/dependency.js';
 import { CodeContext } from '../struc/code_context.js';
+import { PageIdentifier } from '../model/page_identifier.js';
 
 let dep_db;
 
@@ -253,21 +254,18 @@ export async function regenerate_src({ change, add, unlink }, all_identifiers) {
             page: 'shop/Account.svelte'
         }
         */
-        /*
-        // convert the urls to data json paths
-        const data_files = [].concat(...identifier_files_list).map((url)=>{
-            console.log(url)
-            return url;
-        }).map((url) => get_data_page_path(url));
-        // add the json paths to be executed as pages
-        pages.push(...data_files);
-        */
 
+        const db = new PageIdentifier();
         const cleaned_identifier_list = uniq_values(identifiers_list);
         if (filled_array(cleaned_identifier_list)) {
             // convert to object
             for (const identifier of identifiers_list) {
                 identifiers[identifier.identifier] = identifier;
+                // get pages that have the given identifier
+                const page_identifiers = db.get_by_identifier(identifier.identifier)
+                if (filled_array(page_identifiers)) {
+                    pages.push(...page_identifiers.map((entry) => entry.file));
+                }
             }
         }
     }

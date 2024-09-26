@@ -30,7 +30,7 @@ describe('utils/routes/run_route', () => {
             FOLDER_GEN,
             'svelte'
         );
-        if(!exists(internal_root_path)) {
+        if (!exists(internal_root_path)) {
             const internal_path = join(
                 internal_root_path,
                 'src/runtime/internal/ssr.js'

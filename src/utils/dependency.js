@@ -29,7 +29,7 @@ export function parse_content(content, file) {
     const ext = extname(file);
     const deps = [];
     const i18n = {};
-    const config = ext === '.svelte' ? extract_wyvr_file_config(content) ?? structuredClone(WyvrFileConfig) : undefined;
+    const config = ext === '.svelte' ? (extract_wyvr_file_config(content) ?? structuredClone(WyvrFileConfig)) : undefined;
     const rel_path = to_relative_path_of_gen(rel_path_file.replace(/^\//, ''));
     // normlize the content for easier searching
     const normalized_content = content.replace(/[\t\n]+/g, '').replace(/\s+/g, ' ');

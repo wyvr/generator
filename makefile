@@ -61,3 +61,6 @@ format: ## Format the codebase
 	@npx @biomejs/biome format --write ./src/vars
 	@npx @biomejs/biome format --write ./src/worker
 	@npx @biomejs/biome format --write ./src/*.js
+
+update: ## Update the dependencies
+	@npx npm-check-updates

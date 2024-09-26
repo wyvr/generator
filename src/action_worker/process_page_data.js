@@ -25,11 +25,11 @@ export async function process_page_data(page_data, mtime) {
     const plugin = await Plugin.process('process_page_data', page_data, mtime);
     const data = await plugin((page_data, mtime) => {
         const default_values = Config.get('default_values');
-        // @obsolete handle the obsolete _wyvr property
         const found_obsolete_wyvr = !!page_data._wyvr;
         if (found_obsolete_wyvr) {
             Logger.warning('obsolete _wyvr property in', page_data.url);
             page_data.$wyvr = page_data._wyvr;
+            delete page_data._wyvr;
         }
         page_data.$wyvr = WyvrData(page_data.$wyvr, page_data.url, page_data.title, mtime);
 
@@ -59,7 +59,6 @@ export async function process_page_data(page_data, mtime) {
 
         enhanced_data.isProd = Env.is_prod();
 
-        // move the obsolete _wyvr property back to avoid catastrophic breaking changes
         return enhanced_data;
     });
     return data.result;

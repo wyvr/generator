@@ -344,8 +344,6 @@ export async function run_route(request, response, uid, route) {
         headers: request_headers,
         query: query
     };
-    // handle the obsolete _wyvr property
-    page_data._wyvr = page_data.$wyvr;
 
     const page_content = generate_page_code(page_data);
 
@@ -426,7 +424,12 @@ export async function extract_route_config(result, path) {
         })
         .join('\\/')}\\/?$`.replace('\\/\\/?$', '\\/?$');
     let methods = ['get', 'head', 'post', 'put', 'delete', 'connect', 'options', 'trace', 'patch'];
-    // execute _wyvr to get insights into the executable
+    if (!result?.$wyvr && result?._wyvr) {
+        result.$wyvr = result._wyvr;
+        Logger.warning('obsolete _wyvr property in', result.url);
+        delete result._wyvr;
+    }
+    // execute $wyvr to get insights into the executable
     if (typeof result?.$wyvr === 'function') {
         result.$wyvr = await result.$wyvr({});
     }

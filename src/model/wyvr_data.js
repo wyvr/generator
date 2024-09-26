@@ -4,7 +4,7 @@ import { is_array, is_null, is_string } from '../utils/validate.js';
 
 export function WyvrData(data, url, name, mtime_default) {
     const mtime = mtime_default || new Date().toISOString();
-    // enrich _wyvr property
+    // enrich $wyvr property
     // this are the default values
     const wyvr_prop = {
         template: {

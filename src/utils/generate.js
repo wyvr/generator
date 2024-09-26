@@ -18,7 +18,7 @@ export function generate_page_code(data) {
         layout: join(base_path, 'layout', 'Default.js'),
         page: join(base_path, 'page', 'Default.js')
     };
-    let tmpl_files = search_segment(data, '_wyvr.template_files', fallback_tmpl_files);
+    let tmpl_files = search_segment(data, '$wyvr.template_files', fallback_tmpl_files);
     if (!tmpl_files) {
         tmpl_files = {};
     }

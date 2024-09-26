@@ -22,7 +22,7 @@ describe('utils/devtools/add_devtools_code', () => {
     });
     it('dev mode', () => {
         Env.set(EnvType.dev);
-        const result = add_devtools_code('./_tests/index.html', '1234', {_wyvr: {
+        const result = add_devtools_code('./_tests/index.html', '1234', {$wyvr: {
             identifier: 'wyvridentifier'
         }});
         Env.value = undefined;

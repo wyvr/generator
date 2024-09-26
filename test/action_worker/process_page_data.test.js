@@ -41,7 +41,7 @@ describe('action_worker/process_page_data', () => {
                 mtime
             ),
             {
-                _wyvr: {
+                $wyvr: {
                     change_frequence: 'monthly',
                     extension: 'html',
                     identifier: 'default',

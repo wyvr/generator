@@ -1,5 +1,5 @@
 export default {
-    _wyvr: {
+    $wyvr: {
         template: 'Default',
         exec_methods: ['get'],
     },

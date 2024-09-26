@@ -61,8 +61,6 @@ export async function page(files) {
                         send_action(WorkerAction.emit, identifier_emit);
                     }
                 }
-                // @obsolete handle old obsolete _wyvr property
-                page_data._wyvr = page_data.$wyvr;
                 return page_data;
             })
         );

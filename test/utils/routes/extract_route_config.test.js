@@ -52,7 +52,7 @@ describe('utils/routes/extract_route_config', () => {
         const result = await extract_route_config(
             {
                 url: '/methods',
-                _wyvr: {
+                $wyvr: {
                     methods: ['post', 'invalid'],
                 },
             },
@@ -75,7 +75,7 @@ describe('utils/routes/extract_route_config', () => {
         const result = await extract_route_config(
             {
                 url: '/methods',
-                _wyvr: {
+                $wyvr: {
                     methods: 'all',
                 },
             },
@@ -107,12 +107,12 @@ describe('utils/routes/extract_route_config', () => {
         deepStrictEqual(result.params, ['param']);
         deepStrictEqual(result.path, join(dir, 'config/weight.js'));
     });
-    it('async _wyvr prop', async () => {
+    it('async $wyvr prop', async () => {
         Cwd.set(join(dir, 'config'));
         const result = await extract_route_config(
             {
                 url: '/exact/[param]/.*',
-                _wyvr: async () => {
+                $wyvr: async () => {
                     return new Promise((resolve, reject) => {
                         setTimeout(() => {
                             resolve({

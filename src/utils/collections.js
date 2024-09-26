@@ -27,7 +27,7 @@ export function append_entry_to_collections(collections, entry) {
 }
 
 /**
- * Build CollectionEntry Array from page data _wyvr.collection which can be an array or an object
+ * Build CollectionEntry Array from page data $wyvr.collection which can be an array or an object
  * @param {import('../model/collection.js').CollectionEntry|import('../model/collection.js').CollectionEntry[]} data
  * @param {string} url
  * @param {string} name

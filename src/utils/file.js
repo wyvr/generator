@@ -5,6 +5,7 @@ import { is_string, filled_string, filled_array } from './validate.js';
 import { WyvrFile } from '../model/wyvr_file.js';
 import { Env } from '../vars/env.js';
 import { Logger } from './logger.js';
+import { FILE_EXTENSIONS } from '../constants/file.js';
 
 /**
  * converts the given filename to the filename with the given extension
@@ -52,22 +53,26 @@ export function to_index(filename, extension) {
         extension = 'html';
     }
     const ext = extension.trim().replace(/^\./, '');
+    const index = `index.${ext}`;
 
     if (!filename || typeof filename !== 'string' || !filename.trim()) {
-        return `index.${ext}`;
+        return index;
     }
     const parts = filename.split('/');
     const last = parts[parts.length - 1];
+    // replace the last entry after / with index
     if (last === '') {
         parts[parts.length - 1] = `index.${ext}`;
         return parts.join('/');
     }
+    // replace the index after the last /
     if (last === 'index') {
-        parts[parts.length - 1] = `index.${ext}`;
+        parts[parts.length - 1] = index;
         return parts.join('/');
     }
+    // when no dot is in the last part add index
     if (last.indexOf('.') === -1) {
-        parts.push(`index.${ext}`);
+        parts.push(index);
         return parts.join('/');
     }
     // dotfiles
@@ -75,7 +80,13 @@ export function to_index(filename, extension) {
         parts[parts.length - 1] = had_empty_ext ? last : `${last}.${ext}`;
         return parts.join('/');
     }
-    return filename;
+    const current_ext = extname(last).replace('.', '');
+    if (FILE_EXTENSIONS.indexOf(current_ext) > -1) {
+        return filename;
+    }
+    parts.push(index);
+
+    return parts.join('/');
 }
 
 /**

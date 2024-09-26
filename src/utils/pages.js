@@ -9,7 +9,7 @@ import { get_error_message } from './error.js';
 import { collect_files, create_dir, exists, read, remove_index, to_extension, to_index, write } from './file.js';
 import { register_inject, register_stack } from './global.js';
 import { Logger } from './logger.js';
-import { replace_imports } from './transform.js';
+import { extract_headings_from_content, replace_imports } from './transform.js';
 import { filled_array, filled_string, in_array, is_array, is_func, is_null, match_interface } from './validate.js';
 import { get_config_cache, set_config_cache } from './config_cache.js';
 import { uniq_id, uniq_values } from './uniq.js';
@@ -73,7 +73,8 @@ export async function execute_page(page) {
                 return undefined;
             }
             const data = {
-                content: markdown.content
+                content: markdown.content,
+                $headings: extract_headings_from_content(markdown.content)
             };
             // unfold data
             for (const [key, value] of Object.entries(markdown.data)) {

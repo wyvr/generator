@@ -159,6 +159,22 @@ export function extract_tags_from_content(content, raw_tag, max) {
     return result;
 }
 
+export function extract_headings_from_content(content) {
+    if (!filled_string(content)) {
+        return [];
+    }
+    const headings = [];
+    content.replace(/<h(\d)[^>]*>(.*?)<\/h\1>/g, (_, level, text) => {
+        headings.push({
+            level: Number.parseInt(level),
+            text,
+            id: text.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+        });
+        return '';
+    });
+    return headings;
+}
+
 export async function extract_and_load_split(path, content, tag, extensions) {
     const result = {
         content: '',

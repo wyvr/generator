@@ -12,7 +12,7 @@ import { to_relative_path_of_gen } from './to.js';
 import { filled_array, filled_string, in_array, is_func, is_null, is_string, match_interface } from './validate.js';
 import { process_page_data } from '../action_worker/process_page_data.js';
 import { inject } from './build.js';
-import { replace_imports } from './transform.js';
+import { extract_headings_from_content, replace_imports } from './transform.js';
 import { register_i18n } from './global.js';
 import { get_language } from './i18n.js';
 import { dev_cache_breaker } from './cache_breaker.js';
@@ -263,6 +263,10 @@ export async function run_route(request, response, uid, route) {
     // add current data and url to the context for the next plugin
     data.url = clean_url;
     route_context.data = data;
+
+    if (data.content) {
+        data.$headings = extract_headings_from_content(data.content);
+    }
 
     // added after the onExec to allow stopping the not found routines later on and reseting the headers
     const route_on_exec_context = await Plugin.process('route_on_exec_context', route_context);

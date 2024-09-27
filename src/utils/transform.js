@@ -164,10 +164,11 @@ export function extract_headings_from_content(content) {
         return [];
     }
     const headings = [];
-    content.replace(/<h(\d)[^>]*>(.*?)<\/h\1>/g, (_, level, text) => {
+    content.replace(/<h(\d)[^>]*>(.*?)<\/h\1>/g, (_, level, inner) => {
+        const text = inner.replace(/<[^>]*>/g, '');
         headings.push({
             level: Number.parseInt(level),
-            text,
+            text: text,
             id: text.toLowerCase().replace(/[^a-z0-9]+/g, '-')
         });
         return '';

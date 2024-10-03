@@ -22,6 +22,7 @@ import { configure } from '../action/configure.js';
 import { reload } from '../action/regenerate.js';
 import { KeyValue } from '../utils/database/key_value.js';
 import { STORAGE_CONFIG } from '../constants/storage.js';
+import { build_jsconfig } from '../utils/devtools.js';
 
 export async function dev_command(config) {
     // dev command has forced dev state, when nothing is defined
@@ -63,6 +64,8 @@ export async function dev_command(config) {
 
     await publish();
 
+    build_jsconfig(packages);
+
     chat_start();
 
     dev_server(port, wsport, packages);
@@ -81,6 +84,8 @@ export async function dev_command(config) {
         Config.persist();
 
         package_report(available_packages, disabled_packages);
+
+        build_jsconfig(available_packages);
 
         if (
             prev_config.packages?.map((pkg) => pkg.name).join(',') !==

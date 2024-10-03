@@ -1,12 +1,14 @@
 import { extname, join } from 'node:path';
 import { Env } from '../vars/env.js';
 import { ReleasePath } from '../vars/release_path.js';
-import { read, to_extension, write_json } from './file.js';
+import { read, read_json, to_extension, write_json } from './file.js';
 import { to_dirname } from './to.js';
 import { filled_string } from './validate.js';
 import { get_config_cache } from './config_cache.js';
 import { STORAGE_PACKAGE_TREE } from '../constants/storage.js';
 import { KeyValue } from './database/key_value.js';
+import { Cwd } from '../vars/cwd.js';
+import { Logger } from './logger.js';
 
 const resource_dir = join(to_dirname(import.meta.url), '..', 'resource');
 
@@ -59,4 +61,37 @@ export function add_dev_note(file, content) {
             return note + content;
     }
     return content;
+}
+
+/**
+ * Build jsconfig file for autocompletion
+ * @param {array} available_packages 
+ */
+export function build_jsconfig(available_packages) {
+    const current = read_json(Cwd.get('jsconfig.json'));
+    const regex = new RegExp(`^${Cwd.get()}/`);
+    const aliases = [];
+    const includes = [];
+    for (const pkg of available_packages) {
+        if (!pkg.path) {
+            continue;
+        }
+        const short = pkg.path.replace(regex, '');
+        aliases.push(`./${short}/src/*`);
+        includes.push(short)
+    }
+    const new_config = {
+        ...current,
+        module: 'ESNext',
+        compilerOptions: {
+            baseUrl: '.',
+            paths: {
+                '$src/*': aliases
+            },
+        },
+        include: includes
+    };
+    write_json(Cwd.get('jsconfig.json'), new_config);
+    Logger.info('update jsconfig.json');
+
 }

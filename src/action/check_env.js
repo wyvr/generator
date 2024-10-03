@@ -25,7 +25,7 @@ export async function get_report() {
     const __dirname = join(to_dirname(import.meta.url), '..', '..');
 
     // check if project is the wyvr root path
-    if (Cwd.get() == __dirname) {
+    if (Cwd.get() === __dirname) {
         report.success = false;
         report.error.push(ERRORS.run_in_same_folder);
     }

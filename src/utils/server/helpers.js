@@ -15,7 +15,7 @@ export async function return_not_found(req, res, uid, message, status, start) {
     let return_content = message;
     if (Env.is_dev()) {
         // use full page in dev mode to add devtools, which allow autoreloading the page
-        const content = read(join(to_dirname(import.meta.url), '..', 'resource', '404.html'));
+        const content = read(join(to_dirname(import.meta.url), '..', '..', 'resource', '404.html'));
         if (content) {
             const url = req.url;
             try {

@@ -5,7 +5,6 @@ export const WyvrConfig = Object.freeze({
     cron: {},
     default_values: {}, // object which gets injected into every page
     env: Env.name(),
-    https: true,
     i18n: {
         fallback: 'en'
     },

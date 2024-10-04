@@ -232,6 +232,9 @@ export async function run_route(request, response, uid, route) {
             }
             // biome-ignore lint: noParameterAssign
             response = end_response(response, `Redirect to ${url}`, statusCode, response_header, response_cookies);
+        },
+        returnNothing: () => {
+            response.wyvrEnd = true;
         }
     };
 
@@ -253,6 +256,10 @@ export async function run_route(request, response, uid, route) {
         } catch (e) {
             Logger.error('[route]', error_message('onExec'), get_error_message(e, route.path, 'route'));
         }
+    }
+    // end request when is marked as complete
+    if (response?.wyvrEnd) {
+        return [undefined, response];
     }
     // when onExec does not return a correct object force one
     if (!data) {
@@ -308,6 +315,9 @@ export async function run_route(request, response, uid, route) {
     };
     route_context.returnRedirect = () => {
         Logger.warning('[route]', 'returnRedirect can only be used in onExec');
+    };
+    route_context.returnNothing = () => {
+        Logger.warning('[route]', 'returnNothing can only be used in onExec');
     };
 
     /* c8 ignore next */

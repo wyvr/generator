@@ -1,9 +1,8 @@
 import { strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { remove_index } from '../../../src/utils/file.js';
-import { v4 } from 'uuid';
-import { dirname, join, sep } from 'node:path';
-import { existsSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { randomUUID } from 'node:crypto';
 
 describe('utils/file/remove_index', () => {
     it('undefined', () => {
@@ -28,13 +27,13 @@ describe('utils/file/remove_index', () => {
         strictEqual(remove_index('/index.html'), '/');
     });
     it('single', () => {
-        const folder = join(v4().split('-')[0]);
+        const folder = join(randomUUID().split('-')[0]);
         const name = join(folder, 'index.html');
 
         strictEqual(remove_index(name), folder);
     });
     it('deep', () => {
-        const folder = join(...v4().split('-'));
+        const folder = join(...randomUUID().split('-'));
         const name = join(folder, 'index.html');
         strictEqual(remove_index(name), folder);
     });

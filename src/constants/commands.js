@@ -118,7 +118,7 @@ export const GLOBAL_FLAGS = [
     },
     {
         key: 'log_file',
-        desc: 'write log output to get given file'
+        desc: 'write log output to the given file'
     },
     {
         key: 'log_level',

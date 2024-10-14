@@ -224,7 +224,7 @@ export async function run_route(request, response, uid, route) {
             // biome-ignore lint: noParameterAssign
             response = end_response(response, data, status, Object.assign({}, header, custom_headers), response_cookies);
         },
-        returnRedirect: (url, statusCode = 301, custom_headers = {}) => {
+        returnRedirect: (url, status = 301, custom_headers = {}) => {
             const response_header = Object.assign({}, header, custom_headers, {
                 Location: url
             });
@@ -232,7 +232,7 @@ export async function run_route(request, response, uid, route) {
                 Logger.info('Redirect to', url, response_header);
             }
             // biome-ignore lint: noParameterAssign
-            response = end_response(response, `Redirect to ${url}`, statusCode, response_header, response_cookies);
+            response = end_response(response, `Redirect to ${url}`, status, response_header, response_cookies);
         },
         returnNothing: () => {
             response.wyvrEnd = true;

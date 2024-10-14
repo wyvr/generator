@@ -116,7 +116,7 @@ export class Plugin {
 
         return async (result, ...args) => {
             const data = {
-                err: undefined,
+                error: undefined,
                 args,
                 config: {
                     cwd: Cwd.get(),

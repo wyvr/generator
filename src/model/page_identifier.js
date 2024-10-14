@@ -7,7 +7,6 @@ import { remove } from '../utils/file.js';
 import { parse } from '../utils/json.js';
 import { filled_object, filled_string } from '../utils/validate.js';
 
-
 const TABLE = 'list';
 export class PageIdentifier {
     constructor() {
@@ -21,7 +20,7 @@ export class PageIdentifier {
         this.db.create(TABLE, {
             file: { type: 'TEXT', primary: true, null: false, unique: true },
             identifier: { type: 'TEXT', null: true },
-            data: { type: 'TEXT', null: true },
+            data: { type: 'TEXT', null: true }
         });
     }
 
@@ -38,7 +37,7 @@ export class PageIdentifier {
             return undefined;
         }
         const entries = this.db.getAll(`SELECT * FROM "${TABLE}" where identifier = ?`, [identifier]);
-        if(!entries) {
+        if (!entries) {
             return undefined;
         }
         return entries.map(PageIdentifier.parse_db_entry);
@@ -53,11 +52,7 @@ export class PageIdentifier {
         }
 
         try {
-            this.db.run(`INSERT OR REPLACE INTO ${TABLE} (file, identifier, data) VALUES (?, ?, ?);`, [
-                file,
-                identifier.identifier,
-                JSON.stringify(identifier)
-            ]);
+            this.db.run(`INSERT OR REPLACE INTO ${TABLE} (file, identifier, data) VALUES (?, ?, ?);`, [file, identifier.identifier, JSON.stringify(identifier)]);
         } catch (e) {
             Logger.error(get_error_message(e, undefined, 'page identifier update'));
             return undefined;

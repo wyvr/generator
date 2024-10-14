@@ -2,7 +2,6 @@ import { is_null, is_array } from './validate.js';
 import { randomUUID } from 'node:crypto';
 
 export function uniq_id() {
-    
     return randomUUID().replace(/-/g, '');
 }
 export function uniq_values(list) {

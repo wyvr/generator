@@ -262,7 +262,7 @@ export async function regenerate_src({ change, add, unlink }, all_identifiers) {
             for (const identifier of identifiers_list) {
                 identifiers[identifier.identifier] = identifier;
                 // get pages that have the given identifier
-                const page_identifiers = db.get_by_identifier(identifier.identifier)
+                const page_identifiers = db.get_by_identifier(identifier.identifier);
                 if (filled_array(page_identifiers)) {
                     pages.push(...page_identifiers.map((entry) => entry.file));
                 }

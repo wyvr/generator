@@ -65,7 +65,7 @@ export function add_dev_note(file, content) {
 
 /**
  * Build jsconfig file for autocompletion
- * @param {array} available_packages 
+ * @param {array} available_packages
  */
 export function build_jsconfig(available_packages) {
     const current = read_json(Cwd.get('jsconfig.json'));
@@ -78,7 +78,7 @@ export function build_jsconfig(available_packages) {
         }
         const short = pkg.path.replace(regex, '');
         aliases.push(`./${short}/src/*`);
-        includes.push(short)
+        includes.push(short);
     }
     const new_config = {
         ...current,
@@ -87,11 +87,10 @@ export function build_jsconfig(available_packages) {
             baseUrl: '.',
             paths: {
                 '$src/*': aliases
-            },
+            }
         },
         include: includes
     };
     write_json(Cwd.get('jsconfig.json'), new_config);
     Logger.info('update jsconfig.json');
-
 }

@@ -73,7 +73,7 @@ export class Database {
             return undefined;
         }
         // delete entries from database && remove unused space
-        this.run(`DELETE FROM "${name}";`);
+        this.run(`DELETE FROM "${name.replace(/"/g, '')}";`);
         this.run('VACUUM;');
     }
 

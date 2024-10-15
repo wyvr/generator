@@ -31,7 +31,7 @@ export function get_collections() {
 /**
  * Update the collections by merging the data
  * @param {import('./src/model/collection.js').Collections} data updated collection data
- * @param {modifyCollectionCallback} [modify_collection] Method which gets the
+ * @param {modifyCollectionCallback} [modify_collection] Method which gets the scope and list to modify the list
  * @returns {Promise<boolean>}
  */
 export function update_collection(data, modify_collection) {

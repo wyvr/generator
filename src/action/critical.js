@@ -8,6 +8,7 @@ import { Plugin } from '../utils/plugin.js';
 import { Env } from '../vars/env.js';
 import { WorkerController } from '../worker/controller.js';
 import { measure_action } from './helper.js';
+import { PLUGIN_CRITICAL } from '../constants/plugins.js';
 
 export async function critical() {
     // generate critical is only available in production mode
@@ -45,9 +46,10 @@ export async function critical() {
         });
 
         // wrap in plugin
-        const caller = await Plugin.process(name, data);
+        const caller = await Plugin.process(PLUGIN_CRITICAL, data);
         await caller(async (data) => {
             await WorkerController.process_in_workers(WorkerAction.critical, data, 1);
+            return critical;
         });
 
         Event.off('emit', critical_name, critical_id);

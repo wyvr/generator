@@ -8,6 +8,7 @@ import { STATUS_CODES } from 'node:http';
 import { stringify } from '../utils/json.js';
 import { get_error_message } from '../utils/error.js';
 import { Env } from '../vars/env.js';
+import { PLUGIN_ROUTES } from '../constants/plugins.js';
 
 /**
  * Process route from an request
@@ -29,7 +30,7 @@ export async function route_request(req, res, uid, force_generating_of_resources
     });
 
     // wrap in plugin
-    const caller = await Plugin.process(name, [ser_req]);
+    const caller = await Plugin.process(PLUGIN_ROUTES, [ser_req]);
     await caller(async (requests) => {
         const responses = await route(requests);
         response = responses.find(Boolean);

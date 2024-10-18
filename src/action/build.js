@@ -1,5 +1,6 @@
 import { terminate } from '../cli/terminate.js';
 import { FOLDER_GEN_DATA } from '../constants/folder.js';
+import { PLUGIN_BUILD } from '../constants/plugins.js';
 import { STORAGE_COLLECTION, STORAGE_OPTIMIZE_MEDIA_QUERY_FILES } from '../constants/storage.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
@@ -72,7 +73,7 @@ export async function build() {
         const data = collect_files(FOLDER_GEN_DATA, 'json');
 
         // wrap in plugin
-        const caller = await Plugin.process(name, data);
+        const caller = await Plugin.process(PLUGIN_BUILD, data);
         await caller(async (data) => {
             await WorkerController.process_in_workers(WorkerAction.build, data, 100);
         });

@@ -1,4 +1,5 @@
 import { FOLDER_GEN_SRC } from '../constants/folder.js';
+import { PLUGIN_TRANSFORM } from '../constants/plugins.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
 import { Event } from '../utils/event.js';
@@ -29,7 +30,7 @@ export async function transform(data, minimize_output = false) {
             });
 
             // wrap in plugin
-            const caller = await Plugin.process(name, data);
+            const caller = await Plugin.process(PLUGIN_TRANSFORM, data);
             await caller(async (data) => {
                 await WorkerController.process_in_workers(WorkerAction.transform, data, 10, minimize_output);
             });

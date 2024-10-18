@@ -9,6 +9,7 @@ import { measure_action } from './helper.js';
 import { merge_collections } from '../utils/collections.js';
 import { filled_object } from '../utils/validate.js';
 import { set_config_cache } from '../utils/config_cache.js';
+import { PLUGIN_PAGES } from '../constants/plugins.js';
 export async function pages(package_tree) {
     const name = 'page';
     let identifiers = {};
@@ -67,7 +68,7 @@ export async function process_pages(name, data, show_name = false) {
     });
 
     // wrap in plugin
-    const caller = await Plugin.process(name, data);
+    const caller = await Plugin.process(PLUGIN_PAGES, data);
     await caller(async (data) => {
         await WorkerController.process_in_workers(WorkerAction.page, data, 10, show_name);
     });

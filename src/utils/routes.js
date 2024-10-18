@@ -23,6 +23,7 @@ import { stringify } from './json.js';
 import { SerializableResponse } from '../model/serializable/response.js';
 import { get_cookies, set_cookie } from './cookies.js';
 import { uniq_values } from './uniq.js';
+import { PLUGIN_ROUTE_CONTEXT, PLUGIN_ROUTE_ON_EXEC } from '../constants/plugins.js';
 
 export async function build_cache() {
     const files = collect_files(Cwd.get(FOLDER_GEN_ROUTES));
@@ -239,11 +240,13 @@ export async function run_route(request, response, uid, route) {
         }
     };
 
-    const construct_route_context = await Plugin.process('construct_route_context', route_context);
+    const construct_route_context = await Plugin.process(PLUGIN_ROUTE_CONTEXT, route_context);
     const construct_route_context_result = await construct_route_context((route_object) => {
         return route_object;
     });
-    route_context = construct_route_context_result.result;
+    if (construct_route_context_result !== undefined) {
+        route_context = construct_route_context_result;
+    }
 
     if (is_func(code.onExec)) {
         /* c8 ignore next */
@@ -277,11 +280,13 @@ export async function run_route(request, response, uid, route) {
     }
 
     // added after the onExec to allow stopping the not found routines later on and reseting the headers
-    const route_on_exec_context = await Plugin.process('route_on_exec_context', route_context);
+    const route_on_exec_context = await Plugin.process(PLUGIN_ROUTE_ON_EXEC, route_context);
     const route_on_exec_context_result = await route_on_exec_context((route_object) => {
         return route_object;
     });
-    route_context = route_on_exec_context_result.result;
+    if (route_on_exec_context_result !== undefined) {
+        route_context = route_on_exec_context_result;
+    }
 
     // apply cookies to header
     header = apply_cookies(header, response_cookies);

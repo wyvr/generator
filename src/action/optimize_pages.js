@@ -1,3 +1,4 @@
+import { PLUGIN_OPTIMIZE } from '../constants/plugins.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { collect_files } from '../utils/file.js';
 import { Plugin } from '../utils/plugin.js';
@@ -17,7 +18,7 @@ export async function optimize_pages() {
         const files = collect_files(ReleasePath.get());
         const pages = files.filter((file) => file.match(/\.(html|htm)$/));
 
-        const caller = await Plugin.process(name, pages);
+        const caller = await Plugin.process(PLUGIN_OPTIMIZE, pages);
         await caller(async (pages) => {
             await WorkerController.process_in_workers(WorkerAction.optimize, pages, 10);
         });

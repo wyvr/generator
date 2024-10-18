@@ -25,6 +25,7 @@ import { measure_action } from './helper.js';
 import { KeyValue } from '../../storage.js';
 import { STORAGE_MTIME, STORAGE_PACKAGE_TREE } from '../constants/storage.js';
 import { CodeContext } from '../struc/code_context.js';
+import { PLUGIN_COPY_PACKAGES } from '../constants/plugins.js';
 
 export async function copy(available_packages) {
     const name = 'copy';
@@ -34,7 +35,7 @@ export async function copy(available_packages) {
 
     await measure_action(name, async () => {
         // wrap in plugin
-        const caller = await Plugin.process(name, available_packages);
+        const caller = await Plugin.process(PLUGIN_COPY_PACKAGES, available_packages);
         await caller(async (packages) => {
             // Copy static files from packages
             // Copy files from packages and override in the reversed package order
@@ -72,6 +73,7 @@ export async function copy(available_packages) {
             const assets = Config.get('assets');
             copy_files(assets, Cwd.get(FOLDER_GEN_ASSETS));
             Logger.info('copied configured assets');
+            return packages_ordered;
         });
     });
     return {

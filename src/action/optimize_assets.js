@@ -1,4 +1,5 @@
 import { FOLDER_ASSETS } from '../constants/folder.js';
+import { PLUGIN_OPTIMIZE } from '../constants/plugins.js';
 import { STORAGE_OPTIMIZE_HASHES } from '../constants/storage.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { KeyValue } from '../utils/database/key_value.js';
@@ -26,7 +27,7 @@ export async function optimize_assets() {
         hashes_db.close();
 
         // wrap in plugin
-        const caller = await Plugin.process(name, optimize_files);
+        const caller = await Plugin.process(PLUGIN_OPTIMIZE, optimize_files);
         await caller(async (files) => {
             await WorkerController.process_in_workers(WorkerAction.optimize, files, 10);
         });

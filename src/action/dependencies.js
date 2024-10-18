@@ -10,6 +10,7 @@ import { in_array, is_array, is_null } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { WorkerController } from '../worker/controller.js';
 import { measure_action } from './helper.js';
+import { PLUGIN_DEPENDENCIES } from '../constants/plugins.js';
 
 export async function dependencies() {
     const name = 'dependencies';
@@ -49,9 +50,10 @@ export async function dependencies() {
         );
 
         // wrap in plugin
-        const caller = await Plugin.process(name, data);
+        const caller = await Plugin.process(PLUGIN_DEPENDENCIES, data);
         await caller(async (data) => {
             await WorkerController.process_in_workers(WorkerAction.dependencies, data, 10);
+            return data;
         });
 
         Event.off('emit', i18n_name, i18n_listener_id);

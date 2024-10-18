@@ -72,14 +72,14 @@ export class Plugin {
     }
 
     static clear() {
-        this.cache = {};
+        Plugin.cache = {};
     }
 
-    static async before(name, ...args) {
-        return await (await this.execute(name, 'before'))(undefined, ...args);
+    static async before(name, result) {
+        return await (await Plugin.execute(name, 'before'))(result);
     }
-    static async after(name, result, ...args) {
-        return await (await this.execute(name, 'after'))(result, ...args);
+    static async after(name, result) {
+        return await (await Plugin.execute(name, 'after'))(result);
     }
 
     /**
@@ -90,23 +90,17 @@ export class Plugin {
      */
     static async execute(name, type) {
         if (!filled_string(name) || !filled_string(type)) {
-            return async (result) => {
-                return {
-                    error: 'missing plugin name or type',
-                    args: undefined,
-                    result
-                };
-            };
+            Logger.error('missing plugin name or type');
+            return async (result) => result;
         }
-        const plugins = search_segment(this.cache, `${name}.${type}`)?.filter(Boolean);
+        const context = {
+            cwd: Cwd.get(),
+            release_path: ReleasePath.get(),
+            env: Env.name()
+        };
+        const plugins = search_segment(Plugin.cache, `${name}.${type}`)?.filter(Boolean);
         if (is_null(plugins)) {
-            return async (result, ...args) => {
-                return {
-                    error: `no ${type} plugin for "${name}" found`,
-                    args,
-                    result
-                };
-            };
+            return async (result) => result;
         }
 
         // after plugins gets executed in reversed order
@@ -114,23 +108,14 @@ export class Plugin {
             plugins.reverse();
         }
 
-        return async (result, ...args) => {
-            const data = {
-                error: undefined,
-                args,
-                config: {
-                    cwd: Cwd.get(),
-                    release_path: ReleasePath.get(),
-                    env: Env.name()
-                },
-                result
-            };
+        return async (result) => {
+            let final_result = result;
             for (let i = 0, len = plugins.length; i < len; i++) {
                 const start = hrtime.bigint();
                 try {
-                    const partial_result = await plugins[i].fn(data);
+                    const partial_result = await plugins[i].fn(final_result, context);
                     if (partial_result !== undefined) {
-                        data.result = partial_result;
+                        final_result = partial_result;
                     }
                 } catch (e) {
                     Logger.error('error in plugin for', Logger.color.bold(name), Logger.color.bold(type), get_error_message(e, plugins[i].source, 'plugin'));
@@ -138,49 +123,36 @@ export class Plugin {
                 const duration = nano_to_milli(hrtime.bigint() - start);
                 Logger.report(duration, 'plugin', name, type, plugins[i].source);
             }
-            return data;
+            return final_result;
         };
     }
-    static async process(name, ...args) {
+    static async process(name, result) {
+        let final_result = result;
         return async (original_function) => {
-            const out = {
-                error: undefined,
-                args,
-                result: undefined
-            };
             if (!is_func(original_function)) {
-                out.error = ['missing plugin function'];
-                return out;
+                Logger.warning(`no main function for plugin "${name}"`);
+                return final_result;
             }
-            const before = await Plugin.before(name, ...args);
+            final_result = await Plugin.before(name, final_result);
 
-            out.error = [].concat(out.error, before.error);
+            final_result = await original_function(final_result);
 
-            const result = await original_function(...args);
-
-            const after = await Plugin.after(name, result, ...args);
-            out.error = [].concat(out.error, after.error);
-
-            out.result = after.result;
-            out.error = out.error.filter((x) => x !== undefined);
-            if (out.error.length === 0) {
-                out.error = undefined;
-            }
-            return out;
+            final_result = await Plugin.after(name, final_result);
+            return final_result;
         };
     }
     static async initialize() {
-        this.clear();
-        const plugin_files = await this.load(FOLDER_GEN_PLUGINS);
-        const plugins = await this.restore(plugin_files);
+        Plugin.clear();
+        const plugin_files = await Plugin.load(FOLDER_GEN_PLUGINS);
+        const plugins = await Plugin.restore(plugin_files);
         if (plugins) {
             await set_config_cache('plugin_files', plugin_files);
         }
     }
     static async restore(plugin_files) {
-        const plugins = await this.generate(plugin_files);
+        const plugins = await Plugin.generate(plugin_files);
         if (plugins) {
-            this.cache = plugins;
+            Plugin.cache = plugins;
         }
         return plugins;
     }

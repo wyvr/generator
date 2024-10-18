@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 import { copy_folder } from './copy.js';
 import { measure_action } from './helper.js';
-import { build_wyvr_internal } from './wyvr_internal.js';
+import { wyvr_internal } from './wyvr_internal.js';
 import { FOLDER_CSS, FOLDER_GEN, FOLDER_I18N, FOLDER_JS, FOLDER_DEVTOOLS, FOLDER_PLUGINS, FOLDER_EVENTS, FOLDER_COMMANDS } from '../constants/folder.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
@@ -69,7 +69,7 @@ export async function regenerate(raw_changed_files) {
 
         if (in_array(fragments, FOLDER_DEVTOOLS)) {
             regeneration_static_file(RegenerateFragment(frag_files?.devtools), gen_folder);
-            await build_wyvr_internal();
+            await wyvr_internal();
         }
 
         // cron

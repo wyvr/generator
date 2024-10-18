@@ -1,3 +1,4 @@
+import { PLUGIN_COLLECTIONS } from '../constants/plugins.js';
 import { STORAGE_COLLECTION } from '../constants/storage.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerEmit, get_name } from '../struc/worker_emit.js';
@@ -32,16 +33,16 @@ export async function collections(page_collections) {
                 collections = merge_collections(collections, data.collections);
             });
 
-            const caller = await Plugin.process(name, routes_cache);
-            await caller(async (routes_cache) => {
-                await WorkerController.process_in_workers(WorkerAction.collections, routes_cache, 1);
-            });
+            await WorkerController.process_in_workers(WorkerAction.collections, routes_cache, 1);
 
             Event.off('emit', collections_name, collections_id);
         }
 
-        // sort the collection entries
-        collections = sort_collections(collections);
+        const caller = await Plugin.process(PLUGIN_COLLECTIONS, sort_collections(collections));
+        collections = await caller(async (collections) => {
+            // sort the collection entries
+            return collections;
+        });
 
         Logger.info('collected', Object.keys(collections).length, 'collections', Logger.color.dim(Object.keys(collections).join(',')));
         // delete the existing collections

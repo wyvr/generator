@@ -11,6 +11,7 @@ import { is_null } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
 import { Logger } from '../utils/logger.js';
+import { PLUGIN_CONSTRUCT_DATA } from '../constants/plugins.js';
 
 export async function process_page_data(page_data, mtime) {
     if (is_null(page_data)) {
@@ -22,8 +23,8 @@ export async function process_page_data(page_data, mtime) {
     // }
     // nav_data = Generate.add_to_nav(enhanced_data, nav_data);
 
-    const plugin = await Plugin.process('process_page_data', page_data, mtime);
-    const data = await plugin((page_data, mtime) => {
+    const plugin = await Plugin.process(PLUGIN_CONSTRUCT_DATA, page_data);
+    const data = await plugin((page_data) => {
         const default_values = Config.get('default_values');
         const found_obsolete_wyvr = !!page_data._wyvr;
         if (found_obsolete_wyvr) {
@@ -61,5 +62,5 @@ export async function process_page_data(page_data, mtime) {
 
         return enhanced_data;
     });
-    return data.result;
+    return data;
 }

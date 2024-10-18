@@ -18,6 +18,7 @@ import { get_config_cache, set_config_cache } from './config_cache.js';
 import { IsWorker } from '../vars/is_worker.js';
 import { to_media_config, to_media_hash } from '../boilerplate/src/wyvr/media.js';
 import gm from 'gm';
+import { PLUGIN_MEDIA_CONFIG } from '../constants/plugins.js';
 
 let cache;
 export function build_cache() {
@@ -206,7 +207,11 @@ export async function config_from_url(url) {
     }
     const clean_url = url.replace(/\?.*$/, '').replace(/#.*$/, '');
 
-    let media_model = { result: clean_url, result_exists: exists(Cwd.get(clean_url)), output: MediaModelOutput.path };
+    let media_model = {
+        result: clean_url,
+        result_exists: exists(Cwd.get(clean_url)),
+        output: MediaModelOutput.path
+    };
 
     const contains_domain = clean_url.indexOf('/media/_d') === 0;
 
@@ -277,9 +282,8 @@ export async function config_from_url(url) {
 
     const result = new MediaModel(media_model);
 
-    const media_config = await Plugin.process('media_config', result);
-    const media_config_result = await media_config((result) => result);
-    return media_config_result.result;
+    const caller = await Plugin.process(PLUGIN_MEDIA_CONFIG, result);
+    return await caller((result) => result);
 }
 
 export async function replace_media(content) {

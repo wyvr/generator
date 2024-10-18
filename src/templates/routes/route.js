@@ -3,7 +3,7 @@ export default {
     url: '/{{name}}/[awesome_param]',
     onExec: async ({ data, params, returnJSON }) => {
         // control what you want to return
-        if (params.awesome_param == 'json') {
+        if (params.awesome_param === 'json') {
             return returnJSON({
                 key: 'value'
             });

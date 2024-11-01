@@ -33,7 +33,7 @@ export function prompt_list(name, message, choices, validate) {
     return data;
 }
 
-export function prompt_checkbox(name, message, choices, validate) {
+export function prompt_multilist(name, message, choices, validate) {
     const data = prompt(name, message, 0, validate);
     data.type = 'checkbox';
     if (filled_array(choices)) {
@@ -49,12 +49,14 @@ export function prompt_password(name, message, validate) {
     return data;
 }
 
-export function prompt_choice(name, value, checked = false) {
+export function prompt_option(name, value, checked = false) {
     return { name, value, checked };
 }
 
 export function prompt_condition(field, conditions, default_value) {
-    return { _field: field, ...conditions, _: default_value };
+    const condition = { _field: field, ...conditions, _: default_value };
+    
+    return condition;
 }
 
 function prompt(name, message, default_value, validate) {
@@ -68,12 +70,8 @@ function prompt(name, message, default_value, validate) {
     return data;
 }
 
-/**
- * Adds prompts to the prompts array.
- * @param {...any} questions - The prompts to be added.
- */
-export function add_prompts_group(...questions) {
-    prompts.push(questions);
+export function add_prompts(...questions) {
+    prompts.push(...questions);
 }
 
 /**

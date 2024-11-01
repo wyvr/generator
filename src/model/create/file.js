@@ -16,12 +16,6 @@ export const questions_file = [
             }
         },
         {
-            type: 'confirm',
-            message: `Split file into *.svelte${Logger.color.dim(`, *.mjs, *.css`)}?`,
-            name: 'wyvr_split_file',
-            default: false
-        },
-        {
             type: 'list',
             message: 'Which rendering should the file have?',
             name: 'wyvr_render',

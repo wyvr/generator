@@ -1,4 +1,4 @@
-import { I18N } from '@wyvr/generator/src/model/i18n.js';
+import { I18N } from 'wyvr/src/model/i18n.js';
 
 window._i18n = new I18N(window._translations || {});
 

@@ -5,7 +5,7 @@ import { Config } from '../../../src/utils/config.js';
 import { CodeContext } from '../../../src/struc/code_context.js';
 
 describe('utils/transform/replace_wyvr_magic', () => {
-    const test_content = `<script>import { __ } from '@wyvr/generator'; const a = isClient; const b = isServer; const a__var = [];</script><p>{isClient} thisisClient isclient {isServer} thisisServer isserver {__('translate')}</p>`;
+    const test_content = `<script>import { __ } from 'wyvr'; const a = isClient; const b = isServer; const a__var = [];</script><p>{isClient} thisisClient isclient {isServer} thisisServer isserver {__('translate')}</p>`;
     const original = Config.get();
     afterEach(() => {
         Config.replace(original);
@@ -73,14 +73,14 @@ describe('utils/transform/replace_wyvr_magic', () => {
 
     it('avoid replace universal on client', () => {
         strictEqual(
-            replace_wyvr_magic(`import * as universal from "@wyvr/generator/universal.js";`, CodeContext.client),
-            `import * as universal from "@wyvr/generator/universal.js";`
+            replace_wyvr_magic(`import * as universal from "wyvr/universal.js";`, CodeContext.client),
+            `import * as universal from "wyvr/universal.js";`
         );
     });
     it('replace universal on server', () => {
         strictEqual(
-            replace_wyvr_magic(`import * as universal from "@wyvr/generator/universal.js";`, CodeContext.server),
-            `import * as universal from "@wyvr/generator/universal_server.js";`
+            replace_wyvr_magic(`import * as universal from "wyvr/universal.js";`, CodeContext.server),
+            `import * as universal from "wyvr/universal_server.js";`
         );
     });
 });

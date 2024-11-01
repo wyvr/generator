@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { to_index } from "@wyvr/generator/src/utils/file.js";
+import { to_index } from "wyvr/src/utils/file.js";
 
 export const CHUNK_SIZE = 10000;
 

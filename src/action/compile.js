@@ -18,7 +18,7 @@ export async function compile(available_packages) {
         // get all node module packages with svelte files in them for compilation
         const node_modules = {};
         const node_modules_files = collect_files(Cwd.get(FOLDER_NODE_MODULES), '.svelte')
-            .filter((file) => !file.includes('/@wyvr/') && !package_paths.find((path) => file.includes(path)))
+            .filter((file) => !file.includes('/wyvr/') && !file.includes('/@wyvr/') && !package_paths.find((path) => file.includes(path)))
             .map((file) => {
                 // /var/www/html/node_modules/swiper/svelte/swiper.svelte
                 // /var/www/html/node_modules/@corp/swiper/svelte/swiper.svelte

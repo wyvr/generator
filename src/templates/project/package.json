@@ -14,7 +14,7 @@
         "health": "wyvr health"
     },
     "dependencies": {
-        "@wyvr/generator": "^{{version}}"
+        "wyvr": "^{{version}}"
     },
     "prettier": {
         "tabWidth": 4,

@@ -1,4 +1,4 @@
-import { wyvr_parse_props } from '@wyvr/generator/src/resource/props.js';
+import { wyvr_parse_props } from 'wyvr/src/resource/props.js';
 
 export function wyvr_request_component(el, request, fn) {
     if (!el || el.getAttribute('data-hydrated') === 'true') {

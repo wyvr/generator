@@ -26,7 +26,7 @@ describe('action/package/collect_packages', () => {
     const available_packages = (cwd) => [
         {
             name: 'wyvr',
-            path: 'node_modules/@wyvr/generator/src/boilerplate',
+            path: 'node_modules/wyvr/src/boilerplate',
         },
     ];
 

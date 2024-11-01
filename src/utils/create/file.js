@@ -14,7 +14,7 @@ export function create_file(templates, version, result) {
     wyvr_split_css = inset(read(join(templates, 'file', 'file.css')).replace(/\/\*.*?\*\//g, ''));
     wyvr_split_js = inset(read(join(templates, 'file', 'file.js')).replace(/\/\*.*?\*\//g, ''));
 
-    wyvr_imports += to_tabbed([[`import { onServer } from '@wyvr/generator';`], '']);
+    wyvr_imports += to_tabbed([[`import { onServer } from 'wyvr';`], '']);
     if (result.wyvr_render !== 'static') {
         const features = [`render: '${result.wyvr_render}'`, `loading: '${result.wyvr_loading}'`];
         if (result.wyvr_loading === 'media') {

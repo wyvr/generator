@@ -1,4 +1,4 @@
-import { wyvr_props } from '@wyvr/generator/src/resource/props.js';
+import { wyvr_props } from 'wyvr/src/resource/props.js';
 
 export async function wyvr_instant(el, Class) {
     const name = el.getAttribute('data-hydrate');

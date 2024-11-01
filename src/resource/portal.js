@@ -1,4 +1,4 @@
-import { wyvr_parse_props } from '@wyvr/generator/src/resource/props.js';
+import { wyvr_parse_props } from 'wyvr/src/resource/props.js';
 
 export function wyvr_portal(el, props) {
     if (!el) {

@@ -1,8 +1,8 @@
-import { get_config } from '@wyvr/generator/cron.js';
-import { KeyValue } from '@wyvr/generator/storage.js';
-import { STORAGE_COLLECTION } from '@wyvr/generator/src/constants/storage.js';
-import { write } from "@wyvr/generator/src/utils/file.js";
-import { ReleasePath } from '@wyvr/generator/src/vars/release_path.js';
+import { get_config } from 'wyvr/cron.js';
+import { KeyValue } from 'wyvr/storage.js';
+import { STORAGE_COLLECTION } from 'wyvr/src/constants/storage.js';
+import { write } from "wyvr/src/utils/file.js";
+import { ReleasePath } from 'wyvr/src/vars/release_path.js';
 import { CHUNK_SIZE, get_chunks, get_sitemap_content, get_sitemap_index_content } from '$src/wyvr/sitemap.js';
 
 

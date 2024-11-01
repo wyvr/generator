@@ -96,7 +96,8 @@ export class Plugin {
         const context = {
             cwd: Cwd.get(),
             release_path: ReleasePath.get(),
-            env: Env.name()
+            env: Env.name(),
+            isProd: Env.is_prod()
         };
         const plugins = search_segment(Plugin.cache, `${name}.${type}`)?.filter(Boolean);
         if (is_null(plugins)) {

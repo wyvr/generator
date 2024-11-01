@@ -30,23 +30,29 @@ export class KeyValue {
                 this.file = Cwd.get(FOLDER_STORAGE, `${name}.db`);
             }
         }
-        if (this.db) {
-            return;
-        }
+    }
 
+    /**
+     * Initialize the database and table, when not existing
+     * @returns boolean whether the database and table could be initialized
+     */
+    #init() {
+        if (this.db) {
+            return true;
+        }
         this.db = new Database(this.file);
         if (!this.db) {
-            return;
+            return false;
         }
 
-        this.db.create(this.table, {
+        return !!this.db.create(this.table, {
             key: { type: 'TEXT', primary: true, null: false },
             value: { type: 'TEXT' }
         });
     }
 
     get(key) {
-        if (!this.db) {
+        if (!this.#init()) {
             return undefined;
         }
         const result = this.db.getFirst(`SELECT value FROM ${this.table} WHERE key = ? LIMIT 1;`, [key]);
@@ -60,14 +66,14 @@ export class KeyValue {
         }
     }
     exists(key) {
-        if (!this.db) {
+        if (!this.#init()) {
             return undefined;
         }
         const result = this.db.getFirst(`SELECT key FROM ${this.table} WHERE key = ? LIMIT 1;`, [key]);
         return result !== undefined;
     }
     all() {
-        if (!this.db) {
+        if (!this.#init()) {
             return undefined;
         }
         const result = this.db.getAll(`SELECT * FROM ${this.table};`);
@@ -75,7 +81,7 @@ export class KeyValue {
     }
 
     set(key, value) {
-        if (!this.db) {
+        if (!this.#init()) {
             return undefined;
         }
         if (this.exists(key)) {
@@ -84,22 +90,25 @@ export class KeyValue {
         return this.db.run(`INSERT INTO ${this.table} (key, value) VALUES (?, ?);`, [key, JSON.stringify(value)]);
     }
     keys() {
-        if (!this.db) {
+        if (!this.#init()) {
             return undefined;
         }
         return this.db.getAll(`SELECT key FROM ${this.table};`)?.map((entry) => entry?.key);
     }
     close() {
-        if (!this.db) {
+        if (!this.#init()) {
             return undefined;
         }
         this.db.close();
     }
     clear() {
+        if (!this.#init()) {
+            return undefined;
+        }
         this.db.clear(this.table);
     }
     setObject(obj) {
-        if (!this.db) {
+        if (!this.#init()) {
             return undefined;
         }
         if (!filled_object(obj)) {

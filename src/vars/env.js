@@ -1,39 +1,40 @@
 import { EnvType } from '../struc/env.js';
 import { in_array, is_int } from '../utils/validate.js';
 
-export class Env {
-    static get() {
-        if (!is_int(this.value)) {
+export const Env = {
+    value: EnvType.prod,
+    get() {
+        if (!is_int(Env.value)) {
             return EnvType.prod;
         }
-        return this.value;
-    }
-    static set(value) {
+        return Env.value;
+    },
+    set(value) {
         // allow only allowed types
         if (in_array(Object.values(EnvType), value)) {
-            this.value = value;
+            Env.value = value;
         }
-        return this.get();
-    }
-    static is_debug() {
-        return this.get() == EnvType.debug;
-    }
-    static is_dev() {
-        return this.get() == EnvType.dev || this.is_debug();
-    }
-    static is_prod() {
-        return this.get() == EnvType.prod;
-    }
-    static json_spaces() {
-        if (this.is_prod()) {
+        return Env.get();
+    },
+    is_debug() {
+        return Env.get() === EnvType.debug;
+    },
+    is_dev() {
+        return Env.get() === EnvType.dev || Env.is_debug();
+    },
+    is_prod() {
+        return Env.get() === EnvType.prod;
+    },
+    json_spaces() {
+        if (Env.is_prod()) {
             return undefined;
         }
         return 4;
+    },
+    name() {
+        return get_name(Env.value) || 'prod';
     }
-    static name() {
-        return get_name(this.value) || 'prod';
-    }
-}
+};
 
 export function get_name(value) {
     return Object.keys(EnvType).find((key) => EnvType[key] === value);

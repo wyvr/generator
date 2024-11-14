@@ -7,7 +7,7 @@ import { Cwd } from '../vars/cwd.js';
 import { WyvrConfig } from '../model/wyvr_config.js';
 import { readdirSync } from 'node:fs';
 
-const wyvr_package_path = Cwd.get('@wyvr', 'generator', 'src', 'boilerplate');
+const wyvr_package_path = Cwd.get('wyvr', 'src', 'boilerplate');
 const wyvr_package_real_path = Cwd.get('node_modules', wyvr_package_path);
 
 export async function collect_packages(package_json) {

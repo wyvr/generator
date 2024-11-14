@@ -1,4 +1,4 @@
-import { wyvr_get_dom_path } from '@wyvr/generator/src/resource/dom.js';
+import { wyvr_get_dom_path } from 'wyvr/src/resource/dom.js';
 
 const WYVR_INTERACT_EVENTS = ['mouseover', 'mousedown', 'focus', 'focusin', 'pointerover', 'interact'];
 

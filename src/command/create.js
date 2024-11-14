@@ -54,5 +54,8 @@ export async function create_command(config) {
     if (type_match && is_func(type_match)) {
         type_match();
     }
+    if (result.type === 'project') {
+        Logger.success('install dependencies', 'npm install');
+    }
     return null;
 }

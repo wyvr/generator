@@ -1,4 +1,4 @@
-import { wyvr_instant } from '@wyvr/generator/src/resource/instant.js';
+import { wyvr_instant } from 'wyvr/src/resource/instant.js';
 
 export function wyvr_load(el, fn) {
     const name = el.getAttribute('data-hydrate');

@@ -1,5 +1,5 @@
 /* Created with wyvr {{version}} */
-import { get_name } from '@wyvr/generator/src/vars/env.js';
+import { get_name } from 'wyvr/src/vars/env.js';
 
 export default async function ({ cron, env, initial, rel_path, path, pkg }) {
     return [

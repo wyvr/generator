@@ -36,11 +36,8 @@ describe('cli/interactive/collect_data', () => {
         deepStrictEqual(
             await collect_data(
                 [
-                    [
-                        { name: 'a', type: 'input' },
-                        { name: 'b', type: 'input' },
-                    ],
-                    [],
+                    { name: 'a', type: 'input' },
+                    { name: 'b', type: 'input' },
                 ],
                 { key: 'value' },
                 (questions) => {
@@ -59,13 +56,13 @@ describe('cli/interactive/collect_data', () => {
         deepStrictEqual(
             await collect_data(
                 [
-                    [{ name: 'a', type: 'input' }],
+                    { name: 'a', type: 'input' },
                     {
                         _field: 'a',
-                        a: [[{ name: 'b', type: 'input' }]],
+                        a: [{ name: 'b', type: 'input' }],
                         _: [],
                     },
-                    [{ name: 'c', type: 'input' }],
+                    { name: 'c', type: 'input' },
                 ],
                 { key: 'value' },
                 (questions) => {
@@ -83,7 +80,7 @@ describe('cli/interactive/collect_data', () => {
     it('broken callback', async () => {
         deepStrictEqual(
             await collect_data(
-                [[{ name: 'a', type: 'input' }]],
+                [{ name: 'a', type: 'input' }],
                 { key: 'value' },
                 () => {
                     return false;
@@ -97,13 +94,13 @@ describe('cli/interactive/collect_data', () => {
         deepStrictEqual(
             await collect_data(
                 [
-                    [{ name: 'a', type: 'input' }],
+                    { name: 'a', type: 'input' },
                     {
                         _field: 'a',
                         b: [],
-                        _: [[{ name: 'b', type: 'input' }]],
+                        _: [{ name: 'b', type: 'input' }],
                     },
-                    [{ name: 'c', type: 'input' }],
+                    { name: 'c', type: 'input' },
                 ],
                 { key: 'value' },
                 (questions) => {
@@ -124,8 +121,8 @@ describe('cli/interactive/collect_data', () => {
                 [
                     {
                         _field: 'a',
-                        b: [[{ name: 'b', type: 'input' }]],
-                        _: [[{ name: 'c', type: 'input' }]],
+                        b: [{ name: 'b', type: 'input' }],
+                        _: [{ name: 'c', type: 'input' }],
                     },
                 ],
                 { key: 'value' },
@@ -139,9 +136,7 @@ describe('cli/interactive/collect_data', () => {
             ),
             { key: 'value' }
         );
-        deepStrictEqual(log, [
-            ['⚠', 'missing field "a" for question condition'],
-        ]);
+        deepStrictEqual(log, []);
     });
     it('missing condition value and fallback', async () => {
         deepStrictEqual(
@@ -149,7 +144,7 @@ describe('cli/interactive/collect_data', () => {
                 [
                     {
                         _field: 'a',
-                        b: [[{ name: 'b', type: 'input' }]],
+                        b: [{ name: 'b', type: 'input' }],
                     },
                 ],
                 { key: 'value' },
@@ -163,19 +158,17 @@ describe('cli/interactive/collect_data', () => {
             ),
             { key: 'value' }
         );
-        deepStrictEqual(log, [
-            ['⚠', 'missing field "a" for question condition'],
-        ]);
+        deepStrictEqual(log, []);
     });
     it('missing _field in condition', async () => {
         deepStrictEqual(
             await collect_data(
                 [
-                    [{ name: 'a', type: 'input' }],
+                    { name: 'a', type: 'input' },
                     {
-                        _: [[{ name: 'b', type: 'input' }]],
+                        _: { name: 'b', type: 'input' }
                     },
-                    [{ name: 'c', type: 'input' }],
+                    { name: 'c', type: 'input' },
                 ],
                 { key: 'value' },
                 (questions) => {
@@ -196,11 +189,11 @@ describe('cli/interactive/collect_data', () => {
                 [
                     {
                         _field: 'key',
-                        a: [[{ name: 'a', type: 'input' }]],
-                        b: [[{ name: 'b', type: 'input' }]],
-                        _: [[{ name: 'd', type: 'input' }]],
+                        a: [{ name: 'a', type: 'input' }],
+                        b: [{ name: 'b', type: 'input' }],
+                        _: [{ name: 'd', type: 'input' }],
                     },
-                    [{ name: 'c', type: 'input' }],
+                    { name: 'c', type: 'input' },
                 ],
                 { key: ['a', 'b'] },
                 (questions) => {
@@ -221,11 +214,11 @@ describe('cli/interactive/collect_data', () => {
                 [
                     {
                         _field: 'key',
-                        a: [[{ name: 'a', type: 'input' }]],
-                        b: [[{ name: 'b', type: 'input' }]],
-                        _: [[{ name: 'd', type: 'input' }]],
+                        a: [{ name: 'a', type: 'input' }],
+                        b: [{ name: 'b', type: 'input' }],
+                        _: [{ name: 'd', type: 'input' }],
                     },
-                    [{ name: 'c', type: 'input' }],
+                    { name: 'c', type: 'input' },
                 ],
                 { key: ['c'] },
                 (questions) => {
@@ -236,7 +229,7 @@ describe('cli/interactive/collect_data', () => {
                     return result;
                 }
             ),
-            { key: ['c'], c: 'c' }
+            { key: ['c'], c: 'c', d: 'd' }
         );
         deepStrictEqual(log, []);
     });
@@ -259,12 +252,12 @@ describe('cli/interactive/collect_data', () => {
             ),
             { a: 'a' }
         );
-        deepStrictEqual(log, [['✖', 'unknown value "a" for a']]);
+        deepStrictEqual(log, []);
     });
     it('X', async () => {
         deepStrictEqual(
             await collect_data(
-                [[{ name: 'a', type: 'input', message: 'message' }]],
+                [{ name: 'a', type: 'input', message: 'message' }],
                 { a: 'b' },
                 (questions) => {
                     const result = {};
@@ -274,7 +267,7 @@ describe('cli/interactive/collect_data', () => {
                     return result;
                 }
             ),
-            { a: 'b' }
+            { a: 'a' }
         );
         deepStrictEqual(log, []);
     });

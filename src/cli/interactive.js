@@ -1,73 +1,65 @@
 import inquirer from 'inquirer';
 import { Logger } from '../utils/logger.js';
 import { is_array, is_func, is_null, is_object } from '../utils/validate.js';
+import { get_error_message } from '../utils/error.js';
 
 export async function collect_data_from_cli(questions, default_data) {
     return await collect_data(questions, default_data, inquirer.prompt);
 }
-
-export async function collect_data(questions, default_data, get_answers_callback = () => {}) {
-    if (!is_object(default_data)) {
-        default_data = {};
-    }
+export async function collect_data(questions, default_data = {}, get_answers_callback = () => {}) {
+    let data = Object.assign({}, default_data);
     if (!is_array(questions)) {
-        return default_data;
+        return data;
     }
-
     if (!is_func(get_answers_callback)) {
         return default_data;
     }
-    for await (const question of questions) {
-        if (!is_array(question)) {
-            if (!question._field) {
+    const question_list = is_object(questions) ? [questions] : questions;
+    for await (const question of question_list) {
+        // when no field is associated, it's a regular question
+        if (!question._field) {
+            const answer = await get_answers_callback([question]);
+            if (!is_object(answer)) {
                 continue;
             }
-            if (is_null(default_data[question?._field])) {
-                Logger.warning(`missing field ${JSON.stringify(question?._field)} for question condition`);
-                continue;
-            }
-            let conditional_value = default_data[question._field].toString();
-            // fallback condition "_"
-            if (question._ && !question[conditional_value]) {
-                conditional_value = '_';
-            }
-            // select the conditional questions
-            let conditional_questions = question[conditional_value];
-            // when array was given, combine the questions
-            if (is_array(default_data[question._field])) {
-                conditional_questions = default_data[question._field]
-                    .map((value) => (value === '_' ? undefined : question[value]))
-                    .filter((x) => x)
-                    .flat();
-            }
-            if (!conditional_questions) {
-                Logger.error(`unknown value ${JSON.stringify(conditional_value)} for ${question._field}`);
-                continue;
-            }
-            default_data = await collect_data(conditional_questions, default_data, get_answers_callback);
-            continue;
-        }
-        const entry_questions = question
-            .map((item) => {
-                // ignore when the item is already set
-                if (Object.keys(default_data).includes(item.name) && !is_null(default_data[item.name])) {
-                    return null;
+            // set selected values
+            for (const [key, value] of Object.entries(answer)) {
+                if (key === 'undefined' && value === undefined) {
+                    continue;
                 }
-                return item;
-            })
-            .filter((x) => x);
-        if (entry_questions.length === 0) {
+                data[key] = value;
+            }
             continue;
         }
 
-        const result = await get_answers_callback(entry_questions);
-        if (!is_object(result)) {
+        let condition_values = data[question._field];
+        if (condition_values === undefined) {
             continue;
         }
-        // set selected values
-        for (const [key, value] of Object.entries(result)) {
-            default_data[key] = value;
+        if (!is_array(condition_values)) {
+            condition_values = [condition_values.toString()];
+        }
+
+        const questions = [];
+        // search the questions for the condition
+        for (const condition_value of condition_values) {
+            // found exact match
+            if (question[condition_value]) {
+                questions.push(...(is_array(question[condition_value]) ? question[condition_value] : [question[condition_value]]));
+                continue;
+            }
+            // search universal condition
+            if (question._) {
+                questions.push(...(is_array(question._) ? question._ : [question._]));
+            }
+        }
+
+        try {
+            const condition_result = await collect_data(questions, data, get_answers_callback);
+            data = { ...data, ...condition_result };
+        } catch (e) {
+            Logger.error(get_error_message(e, import.meta.url, 'interactive'));
         }
     }
-    return default_data;
+    return data;
 }

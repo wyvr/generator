@@ -5,7 +5,7 @@ import { cpSync } from 'node:fs';
 
 export function modify_svelte() {
     // make the svelte/internal file asynchronous to allow onServer and onRequest to be executed correctly
-    const internal_file = find_file('.', ['node_modules/svelte/src/runtime/internal/index.js', 'node_modules/@wyvr/generator/node_modules/svelte/src/runtime/internal/index.js']);
+    const internal_file = find_file('.', ['node_modules/svelte/src/runtime/internal/index.js', 'node_modules/wyvr/node_modules/svelte/src/runtime/internal/index.js']);
     if (!is_file(internal_file)) {
         throw new Error('svelte is not installed');
     }

@@ -7,7 +7,7 @@ import { questions_type } from './create/type.js';
 import { questions_ddev } from './create/ddev.js';
 
 export const create_questions = [
-    questions_type,
+    ...questions_type,
     {
         _field: 'type',
         project: questions_project,

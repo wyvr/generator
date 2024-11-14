@@ -6,27 +6,27 @@ export const questions_type = [
         default: 0,
         choices: [
             {
-                name: `Project`,
+                name: 'Project',
                 value: 'project'
             },
             {
-                name: `Package`,
+                name: 'Package',
                 value: 'package'
             },
             {
-                name: `File`,
+                name: 'File',
                 value: 'file'
             },
             {
-                name: `Config`,
+                name: 'Config',
                 value: 'config'
             },
             {
-                name: `Cron`,
+                name: 'Cron',
                 value: 'cron'
             },
             {
-                name: `DDEV requirements`,
+                name: 'DDEV requirements',
                 value: 'ddev'
             }
         ]

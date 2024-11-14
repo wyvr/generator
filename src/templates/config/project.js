@@ -6,11 +6,7 @@ export default {
         fallback: 'en',
     },
     packages: [
-        // Add local packages
-        /*{
-            name: 'Local',
-            path: 'local',
-        },*/
+        {{local_package}}
         // Add packages from npm, must be installed in package.json
         /*{
             name: 'package_name'

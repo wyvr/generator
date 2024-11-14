@@ -3,10 +3,14 @@ import { Cwd } from '../../vars/cwd.js';
 import { copy_template_file } from '../create.js';
 import { to_dirname } from '../to.js';
 import { create_config } from './config.js';
+import { is_array } from '../validate.js';
 
 export function create_package(name, templates, version, result, target_dir) {
     const boilerplate = join(to_dirname(import.meta.url), '..', '..', 'boilerplate');
     create_config(templates, version, result, target_dir);
+    if (!is_array(result.features)) {
+        return;
+    }
     if (result.features.includes('assets')) {
         copy_template_file(join(boilerplate, 'assets', 'favicon.ico'), Cwd.get(target_dir, 'assets', 'favicon.ico'));
         copy_template_file(join(boilerplate, 'assets', 'favicon.png'), Cwd.get(target_dir, 'assets', 'favicon.png'));

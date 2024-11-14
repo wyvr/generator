@@ -9,4 +9,4 @@ export const questions_i18n_folder = [
     }
 ];
 
-export const questions_i18n = [questions_i18n_folder];
+export const questions_i18n = questions_i18n_folder;

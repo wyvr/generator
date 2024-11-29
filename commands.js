@@ -125,9 +125,16 @@ export async function execute_flag_prompts(flags, fields) {
 
             result[key] = init_value;
         } else {
-            add_prompts(
-                prompt_input(key, name, default_value, validate_fn)
-            )
+            let prompt_entry = prompt_input(key, name, default_value, validate_fn);
+            switch (type) {
+                case 'list':
+                    prompt_entry = prompt_list(key, name, field.list, validate_fn);
+                    break;
+                case 'password':
+                    prompt_entry = prompt_password(key, name, validate_fn);
+                    break;
+            }
+            add_prompts(prompt_entry)
         }
     }
     return await execute_prompts(result);

@@ -6,7 +6,7 @@ import { uniq_values } from './uniq.js';
 import { regenerate } from '../action/regenerate.js';
 import { extname, join } from 'node:path';
 import { exists, to_extension } from './file.js';
-import { get_config_path } from './config.js';
+import { Config, get_config_path } from './config.js';
 import { STORAGE_PACKAGE_TREE } from '../constants/storage.js';
 import { KeyValue } from './database/key_value.js';
 
@@ -16,6 +16,7 @@ let debouncer;
 let changed_files = {};
 let pkgs;
 let restart_required = false;
+let clear_screen = true;
 
 const package_tree_db = new KeyValue(STORAGE_PACKAGE_TREE);
 
@@ -25,6 +26,7 @@ export async function package_watcher(packages, restart_required_callback) {
         return;
     }
     pkgs = packages;
+    clear_screen = !Config.get()?.cli?.flags?.long
     return new Promise(() => {
         const watch_folder = packages.map((pkg) => pkg.path);
         const config_path = get_config_path(Cwd.get());
@@ -57,6 +59,11 @@ export function watcher_event(event, path, restart_required_callback) {
 
     clearTimeout(debouncer);
     debouncer = setTimeout(async () => {
+        if (clear_screen) {
+            // clear the screen to reduce the amount of output
+            console.clear();
+            console.log(Logger.color.dim('...'));
+        }
         working = true;
         await process_changed_files(changed_files, pkgs);
         changed_files = {};
@@ -208,8 +215,7 @@ export async function unwatch() {
 }
 
 export function set_waiting() {
-    Logger.output(undefined, undefined, Logger.color.dim('...'));
-    Logger.block('waiting for changes');
+    console.log(Logger.color.blue('waiting for changes'));
     working = false;
 }
 

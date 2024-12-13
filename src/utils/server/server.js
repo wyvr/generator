@@ -82,7 +82,6 @@ export function server(port, on_request, on_end) {
         Logger.output(undefined, undefined, Logger.color.dim(filler));
         Logger.success(pre_text, text);
         Logger.output(undefined, undefined, Logger.color.dim(filler));
-        Logger.output(undefined, undefined, Logger.color.dim('...'));
     });
 }
 

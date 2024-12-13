@@ -53,6 +53,10 @@ export const COMMANDS = {
             {
                 key: 'fast',
                 desc: 'fast starting watch server without building the site'
+            },
+            {
+                key: 'long',
+                desc: 'avoid screen clearing after regeneration to view all logs'
             }
         ]
     },

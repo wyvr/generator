@@ -8,16 +8,18 @@ import { Cwd } from '../../../src/vars/cwd.js';
 
 describe('utils/watcher/set_waiting', () => {
     let log = [];
+    let sandbox;
     before(() => {
         Cwd.set(join(process.cwd(), 'test', 'utils', 'watcher', '_tests'));
-        Sinon.stub(console, 'log');
+        sandbox = Sinon.createSandbox();
+        sandbox.stub(console, 'log');
         console.log.callsFake((...msg) => {
             log.push(msg.map(to_plain));
         });
     });
     after(() => {
         Cwd.set(undefined);
-        console.log.restore();
+        sandbox.restore();
     });
     afterEach(() => {
         log = [];

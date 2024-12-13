@@ -148,7 +148,7 @@ export async function execute_flag_prompts(flags, fields) {
 
 export const validate = {
     required: (v) => !!v || 'This field is required',
-    number: (v) => !is_number(v) || 'This field must be a number',
+    number: (v) => !Number.isNaN(Number.parseFloat(v)) || 'This field must be a number',
     email: (v) => /.+@.+\..+/.test(v) || 'This field must be a valid email address',
     min: (v, min) => v.length >= min || `This field must be at least ${min} characters long`,
     max: (v, max) => v.length <= max || `This field must be at most ${max} characters long`,

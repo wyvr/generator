@@ -42,8 +42,7 @@ export async function command(base_config) {
     if (!config?.cli?.flags?.silent) {
         const logo = get_logo(config?.version);
         /* eslint-disable no-console */
-        console.error(config?.cli?.flags?.plain ? to_plain(logo) : logo);
-        console.error('');
+        console.log(config?.cli?.flags?.plain ? to_plain(logo) : logo);
         /* eslint-enable */
     }
 

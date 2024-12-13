@@ -111,10 +111,16 @@ export async function execute_flag_prompts(flags, fields) {
         const key = field.key;
         const name = field.name;
         const type = field.type || '';
-        const validate_fn = validate?.[type];
+        const validate_fn_type = validate?.[type] ?? (() => true);
         const default_value = field.default;
         const init_value = flags?.[key];
-
+        const validate_fn = (v) => {
+            const required_value = validate.required(v);
+            if (field.required && required_value !== true && default_value === undefined) {
+                return required_value;
+            }
+            return validate_fn_type(v);
+        }
         if (init_value && (!is_func(validate_fn) || validate_fn(init_value) === true)) {
             if (type === 'password') {
                 Logger.warning('Providing password via command line is not recommended');

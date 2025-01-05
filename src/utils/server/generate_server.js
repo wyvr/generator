@@ -20,8 +20,9 @@ import { ServerShowRequests } from '../../vars/server_show_requests.js';
 import { render_request_components } from '../request_components.js';
 import { send_head } from './helpers.js';
 import { stringify } from '../json.js';
+import { process_bus } from './bus.js';
 
-export async function generate_server(port, force_generating_of_resources, onEnd, fallback) {
+export async function generate_server(port, force_generating_of_resources, fallback, socket_connection = false) {
     register_stack();
 
     server(port, undefined, async (req, res, uid) => {
@@ -49,6 +50,10 @@ export async function generate_server(port, force_generating_of_resources, onEnd
                     Logger[success ? 'success' : 'error']('media', name, ...get_time_log_infos(start, uid));
                 }
             }
+        }
+
+        if (socket_connection && req.url.indexOf('/$bus/') === 0) {
+            return process_bus(req, res);
         }
 
         await static_server(req, res, uid, async (err) => {

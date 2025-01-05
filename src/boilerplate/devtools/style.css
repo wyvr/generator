@@ -1,4 +1,4 @@
-:root {
+:host {
     --wyvr-debug-primary: #6d8ddf;
     --wyvr-debug-disabled: #999;
     --wyvr-debug-bg: rgba(0, 0, 0, 0.75);
@@ -23,7 +23,7 @@
     display: block !important;
 }
 .wyvr_debug_toolbar:after {
-    content: '';
+    content: "";
     position: absolute;
     width: 10px;
     height: 10px;
@@ -40,20 +40,22 @@
 }
 .wyvr_debug_toolbar.disconnected:after {
     border: 2px solid var(--wyvr-debug-disabled);
+    border-right-color: transparent;
+    border-bottom-width: 1px;
+    animation: wyvr-rotate 1s linear 0s infinite;
 }
 
-.wyvr_debug_toolbar nav:before {
-    content: 'disconnected';
+.wyvr_debug_toolbar.disconnected .icon::after {
+    content: "disconnected";
     color: var(--wyvr-debug-disabled);
     display: block;
-    font-size: 12px;
-    padding-bottom: 5px;
-    padding-left: 10px;
-    padding-right: 10px;
+    font-size: 10px;
+
 }
-.wyvr_debug_toolbar.connected nav:before {
-    content: 'connected to dev server';
-    color: var(--wyvr-debug-primary);
+
+.wyvr_debug_toolbar .icon {
+    display: flex;
+    flex-direction: column;
 }
 
 .wyvr_debug_toolbar > span {
@@ -157,4 +159,13 @@
     transition: opacity 2s linear;
     pointer-events: none;
     z-index: 100000;
+}
+
+@keyframes wyvr-rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }

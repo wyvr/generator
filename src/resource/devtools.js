@@ -48,35 +48,42 @@ async function wyvr_devtools_initialize() {
     if (modules.length === 0) {
         return;
     }
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+
+    const shadow = host.attachShadow({ mode: "open" });
+    window.wyvrDebugToolbar = shadow;
+    const root = document.createElement('div');
+
     // styles
     const wyvr_debug_css = document.createElement('link');
     wyvr_debug_css.setAttribute('rel', 'stylesheet');
-    wyvr_debug_css.setAttribute('href', '/devtools/style.css');
-    document.head.appendChild(wyvr_debug_css);
+    wyvr_debug_css.setAttribute('href', `/devtools/style.css?${cb}`);
+    shadow.appendChild(wyvr_debug_css);
 
     // toolbar
     const icon =
         "data:image/svg+xml,%3Csvg width='839' height='293' viewBox='0 0 839 293' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cg clip-path='url(%23clip0)'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M838.932 2.05496e-05L749.198 176.524L618.098 176.524L558.322 292.63L389.516 292.63L354.069 223.309L318.639 292.511L148.862 292.643L-1.27918e-05 2.67029e-05L197.478 1.80709e-05L233.085 70.5426L268.692 1.4958e-05L438.514 3.80524e-05L489.297 101.073L653.876 2.86387e-05L838.932 2.05496e-05ZM416.212 28.2621L349.76 169.71L301.351 264.262L171.797 264.363L237.458 124.597L286.085 28.2621L416.212 28.2621ZM424.276 34.6138L474.766 135.103L405.722 262.246L359.657 172.16L424.276 34.6138ZM655.091 32.4201L485.273 136.71L415.949 264.368L541.085 264.368L598.656 152.546L655.091 32.4201ZM668.093 28.2621L792.861 28.2621L731.861 148.262L611.717 148.262L668.093 28.2621ZM180.085 28.2621L227.519 122.236L163.358 258.807L46.0848 28.2621L180.085 28.2621Z' fill='%235E7ED0'/%3E%3C/g%3E%3Cdefs%3E%3CclipPath id='clip0'%3E%3Crect width='839' height='293' fill='white'/%3E%3C/clipPath%3E%3C/defs%3E%3C/svg%3E";
-    const toolbar = document.createElement('div');
-    toolbar.setAttribute('id', 'wyvr_debug_toolbar');
-    toolbar.setAttribute('class', 'wyvr_debug_toolbar');
-    toolbar.setAttribute('style', 'display: none;');
-    toolbar.innerHTML = `
-        <span><img width="48" height="17" src="${icon}" alt="wyvr Debug toolbar"/></span>
-        <nav>${modules
+    root.setAttribute('id', 'wyvr_debug_toolbar');
+    root.setAttribute('class', 'wyvr_debug_toolbar');
+    root.setAttribute('style', 'display: none;');
+    root.innerHTML = `
+    <span class="icon"><img width="48" height="17" src="${icon}" alt="wyvr Debug toolbar"/></span>
+    <nav>${modules
             .map(
                 (module, index) => `<button id="wyvr_debug_toolbar_${index}" class="wyvr_debug_toolbar_button">
-        <span class="wyvr_debug_toolbar_icon">${module.icon || '•'}</span>
-        <span class="wyvr_debug_toolbar_name">${module.name || ''}</span>
-        ${module.description ? `<span class="wyvr_debug_toolbar_description">${module.description}</span>` : ''}
-        </button>`
+            <span class="wyvr_debug_toolbar_icon">${module.icon || '•'}</span>
+            <span class="wyvr_debug_toolbar_name">${module.name || ''}</span>
+            ${module.description ? `<span class="wyvr_debug_toolbar_description">${module.description}</span>` : ''}
+            </button>`
             )
             .join('')}</nav>
-    `;
-    document.body.appendChild(toolbar);
+        `;
+    shadow.appendChild(root);
+
     // add click handler
     modules.map((module, index) => {
-        const button = document.querySelector(`#wyvr_debug_toolbar_${index}`);
+        const button = shadow.querySelector(`#wyvr_debug_toolbar_${index}`);
         if (typeof module.onClick === 'function') {
             button.addEventListener('click', (e) => {
                 module.onClick(button, e, module);

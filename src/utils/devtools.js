@@ -28,9 +28,10 @@ export function add_devtools_code(path, shortcode_identifier, data) {
         .replace(/\{identifier\}/g, data.$wyvr?.identifier || '')
         .replace(/\{shortcode\}/g, shortcode_identifier || '');
 
-    const ws_content = read(join(resource_dir, 'client_socket.js'));
+    const socket_helpers = read(join(resource_dir, 'client_helpers.js'));
+    const socket_content = read(join(resource_dir, 'client_socket.js'));
 
-    return debug_code_content + ws_content;
+    return debug_code_content + socket_helpers + socket_content;
 }
 
 /**

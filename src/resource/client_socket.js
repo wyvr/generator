@@ -2,31 +2,53 @@
 (function wyvr_server_communication() {
     window.wyvr_tab_id = sessionStorage.getItem('wyvr_tab_id') || btoa(`${new Date().getTime()}${Math.random()}`);
     sessionStorage.setItem('wyvr_tab_id', window.wyvr_tab_id);
-    add_to_history();
-    // build server connection
-    const check_on = setInterval(() => {
-        if (window.on) {
-            clearInterval(check_on);
-            on('wyvr_devtools_action', (data) => {
-                switch (data?.type) {
-                    case 'rebuild':
-                        send({ action: 'rebuild', data: get_path() });
-                        break;
-                    case 'config':
-                    case 'file_system':
-                    case 'package_tree':
-                        send({ action: data.type, data });
-                        break;
-                    default:
-                        console.log('unknown wyvr_devtools_action', data);
-                        break;
-                }
-            });
-        }
-    }, 1000);
 
-    let socket = null;
-    let errors = [];
+    let open = false;
+    const queue = [];
+    let errored = false;
+
+    async function run_communication() {
+        // avoid multiple connections or avoid connection when page is not active
+        if (open || document.hidden) {
+            return;
+        }
+        const instructions = queue.filter(Boolean);
+        queue.length = 0;
+        // get the messages
+        open = true;
+        const [err, messages] = await get_bus(instructions);
+        open = false;
+
+        // end when error occured or messages are not an array 
+        if (err || !Array.isArray(messages)) {
+            if (!errored) {
+                wyvr_message('connection lost');
+            }
+            errored = true;
+            return
+        }
+        if (errored) {
+            wyvr_message('connection restored')
+            errored = false;
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        }
+        // process the messages
+        for (const data of messages) {
+            process_bus_message(data);
+        }
+    }
+
+    on('wyvr_devtools_action', (data) => {
+        // append the path to the data when it is a rebuild
+        if (data?.type === 'rebuild') {
+            data.path = get_path();
+        }
+        queue.push(data);
+    });
+
+    setInterval(run_communication, 1000);
 
     window.wyvr_close_error = (btn) => {
         if (!btn) {
@@ -37,180 +59,5 @@
             return;
         }
         errors = errors.filter((e, i) => i !== +id);
-        wyvr_update_errors();
     };
-
-    function get_path() {
-        const path = location.pathname;
-        // files or correct directories
-        if (path.match(/.*\.[^.]+$/) || path.match(/\/$/)) {
-            return path;
-        }
-        return `${path.trim()}/`;
-    }
-    function connect() {
-        const connected = check_state();
-        if (!connected) {
-            const socket_url = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.hostname}/ws`;
-            socket = new WebSocket(socket_url);
-            socket.onmessage = (event) => {
-                check_state();
-                let data;
-                try {
-                    data = JSON.parse(event.data);
-                } catch (e) {
-                    console.error('wyvr socket error parsing data', data);
-                    return;
-                }
-                switch (data.action) {
-                    case 'available': {
-                        const path = get_path();
-                        send({ action: 'path', data: path });
-                        if (!in_history(path) || window.wyvr_generate_page) {
-                            wyvr_devtools_inspect_data().then(() => {
-                                if (window.data?.$wyvr?.page) {
-                                    send({
-                                        action: 'rebuild',
-                                        data: window.data.$wyvr.page
-                                    });
-                                }
-                                add_to_history(window.wyvr_tab_id);
-                            });
-                        }
-                        break;
-                    }
-                    case 'reload':
-                        reload(data.data);
-                        break;
-                    case 'warning': {
-                        console.warn(data.data.char, data.data.message);
-                        break;
-                    }
-                    case 'error': {
-                        errors.push(data.data.message);
-                        if (!wyvr_update_errors()) {
-                            console.error(data.data.char, ...data.data.message);
-                        }
-                        break;
-                    }
-                    case 'config':
-                    case 'package_tree':
-                        trigger('wyvr_devtools_action_result', data);
-                        break;
-                }
-            };
-            socket.onclose = () => {
-                check_state();
-                setTimeout(connect, 5000);
-            };
-            setTimeout(check_state, 500);
-            return false;
-        }
-        return true;
-    }
-    function wyvr_update_errors() {
-        const content = document.getElementById('wyvr_error_target');
-
-        if (!content) {
-            setTimeout(wyvr_update_errors, 1000);
-            return false;
-        }
-        const html = [
-            '<ul class="wyvr_error_list">',
-            ...errors.map((line, index) => {
-                if (Array.isArray(line)) {
-                    line = line
-                        .map((col) => {
-                            // if (typeof col != 'string') {
-                            //     return JSON.stringify(col, undefined, 4);
-                            // }
-                            return col;
-                        })
-                        .join(' ');
-                }
-                return `<li>${line
-                    .replace(/</g, '&lt;')
-                    .replace(/>/g, '&gt;')
-                    .replace(/\n/g, '<br>')
-                    .replace(/\\n/g, '<br>')}<button onclick="wyvr_close_error(this)" data-id="${index}" title="close"></button></li>`;
-            }),
-            '</ul>'
-        ];
-        content.innerHTML = html.join('');
-        return true;
-    }
-    function check_state() {
-        const toolbar = document.querySelector('.wyvr_debug_toolbar');
-        const open = socket && socket.readyState === socket.OPEN;
-        if (toolbar) {
-            if (open) {
-                toolbar.classList.add('connected');
-                toolbar.classList.remove('disconnected');
-            } else {
-                toolbar.classList.remove('connected');
-                toolbar.classList.add('disconnected');
-            }
-        }
-        return !!open;
-    }
-    function send(data) {
-        if (data && connect()) {
-            socket.send(JSON.stringify(data));
-        }
-    }
-    function add_to_history() {
-        const entries = get_history();
-        entries[window.wyvr_tab_id] = get_path();
-        localStorage.setItem('wyvr_socket_history', JSON.stringify(entries));
-    }
-    function get_history() {
-        const entries = localStorage.getItem('wyvr_socket_history') || '{}';
-        return JSON.parse(entries);
-    }
-    function in_history(url) {
-        const entries = get_history();
-        if (!entries || !entries[window.wyvr_tab_id]) {
-            return false;
-        }
-        return entries[window.wyvr_tab_id].indexOf(url) > -1;
-    }
-    function reload(list) {
-        if (Array.isArray(list) && list.length > 0) {
-            for (const asset of list) {
-                if (asset.match(/\.css$/)) {
-                    reload_resource(asset, 'link', 'href');
-                    continue;
-                }
-                if (asset.match(/\.js$/)) {
-                    reload_resource(asset, 'script', 'src');
-                    continue;
-                }
-                if (asset.match(/\.jpg|jpe|jpeg|gif|png|webp|avif|heif$/)) {
-                    reload_resource(asset, 'img', 'src');
-                    reload_resource(asset, 'link', 'href');
-                }
-            }
-        }
-        // reload page
-        if (list === '*') {
-            location.reload();
-        }
-    }
-    function reload_resource(file_path, tag, attribute) {
-        for (const ref of document.querySelectorAll(`${tag}[${attribute}*="${file_path}"]`)) {
-            const value = ref.getAttribute(attribute);
-            if (value) {
-                if (file_path.indexOf('.js') >= 0) {
-                    location.reload();
-                    return;
-                }
-                // @see https://stackoverflow.com/questions/2024486/is-there-an-easy-way-to-reload-css-without-reloading-the-page
-                // add cache breaker to the resource
-                const cb = new Date().getTime().toString();
-                ref.setAttribute(attribute, value + (value.indexOf('?') > -1 ? '&' : '?') + cb);
-            }
-        }
-    }
-
-    connect();
 })();

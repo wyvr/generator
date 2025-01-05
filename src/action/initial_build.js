@@ -157,8 +157,10 @@ export async function intial_build(build_id, config) {
     await copy_static_generated([FOLDER_JS, FOLDER_PROP]);
 
     // Copy wyvr internal files into release in dev mode
-    await wyvr_internal();
-
+    await measure_action('wyvr_internal', async () => {
+        await wyvr_internal();
+    });
+    
     await cronjobs('build');
 
     return {

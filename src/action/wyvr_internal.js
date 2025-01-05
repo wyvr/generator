@@ -8,23 +8,20 @@ import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { copy_folder } from './copy.js';
-import { measure_action } from './helper.js';
 import { filled_string } from '../utils/validate.js';
 import { PLUGIN_INTERNAL } from '../constants/plugins.js';
 
 export async function wyvr_internal() {
-    const name = 'wyvr_internal';
-
-    if (Env.is_dev()) {
-        await measure_action(name, async () => {
-            // wrap in plugin
-            const caller = await Plugin.process(PLUGIN_INTERNAL, [FOLDER_DEVTOOLS]);
-            await caller(async (folders) => {
-                copy_folder(Cwd.get(FOLDER_GEN), folders, ReleasePath.get());
-            });
-            await build_devtools();
-        });
+    if (!Env.is_dev()) {
+        return;
     }
+    // wrap in plugin
+    const caller = await Plugin.process(PLUGIN_INTERNAL, [FOLDER_DEVTOOLS]);
+    await caller(async (folders) => {
+        copy_folder(Cwd.get(FOLDER_GEN), folders, ReleasePath.get());
+    });
+    await build_devtools();
+
 }
 
 export async function build_devtools() {

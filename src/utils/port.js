@@ -1,4 +1,4 @@
-import net from 'net';
+import net from 'node:net';
 import { is_int } from './validate.js';
 
 /**

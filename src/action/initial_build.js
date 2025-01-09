@@ -36,6 +36,7 @@ import { update_project_events } from '../utils/project_events.js';
 import { optimize_assets } from './optimize_assets.js';
 import { optimize_pages } from './optimize_pages.js';
 import { Dependency } from '../model/dependency.js';
+import { measure_action } from './helper.js';
 
 export async function pre_initial_build(build_id, config_data) {
     try {
@@ -160,7 +161,7 @@ export async function intial_build(build_id, config) {
     await measure_action('wyvr_internal', async () => {
         await wyvr_internal();
     });
-    
+
     await cronjobs('build');
 
     return {

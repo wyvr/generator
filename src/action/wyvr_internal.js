@@ -21,7 +21,6 @@ export async function wyvr_internal() {
         copy_folder(Cwd.get(FOLDER_GEN), folders, ReleasePath.get());
     });
     await build_devtools();
-
 }
 
 export async function build_devtools() {

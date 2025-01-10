@@ -27,8 +27,7 @@ describe('utils/watcher/set_waiting', () => {
     it('set waiting', () => {
         set_waiting();
         deepStrictEqual(log, [
-            ['...', ''],
-            ['⬢', 'waiting for changes'],
+            ['waiting for changes'],
         ]);
         deepStrictEqual(is_working(), false);
     });

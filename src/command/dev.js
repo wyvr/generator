@@ -32,7 +32,7 @@ export async function dev_command(config) {
 
     await check_env();
     const { port } = await get_ports(config);
-    
+    Logger.present('port', port);
 
     const build_id = UniqId.load();
     UniqId.set(build_id || UniqId.get());

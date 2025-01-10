@@ -28,6 +28,7 @@ export const app_command = async (config) => {
         await clear(['hard']);
     }
     const { port } = await get_ports(config);
+    Logger.present('port', port);
 
     let build_id = UniqId.load();
     let build_needed = false;

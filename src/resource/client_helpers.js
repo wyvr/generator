@@ -1,14 +1,18 @@
-import { stringify } from "../utils/json.js";
-
 // send request to the server
 async function get_bus(queue) {
+    let data = undefined;
+    try {
+        data = JSON.stringify(queue)
+    } catch (e) {
+        console.error(e);
+    }
     try {
         const res = await fetch(`/$bus/?${new Date().getTime()}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: stringify(queue)
+            body: data
         });
         const json = await res.json();
         set_socket_state(true)

@@ -31,7 +31,8 @@ export async function dev_command(config) {
     }
 
     await check_env();
-    const { port, wsport } = await get_ports(config);
+    const { port } = await get_ports(config);
+    
 
     const build_id = UniqId.load();
     UniqId.set(build_id || UniqId.get());
@@ -68,7 +69,7 @@ export async function dev_command(config) {
 
     chat_start();
 
-    dev_server(port, wsport, packages);
+    dev_server(port, packages);
 
     await package_watcher(packages, async () => {
         Logger.block('reload the packages and the config');

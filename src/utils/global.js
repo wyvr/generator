@@ -100,7 +100,11 @@ export function register_stack() {
         if (typeof key === 'string' && key) {
             const data = stackContext.get(getRequestId()) ?? {};
             // @TODO validate to allow only syncronizable data inside here
-            data[key] = value;
+            if (value !== undefined) {
+                data[key] = value;
+            } else {
+                delete data[key];
+            }
             stackContext.set(getRequestId(), data);
         }
         return value;

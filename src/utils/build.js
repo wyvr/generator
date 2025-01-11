@@ -21,6 +21,7 @@ import { filled_array, filled_string, is_func } from './validate.js';
 import { Config } from './config.js';
 import { STORAGE_OPTIMIZE_MEDIA_QUERY_FILES } from '../constants/storage.js';
 import { KeyValue } from './database/key_value.js';
+import { inject_csp } from '../model/csp.js';
 
 const media_query_files_db = new KeyValue(STORAGE_OPTIMIZE_MEDIA_QUERY_FILES);
 
@@ -77,13 +78,17 @@ export function inject_script(content, scripts) {
     if (!filled_array(scripts)) {
         return content;
     }
+    const nonce = uniq_id();
+    addCspNonce(nonce);
     const code = scripts.filter(Boolean).join('\n');
-    return content.replace(/<\/body>/, `<script>${code}</script></body>`);
+    return content.replace(/<\/body>/, `<script nonce="${nonce}">${code}</script></body>`);
 }
 export function inject_events(content) {
+    const nonce = uniq_id();
+    addCspNonce(nonce);
     return content.replace(
         /<head([^>]*)>/,
-        `<head$1><script>window.on = (event_name, callback) => {
+        `<head$1><script nonce="${nonce}">window.on = (event_name, callback) => {
         if (!event_name || !callback) {
             return;
         }
@@ -158,17 +163,19 @@ export async function inject(rendered_result, data, file, identifier, shortcode_
                 content = media_result.content;
             }
 
-            content = inject_events(
-                inject_script(content, [
-                    // inject translations
-                    get_translations_script(data?.$wyvr?.language),
-                    // add the media cache keys to avoid using the domains
-                    get_media_script(),
-                    // add the current stack to the page
-                    get_stack_script(),
-                    // add the devtools
-                    add_devtools_code(path, shortcode_result?.identifier, data)
-                ])
+            content = inject_csp(
+                inject_events(
+                    inject_script(content, [
+                        // inject translations
+                        get_translations_script(data?.$wyvr?.language),
+                        // add the media cache keys to avoid using the domains
+                        get_media_script(),
+                        // add the current stack to the page
+                        get_stack_script(),
+                        // add the devtools
+                        add_devtools_code(path, shortcode_result?.identifier, data)
+                    ])
+                )
             );
 
             if (!filled_string(identifier)) {

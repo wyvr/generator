@@ -21,9 +21,11 @@ import { render_request_components } from '../request_components.js';
 import { send_head } from './helpers.js';
 import { stringify } from '../json.js';
 import { process_bus } from './bus.js';
+import { register_csp } from '../../model/csp.js';
 
 export async function generate_server(port, force_generating_of_resources, fallback, socket_connection = false) {
     register_stack();
+    register_csp();
 
     server(port, undefined, async (req, res, uid) => {
         // check if pub is available

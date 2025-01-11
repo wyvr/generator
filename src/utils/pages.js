@@ -15,6 +15,7 @@ import { get_config_cache, set_config_cache } from './config_cache.js';
 import { uniq_id, uniq_values } from './uniq.js';
 import { clone } from './json.js';
 import { PageIdentifier } from '../model/page_identifier.js';
+import { register_csp } from '../model/csp.js';
 
 export function collect_pages(dir, package_tree) {
     if (!dir) {
@@ -58,6 +59,7 @@ export async function execute_page(page) {
     const extension = extname(page.path);
     register_inject(page.rel_path);
     register_stack();
+    register_csp();
 
     switch (extension) {
         case '.md': {

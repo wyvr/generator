@@ -12,6 +12,7 @@ import { Logger } from './utils/logger.js';
 import { register_stack } from './utils/global.js';
 import { create_heap_snapshot } from './action_worker/heap.js';
 import { app_server } from './utils/server/app_server.js';
+import { register_csp } from './model/csp.js';
 
 export async function ClusterWorker() {
     IsWorker.set(true);
@@ -24,6 +25,7 @@ export async function ClusterWorker() {
     process.title = `wyvr cluster worker ${process.pid}`;
 
     register_stack();
+    register_csp();
 
     await Plugin.initialize();
 

@@ -88,15 +88,19 @@ function process_bus_message(data) {
             break;
         }
         case 'config': {
-            return [{
-                config: Config.get()
-            }];
+            return [
+                {
+                    config: Config.get()
+                }
+            ];
         }
         case 'package_tree': {
             const package_tree_db = new KeyValue(STORAGE_PACKAGE_TREE);
-            return [{
-                package_tree: package_tree_db.all()
-            }];
+            return [
+                {
+                    package_tree: package_tree_db.all()
+                }
+            ];
         }
         case 'file_system': {
             const cwd = Cwd.get();

@@ -26,7 +26,7 @@ export async function package_watcher(packages, restart_required_callback) {
         return;
     }
     pkgs = packages;
-    clear_screen = !Config.get()?.cli?.flags?.long
+    clear_screen = !Config.get()?.cli?.flags?.long;
     return new Promise(() => {
         const watch_folder = packages.map((pkg) => pkg.path);
         const config_path = get_config_path(Cwd.get());

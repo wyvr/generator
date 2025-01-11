@@ -2,7 +2,7 @@
 async function get_bus(queue) {
     let data = undefined;
     try {
-        data = JSON.stringify(queue)
+        data = JSON.stringify(queue);
     } catch (e) {
         console.error(e);
     }
@@ -15,10 +15,10 @@ async function get_bus(queue) {
             body: data
         });
         const json = await res.json();
-        set_socket_state(true)
+        set_socket_state(true);
         return [undefined, json];
     } catch (e) {
-        set_socket_state(false)
+        set_socket_state(false);
         return [e, undefined];
     }
 }
@@ -43,7 +43,7 @@ function process_bus_message(data) {
 }
 
 function set_socket_state(connected) {
-    if (!wyvrDebugToolbar) {
+    if (!window.wyvrDebugToolbar) {
         return;
     }
     const toolbar = wyvrDebugToolbar.querySelector('.wyvr_debug_toolbar');

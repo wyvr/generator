@@ -51,7 +51,7 @@ async function wyvr_devtools_initialize() {
     const host = document.createElement('div');
     document.body.appendChild(host);
 
-    const shadow = host.attachShadow({ mode: "open" });
+    const shadow = host.attachShadow({ mode: 'open' });
     window.wyvrDebugToolbar = shadow;
     const root = document.createElement('div');
 
@@ -70,14 +70,14 @@ async function wyvr_devtools_initialize() {
     root.innerHTML = `
     <span class="icon"><img width="48" height="17" src="${icon}" alt="wyvr Debug toolbar"/></span>
     <nav>${modules
-            .map(
-                (module, index) => `<button id="wyvr_debug_toolbar_${index}" class="wyvr_debug_toolbar_button">
+        .map(
+            (module, index) => `<button id="wyvr_debug_toolbar_${index}" class="wyvr_debug_toolbar_button">
             <span class="wyvr_debug_toolbar_icon">${module.icon || '•'}</span>
             <span class="wyvr_debug_toolbar_name">${module.name || ''}</span>
             ${module.description ? `<span class="wyvr_debug_toolbar_description">${module.description}</span>` : ''}
             </button>`
-            )
-            .join('')}</nav>
+        )
+        .join('')}</nav>
         `;
     shadow.appendChild(root);
 

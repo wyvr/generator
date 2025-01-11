@@ -19,16 +19,16 @@
         const [err, messages] = await get_bus(instructions);
         open = false;
 
-        // end when error occured or messages are not an array 
+        // end when error occured or messages are not an array
         if (err || !Array.isArray(messages)) {
             if (!errored) {
                 wyvr_message('connection lost');
             }
             errored = true;
-            return
+            return;
         }
         if (errored) {
-            wyvr_message('connection restored')
+            wyvr_message('connection restored');
             errored = false;
             setTimeout(() => {
                 window.location.reload();

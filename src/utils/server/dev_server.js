@@ -7,10 +7,5 @@ export function dev_server(port, packages, fallback) {
     Logger.emit = true;
     ServerShowRequests.set(false);
     init_bus(packages);
-    generate_server(
-        port,
-        true,
-        fallback,
-        true
-    );
+    generate_server(port, true, fallback, true);
 }

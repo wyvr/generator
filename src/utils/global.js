@@ -87,6 +87,7 @@ export function register_prop(file) {
         return `|${prop}|:${converted.replace(/\|/g, '§|§').replace(/"/g, '|').replace(/\{/g, '«').replace(/\}/g, '»')}`;
     };
 }
+
 const stackContext = new Map();
 /**
  * Create the global methods to handle the stack data which can be used to transform data between server and client per page
@@ -97,7 +98,7 @@ export function register_stack() {
         return;
     }
     global.setStack = (key, value) => {
-        if (typeof key === 'string' && key) {
+        if (filled_string(key)) {
             const data = stackContext.get(getRequestId()) ?? {};
             // @TODO validate to allow only syncronizable data inside here
             if (value !== undefined) {
@@ -110,7 +111,7 @@ export function register_stack() {
         return value;
     };
     global.getStack = (key, fallback) => {
-        if (typeof key !== 'string' || !key) {
+        if (!filled_string(key)) {
             return fallback;
         }
         const data = stackContext.get(getRequestId()) ?? {};

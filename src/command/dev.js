@@ -77,11 +77,11 @@ export async function dev_command(config) {
         Config.replace(undefined);
 
         const package_json = read_json('package.json');
-        const { available_packages, disabled_packages } = await collect_packages(package_json);
+        const { available_packages, disabled_packages, config: package_config } = await collect_packages(package_json);
 
         // create new config
         Config.clear();
-        Config.replace(merge_config(config, base_config));
+        Config.replace(package_config);
         Config.persist();
 
         package_report(available_packages, disabled_packages);

@@ -10,11 +10,17 @@
     export let src = null;
     export let defer = true;
 
-    const timestamp = _inject('config.env') === 'dev' ? Date.now() : undefined;
+    const timestamp = injectConfig('env') === 'dev' ? Date.now() : undefined;
+    const csp = injectConfig('csp.active');
 
     $: source = src ? append_query_string(src, 'ts', timestamp) : undefined;
+    $: nonce = csp ? btoa(source) : undefined;
+
+    $: {
+        addCspNonce(nonce);
+    }
 </script>
 
 {#if source}
-    <script {defer} src={source}></script>
+    <script {defer} {nonce} src={source}></script>
 {/if}

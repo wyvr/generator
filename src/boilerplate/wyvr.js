@@ -10,8 +10,7 @@ export default {
         delete: [], // delete the following values from all directives
         'default-src': ["'self'"],
         'script-src': ["'self'"],
-        'style-src-elem': ["'self'", "'unsafe-inline'"],
-        'style-src-attr': ["'self'", "'unsafe-inline'"],
+        'style-src': ["'self'", "'unsafe-inline'"],
         'img-src': ["'self'", "'unsafe-inline'", 'data:'],
     }
 }

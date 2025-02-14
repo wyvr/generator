@@ -78,17 +78,25 @@ export function inject_script(content, scripts) {
     if (!filled_array(scripts)) {
         return content;
     }
-    const nonce = uniq_id();
-    addCspNonce(nonce);
+    let nonce_attr = '';
+    if (Config.get('csp.active', false)) {
+        const nonce = uniq_id();
+        addCspNonce(nonce);
+        nonce_attr = ` nonce="${nonce}"`;
+    }
     const code = scripts.filter(Boolean).join('\n');
-    return content.replace(/<\/body>/, `<script nonce="${nonce}">${code}</script></body>`);
+    return content.replace(/<\/body>/, `<script${nonce_attr}>${code}</script></body>`);
 }
 export function inject_events(content) {
-    const nonce = uniq_id();
-    addCspNonce(nonce);
+    let nonce_attr = '';
+    if (Config.get('csp.active', false)) {
+        const nonce = uniq_id();
+        addCspNonce(nonce);
+        nonce_attr = ` nonce="${nonce}"`;
+    }
     return content.replace(
         /<head([^>]*)>/,
-        `<head$1><script nonce="${nonce}">window.on = (event_name, callback) => {
+        `<head$1><script${nonce_attr}>window.on = (event_name, callback) => {
         if (!event_name || !callback) {
             return;
         }

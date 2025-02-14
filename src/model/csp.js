@@ -45,7 +45,6 @@ export function add_csp(directive, value) {
 export function add_csp_nonce(nonce) {
     const value = `'nonce-${nonce}'`;
     add_csp('script-src', value);
-    add_csp('script-src-attr', value);
     return value;
 }
 
@@ -71,7 +70,8 @@ export function clear_csp() {
  * @returns string
  */
 export function inject_csp(content) {
-    if (filled_string(content)) {
+
+    if (!filled_string(content)) {
         return content;
     }
     const csp_config = Config.get('csp', { active: false });
@@ -94,11 +94,18 @@ export function inject_csp(content) {
     }
     // convert into an array
     for (const [directive, value] of Object.entries(policies)) {
-        const values = uniq_values(value).filter((v) => (csp_config.delete || []).indexOf(v) === -1);
-        if (filled_array(values)) {
+        // filter out blacklisted entries, undefined and duplicate values
+        const values = uniq_values(value).filter((v) => v && (csp_config.delete || []).indexOf(v) === -1).sort((v) => {
+            // sort self to the start
+            if (v === "'self'") {
+                return -1;
+            }
+            return 0;
+        });
+        if (!filled_array(values)) {
             continue;
         }
-        policiesContent += `${directive} ${values.join(' ')};`;
+        policiesContent += `${directive} ${values.join(' ')}; `;
     }
     clear_csp();
     return content.replace(/<head([^>]*)>/, `<head$1><meta http-equiv="Content-Security-Policy" content="${policiesContent}" />`);

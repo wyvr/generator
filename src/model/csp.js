@@ -70,7 +70,6 @@ export function clear_csp() {
  * @returns string
  */
 export function inject_csp(content) {
-
     if (!filled_string(content)) {
         return content;
     }
@@ -95,13 +94,15 @@ export function inject_csp(content) {
     // convert into an array
     for (const [directive, value] of Object.entries(policies)) {
         // filter out blacklisted entries, undefined and duplicate values
-        const values = uniq_values(value).filter((v) => v && (csp_config.delete || []).indexOf(v) === -1).sort((v) => {
-            // sort self to the start
-            if (v === "'self'") {
-                return -1;
-            }
-            return 0;
-        });
+        const values = uniq_values(value)
+            .filter((v) => v && (csp_config.delete || []).indexOf(v) === -1)
+            .sort((v) => {
+                // sort self to the start
+                if (v === "'self'") {
+                    return -1;
+                }
+                return 0;
+            });
         if (!filled_array(values)) {
             continue;
         }

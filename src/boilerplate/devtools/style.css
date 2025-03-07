@@ -38,6 +38,10 @@
 .wyvr_debug_toolbar.connected:after {
     background: var(--wyvr-debug-primary);
 }
+.wyvr_debug_toolbar.hidden:after {
+    background: color-mix(in srgb, var(--wyvr-debug-primary) 20%, transparent);
+}
+
 .wyvr_debug_toolbar.disconnected:after {
     border: 2px solid var(--wyvr-debug-disabled);
     border-right-color: transparent;
@@ -50,7 +54,6 @@
     color: var(--wyvr-debug-disabled);
     display: block;
     font-size: 10px;
-
 }
 
 .wyvr_debug_toolbar .icon {

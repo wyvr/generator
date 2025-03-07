@@ -63,6 +63,18 @@ export function wyvr_props(el) {
         };
         // load the "hugh" props
         for (const item of load_props) {
+            if (item.url.match(/\.js$/)) {
+                import(item.url)
+                    .then((module) => {
+                        props[item.prop] = module.default;
+                        final(true);
+                    })
+                    .catch((e) => {
+                        console.warn('prop error', item, e);
+                        final(false);
+                    });
+                continue;
+            }
             // const cache_prop = window.wyvr_props_cache[item.url];
             // // when cache object a promise is, then the property is loading
             // if (cache_prop instanceof WyvrDeferred) {
@@ -110,6 +122,10 @@ export function transform_prop_source(value) {
     const match = value.match(/^@\(([^)]+)\)$/);
     if (Array.isArray(match) && match.length === 2) {
         return match[1];
+    }
+    const fn_match = value.match(/^\$\(([^)]+)\)$/);
+    if (Array.isArray(fn_match) && fn_match.length === 2) {
+        return fn_match[1];
     }
 }
 

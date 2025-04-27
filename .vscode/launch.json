@@ -17,6 +17,18 @@
             "skipFiles": ["<node_internals>/**/*.js"]
         },
         {
+            "name": "Docker: Attach to Node Website",
+            "type": "node",
+            "request": "attach",
+            "host": "0.0.0.0",
+            "port": 19230,
+            "address": "localhost",
+            "localRoot": "${workspaceFolder}",
+            "remoteRoot": "/var/www/html/@wyvr/generator",
+            "protocol": "inspector",
+            "skipFiles": ["<node_internals>/**/*.js"]
+        },
+        {
             "args": [
                 "-u",
                 "bdd",

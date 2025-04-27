@@ -216,7 +216,7 @@ describe('utils/routes/run_route', () => {
                 end: (...args) => {
                     json = args;
                 },
-                writableEnded: true,
+                writableEnded: false,
             },
             '0000',
             {

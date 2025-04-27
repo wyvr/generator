@@ -62,7 +62,13 @@ export async function build_cache() {
     return executed_result.filter((x) => x);
 }
 
-export async function load_route(file) {
+/**
+ * Load the given route and return the route data, when the route exports a function it will execute it and an optional context can be added
+ * @param {string} file
+ * @param {any} context that can be given when it is a function
+ * @returns the route object
+ */
+export async function load_route(file, context) {
     if (!exists(file)) {
         return undefined;
     }
@@ -72,7 +78,7 @@ export async function load_route(file) {
         result = await import(uniq_path);
         if (result?.default) {
             if (is_func(result.default)) {
-                result = await result.default();
+                result = await result.default(context);
             } else {
                 result = result.default;
             }
@@ -155,12 +161,6 @@ export async function run_route(request, response, uid, route) {
         params[param] = value.replace(/\(\(/g, '').replace(/\)\)/g, '');
     });
     params.isExec = !request.isNotExec;
-    // get the route result
-    const code = await load_route(route.path);
-
-    if (is_null(code)) {
-        return [undefined, response];
-    }
 
     const error_message = (key) => `error in ${key} function`;
 
@@ -241,11 +241,20 @@ export async function run_route(request, response, uid, route) {
     };
 
     const construct_route_context = await Plugin.process(PLUGIN_ROUTE_CONTEXT, route_context);
-    const construct_route_context_result = await construct_route_context((route_object) => {
-        return route_object;
-    });
+    const construct_route_context_result = await construct_route_context((context) => context);
     if (construct_route_context_result !== undefined) {
         route_context = construct_route_context_result;
+    }
+
+    // get the route result
+    const code = await load_route(route.path, route_context);
+    // when the function itself returns early stop proceeding, for performance reasons
+    if (route_context?.response?.writableEnded) {
+        return [undefined, response];
+    }
+
+    if (is_null(code)) {
+        return [undefined, response];
     }
 
     if (is_func(code.onExec)) {
@@ -262,7 +271,7 @@ export async function run_route(request, response, uid, route) {
         }
     }
     // end request when is marked as complete
-    if (response?.wyvrEnd) {
+    if (response?.wyvrEnd || response?.complete) {
         return [undefined, response];
     }
     // when onExec does not return a correct object force one
@@ -281,9 +290,7 @@ export async function run_route(request, response, uid, route) {
 
     // added after the onExec to allow stopping the not found routines later on and reseting the headers
     const route_on_exec_context = await Plugin.process(PLUGIN_ROUTE_ON_EXEC, route_context);
-    const route_on_exec_context_result = await route_on_exec_context((route_object) => {
-        return route_object;
-    });
+    const route_on_exec_context_result = await route_on_exec_context((context) => context);
     if (route_on_exec_context_result !== undefined) {
         route_context = route_on_exec_context_result;
     }

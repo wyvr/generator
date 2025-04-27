@@ -29,11 +29,37 @@ describe('utils/routes/load_route', () => {
         deepStrictEqual(await load_route(), undefined);
         deepStrictEqual(log, []);
     });
+    it('load object', async () => {
+        Cwd.set(join(dir, 'load'));
+        deepStrictEqual(await load_route(join(dir, 'load/load_object.js')), {
+            title: 'test',
+        });
+        deepStrictEqual(log, []);
+    });
+    it('load function', async () => {
+        Cwd.set(join(dir, 'load'));
+        deepStrictEqual(await load_route(join(dir, 'load/load_function.js')), {
+            title: 'test',
+        });
+        deepStrictEqual(log, []);
+    });
+    it('load function with context', async () => {
+        Cwd.set(join(dir, 'load'));
+        deepStrictEqual(
+            await load_route(join(dir, 'load/load_function.js'), {
+                returnData: () => {},
+            }),
+            {
+                title: 'test context',
+            },
+        );
+        deepStrictEqual(log, []);
+    });
     it('error', async () => {
         Cwd.set(join(dir, 'load'));
         deepStrictEqual(
             await load_route(join(dir, 'load/error.js')),
-            undefined
+            undefined,
         );
         deepStrictEqual(log, [
             [
@@ -46,7 +72,7 @@ describe('utils/routes/load_route', () => {
         Cwd.set(join(dir, 'load'));
         deepStrictEqual(
             await load_route(join(dir, 'load/contains_src.js')),
-            undefined
+            undefined,
         );
         deepStrictEqual(log, [
             [

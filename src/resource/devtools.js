@@ -113,10 +113,13 @@ function wyvr_debug_event(id, callback, immediately) {
 }
 
 function wyvr_message(message) {
+    if (!window.wyvrDebugToolbar) {
+        return;
+    }
     const element = document.createElement('div');
     element.setAttribute('class', 'wyvr_message');
     element.innerText = message;
-    document.body.appendChild(element);
+    wyvrDebugToolbar.appendChild(element);
 
     setTimeout(() => {
         element.style.opacity = 0;

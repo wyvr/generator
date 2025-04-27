@@ -68,6 +68,14 @@ describe('utils/global/register_prop', () => {
         deepStrictEqual(result, '|test|:|@(/prop/test_e15dc02d8f0f43206b89309712aa26d7c644eae9fa2d6f525457d0a042dbc618.json)|');
         deepStrictEqual(prop_files, ['test_e15dc02d8f0f43206b89309712aa26d7c644eae9fa2d6f525457d0a042dbc618.json']);
     });
+    it('generate function prop', () => {
+        register_prop('file');
+        const result = _prop('test', () => true);
+        const prop_files = existsSync(prop_folder) ? readdirSync(prop_folder) : [];
+        remove(prop_folder);
+        deepStrictEqual(result, '|test|:|$(/prop/test_2514aac809cba4d120d1a27aad6787c8d8e63792c7b22741ff0533e4985baca1.js)|');
+        deepStrictEqual(prop_files, ["test_2514aac809cba4d120d1a27aad6787c8d8e63792c7b22741ff0533e4985baca1.js"]);
+    });
     // it('missing translations with file', () => {
     //     register_prop(undefined, 'file');
     //     let result;

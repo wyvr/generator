@@ -10,8 +10,10 @@
     async function run_communication() {
         // avoid multiple connections or avoid connection when page is not active
         if (open || document.hidden) {
+            wyvrDebugToolbar?.querySelector('.wyvr_debug_toolbar')?.classList?.add('hidden');
             return;
         }
+        wyvrDebugToolbar?.querySelector('.wyvr_debug_toolbar')?.classList?.remove('hidden');
         const instructions = queue.filter(Boolean);
         queue.length = 0;
         // get the messages

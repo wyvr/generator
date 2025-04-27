@@ -74,7 +74,22 @@ export function register_prop(file) {
         if (value === undefined) {
             return `|${prop}|:null`;
         }
+        // encode functions as files
+        if (typeof value === 'function') {
+            const content = value.toString();
+            const hash = create_hash(content, 64);
+            const file_name = `/${FOLDER_PROP}/${prop}_${hash}.js`;
+            const release_path = ReleasePath.get(file_name);
+            if (!exists(release_path)) {
+                write(release_path, `export default ${content}`);
+            }
+            return `|${prop}|:|$(${file_name})|`;
+        }
+
         const converted = stringify(value);
+        if (converted === undefined) {
+            return `|${prop}|:null`;
+        }
         if (converted.length > 1000) {
             const hash = create_hash(converted, 64);
             const file_name = `/${FOLDER_PROP}/${prop}_${hash}.json`;

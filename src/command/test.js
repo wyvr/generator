@@ -25,6 +25,7 @@ export async function test_command(config) {
     Logger.present('command', command, Logger.color.dim(flags));
 
     const test_files = collect_files(Cwd.get(FOLDER_GEN_SRC)).filter((file) => file.match(/\.spec\.[mc]?js$/));
-    const { failures } = await run_tests(test_files);
-    return failures;
+    Logger.present('found', test_files.length, 'test files');
+    const test_results = await run_tests(test_files);
+    return test_results?.failures;
 }

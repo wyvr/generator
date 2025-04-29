@@ -7,7 +7,7 @@ import { dev_cache_breaker } from './cache_breaker.js';
 import { compile_server_svelte } from './compile.js';
 import { render_server_compiled_svelte } from './compile_svelte.js';
 import { write_css_file } from './css.js';
-import { to_extension } from './file.js';
+import { exists, to_extension } from './file.js';
 import { create_hash } from './hash.js';
 import { Logger } from './logger.js';
 import { filled_object, filled_string, is_null, match_interface } from './validate.js';
@@ -20,14 +20,15 @@ export async function replace_shortcode(html, data, file) {
     let media_query_files = {};
     const replaced_content = html.replace(/\(\(([\s\S]*?)\)\)/g, (_, inner) => {
         const shortcode_parts = inner.match(/([^ ]*)([\s\S]*)/);
+        const error_messages = ['shortcode', _, 'can not be replaced in', file];
 
         /* c8 ignore start */
         if (!shortcode_parts) {
             // ignore found shortcode when something went wrong or it doesn't match
             if (Env.is_dev()) {
-                Logger.warning('shortcode can not be replaced in', file, shortcode_parts);
+                Logger.warning(...error_messages);
             }
-            return shortcode_parts;
+            return _;
         }
         /* c8 ignore end */
 
@@ -37,11 +38,17 @@ export async function replace_shortcode(html, data, file) {
         if (!match_interface(shortcode, { tag: true, path: true })) {
             // ignore shortcode when something went wrong
             if (Env.is_dev()) {
-                Logger.warning('shortcode can not be replaced in', file, shortcode_parts, 'because there was an error');
+                Logger.warning(...error_messages, 'because there was an error');
             }
-            return shortcode_parts;
+            return _;
         }
         /* c8 ignore end */
+
+        // check if the file exists
+        if (!exists(shortcode.path) || !exists(to_extension(shortcode.path, 'js'))) {
+            Logger.warning(...error_messages, 'because the file does not exist');
+            return _;
+        }
 
         if (!shortcode_imports) {
             shortcode_imports = {};
@@ -68,8 +75,12 @@ export async function replace_shortcode(html, data, file) {
             .join('\n')}</script>${replaced_content}`;
         const exec_result = await compile_server_svelte(shortcode_content, file);
 
-        const rendered_result = await render_server_compiled_svelte(exec_result, data, file);
+        const [render_error, rendered_result] = await render_server_compiled_svelte(exec_result, data, file);
 
+        if (render_error) {
+            Logger.error('shortcode', 'error while rendering shortcode', file, render_error);
+            return undefined;
+        }
         // write css
         if (rendered_result?.result?.css?.code) {
             const css_file_path = ReleasePath.get(FOLDER_CSS, `${identifier}.css`);

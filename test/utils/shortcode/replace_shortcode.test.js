@@ -31,7 +31,7 @@ describe('utils/shortcode/replace_shortcode', () => {
             FOLDER_GEN,
             'svelte'
         );
-        if(!exists(internal_root_path)) {
+        if (!exists(internal_root_path)) {
             const internal_path = join(
                 internal_root_path,
                 'src/runtime/internal/ssr.js'
@@ -95,17 +95,17 @@ describe('utils/shortcode/replace_shortcode', () => {
     });
     it('unknown shortcode', async () => {
         deepStrictEqual(await replace_shortcode('here is the ((huhu)) content', {}, 'file'), {
-            html: 'here is the <Huhu /> content',
+            html: 'here is the ((huhu)) content',
             identifier: undefined,
             media_query_files: undefined,
             shortcode_imports: undefined,
         });
         deepStrictEqual(
-            log.map((l) => l.map((i) => i.replace(/\/tmp\/[^.]+\.js/g, '/tmp/TMP.js'))),
+            log,
             [
                 [
-                    '✖',
-                    `@svelte server execute\n[Error] Cannot find module '${root}/gen/server/huhu.js' imported from ${root}/gen/tmp/TMP.js\nsource file`,
+                    '⚠',
+                    'shortcode ((huhu)) can not be replaced in file because the file does not exist',
                 ],
             ]
         );

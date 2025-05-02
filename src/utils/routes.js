@@ -28,6 +28,8 @@ import { PLUGIN_ROUTE_CONTEXT, PLUGIN_ROUTE_ON_EXEC } from '../constants/plugins
 export async function build_cache() {
     const files = collect_files(Cwd.get(FOLDER_GEN_ROUTES));
     const cache = [];
+    // add base registering for i18n
+    weak_register_i18n();
     const executed_result = await Promise.all(
         files.map(async (file) => {
             Logger.debug(file);
@@ -140,11 +142,11 @@ export async function run_route(request, response, uid, route) {
     // parse certain parts of the request headers
     request_headers.visitor_languages = request_headers['accept-language']
         ? uniq_values(
-              request_headers['accept-language']
-                  .replace(/;.+$/, '')
-                  .split(',')
-                  .map((lang) => lang.split('-')[0])
-          )
+            request_headers['accept-language']
+                .replace(/;.+$/, '')
+                .split(',')
+                .map((lang) => lang.split('-')[0])
+        )
         : [];
     const body = request.body || {};
     const files = request.files || {};
@@ -246,6 +248,11 @@ export async function run_route(request, response, uid, route) {
         route_context = construct_route_context_result;
     }
 
+    // register the language for all imports when the route is loaded
+    /* c8 ignore next */
+    let language = data?.$wyvr?.language || 'en';
+    register_i18n(get_language(language), route.path);
+
     // get the route result
     const code = await load_route(route.path, route_context);
     // when the function itself returns early stop proceeding, for performance reasons
@@ -258,9 +265,6 @@ export async function run_route(request, response, uid, route) {
     }
 
     if (is_func(code.onExec)) {
-        /* c8 ignore next */
-        const language = data?.$wyvr?.language || 'en';
-        register_i18n(get_language(language), route.path);
         try {
             data = await code.onExec(route_context);
             if (route_context?.response?.writableEnded) {
@@ -333,9 +337,12 @@ export async function run_route(request, response, uid, route) {
         Logger.warning('[route]', 'returnNothing can only be used in onExec');
     };
 
-    /* c8 ignore next */
-    const language = data?.$wyvr?.language || 'en';
-    register_i18n(get_language(language), route.path);
+    // update the language if it has been changed
+    if (language !== (data?.$wyvr?.language || 'en')) {
+        language = data?.$wyvr?.language || 'en';
+        /* c8 ignore next */
+        register_i18n(get_language(language), route.path);
+    }
 
     // replace function properties
     await Promise.all(

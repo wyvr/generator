@@ -7,11 +7,14 @@ import { get_error_message } from '../utils/error.js';
 import { append_entry_to_collections } from '../utils/collections.js';
 import { load_route } from '../utils/routes.js';
 import { collection_entry } from '../model/collection.js';
+import { weak_register_i18n } from '../utils/global.js';
 
 export async function collections(routes) {
     if (!filled_array(routes)) {
         return;
     }
+    // add base registering for i18n
+    weak_register_i18n();
     const collections = {};
     for (const route of routes) {
         Logger.debug('route collection', route.rel_path);

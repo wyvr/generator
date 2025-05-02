@@ -64,6 +64,15 @@ export function register_i18n(translations, file) {
         };
     }
 }
+/**
+ * Register the i18n function to handle global translations with __, but only when no i18n is registered yet
+ */
+export function weak_register_i18n() {
+    if (!is_func(global._i18n)) {
+        // register the language for all imports when the route is loaded
+        register_i18n(get_language('en'));
+    }
+}
 export function register_prop(file) {
     global._prop_file = file;
     // replace the injectConfig functions with the corresponding values

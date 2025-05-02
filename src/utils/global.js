@@ -9,7 +9,12 @@ import { stringify } from './json.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { getRequestId } from '../vars/request_id.js';
 import { KeyValue } from './database/key_value.js';
+import { get_language } from './i18n.js';
 
+/**
+ * Register the inject function to handle global config injections with _inject
+ * @param {string} file root file
+ */
 export function register_inject(file) {
     global._inject_file = file;
     // replace the injectConfig functions with the corresponding values
@@ -44,6 +49,11 @@ export function register_inject(file) {
         };
     }
 }
+/**
+ * Register the i18n function to handle global translations with __
+ * @param {object} translations key value object with the translations
+ * @param {string} file root file
+ */
 export function register_i18n(translations, file) {
     global._i18n_file = file;
     // replace the injectConfig functions with the corresponding values
@@ -73,6 +83,10 @@ export function weak_register_i18n() {
         register_i18n(get_language('en'));
     }
 }
+/**
+ * Register the prop function to handle global properties with _prop
+ * @param {string} file root file
+ */
 export function register_prop(file) {
     global._prop_file = file;
     // replace the injectConfig functions with the corresponding values

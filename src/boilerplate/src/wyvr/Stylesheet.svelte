@@ -11,7 +11,8 @@
     export let critical = false;
     export let media;
 
-    const timestamp = injectConfig('env') === 'dev' ? Date.now() : undefined;
+    const is_dev = injectConfig('env') === 'dev';
+    const timestamp = is_dev ? Date.now() : undefined;
     const csp = injectConfig('csp.active');
 
     $: raw_source = href ?? src;
@@ -19,9 +20,11 @@
         ? append_query_string(raw_source, 'ts', timestamp)
         : undefined;
 
-    $: nonce = btoa(source);
+    $: nonce = source ? btoa(source) : '';
     $: nonceAttr = csp ? ` nonce="${nonce}"` : '';
-    $: scriptContent = `<script${nonceAttr}>document.getElementById('${nonce}').addEventListener('load', (e) => { e.target.rel = 'stylesheet'; }, { once:true })<\/script>`;
+    $: scriptContent = source
+        ? `<script${nonceAttr}>document.getElementById('${nonce}').addEventListener('load', (e) => { e.target.rel = 'stylesheet'; }, { once: true })<\/script>`
+        : '';
 
     $: {
         addCspNonce(nonce);

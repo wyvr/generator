@@ -4,7 +4,7 @@ import { Cwd } from '../vars/cwd.js';
 import { compile_server_svelte } from './compile.js';
 import { render_server_compiled_svelte } from './compile_svelte.js';
 import { get_config_cache, set_config_cache } from './config_cache.js';
-import { get_error_message } from './error.js';
+import { get_error_message, get_error_page } from './error.js';
 import { collect_files, exists, read, write } from './file.js';
 import { generate_page_code } from './generate.js';
 import { Logger } from './logger.js';
@@ -13,7 +13,7 @@ import { filled_array, filled_string, in_array, is_func, is_null, is_string, mat
 import { process_page_data } from '../action_worker/process_page_data.js';
 import { inject } from './build.js';
 import { extract_headings_from_content, replace_imports } from './transform.js';
-import { register_i18n } from './global.js';
+import { register_i18n, weak_register_i18n } from './global.js';
 import { get_language } from './i18n.js';
 import { dev_cache_breaker } from './cache_breaker.js';
 import { Plugin } from './plugin.js';
@@ -142,11 +142,11 @@ export async function run_route(request, response, uid, route) {
     // parse certain parts of the request headers
     request_headers.visitor_languages = request_headers['accept-language']
         ? uniq_values(
-            request_headers['accept-language']
-                .replace(/;.+$/, '')
-                .split(',')
-                .map((lang) => lang.split('-')[0])
-        )
+              request_headers['accept-language']
+                  .replace(/;.+$/, '')
+                  .split(',')
+                  .map((lang) => lang.split('-')[0])
+          )
         : [];
     const body = request.body || {};
     const files = request.files || {};
@@ -383,13 +383,13 @@ export async function run_route(request, response, uid, route) {
 
     const route_result = await compile_server_svelte(page_content, route.path);
 
-    const rendered_result = await render_server_compiled_svelte(route_result, page_data, route.path);
+    const [render_error, rendered_result] = await render_server_compiled_svelte(route_result, page_data, route.path);
 
     /* c8 ignore start */
     // safeguard
-    if (!rendered_result) {
-        // @TODO add error page & show detailed error in dev mode with the last error messages
-        response = end_response(response, 'error in rendering', 500, header, response_cookies);
+    if (render_error) {
+        // add error page & show detailed error in dev mode with the last error messages
+        response = end_response(response, get_error_page(render_error, clean_url, 'Error in Route Rendering'), 500, header, response_cookies);
         return [undefined, response];
     }
     /* c8 ignore end */

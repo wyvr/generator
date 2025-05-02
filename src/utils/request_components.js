@@ -49,7 +49,7 @@ export async function render_request_components(path, data) {
         return undefined;
     }
 
-    const rendered_result = await render_server_compiled_svelte(
+    const [render_error, rendered_result] = await render_server_compiled_svelte(
         {
             compiled: undefined,
             component,
@@ -60,7 +60,8 @@ export async function render_request_components(path, data) {
         CodeContext.request
     );
 
-    if (!rendered_result) {
+    if (render_error !== undefined) {
+        Logger.error('render error', render_error);
         return undefined;
     }
 

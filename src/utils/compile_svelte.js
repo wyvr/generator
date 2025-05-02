@@ -1,5 +1,5 @@
 import { compile } from 'svelte/compiler';
-import { extract_error, get_error_message } from './error.js';
+import { extract_error, get_error_message, get_error_page } from './error.js';
 import { Logger } from './logger.js';
 import { in_array, filled_string, is_func, is_null, match_interface } from './validate.js';
 import { read, remove, to_extension, write } from './file.js';
@@ -126,15 +126,10 @@ export async function execute_server_code_from_file(code, file, context = 'serve
             // construct an error page
             component = {
                 render: ((error, file) => {
-                    const content = read(join(to_dirname(import.meta.url), '..', 'resource', '500.html'))
-                        ?.replace(/\{message\}/g, error.message)
-                        .replace(/\{debug\}/g, error.debug.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>'))
-                        .replace(/\{name\}/g, error.name)
-                        .replace(/\{file\}/g, file);
                     return (data) => {
-                        return { html: content };
+                        return { html: get_error_page(error, file, 'Error in Svelte Component') };
                     };
-                })(extract_error(e), file)
+                })(e, file)
             };
         }
     }
@@ -144,18 +139,22 @@ export async function execute_server_code_from_file(code, file, context = 'serve
 
 export async function render_server_compiled_svelte(exec_result, data, file, context = 'server') {
     if (context !== CodeContext.server && context !== CodeContext.request) {
-        return undefined;
+        return [new Error(`Unknown context ${context}`), undefined];
+    }
+    if (!filled_string(file)) {
+        return [new Error('Missing file'), undefined];
+    }
+    if (is_null(data)) {
+        return [new Error('Missing data'), undefined];
     }
     if (
         !match_interface(exec_result, {
             compiled: true,
             component: true,
             result: true
-        }) ||
-        !filled_string(file) ||
-        is_null(data)
+        })
     ) {
-        return undefined;
+        return [new Error('Invalid result'), undefined];
     }
     register_inject(file);
     // transform props to allow loading them from external file
@@ -218,10 +217,10 @@ export async function render_server_compiled_svelte(exec_result, data, file, con
         exec_result.result.html = render_html_result?.result || raw_html;
     } catch (e) {
         Logger.error(get_error_message(e, file, 'svelte server render'));
-        return undefined;
+        return [e, undefined];
     }
 
-    return exec_result;
+    return [undefined, exec_result];
 }
 export function make_svelte_code_async(code) {
     if (!filled_string(code)) {

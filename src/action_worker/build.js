@@ -41,10 +41,11 @@ export async function build(files) {
 
             const exec_result = await compile_server_svelte(content, file);
 
-            const rendered_result = await render_server_compiled_svelte(exec_result, data, file, CodeContext.server);
-            if (rendered_result === undefined) {
+            const [render_error, rendered_result] = await render_server_compiled_svelte(exec_result, data, file, CodeContext.server);
+            if (render_error !== undefined) {
                 errors.push({
                     file,
+                    error: render_error,
                     message: 'render error'
                 });
                 continue;

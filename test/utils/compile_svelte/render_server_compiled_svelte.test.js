@@ -28,7 +28,7 @@ describe('utils/compile_svelte/render_server_compiled_svelte', () => {
             send_data = data;
         };
     });
-    beforeEach(() => {});
+    beforeEach(() => { });
     afterEach(() => {
         log = [];
     });
@@ -39,29 +39,51 @@ describe('utils/compile_svelte/render_server_compiled_svelte', () => {
     });
 
     it('undefined', async () => {
-        deepStrictEqual(await render_server_compiled_svelte(), undefined);
+        const result = await render_server_compiled_svelte();
+        strictEqual(result[0]?.message, 'Missing file');
+        strictEqual(result[1], undefined);
         deepStrictEqual(log, []);
     });
     it('correct interface but no data', async () => {
-        deepStrictEqual(
-            await render_server_compiled_svelte({
-                compiled: true,
-                component: true,
-                result: true,
-            }),
-            undefined
-        );
+        const result = await render_server_compiled_svelte({
+            compiled: true,
+            component: true,
+            result: true,
+        }, undefined, 'file');
+        strictEqual(result[0]?.message, 'Missing data');
+        strictEqual(result[1], undefined);
+
         deepStrictEqual(log, []);
     });
     it('correct interface but no file', async () => {
-        deepStrictEqual(
-            await render_server_compiled_svelte(
-                { compiled: true, component: true, result: true },
-                {}
-            ),
-            undefined
+        const result = await render_server_compiled_svelte(
+            { compiled: true, component: true, result: true },
+            {}
         );
+        strictEqual(result[0]?.message, 'Missing file');
+        strictEqual(result[1], undefined);
+
         deepStrictEqual(log, []);
+    });
+    it('correct interface and file, but render error', async () => {
+        const result = await render_server_compiled_svelte(
+            {
+                compiled: true,
+                component: {
+                    render: () => {
+                        throw new Error('huhu');
+                    },
+                },
+                result: true,
+            },
+            {},
+            'file'
+        );
+        strictEqual(result[0]?.message, 'huhu');
+        strictEqual(result[1], undefined);
+        deepStrictEqual(log, [
+            ['✖', '@svelte server render\n[Error] huhu\nsource file'],
+        ]);
     });
     it('correct interface and file', async () => {
         const result = await render_server_compiled_svelte(
@@ -79,28 +101,8 @@ describe('utils/compile_svelte/render_server_compiled_svelte', () => {
             {},
             'file'
         );
-        deepStrictEqual(result?.result?.html, 'huhu value undefined');
+        strictEqual(result[0]?.message, undefined);
+        strictEqual(result[1]?.result?.html, 'huhu value undefined');
         deepStrictEqual(log, []);
-    });
-    it('correct interface and file', async () => {
-        deepStrictEqual(
-            await render_server_compiled_svelte(
-                {
-                    compiled: true,
-                    component: {
-                        render: () => {
-                            throw new Error('huhu');
-                        },
-                    },
-                    result: true,
-                },
-                {},
-                'file'
-            ),
-            undefined
-        );
-        deepStrictEqual(log, [
-            ['✖', '@svelte server render\n[Error] huhu\nsource file'],
-        ]);
     });
 });

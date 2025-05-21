@@ -50,7 +50,7 @@ describe('utils/shortcode/replace_shortcode', () => {
         Cwd.set(undefined);
         ReleasePath.set(undefined);
         console.log.restore();
-        for (const f of collect_files(join(root, 'gen/src'))) {
+        for (const f of collect_files(join(root, 'gen/css'))) {
             remove(f);
         }
     });

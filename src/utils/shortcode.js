@@ -45,7 +45,8 @@ export async function replace_shortcode(html, data, file) {
         /* c8 ignore end */
 
         // check if the file exists
-        if (!exists(shortcode.path) || !exists(to_extension(shortcode.path, 'js'))) {
+        const exists_path = [shortcode.path, to_extension(shortcode.path, 'js')].find((path) => exists(path));
+        if (!exists_path) {
             Logger.warning(...error_messages, 'because the file does not exist');
             return _;
         }

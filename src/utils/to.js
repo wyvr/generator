@@ -39,6 +39,14 @@ export function to_escaped(value) {
     }
     return JSON.stringify(value).replace(/'/g, "''");
 }
+export function to_html_entities(value) {
+    if (!filled_string(value)) {
+        return '';
+    }
+    return value.replace(/[\u00A0-\u9999<>\&]/gim, (i) => {
+        return `&#${i.charCodeAt(0)};`;
+    });
+}
 export function to_plain(text) {
     if (!is_string(text)) {
         return '';

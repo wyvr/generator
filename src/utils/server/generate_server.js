@@ -30,6 +30,10 @@ export async function generate_server(port, force_generating_of_resources, fallb
     server(port, undefined, async (req, res, uid) => {
         // check if pub is available
         pub_healthcheck();
+        // fake socket connection/bus communication
+        if (socket_connection && req.url.indexOf('/$bus/') === 0) {
+            return process_bus(req, res);
+        }
         // check for media files
         const name = basename(req.url);
         const media_config = await config_from_url(req.url);
@@ -52,10 +56,6 @@ export async function generate_server(port, force_generating_of_resources, fallb
                     Logger[success ? 'success' : 'error']('media', name, ...get_time_log_infos(start, uid));
                 }
             }
-        }
-
-        if (socket_connection && req.url.indexOf('/$bus/') === 0) {
-            return process_bus(req, res);
         }
 
         await static_server(req, res, uid, async (err) => {

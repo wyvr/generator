@@ -6,7 +6,7 @@ export const COMMANDS = {
         flags: [
             {
                 key: 'clear',
-                desc: 'delete cache, gen and storage which causes a build before starting the service'
+                desc: 'delete cache and gen which causes a build before starting the service'
             }
         ]
     },
@@ -19,7 +19,7 @@ export const COMMANDS = {
         flags: [
             {
                 key: 'hard',
-                desc: 'delete cache, gen and storage'
+                desc: 'delete cache and gen'
             },
             {
                 key: 'cache',
@@ -36,6 +36,10 @@ export const COMMANDS = {
             {
                 key: 'storage',
                 desc: 'delete storage databases'
+            },
+            {
+                key: 'destroy',
+                desc: 'delete storage databases and generated media files'
             }
         ]
     },

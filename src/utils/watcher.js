@@ -90,7 +90,8 @@ export async function process_changed_files(changed_files, packages) {
     let changed_tree = false;
     for (const event of events) {
         for (const path of changed_files[event]) {
-            const pkg = packages.find((pkg) => path.indexOf(pkg.path) === 0);
+            // find the package that is affected, warning: the name of the packages can start equal
+            const pkg = packages.find((pkg) => path.indexOf(`${pkg.path}/`) === 0);
             let pkg_path = '';
             if (pkg) {
                 pkg_path = pkg.path;

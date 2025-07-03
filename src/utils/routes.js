@@ -337,6 +337,16 @@ export async function run_route(request, response, uid, route) {
         Logger.warning('[route]', 'returnNothing can only be used in onExec');
     };
 
+
+    // execute $wyvr to set the language and other properties
+    if (is_func(code.$wyvr)) {
+        try {
+            data.$wyvr = await code.$wyvr(route_context);
+        } catch (e) {
+            Logger.error('[route]', error_message('$wyvr'), get_error_message(e, route.path, 'route'));
+        }
+    }
+
     // update the language if it has been changed
     if (language !== (data?.$wyvr?.language || 'en')) {
         language = data?.$wyvr?.language || 'en';
@@ -347,7 +357,7 @@ export async function run_route(request, response, uid, route) {
     // replace function properties
     await Promise.all(
         Object.keys(code).map(async (key) => {
-            if (in_array(['onExec', 'getCollection'], key)) {
+            if (in_array(['onExec', 'getCollection', '$wyvr'], key)) {
                 return undefined;
             }
             if (is_func(code[key])) {

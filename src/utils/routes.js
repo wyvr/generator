@@ -231,7 +231,7 @@ export async function run_route(request, response, uid, route) {
             const response_header = Object.assign({}, header, custom_headers, {
                 Location: url
             });
-            if (Env.is_dev()) {
+            if (Env.is_debug()) {
                 Logger.info('Redirect to', url, response_header);
             }
             // biome-ignore lint: noParameterAssign

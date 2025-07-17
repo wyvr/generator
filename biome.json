@@ -5,8 +5,7 @@
         "indentStyle": "space",
         "indentWidth": 4,
         "lineWidth": 180,
-        "lineEnding": "lf",
-        "ignore": []
+        "lineEnding": "lf"
     },
     "javascript": {
         "formatter": {

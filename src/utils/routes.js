@@ -337,7 +337,6 @@ export async function run_route(request, response, uid, route) {
         Logger.warning('[route]', 'returnNothing can only be used in onExec');
     };
 
-
     // execute $wyvr to set the language and other properties
     if (is_func(code.$wyvr)) {
         try {

@@ -38,14 +38,17 @@ export async function clear(flags) {
     const clear_folders = [];
 
     if (flags.find((flag) => ['destroy', 'hard'].indexOf(flag) > -1)) {
-        const result = await collect_data_from_cli([
-            {
-                type: 'confirm',
-                message: 'Are you sure you want to destroy the project? This will remove all databases and generated media files.',
-                name: 'destroy',
-                default: false
-            }
-        ], {});
+        const result = await collect_data_from_cli(
+            [
+                {
+                    type: 'confirm',
+                    message: 'Are you sure you want to destroy the project? This will remove all databases and generated media files.',
+                    name: 'destroy',
+                    default: false
+                }
+            ],
+            {}
+        );
         if (result?.destroy !== true) {
             return [];
         }

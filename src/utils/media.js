@@ -176,7 +176,7 @@ export async function process(media) {
 }
 
 async function correct_gamma_value(modified_image) {
-     /* @TODO sharp does not provide a method to get the gamma value of an image,
+    /* @TODO sharp does not provide a method to get the gamma value of an image,
      * some systems add a "wrong" gamma value to it which makes the images darker,
      * the solution for this images wolud be `.gamma(1, 2.2)` otherwise `.gamma(2.2, 2.2)`
      */

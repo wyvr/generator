@@ -17,14 +17,14 @@ export default [
     {
         rules: { 'no-console': 2 },
         languageOptions: {
-            globals: [
-                'window',
-                'document',
-                '__I18N__',
-                'fetch',
-                'CustomEvent',
-                'getStack',
-            ],
+            globals: {
+                window: 'readonly',
+                document: 'readonly',
+                __I18N__: 'readonly',
+                fetch: 'readonly',
+                CustomEvent: 'readonly',
+                getStack: 'readonly',
+            },
         },
     },
 ];

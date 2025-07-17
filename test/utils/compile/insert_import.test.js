@@ -63,7 +63,7 @@ describe('utils/compile/insert_import', () => {
         deepStrictEqual(log, [
             [
                 '⚠',
-                `@import\n[] can not import ${__dirname}/gen/src/_nonexisting.scss into undefined, maybe the file doesn't exist`,
+                `@import\ncan not import ${__dirname}/gen/src/_nonexisting.scss into undefined, maybe the file doesn't exist`,
             ],
         ]);
     });
@@ -87,7 +87,7 @@ describe('utils/compile/insert_import', () => {
             deepStrictEqual(log, [
                 [
                     '⚠',
-                    `@import\n[] can not import ${__dirname}/gen/src/_nonexisting.scss into undefined, maybe the file doesn't exist`,
+                    `@import\ncan not import ${__dirname}/gen/src/_nonexisting.scss into undefined, maybe the file doesn't exist`,
                 ],
             ]);
         });

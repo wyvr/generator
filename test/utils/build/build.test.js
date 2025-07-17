@@ -61,7 +61,7 @@ describe('utils/build/build', () => {
             [
                 '⚠',
                 '@svelte\n' +
-                    '[] Unused CSS selector "a"\n' +
+                    'Unused CSS selector "a"\n' +
                     'stack\n' +
                     '- 13:         border: 1px solid red;\n' +
                     '- 14:     }\n' +

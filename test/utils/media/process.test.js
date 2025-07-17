@@ -213,7 +213,7 @@ describe('utils/media/process', () => {
         await process_media(file);
         deepStrictEqual(exists(Cwd.get(file.result)), false);
         deepStrictEqual(log, [
-            ['✖', '@sharp\n[] no buffer available\nsource favicon.png'],
+            ['✖', '@sharp\nno buffer available\nsource favicon.png'],
         ]);
     });
     it('create svg media', async () => {

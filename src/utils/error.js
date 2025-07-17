@@ -136,7 +136,8 @@ export function get_error_message(e, filename, scope) {
     if (scope) {
         result.push(Logger.color.bold(`@${scope}`));
     }
-    result.push(`[${data.name ? Logger.color.bold(data.name) : ''}] ${data.message ?? '-'}`);
+    const message = `${data.name ? `[${Logger.color.bold(data.name)}] ` : ''}${data.message ?? '-'}`;
+    result.push(message);
     if (filled_array(data.stack)) {
         result.push(Logger.color.dim('stack'));
         result.push(...data.stack.map((entry) => `${Logger.color.dim('-')} ${entry}`));

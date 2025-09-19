@@ -67,18 +67,17 @@ async function wyvr_devtools_initialize() {
     root.setAttribute('id', 'wyvr_debug_toolbar');
     root.setAttribute('class', 'wyvr_debug_toolbar');
     root.setAttribute('style', 'display: none;');
+    const mod_content = modules.map(
+        (module, index) => `<button id="wyvr_debug_toolbar_${index}" class="wyvr_debug_toolbar_button">
+        <span class="wyvr_debug_toolbar_icon">${module.icon || '•'}</span>
+        <span class="wyvr_debug_toolbar_name">${module.name || ''}</span>
+        ${module.description ? `<span class="wyvr_debug_toolbar_description">${module.description}</span>` : ''}
+        </button>`
+    );
     root.innerHTML = `
     <span class="icon"><img width="48" height="17" src="${icon}" alt="wyvr Debug toolbar"/></span>
-    <nav>${modules
-        .map(
-            (module, index) => `<button id="wyvr_debug_toolbar_${index}" class="wyvr_debug_toolbar_button">
-            <span class="wyvr_debug_toolbar_icon">${module.icon || '•'}</span>
-            <span class="wyvr_debug_toolbar_name">${module.name || ''}</span>
-            ${module.description ? `<span class="wyvr_debug_toolbar_description">${module.description}</span>` : ''}
-            </button>`
-        )
-        .join('')}</nav>
-        `;
+    <nav>${mod_content.join('')}</nav>
+    `;
     shadow.appendChild(root);
 
     // add click handler

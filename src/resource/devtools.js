@@ -105,7 +105,7 @@ async function wyvr_devtools_initialize() {
         }
 
         // Add mouse and focus event handlers
-        ['mouseover', 'mouseout', 'focus', 'blur'].forEach(eventType => {
+        ['mouseover', 'mouseout'].forEach(eventType => {
             button.addEventListener(eventType, () => {
                 const info = shadow.querySelector('#wyvr_debug_toolbar_button_info');
                 if (!info) {

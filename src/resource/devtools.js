@@ -74,19 +74,20 @@ async function wyvr_devtools_initialize() {
     root.setAttribute('class', 'wyvr_debug_toolbar');
     root.setAttribute('style', 'display: none;');
     const mod_content = modules.map(
-        (module, index) => `<button id="wyvr_debug_toolbar_${index}" class="wyvr_debug_toolbar_button">
-        <span class="wyvr_debug_toolbar_icon">${module.icon || '•'}</span>
-        <span class="wyvr_debug_toolbar_name">${module.name || ''}</span>
-        ${module.description ? `<span class="wyvr_debug_toolbar_description">${module.description}</span>` : ''}
-        </button>`
+        (module, index) => `<button id="wyvr_debug_toolbar_${index}" 
+            class="wyvr_debug_toolbar_button" 
+            title="${module.name || ''}" 
+            data-description="${module.description?.replace(/"/g, '&quot;') || ''}"
+        >${module.icon || '•'}</button>`
     );
     root.innerHTML = `
     <span class="icon"><img width="48" height="17" src="${icon}" alt="wyvr Debug toolbar"/></span>
     <nav>${mod_content.join('')}</nav>
+    <div id="wyvr_debug_toolbar_button_info"></div>
     `;
     shadow.appendChild(root);
 
-    // add click handler
+    // add handler
     modules.map((module, index) => {
         const button = shadow.querySelector(`#wyvr_debug_toolbar_${index}`);
         if (typeof module.onClick === 'function') {
@@ -102,6 +103,21 @@ async function wyvr_devtools_initialize() {
         if (module.instant === true) {
             button.dispatchEvent(new Event('click'));
         }
+
+        // Add mouse and focus event handlers
+        ['mouseover', 'mouseout', 'focus', 'blur'].forEach(eventType => {
+            button.addEventListener(eventType, () => {
+                const info = shadow.querySelector('#wyvr_debug_toolbar_button_info');
+                if (!info) {
+                    return;
+                }
+                if(eventType === 'mouseout' || eventType === 'blur') {
+                    info.innerHTML = '';
+                    return;
+                }
+                info.innerHTML = `<div class="wyvr_debug_toolbar_button_info_title">${button.title}</div><div class="wyvr_debug_toolbar_button_info_description">${button.getAttribute('data-description')}</div>`;
+            });
+        });
     });
 }
 

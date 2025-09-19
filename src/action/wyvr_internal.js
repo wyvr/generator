@@ -1,7 +1,7 @@
 import { dirname, extname, join } from 'node:path';
-import { FOLDER_DEVTOOLS, FOLDER_GEN } from '../constants/folder.js';
+import { FOLDER_CACHE, FOLDER_DEVTOOLS, FOLDER_GEN } from '../constants/folder.js';
 import { compile_svelte_from_code } from '../utils/compile_svelte.js';
-import { collect_files, read, remove, to_extension, write, write_json } from '../utils/file.js';
+import { collect_files, read, remove, symlink, to_extension, write, write_json } from '../utils/file.js';
 import { Plugin } from '../utils/plugin.js';
 import { build } from '../utils/build.js';
 import { Cwd } from '../vars/cwd.js';
@@ -62,6 +62,11 @@ export async function build_devtools() {
     const modules_file = join(folder, 'modules.json');
     remove(modules_file);
     write_json(modules_file, devtools_modules.filter(Boolean));
+
+    // add symlinks to access resources
+    symlink(Cwd.get(FOLDER_CACHE, 'route_cache.json'), join(folder, '$routes.json'));
+    symlink(Cwd.get(FOLDER_CACHE, 'plugin_files.json'), join(folder, '$plugins.json'));
+    symlink(Cwd.get(FOLDER_CACHE, 'page_cache.json'), join(folder, '$pages.json'));
 }
 
 export function replace_svelte_paths(content, folder) {

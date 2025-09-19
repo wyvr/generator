@@ -165,7 +165,7 @@
     color: color-mix(in srgb, var(--wyvr-debug-text) 75%, transparent);
     margin-top: 5px;
 }
-.wyvr_debug_toolbar_button_info__description a {
+.wyvr_debug_toolbar_button_info_description a {
     font-size: 16px;
     line-height: 1.2em;
     color: var(--wyvr-debug-text);

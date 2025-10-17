@@ -15,6 +15,8 @@ import {
     write_json,
     to_index,
     rename,
+    remove,
+    exists
 } from './src/utils/file.js';
 import { Env } from './src/vars/env.js';
 import { get_route_request } from './src/utils/routes.js';
@@ -122,6 +124,50 @@ export async function execute_page(url) {
         Logger.error(get_error_message(e, url, 'execute page'));
     }
     return false;
+}
+
+
+export async function remove_url(url) {
+    const path = ReleasePath.get(to_index(url));
+    if(!exists(path)) {
+        return false;
+    }
+    await clear_props(path);
+    return remove(path);
+}
+
+export async function clear_props(path) {
+    // - [ ] get all props from the path
+    // - [ ] search other files with the same props
+    // - [ ] remove the props when not in the other files
+    // @(/prop/data_7405e085e1cccae903f8d87e41c6da03f9b91e05147f70ee5d590f5596eeca5e.json)
+
+    const { exec } = require('node:child_process');
+
+    function executeCommand(command) {
+        return new Promise((resolve, reject) => {
+            exec(command, (error, stdout, stderr) => {
+                if (error) {
+                    reject(`Error: ${error.message}`);
+                    return;
+                }
+                if (stderr) {
+                    reject(`Stderr: ${stderr}`);
+                    return;
+                }
+                resolve(stdout);
+            });
+        });
+    }
+    
+    // Example usage:
+    executeCommand('ls -la')
+        .then(result => {
+            console.log('Command output:', result);
+        })
+        .catch(error => {
+            console.error('Command error:', error);
+        });
 }
 
 /**

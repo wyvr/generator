@@ -1,11 +1,11 @@
-import { strictEqual, deepStrictEqual } from 'node:assert';
+import { deepStrictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import { join } from 'node:path';
 import Sinon from 'sinon';
-import { modify_svelte_internal } from '../../../src/action/modify_svelte.mjs';
-import { FOLDER_GEN_SERVER } from '../../../src/constants/folder.js';
+import { copy_svelte, modify_svelte_internal } from '../../../src/action/modify_svelte.mjs';
+import { FOLDER_GEN } from '../../../src/constants/folder.js';
 import { run_route } from '../../../src/utils/routes.js';
-import { exists, find_file, read, write } from '../../../src/utils/file.js';
+import { exists, read, write } from '../../../src/utils/file.js';
 import { to_dirname, to_plain } from '../../../src/utils/to.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 import { ReleasePath } from '../../../src/vars/release_path.js';
@@ -24,19 +24,21 @@ describe('utils/routes/run_route', () => {
         console.log.callsFake((...args) => {
             log.push(args.map(to_plain));
         });
-        const internal_file = find_file('.', [
-            'node_modules/svelte/internal/index.mjs',
-        ]);
-        const internal_path = join(
+        const internal_root_path = join(
             dir,
             'run',
-            FOLDER_GEN_SERVER,
-            'svelte_internal.mjs'
+            FOLDER_GEN,
+            'svelte'
         );
-        if (!exists(internal_path)) {
+        if (!exists(internal_root_path)) {
+            const internal_path = join(
+                internal_root_path,
+                'src/runtime/internal/ssr.js'
+            );
+            copy_svelte('./node_modules/svelte', internal_root_path)
             write(
                 internal_path,
-                await modify_svelte_internal(read(internal_file))
+                await modify_svelte_internal(read(internal_path))
             );
         }
     });
@@ -214,7 +216,7 @@ describe('utils/routes/run_route', () => {
                 end: (...args) => {
                     json = args;
                 },
-                writableEnded: true,
+                writableEnded: false,
             },
             '0000',
             {

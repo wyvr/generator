@@ -32,16 +32,16 @@ export function filter_cronjobs(cronjobs, event_name = undefined) {
             }
             // check the configured event is used in the cron.when
             if (event_name) {
-                return cron.when.indexOf('@') == 0 && cron.when == '@' + event_name;
+                return cron.when.indexOf('@') === 0 && cron.when === `@${event_name}`;
             }
 
             // ignore event based cronjobs from here on
-            if (cron.when.indexOf('@') == 0) {
+            if (cron.when.indexOf('@') === 0) {
                 return false;
             }
             // check if the when is valid
             const cron_parts = cron.when.split(' ');
-            if (cron_parts.length != 5) {
+            if (cron_parts.length !== 5) {
                 Logger.warning(`cron "${cron.name}" has an invalid when property "${cron.when}"`);
                 return false;
             }
@@ -49,18 +49,18 @@ export function filter_cronjobs(cronjobs, event_name = undefined) {
                 if (part === '*') {
                     return true;
                 }
-                let check_value = date_values[index];
+                const check_value = date_values[index];
 
                 // check if every x is set
-                if (part.indexOf('*/') == 0) {
-                    part = parseInt(part.replace(/^\*\/(\d+)$/, '$1'), 10);
+                if (part.indexOf('*/') === 0) {
+                    part = Number.parseInt(part.replace(/^\*\/(\d+)$/, '$1'), 10);
                     return check_value % part === 0;
                 }
                 // check multiple values
                 if (part.indexOf(',') > -1) {
-                    return part.split(',').find((value) => parseInt(value, 10) === check_value);
+                    return part.split(',').find((value) => Number.parseInt(value, 10) === check_value);
                 }
-                return parseInt(part, 10) == check_value;
+                return Number.parseInt(part, 10) === check_value;
             });
             return execute;
         });
@@ -71,14 +71,14 @@ export async function execute_cronjobs(cronjobs) {
     }
     return await Promise.all(
         cronjobs.map(async (job) => {
-            let scripts = [];
-            if (typeof job.what == 'string') {
+            const scripts = [];
+            if (typeof job.what === 'string') {
                 scripts.push(job.what);
             }
             if (Array.isArray(job.what)) {
-                scripts.push(...job.what.filter((job) => typeof job == 'string'));
+                scripts.push(...job.what.filter((job) => typeof job === 'string'));
             }
-            if (scripts.length == 0) {
+            if (scripts.length === 0) {
                 Logger.warning('cron job', job.name, 'has no script assigned');
                 job.failed = true;
                 job.result = undefined;
@@ -96,7 +96,7 @@ export async function execute_cronjobs(cronjobs) {
                     job.failed = true;
                 }
             }
-            if (job.result.length == 0) {
+            if (job.result.length === 0) {
                 job.result = undefined;
             }
             return job;

@@ -17,7 +17,7 @@ import { Config } from './config.js';
 import { get_config_cache, set_config_cache } from './config_cache.js';
 import { IsWorker } from '../vars/is_worker.js';
 import { to_media_config, to_media_hash } from '../boilerplate/src/wyvr/media.js';
-import gm from 'gm';
+import { PLUGIN_MEDIA_CONFIG } from '../constants/plugins.js';
 
 let cache;
 export function build_cache() {
@@ -131,34 +131,12 @@ export async function process(media) {
     if (media.output !== MediaModelOutput.path) {
         Logger.warning('media', `${media.src} output "${media.output}" is not implemented at the moment, falling back to path`);
     }
-    /* @TODO sharp does not provide a method to get the gamma value of an image,
-     * some systems add a "wrong" gamma value to it which makes the images darker,
-     * the solution for this images wolud be `.gamma(1, 2.2)` otherwise `.gamma(2.2, 2.2)`
-     */
+
+    // correct gamma value
     if (media.format === 'png' || media.ext === 'png') {
-        let magick = gm;
-        const image_magick = Config.get('media.image_magick');
-        if (match_interface(image_magick, { version: true })) {
-            const im_config = {
-                imageMagick: '7+'
-            };
-            // legacy mode
-            if (image_magick.version < 7) {
-                im_config.imageMagick = true;
-            }
-            magick = gm.subClass(im_config);
-        }
-        const gamma = await new Promise((resolve) => {
-            magick(buffer, 'image.png').identify(async (err, data) => {
-                // in case of an error or when no gamma value is set on the png ignore it
-                if (err || data?.Gamma !== '1') {
-                    resolve(2.2);
-                }
-                resolve(1);
-            });
-        });
-        modified_image = await modified_image.gamma(gamma, 2.2);
+        modified_image = await correct_gamma_value(modified_image);
     }
+
     let output_buffer;
     switch (media.format) {
         case 'jpg':
@@ -197,6 +175,41 @@ export async function process(media) {
     return undefined;
 }
 
+async function correct_gamma_value(modified_image) {
+    /* @TODO sharp does not provide a method to get the gamma value of an image,
+     * some systems add a "wrong" gamma value to it which makes the images darker,
+     * the solution for this images wolud be `.gamma(1, 2.2)` otherwise `.gamma(2.2, 2.2)`
+     */
+    // import gm of 'gm'
+    let magick = typeof global['gm'] === 'function' ? gm : null;
+    if (!magick) {
+        return modified_image;
+    }
+    // can never be reached, it is a edge case and gm is sunsetted so it is not supported
+    const image_magick = Config.get('media.image_magick');
+    if (match_interface(image_magick, { version: true })) {
+        const im_config = {
+            imageMagick: '7+'
+        };
+        // legacy mode
+        if (image_magick.version < 7) {
+            im_config.imageMagick = true;
+        }
+        magick = gm.subClass(im_config);
+    }
+    const gamma = await new Promise((resolve) => {
+        magick(buffer, 'image.png').identify(async (err, data) => {
+            // in case of an error or when no gamma value is set on the png ignore it
+            if (err || data?.Gamma !== '1') {
+                resolve(2.2);
+            }
+            resolve(1);
+        });
+    });
+    modified_image = await modified_image.gamma(gamma, 2.2);
+    return modified_image;
+}
+
 export async function config_from_url(url) {
     if (!filled_string(url)) {
         return undefined;
@@ -206,7 +219,11 @@ export async function config_from_url(url) {
     }
     const clean_url = url.replace(/\?.*$/, '').replace(/#.*$/, '');
 
-    let media_model = { result: clean_url, result_exists: exists(Cwd.get(clean_url)), output: MediaModelOutput.path };
+    let media_model = {
+        result: clean_url,
+        result_exists: exists(Cwd.get(clean_url)),
+        output: MediaModelOutput.path
+    };
 
     const contains_domain = clean_url.indexOf('/media/_d') === 0;
 
@@ -277,9 +294,8 @@ export async function config_from_url(url) {
 
     const result = new MediaModel(media_model);
 
-    const media_config = await Plugin.process('media_config', result);
-    const media_config_result = await media_config((result) => result);
-    return media_config_result.result;
+    const caller = await Plugin.process(PLUGIN_MEDIA_CONFIG, result);
+    return await caller((result) => result);
 }
 
 export async function replace_media(content) {

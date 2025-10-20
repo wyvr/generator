@@ -1,9 +1,14 @@
-import { LogType } from "../struc/log.js";
+import { LogType } from '../struc/log.js';
 
 export const COMMANDS = {
     app: {
         desc: 'run as a service for server side execution',
-        flags: []
+        flags: [
+            {
+                key: 'clear',
+                desc: 'delete cache and gen which causes a build before starting the service'
+            }
+        ]
     },
     build: {
         desc: 'statically generate site',
@@ -14,7 +19,7 @@ export const COMMANDS = {
         flags: [
             {
                 key: 'hard',
-                desc: 'delete cache, gen and storage'
+                desc: 'delete cache and gen'
             },
             {
                 key: 'cache',
@@ -31,6 +36,10 @@ export const COMMANDS = {
             {
                 key: 'storage',
                 desc: 'delete storage databases'
+            },
+            {
+                key: 'destroy',
+                desc: 'delete storage databases and generated media files'
             }
         ]
     },
@@ -48,6 +57,10 @@ export const COMMANDS = {
             {
                 key: 'fast',
                 desc: 'fast starting watch server without building the site'
+            },
+            {
+                key: 'long',
+                desc: 'avoid screen clearing after regeneration to view all logs'
             }
         ]
     },
@@ -88,6 +101,10 @@ export const GLOBAL_FLAGS = [
         desc: 'set the environment to development mode'
     },
     {
+        key: 'help',
+        desc: 'show help for the command'
+    },
+    {
         key: 'plain',
         desc: 'remove colors from the logger'
     },
@@ -101,7 +118,7 @@ export const GLOBAL_FLAGS = [
     },
     {
         key: 'single',
-        desc: 'run the generator in single threaded mode'
+        desc: 'run in single threaded mode'
     },
     {
         key: 'worker',
@@ -109,7 +126,7 @@ export const GLOBAL_FLAGS = [
     },
     {
         key: 'log_file',
-        desc: 'write log output to get given file'
+        desc: 'write log output to the given file'
     },
     {
         key: 'log_level',

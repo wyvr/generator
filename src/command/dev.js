@@ -6,7 +6,7 @@ import { FOLDER_GEN, FOLDER_RELEASES } from '../constants/folder.js';
 import { EnvType } from '../struc/env.js';
 import { exists, read_json } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
-import { watch_server } from '../utils/server.js';
+import { dev_server } from '../utils/server/dev_server.js';
 import { package_watcher } from '../utils/watcher.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
@@ -17,10 +17,12 @@ import { Plugin } from '../utils/plugin.js';
 import { chat_start } from '../utils/chat.js';
 import { collect_packages } from '../action/package.js';
 import { package_report } from '../presentation/package_report.js';
-import { Config } from '../utils/config.js';
+import { Config, merge_config } from '../utils/config.js';
 import { configure } from '../action/configure.js';
-import { Storage } from '../utils/storage.js';
 import { reload } from '../action/regenerate.js';
+import { KeyValue } from '../utils/database/key_value.js';
+import { STORAGE_CONFIG } from '../constants/storage.js';
+import { build_jsconfig } from '../utils/devtools.js';
 
 export async function dev_command(config) {
     // dev command has forced dev state, when nothing is defined
@@ -29,7 +31,8 @@ export async function dev_command(config) {
     }
 
     await check_env();
-    const { port, wsport } = await get_ports(config);
+    const { port } = await get_ports(config);
+    Logger.present('port', port);
 
     const build_id = UniqId.load();
     UniqId.set(build_id || UniqId.get());
@@ -41,15 +44,15 @@ export async function dev_command(config) {
         Logger.warning('fast build is not available');
     }
 
+    let base_config;
+
     let packages;
     if (is_fast) {
         const config_data = get_config_data(config, build_id);
+        base_config = config_data;
         present(config_data);
 
-        const { available_packages } = await pre_initial_build(
-            build_id,
-            config_data
-        );
+        const { available_packages } = await pre_initial_build(build_id, config_data);
 
         await Plugin.initialize();
 
@@ -57,13 +60,16 @@ export async function dev_command(config) {
     } else {
         const result = await intial_build(build_id, config);
         packages = result.packages;
+        base_config = result.base_config;
     }
 
     await publish();
 
+    build_jsconfig(packages);
+
     chat_start();
 
-    watch_server(port, wsport, packages);
+    dev_server(port, packages);
 
     await package_watcher(packages, async () => {
         Logger.block('reload the packages and the config');
@@ -71,20 +77,29 @@ export async function dev_command(config) {
         Config.replace(undefined);
 
         const package_json = read_json('package.json');
-        const { available_packages, disabled_packages } =
-            await collect_packages(package_json);
+        const { available_packages, disabled_packages, config: package_config } = await collect_packages(package_json);
+
+        // create new config
+        Config.clear();
+        Config.replace(package_config);
+        Config.persist();
+
         package_report(available_packages, disabled_packages);
 
-        // store new config
-        await Storage.set('config', Config.get());
+        build_jsconfig(available_packages);
 
-        if(prev_config.packages?.map((pkg) => pkg.name).join(',') !== Config.get().packages?.map((pkg) => pkg.name).join(',')) {
+        if (
+            prev_config.packages?.map((pkg) => pkg.name).join(',') !==
+            Config.get()
+                .packages?.map((pkg) => pkg.name)
+                .join(',')
+        ) {
             Logger.warning('packages changed in config, restart required');
             return;
         }
 
         await configure();
-        
+
         reload();
         Logger.success('reloaded');
     });
@@ -92,9 +107,5 @@ export async function dev_command(config) {
     return build_id;
 }
 export function is_fast_build(config, build_id) {
-    return (
-        config?.cli?.flags?.fast &&
-        exists(Cwd.get(FOLDER_RELEASES, build_id)) &&
-        exists(Cwd.get(FOLDER_GEN))
-    );
+    return config?.cli?.flags?.fast && exists(Cwd.get(FOLDER_RELEASES, build_id)) && exists(Cwd.get(FOLDER_GEN));
 }

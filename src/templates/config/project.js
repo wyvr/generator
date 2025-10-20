@@ -6,11 +6,7 @@ export default {
         fallback: 'en',
     },
     packages: [
-        // Add local packages
-        /*{
-            name: 'Local',
-            path: 'local',
-        },*/
+        {{local_package}}
         // Add packages from npm, must be installed in package.json
         /*{
             name: 'package_name'
@@ -46,7 +42,7 @@ export default {
             when: '* * * * *', // every minute
             what: 'relative_path_to_file_from_cron_folder',
             options: {
-                custom: 'options
+                custom: 'options'
             }
         }
     },*/

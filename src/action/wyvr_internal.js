@@ -1,34 +1,33 @@
 import { dirname, extname, join } from 'node:path';
-import { FOLDER_DEVTOOLS, FOLDER_GEN } from '../constants/folder.js';
+import { FOLDER_CACHE, FOLDER_DEVTOOLS, FOLDER_GEN } from '../constants/folder.js';
 import { compile_svelte_from_code } from '../utils/compile_svelte.js';
-import { collect_files, read, remove, to_extension, write, write_json } from '../utils/file.js';
+import { collect_files, read, remove, symlink, to_extension, write, write_json } from '../utils/file.js';
 import { Plugin } from '../utils/plugin.js';
 import { build } from '../utils/build.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { copy_folder } from './copy.js';
-import { measure_action } from './helper.js';
 import { filled_string } from '../utils/validate.js';
+import { PLUGIN_INTERNAL } from '../constants/plugins.js';
 
 export async function wyvr_internal() {
-    const name = 'wyvr_internal';
-
-    if (Env.is_dev()) {
-        await measure_action(name, async () => {
-            // wrap in plugin
-            const caller = await Plugin.process(name);
-            await caller(async () => {
-                await build_wyvr_internal();
-            });
-        });
+    if (!Env.is_dev()) {
+        return;
     }
+    // wrap in plugin
+    const caller = await Plugin.process(PLUGIN_INTERNAL, [FOLDER_DEVTOOLS]);
+    await caller(async (folders) => {
+        copy_folder(Cwd.get(FOLDER_GEN), folders, ReleasePath.get());
+    });
+    await build_devtools();
 }
 
-export async function build_wyvr_internal() {
-    copy_folder(Cwd.get(FOLDER_GEN), [FOLDER_DEVTOOLS], ReleasePath.get());
-    const folder = join(ReleasePath.get(), FOLDER_DEVTOOLS);
+export async function build_devtools() {
+    const folder = ReleasePath.get(FOLDER_DEVTOOLS);
     const files = collect_files(folder);
+
+    // @TODO process in the workers
     const devtools_modules = await Promise.all(
         files.map(async (file) => {
             // ignore compiled svelte files
@@ -63,6 +62,11 @@ export async function build_wyvr_internal() {
     const modules_file = join(folder, 'modules.json');
     remove(modules_file);
     write_json(modules_file, devtools_modules.filter(Boolean));
+
+    // add symlinks to access resources
+    symlink(Cwd.get(FOLDER_CACHE, 'route_cache.json'), join(folder, '$routes.json'));
+    symlink(Cwd.get(FOLDER_CACHE, 'plugin_files.json'), join(folder, '$plugins.json'));
+    symlink(Cwd.get(FOLDER_CACHE, 'page_cache.json'), join(folder, '$pages.json'));
 }
 
 export function replace_svelte_paths(content, folder) {

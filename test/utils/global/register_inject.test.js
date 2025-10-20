@@ -26,51 +26,44 @@ describe('utils/global/register_inject', () => {
         Logger.output = orig_log;
     });
     after(() => {
+        // biome-ignore lint/performance/noDelete: <explanation>
         delete global._inject;
+        // biome-ignore lint/performance/noDelete: <explanation>
         delete global._inject_file;
         Cwd.set(undefined);
     });
 
     it('undefined', async () => {
-        let result;
-        result = await _inject(undefined, false);
+        const result = await _inject(undefined, false);
         deepStrictEqual(result, false);
     });
     it('empty key', async () => {
-        let result;
-        result = await _inject('', false);
+        const result = await _inject('', false);
         deepStrictEqual(result, false);
     });
     it('empty key with callback', async () => {
-        let result;
-        result = await _inject('', false, (value) => !value);
+        const result = await _inject('', false, (value) => !value);
         deepStrictEqual(result, true);
     });
     it('value', async () => {
-        let result;
-        result = await _inject('key.key', false);
+        const result = await _inject('key.key', false);
         deepStrictEqual(result, 'value');
     });
     it('value with callback', async () => {
-        let result;
-        result = await _inject('key.key', false, (text) => text.split('').reverse().join(''));
+        const result = await _inject('key.key', false, (text) => text.split('').reverse().join(''));
         deepStrictEqual(result, 'eulav');
     });
     it('fallback from unknown key', async () => {
-        let result;
-        result = await _inject('key.unknown', false);
+        const result = await _inject('key.unknown', false);
         deepStrictEqual(result, false);
     });
     it('fallback from unknown key with callback', async () => {
-        let result;
-        result = await _inject('key.unknown', false, (value) => !value);
+        const result = await _inject('key.unknown', false, (value) => !value);
         deepStrictEqual(result, true);
     });
     it('error in callback', async () => {
-        let result;
-        result = await _inject(undefined, 'a', (value) => JSON.parse(value));
+        const result = await _inject(undefined, 'a', (value) => JSON.parse(value));
         deepStrictEqual(result, 'a');
-        // deepStrictEqual(log, ['', '', '⚠', '@inject\n[SyntaxError] Unexpected token a in JSON at position 0']);
         deepStrictEqual(log, ['', '', '⚠', `@inject\n[SyntaxError] Unexpected token 'a', "a" is not valid JSON`]);
         
     });

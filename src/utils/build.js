@@ -1,7 +1,6 @@
 import esbuild from 'esbuild';
 import sveltePlugin from 'esbuild-svelte';
-import { join } from 'node:path';
-import { FOLDER_CLIENT, FOLDER_GEN_CSS, FOLDER_GEN_TEMP } from '../constants/folder.js';
+import { FOLDER_CLIENT, FOLDER_CSS, FOLDER_GEN_TEMP } from '../constants/folder.js';
 import { WorkerEmit } from '../struc/worker_emit.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
@@ -20,6 +19,11 @@ import { replace_shortcode } from './shortcode.js';
 import { uniq_id } from './uniq.js';
 import { filled_array, filled_string, is_func } from './validate.js';
 import { Config } from './config.js';
+import { STORAGE_OPTIMIZE_MEDIA_QUERY_FILES } from '../constants/storage.js';
+import { KeyValue } from './database/key_value.js';
+import { inject_csp } from '../model/csp.js';
+
+const media_query_files_db = new KeyValue(STORAGE_OPTIMIZE_MEDIA_QUERY_FILES);
 
 export async function build(content, file, format = 'iife') {
     if (!filled_string(content) || !filled_string(content)) {
@@ -42,7 +46,7 @@ export async function build(content, file, format = 'iife') {
             logLevel: 'silent',
             plugins: [
                 sveltePlugin({
-                    compilerOptions: { css: true, dev: Env.is_dev() },
+                    compilerOptions: { css: 'injected', dev: Env.is_dev() },
                     filterWarnings: (warning) => {
                         if (!Config.get('svelte.warnings', true)) {
                             return false;
@@ -74,13 +78,25 @@ export function inject_script(content, scripts) {
     if (!filled_array(scripts)) {
         return content;
     }
+    let nonce_attr = '';
+    if (Config.get('csp.active', false)) {
+        const nonce = uniq_id();
+        addCspNonce(nonce);
+        nonce_attr = ` nonce="${nonce}"`;
+    }
     const code = scripts.filter(Boolean).join('\n');
-    return content.replace(/<\/body>/, `<script>${code}</script></body>`);
+    return content.replace(/<\/body>/, `<script${nonce_attr}>${code}</script></body>`);
 }
 export function inject_events(content) {
+    let nonce_attr = '';
+    if (Config.get('csp.active', false)) {
+        const nonce = uniq_id();
+        addCspNonce(nonce);
+        nonce_attr = ` nonce="${nonce}"`;
+    }
     return content.replace(
         /<head([^>]*)>/,
-        `<head$1><script>window.on = (event_name, callback) => {
+        `<head$1><script${nonce_attr}>window.on = (event_name, callback) => {
         if (!event_name || !callback) {
             return;
         }
@@ -115,14 +131,13 @@ export function get_stack_script() {
 }
 
 export async function inject(rendered_result, data, file, identifier, shortcode_callback) {
-    const release_path = ReleasePath.get();
     const media_files = {};
     let has_media = false;
     let media_query_files = {};
 
     let content = rendered_result?.result?.html || '';
 
-    const path = join(release_path, to_index(data?.url, data?._wyvr?.extension));
+    const path = ReleasePath.get(to_index(data?.url, data?.$wyvr?.extension));
     try {
         if (content) {
             // replace shortcodes
@@ -156,17 +171,19 @@ export async function inject(rendered_result, data, file, identifier, shortcode_
                 content = media_result.content;
             }
 
-            content = inject_events(
-                inject_script(content, [
-                    // inject translations
-                    get_translations_script(data?._wyvr?.language),
-                    // add the media cache keys to avoid using the domains
-                    get_media_script(),
-                    // add the current stack to the page
-                    get_stack_script(),
-                    // add the devtools
-                    add_devtools_code(path, data)
-                ])
+            content = inject_csp(
+                inject_events(
+                    inject_script(content, [
+                        // inject translations
+                        get_translations_script(data?.$wyvr?.language),
+                        // add the media cache keys to avoid using the domains
+                        get_media_script(),
+                        // add the current stack to the page
+                        get_stack_script(),
+                        // add the devtools
+                        add_devtools_code(path, shortcode_result?.identifier, data)
+                    ])
+                )
             );
 
             if (!filled_string(identifier)) {
@@ -174,7 +191,7 @@ export async function inject(rendered_result, data, file, identifier, shortcode_
             }
 
             // write css
-            const css_file_path = Cwd.get(FOLDER_GEN_CSS, `${identifier}.css`);
+            const css_file_path = ReleasePath.get(FOLDER_CSS, `${identifier}.css`);
             if (!global.cache) {
                 global.cache = {};
             }
@@ -184,10 +201,17 @@ export async function inject(rendered_result, data, file, identifier, shortcode_
             }
             if (!exists(css_file_path) || global.cache.force_media_query_files) {
                 media_query_files = write_css_file(css_file_path, css_code, media_query_files);
+                // store the media query files in the db
+                const entries = Object.entries(media_query_files);
+                for (const [key, value] of entries) {
+                    if (!media_query_files_db.exists(key)) {
+                        media_query_files_db.set(key, value);
+                    }
+                }
             }
         }
     } catch (e) {
         Logger.error(get_error_message(e, file, 'inject build'));
     }
-    return { content: content || '', has_media, path };
+    return { content: content || '', has_media, path, media_query_files };
 }

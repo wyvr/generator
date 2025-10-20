@@ -6,7 +6,9 @@ export function get_logo(version) {
     let display_version = semver(version);
     if (!display_version) {
         display_version = kleur.red('⚠ unknown version');
+    } else {
+        display_version = `v${display_version}`;
     }
-    const logo = [`__  __  __  __  __  ____`, `╲ ╲╱ ╱╲╱ ╱╲╱ ╱╲╱ ╱╲╱ ╱_╱`, ` ╲╱_╱╲╱_╱╲╱ ╱╲╱_╱╲╱_╱`, `         ╱_╱ ${kleur.bold('generator')} ${display_version}`].join('\n');
+    const logo = `${kleur.bold('wyvr')} ${display_version}`;
     return kleur.blue(logo);
 }

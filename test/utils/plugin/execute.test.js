@@ -25,18 +25,16 @@ describe('utils/plugin/execute', () => {
     it('undefined', async () => {
         const plugin = await Plugin.execute();
         strictEqual(typeof plugin, 'function');
-        const { args, error, result } = await plugin(undefined, 1, 2);
-        deepStrictEqual(error, 'missing plugin name or type');
-        deepStrictEqual(args, undefined);
+        const result = await plugin(undefined);
         deepStrictEqual(result, undefined);
-        deepStrictEqual(logger_messages, []);
+        deepStrictEqual(logger_messages, [
+            ['✖', 'missing plugin name or type'],
+        ]);
     });
     it('not found', async () => {
         const plugin = await Plugin.execute('a', 'after');
         strictEqual(typeof plugin, 'function');
-        const { args, error, result } = await plugin(undefined, 1, 2);
-        deepStrictEqual(error, 'no after plugin for "a" found');
-        deepStrictEqual(args, [1, 2]);
+        const result = await plugin(undefined);
         deepStrictEqual(result, undefined);
         deepStrictEqual(logger_messages, []);
     });
@@ -45,14 +43,14 @@ describe('utils/plugin/execute', () => {
             a: {
                 after: [
                     {
-                        fn: ({ result }) => {
-                            return result.map((i) => `a${i}`);
+                        fn: (result) => {
+                            return `a${result}`;
                         },
                         source: 'first',
                     },
                     {
-                        fn: ({ args }) => {
-                            return args.map((i) => i + 1);
+                        fn: (result) => {
+                            return result + 1;
                         },
                         source: 'second',
                     },
@@ -67,10 +65,8 @@ describe('utils/plugin/execute', () => {
         };
         const plugin = await Plugin.execute('a', 'after');
         strictEqual(typeof plugin, 'function');
-        const { args, error, result } = await plugin([], 1, 2);
-        deepStrictEqual(error, undefined);
-        deepStrictEqual(args, [1, 2]);
-        deepStrictEqual(result, ['a2', 'a3']);
+        const result = await plugin(1);
+        deepStrictEqual(result, 'a2');
         deepStrictEqual(logger_messages, [
             [
                 '✖',

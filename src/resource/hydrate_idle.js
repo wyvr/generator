@@ -1,49 +1,31 @@
-/* eslint-disable no-console */
-/* eslint-disable no-undef */
+import { wyvr_portal_targets } from 'wyvr/src/resource/portal.js';
+import { wyvr_lazy_observer } from 'wyvr/src/resource/lazy.js';
+import { wyvr_trigger } from 'wyvr/src/resource/trigger.js';
+import { wyvr_load } from 'wyvr/src/resource/load.js';
+import { wyvr_mark } from 'wyvr/src/resource/mark.js';
 
-import { wyvr_portal } from '@wyvr/generator/src/resource/portal.js';
-import { wyvr_props } from '@wyvr/generator/src/resource/props.js';
+export function wyvr_hydrate_idle(path, elements, name, trigger) {
+    const targets = wyvr_mark(wyvr_portal_targets(elements));
+    if (!targets) {
+        return;
+    }
+    if (window.wyvr_classes[name] === undefined) {
+        window.wyvr_classes[name] = { path, loaded: false };
+    }
 
-/* eslint-disable no-unused-vars */
-const wyvr_idle_classes = {};
-
-export function wyvr_hydrate_idle(path, elements, name, cls, trigger) {
-    wyvr_idle_classes[name] = { cls, path, loaded: false };
     window.requestIdleCallback
         ? requestIdleCallback(() => {
-              wyvr_idle_init(elements);
+              wyvr_idle_init(targets);
           })
-        : wyvr_idle_init(elements);
-    if (trigger) {
-        if (!window.wyvr) {
-            window.wyvr = {};
-        }
-        window.wyvr[trigger] = () => {
-            wyvr_idle_init(elements);
-        };
-    }
+        : wyvr_idle_init(targets);
+
+    wyvr_trigger(trigger, targets, (el) => {
+        wyvr_load(el);
+    });
 }
 
-const wyvr_idle_observer = new IntersectionObserver((entries) => {
-    for (const entry of entries) {
-        if (entry.isIntersecting) {
-            const name = entry.target.getAttribute('data-hydrate');
-            if (name && !wyvr_idle_classes[name].loaded) {
-                wyvr_idle_classes[name].loaded = true;
-                const script = document.createElement('script');
-                script.setAttribute('src', `${wyvr_idle_classes[name].path}?bid=${window.build_id}`);
-                document.body.appendChild(script);
-            }
-            wyvr_idle_observer.unobserve(entry.target);
-        }
-    }
-});
-
 function wyvr_idle_init(elements) {
-    for (const el of elements) {
-        wyvr_props(el).then((props) => {
-            const target = wyvr_portal(el, props);
-            wyvr_idle_observer.observe(target);
-        });
-    }
+    wyvr_lazy_observer(elements, (el) => {
+        wyvr_load(el);
+    });
 }

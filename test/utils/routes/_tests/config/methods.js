@@ -1,6 +1,6 @@
 export default {
     url: '/test',
-    _wyvr: {
+    $wyvr: {
         exec_methods: ['post', 'invalid'],
     },
 };

@@ -1,203 +1,203 @@
 import { dirname, extname, join } from 'node:path';
 import { FOLDER_GEN_SRC } from '../constants/folder.js';
+import { extract_wyvr_file_config, WyvrFile } from '../model/wyvr_file.js';
 import { Cwd } from '../vars/cwd.js';
-import { exists, find_file, to_extension } from './file.js';
+import { filled_array, filled_object, filled_string, in_array, is_null } from './validate.js';
 import { to_relative_path_of_gen } from './to.js';
 import { replace_src } from './transform.js';
-import {
-    filled_array,
-    filled_object,
-    filled_string,
-    is_array,
-    is_func,
-    is_null,
-} from './validate.js';
-import { Logger } from './logger.js';
+import { exists, find_file, to_extension } from './file.js';
+import { WyvrFileConfig, WyvrFileRender } from '../struc/wyvr_file.js';
 import { uniq_values } from './uniq.js';
-import { WyvrFileRender } from '../struc/wyvr_file.js';
-import { WyvrFile } from '../model/wyvr_file.js';
 import { Identifier } from '../model/identifier.js';
-import { get_error_message } from './error.js';
-import { set_config_cache } from './config_cache.js';
 
-export function dependencies_from_content(content, file) {
+export function parse_content(content, file) {
     if (!filled_string(content) || !filled_string(file)) {
         return undefined;
     }
-    let file_path = dirname(file);
+    let file_path = file;
     // prepand absolute path when it is relative
     if (file_path.indexOf('/') !== 0) {
         file_path = Cwd.get(file_path);
     }
+    // convert to directory of the file
+    const file_dir_path = dirname(file_path);
+
     // paths are relative to the src folder
-    const rel_base_path = file_path
-        .replace(Cwd.get(), '')
-        .replace(/^\/?src/, '');
-    const deps = {};
+
+    const rel_path_file = file_path.replace(Cwd.get(), '');
+    const rel_base_path = dirname(rel_path_file);
+    const ext = extname(file);
+    const deps = [];
     const i18n = {};
-    const key = to_relative_path_of_gen(file);
-    content.replace(/import .*? from ["']([^"']+)["'];?/g, (_, dep) => {
-        if (is_null(deps[key])) {
-            deps[key] = [];
+    const config = ext === '.svelte' ? (extract_wyvr_file_config(content) ?? structuredClone(WyvrFileConfig)) : undefined;
+    const rel_path = to_relative_path_of_gen(rel_path_file.replace(/^\//, ''));
+    // normlize the content for easier searching
+    const normalized_content = content.replace(/[\t\n]+/g, '').replace(/\s+/g, ' ');
+    // search all imports
+    const all_imports = get_dependency_matches(normalized_content);
+    for (const entry of all_imports) {
+        const src = extract_dependency_source(entry.groups?.src, rel_path, rel_base_path, file_dir_path);
+        if (src) {
+            deps.push(src);
         }
-        // remove cache breaker
-        dep = dep.replace(/\?\d+$/, '');
-        // node dependency
-        if (
-            dep.indexOf('./') !== 0 &&
-            dep.indexOf('/') !== 0 &&
-            dep.indexOf('$src') !== 0 &&
-            dep.indexOf('@src') !== 0 // @deprecated
-        ) {
-            return;
-        }
-        // replace $src
-        dep = replace_src(dep, '');
-        // fix relative paths of the dependencies
-        // './multiply.js' in folder 'local/src/test/import' must become '/test/import/multiply.js'
-        if (dep.indexOf('./') === 0) {
-            dep = join(rel_base_path, dep);
-        }
-        const dep_file_path_with_src = Cwd.get(FOLDER_GEN_SRC, dep);
-        let dep_file;
-        if (exists(dep_file_path_with_src)) {
-            dep_file = dep_file_path_with_src;
-        } else {
-            if (dep[0] === '/' && extname(dep) && exists(dep)) {
-                dep_file = dep;
-            }
-        }
-        // search for the file
-        if (is_null(dep_file)) {
-            dep_file = find_file(
-                file_path,
-                ['svelte', 'js', 'mjs', 'cjs', 'ts'].map((ext) =>
-                    to_extension(dep, ext)
-                )
-            );
-        }
-        if (dep_file) {
-            dep_file = to_relative_path_of_gen(
-                dep_file.replace(Cwd.get(), '.')
-            );
-            deps[key].push(dep_file);
-        }
-        return;
-    });
-
-    content.replace(/__\(["']([^"']*)["']/g, (_, translation) => {
-        if (is_null(i18n[key])) {
-            i18n[key] = [];
-        }
-        i18n[key].push(translation);
-    });
-
-    // clear empty dependencies
-    if (!filled_array(deps[key])) {
-        return { dependencies: undefined, i18n };
     }
-    return { dependencies: deps, i18n };
+
+    // @TODO currently disabled
+    // content.replace(/__\(["']([^"']*)["']/g, (_, translation) => {
+    //     if (is_null(i18n[key])) {
+    //         i18n[key] = [];
+    //     }
+    //     i18n[key].push(translation);
+    // });
+
+    return {
+        dependencies: deps,
+        i18n,
+        rel_path,
+        config
+    };
 }
-export function flip_dependency_tree(dependencies) {
-    if (!filled_object(dependencies)) {
+
+export function extract_dependency_source(path, rel_path, rel_base_path, file_dir_path) {
+    if (!filled_string(path)) {
         return undefined;
     }
-    const result = {};
-    for (const parent of Object.keys(dependencies)) {
-        for (const child of dependencies[parent]) {
-            if (!is_array(result[child])) {
-                result[child] = [];
-            }
-            result[child].push(parent);
-        }
-    }
-    return result;
-}
-export function get_dependencies(tree, file, callback) {
-    if (!filled_object(tree) || is_null(tree[file])) {
-        return [];
-    }
-    const fn = is_func(callback) ? callback : (list) => list;
-    const result = fn(tree[file], file);
-    for (const child of tree[file]) {
-        result.push(...get_dependencies(tree, child, callback));
-    }
-    return uniq_values(result);
-}
-
-export function get_hydrate_dependencies(tree, file_config_tree, file) {
+    // remove cache breaker
+    let dep = path.replace(/\?\d+$/, '');
+    // node dependency
     if (
-        !filled_object(tree) ||
-        !filled_object(file_config_tree) ||
-        is_null(file_config_tree[file])
+        dep.indexOf('./') !== 0 &&
+        dep.indexOf('/') !== 0 &&
+        dep.indexOf('$src') !== 0 &&
+        dep.indexOf('@src') !== 0 // @deprecated
     ) {
+        return undefined;
+    }
+    // replace $src
+    dep = replace_src(dep, '');
+    // fix relative paths of the dependencies
+    // './multiply.js' in folder 'local/src/test/import' must become '/test/import/multiply.js'
+    if (dep.indexOf('./') === 0) {
+        dep = join(rel_base_path, dep);
+    }
+    const dep_file_path_with_src = Cwd.get(FOLDER_GEN_SRC, to_relative_path_of_gen(dep).replace(/^\/?(?:server|src|client)\//, ''));
+    let dep_file;
+    if (exists(dep_file_path_with_src)) {
+        dep_file = dep_file_path_with_src;
+    } else {
+        if (dep[0] === '/' && extname(dep) && exists(dep)) {
+            dep_file = dep;
+        }
+    }
+    // search for the file
+    if (is_null(dep_file)) {
+        dep_file = find_file(
+            file_dir_path,
+            ['svelte', 'js', 'mjs', 'cjs', 'ts'].map((ext) => to_extension(dep, ext))
+        );
+    }
+    if (!dep_file) {
+        return undefined;
+    }
+    dep_file = to_relative_path_of_gen(dep_file.replace(Cwd.get(), '.')).replace(/^server\//, 'src/');
+    // avoid self assigning as children
+    if (dep_file !== rel_path) {
+        // deps.push(dep_file);
+        return dep_file;
+    }
+}
+
+export function get_dependencies(file, index, fn_search_deeper) {
+    if (!filled_string(file) || !filled_object(index)) {
         return [];
     }
-    const result = [];
-    const config = file_config_tree[file];
-    if (config.render === WyvrFileRender.hydrate) {
-        const entry = WyvrFile(file);
-        entry.config = file_config_tree[file];
-        return [entry];
+    const entry = index[file];
+    if (!entry) {
+        return [];
     }
-    if (!is_null(tree[file])) {
-        for (const child of tree[file]) {
-            if (child !== file) {
-                result.push(
-                    ...get_hydrate_dependencies(tree, file_config_tree, child)
-                );
-            }
-        }
+    const list = [entry];
+    // check if the search should go deeper
+    if (typeof fn_search_deeper === 'function' && !fn_search_deeper(entry)) {
+        return list;
+    }
+    if (!Array.isArray(entry.children) || entry.children.length === 0) {
+        return list;
+    }
+    for (const child of entry.children) {
+        list.push(...get_dependencies(child, index, fn_search_deeper));
+    }
+    return list;
+}
+
+export function get_render_dependencies(file, index) {
+    const list = get_dependencies(file, index, search_deeper_render);
+    return Object.values(dependencies_to_object(list.filter((entry) => !search_deeper_render(entry))));
+}
+function search_deeper_render(entry) {
+    // when file has client code, avoid going deeper
+    return [WyvrFileRender.hydrate, WyvrFileRender.request, WyvrFileRender.hydrequest].indexOf(entry.standalone) === -1;
+}
+
+export function dependencies_to_object(list) {
+    const result = {};
+    if (!filled_array(list)) {
+        return result;
+    }
+    for (const entry of list) {
+        result[entry.file] = entry;
     }
     return result;
 }
 
-export function get_identifiers_of_file(reversed_tree, file) {
+export function get_render_dependency_wyvr_files(file, index) {
+    const entries = get_render_dependencies(file, index);
+    return entries.map((entry) => {
+        const w_file = WyvrFile(entry.file);
+        w_file.config = entry.config;
+        return w_file;
+    });
+}
+
+export function get_parents_of_file(file, inverted_index) {
+    if (!filled_string(file) || !filled_object(inverted_index)) {
+        return [];
+    }
+    const entry = inverted_index[file];
+    if (!entry) {
+        return [];
+    }
+    const result = [entry];
+    if (!entry.parents) {
+        return result;
+    }
+    for (const parent of entry.parents) {
+        result.push(...get_parents_of_file(parent, inverted_index));
+    }
+    return result;
+}
+
+export function get_identifiers_of_list(list) {
+    if (!filled_array(list)) {
+        return [];
+    }
     const parents = { doc: [], layout: [], page: [] };
-    if (!reversed_tree || !filled_string(file)) {
-        return { identifiers_of_file: [], files: [] };
-    }
-    let lists = undefined;
-    try {
-        lists = get_parents_of_file_recursive(reversed_tree, file);
-        /* c8 ignore start */
-    } catch (e) {
-        Logger.error(get_error_message(e, file, 'dependency'));
-        /* c8 ignore end */
-    }
-    if (is_null(lists)) {
-        return { identifiers_of_file: [], files: [file] };
-    }
-    let has_values = false;
-    const files = uniq_values([file].concat(...lists)).filter((x) => x);
-
-    const get_push_value = (file, path) => {
-        const index = file.indexOf(path);
-        if (index !== 0) {
-            return undefined;
-        }
-        has_values = true;
-        return file.substring(index + path.length);
-    };
-
-    for (const file of files) {
-        for (const type of ['doc', 'layout', 'page']) {
-            const value = get_push_value(file, `src/${type}/`);
-            if (value) {
-                parents[type].push(value);
-            }
+    const identifiers = [];
+    const types = ['doc', 'layout', 'page'];
+    for (const entry of list) {
+        if (in_array(types, entry.root)) {
+            parents[entry.root].push(entry.file);
         }
     }
-    if (!has_values) {
-        return { identifiers_of_file: [], files };
-    }
-    // clean empty arrays
-    for (const type of ['doc', 'layout', 'page']) {
+    // add undefined as representation of the default template
+    for (const type of types) {
         if (!filled_array(parents[type])) {
             parents[type].push(undefined);
+        } else {
+            parents[type] = uniq_values(parents[type]);
         }
     }
-    const identifiers = [];
+
+    // create all possible combinations
     for (const doc of parents.doc) {
         for (const layout of parents.layout) {
             for (const page of parents.page) {
@@ -205,74 +205,9 @@ export function get_identifiers_of_file(reversed_tree, file) {
             }
         }
     }
-    return { identifiers_of_file: uniq_values(identifiers), files };
+    return uniq_values(identifiers);
 }
 
-export function get_parents_of_file_recursive(tree, file) {
-    // @TODO quickfix if the file is a array
-    if (is_array(file)) {
-        if (file.length > 1) {
-            Logger.error(
-                'file is an array and has more then one entries',
-                file,
-                tree
-            );
-        }
-        // use only first entry
-        file = file[0];
-    }
-    // @TODO buggy when the parent directly is the file
-    if (!tree[file]) {
-        // try search for the file if it is a doc, layout or page
-        const type = file.split('/').find((part) => part && part !== 'src');
-        if (type && ['doc', 'layout', 'page'].indexOf(type) > -1) {
-            return [file];
-        }
-        return undefined;
-    }
-    const parents = [...tree[file]];
-    try {
-        // Maximum call stack size exceeded can easily occure here
-        const found_parents = tree[file]
-            .map((parent) => get_parents_of_file_recursive(tree, parent))
-            .filter(Boolean);
-        parents.push(...found_parents);
-    } catch (e) {
-        /* c8 ignore start */
-        Logger.error(get_error_message(e, file, 'dependency'));
-    }
-    /* c8 ignore end */
-
-    return parents.flat(8);
-}
-
-/**
- * Caches the given dependencies to disk
- * @param {object} dependencies
- * @returns {(object|undefined)}
- */
-export function cache_dependencies(dependencies) {
-    if (typeof dependencies !== 'object') {
-        return undefined;
-    }
-    const files = Object.keys(dependencies);
-    if (files.length === 0) {
-        return undefined;
-    }
-    // remove doubled dependencies
-    for (const file of files) {
-        dependencies[file] = uniq_values(dependencies[file].flat(2)).map(
-            (filepath) => {
-                // fix server content when selecting from routes, plugins or events
-                return filepath.replace(/^(server|client)\//, 'src/');
-            }
-        );
-    }
-
-    // @NOTE set_config_cache is asynchronous, so this step could be problematic in edge cases
-    set_config_cache('dependencies.top', dependencies);
-
-    set_config_cache('dependencies.bottom', flip_dependency_tree(dependencies));
-
-    return dependencies;
+export function get_dependency_matches(content) {
+    return [].concat(Array.from(content.matchAll(/import .*? from ["'](?<src>[^"']+)["'];?/g)), Array.from(content.matchAll(/ import\(\s?["'](?<src>[^"']+)["']/g)));
 }

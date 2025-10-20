@@ -1,23 +1,26 @@
 <script>
     /* 
-        import Stylesheet from '$src/wyvr/Stylesheet.svelte';
+        import Script from '$src/wyvr/Script.svelte';
         
-        <Stylesheet src="/assets/global.css" /> 
-        */
+        <Script src="/assets/script.css" /> 
+    */
+
     import { append_query_string } from '$src/wyvr/append_query_string.js';
 
     export let src = null;
     export let defer = true;
-    const build_id = _inject('config.build_id', undefined, (value) => {
-        if (value) {
-            return value.substr(0, 8);
-        }
-        return value;
-    });
 
-    $: href = append_query_string(src, 'bid', build_id);
+    const timestamp = injectConfig('env') === 'dev' ? Date.now() : undefined;
+    const csp = injectConfig('csp.active');
+
+    $: source = src ? append_query_string(src, 'ts', timestamp) : undefined;
+    $: nonce = csp ? btoa(source) : undefined;
+
+    $: {
+        addCspNonce(nonce);
+    }
 </script>
 
-{#if href}
-    <script {defer} src={href}></script>
+{#if source}
+    <script {defer} {nonce} src={source}></script>
 {/if}

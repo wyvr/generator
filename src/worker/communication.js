@@ -1,11 +1,5 @@
-import {
-    get_name as get_action_name,
-    WorkerAction,
-} from '../struc/worker_action.js';
-import {
-    get_name as get_status_name,
-    WorkerStatus,
-} from '../struc/worker_status.js';
+import { get_name as get_action_name, WorkerAction } from '../struc/worker_action.js';
+import { get_name as get_status_name, WorkerStatus } from '../struc/worker_status.js';
 import { Event } from '../utils/event.js';
 import { is_null, is_number } from '../utils/validate.js';
 import { Env } from '../vars/env.js';
@@ -21,12 +15,12 @@ export function send(data) {
     if (communicate_by_ipc && typeof process?.send === 'function') {
         process.send({
             pid: process.pid,
-            data,
+            data
         });
     } else {
         Event.emit('master', 'message', {
             pid: process.pid,
-            data,
+            data
         });
     }
 }
@@ -38,8 +32,8 @@ export function send_action(action, data) {
     const data_to_send = {
         action: {
             key: action,
-            value: data,
-        },
+            value: data
+        }
     };
     // add human readable info when in debug mode
     if (Env.is_debug()) {

@@ -7,5 +7,5 @@ export const WorkerStatus = {
     dead: 5
 };
 export function get_name(status) {
-    return Object.keys(WorkerStatus).find((key) => WorkerStatus[key] == status);
+    return Object.keys(WorkerStatus).find((key) => WorkerStatus[key] === status);
 }

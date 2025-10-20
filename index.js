@@ -13,6 +13,13 @@ export const isServer = true;
 export const isClient = false;
 
 /**
+ * Indicates whether the current execution is made through a request or hydrequest component
+ * Magic value which which are replaced when the content is built
+ * @type {boolean}
+ */
+export const isRequest = false;
+
+/**
  * Callback which gets executed, this callback can be asynchronous
  *
  * @callback onServerCallback
@@ -28,6 +35,23 @@ export const isClient = false;
  * @returns void
  */
 export async function onServer() {}
+
+/**
+ * Callback which gets executed when the component is rendered as reqeusts, this callback can be asynchronous
+ *
+ * @callback onRequestCallback
+ * @returns void
+ * @example
+ * onSRequest(async () => { ... })
+ */
+
+/**
+ * Function which gets only executed when component gets rendered as request
+ *
+ * @param {onRequestCallback} callback Executed function on the server
+ * @returns void
+ */
+export async function onRequest() {}
 
 /**
  * Transform the value with this callback, this callback can be asynchronous

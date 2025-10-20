@@ -9,9 +9,8 @@ import { measure_action } from './helper.js';
 import { merge_collections } from '../utils/collections.js';
 import { filled_object } from '../utils/validate.js';
 import { set_config_cache } from '../utils/config_cache.js';
-import { sleep } from '../utils/sleep.js';
-
-export async function pages(package_tree, mtime) {
+import { PLUGIN_PAGES } from '../constants/plugins.js';
+export async function pages(package_tree) {
     const name = 'page';
     let identifiers = {};
     let collections = {};
@@ -20,30 +19,20 @@ export async function pages(package_tree, mtime) {
     await measure_action(name, async () => {
         const pages = collect_pages(undefined, package_tree);
 
-        result = await process_pages(name, pages, mtime);
+        result = await process_pages(name, pages);
 
         identifiers = result.identifiers;
         collections = result.collections;
 
         const identifier_length = Object.keys(identifiers).length;
-        Logger.info(
-            'found',
-            identifier_length,
-            identifier_length === 1 ? 'identifier' : 'identifiers',
-            Logger.color.dim('different layout combinations')
-        );
+        Logger.info('found', identifier_length, identifier_length === 1 ? 'identifier' : 'identifiers', Logger.color.dim('different layout combinations'));
     });
     await set_config_cache('page.cache', result?.page_objects, false);
 
     return { identifiers, collections };
 }
 
-export async function process_pages(
-    name,
-    data,
-    mtime = undefined,
-    show_name = false
-) {
+export async function process_pages(name, data, show_name = false) {
     const identifier_name = get_name(WorkerEmit.identifier);
     const identifiers = {};
     const collections_name = get_name(WorkerEmit.collections);
@@ -77,24 +66,12 @@ export async function process_pages(
             pages.push(...data.data_pages);
         }
     });
-    if (mtime) {
-        WorkerController.set_all_workers('mtime', mtime);
-    }
 
     // wrap in plugin
-    const caller = await Plugin.process(name, data);
+    const caller = await Plugin.process(PLUGIN_PAGES, data);
     await caller(async (data) => {
-        await WorkerController.process_in_workers(
-            WorkerAction.page,
-            data,
-            10,
-            show_name
-        );
+        await WorkerController.process_in_workers(WorkerAction.page, data, 10, show_name);
     });
-
-    if (mtime) {
-        WorkerController.set_all_workers('mtime', undefined);
-    }
 
     // remove listeners
     Event.off('emit', identifier_name, identifier_id);

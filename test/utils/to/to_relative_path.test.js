@@ -22,9 +22,30 @@ describe('utils/to/to_relative_path', () => {
         strictEqual(to_relative_path(join('test.txt')), 'test.txt');
     });
     it('add after gen', () => {
-        strictEqual(to_relative_path(join(__dirname, 'gen', 'server', 'test.txt')), join('test.txt'));
+        strictEqual(
+            to_relative_path(join(__dirname, 'gen', 'server', 'test.txt')),
+            join('test.txt')
+        );
     });
     it('replace gen', () => {
-        strictEqual(to_relative_path(join('huhu', 'gen', 'src', 'test.txt')), join('test.txt'));
+        strictEqual(
+            to_relative_path(join('huhu', 'gen', 'src', 'test.txt')),
+            join('test.txt')
+        );
+    });
+    it('replace release path for js but not the src in there, hydrated files have this subfolder', () => {
+        strictEqual(
+            to_relative_path(
+                join('huhu', 'release', 'haha', 'js', 'src', 'test.txt')
+            ),
+            join('js/src/test.txt')
+        );
+    });
+
+    it('avoid transformation of already relative paths', () => {
+        strictEqual(
+            to_relative_path('src/syntax/tests/LoadingInstant.svelte'),
+            'syntax/tests/LoadingInstant.svelte'
+        );
     });
 });

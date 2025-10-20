@@ -13,7 +13,7 @@ const hooks = createHook({
     destroy(asyncId) {
         // Clean up when the async resource is no longer needed
         context.delete(asyncId);
-    },
+    }
 });
 hooks.enable();
 

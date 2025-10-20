@@ -2,10 +2,7 @@
     "name": "{{name}}",
     "description": "project '{{name}}' generated with wyvr {{version}}",
     "type": "module",
-    "keywords": [
-        "wyvr",
-        "generator"
-    ],
+    "keywords": ["wyvr", "generator"],
     "scripts": {
         "start": "wyvr app",
         "app": "wyvr app",
@@ -17,7 +14,7 @@
         "health": "wyvr health"
     },
     "dependencies": {
-        "@wyvr/generator": "^{{version}}"
+        "wyvr": "^{{version}}"
     },
     "prettier": {
         "tabWidth": 4,

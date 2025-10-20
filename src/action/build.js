@@ -1,12 +1,14 @@
+import { terminate } from '../cli/terminate.js';
 import { FOLDER_GEN_DATA } from '../constants/folder.js';
+import { PLUGIN_BUILD } from '../constants/plugins.js';
+import { STORAGE_COLLECTION, STORAGE_OPTIMIZE_MEDIA_QUERY_FILES } from '../constants/storage.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { get_name, WorkerEmit } from '../struc/worker_emit.js';
-import { set_config_cache } from '../utils/config_cache.js';
+import { KeyValue } from '../utils/database/key_value.js';
 import { Event } from '../utils/event.js';
 import { collect_files } from '../utils/file.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
-import { Storage } from '../utils/storage.js';
 import { WorkerController } from '../worker/controller.js';
 import { measure_action } from './helper.js';
 
@@ -20,6 +22,7 @@ export async function build() {
     const media_query_files = {};
     const identifier_files_name = get_name(WorkerEmit.identifier_files);
     const identifier_files = {};
+    const errors_name = get_name(WorkerEmit.errors);
 
     await measure_action(name, async () => {
         const identifier_id = Event.on('emit', identifier_name, (data) => {
@@ -59,10 +62,18 @@ export async function build() {
             }
         });
 
+        const errors_id = Event.on('emit', errors_name, (data) => {
+            if (!data || !data.errors) {
+                return;
+            }
+            Logger.error('terminated because of build errors');
+            terminate(true);
+        });
+
         const data = collect_files(FOLDER_GEN_DATA, 'json');
 
         // wrap in plugin
-        const caller = await Plugin.process(name, data);
+        const caller = await Plugin.process(PLUGIN_BUILD, data);
         await caller(async (data) => {
             await WorkerController.process_in_workers(WorkerAction.build, data, 100);
         });
@@ -72,11 +83,17 @@ export async function build() {
         Event.off('emit', media_name, media_id);
         Event.off('emit', media_query_files_name, media_query_files_id);
         Event.off('emit', identifier_files_name, identifier_files_id);
+        Event.off('emit', errors_name, errors_id);
 
         // store the identifier_files in the collection storage
         // used to create the critical files, here is the reference with identifier has which file assigned to them
-        await Storage.set('collection', 'identifier_files', identifier_files);
-        await set_config_cache('identifier.files', identifier_files);
+        const collection_db = new KeyValue(STORAGE_COLLECTION);
+        collection_db.set('identifier_files', identifier_files);
+
+        // set the media query files from the generated pages
+        const media_query_files_db = new KeyValue(STORAGE_OPTIMIZE_MEDIA_QUERY_FILES);
+        media_query_files_db.setObject(media_query_files);
+        media_query_files_db.close();
 
         const identifier_length = Object.keys(identifiers).length;
         Logger.info('found', identifier_length, identifier_length === 1 ? 'identifier' : 'identifiers', Logger.color.dim('different layout combinations'));

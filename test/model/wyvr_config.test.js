@@ -9,12 +9,13 @@ describe('model/wyvr_config', () => {
             'cron',
             'default_values',
             'env',
-            'https',
             'i18n',
             'packages',
             'releases',
             'url',
             'worker',
+            'critical',
+            'optimize'
         ]);
     });
 });

@@ -7,12 +7,15 @@ import { get_error_message } from '../utils/error.js';
 import { append_entry_to_collections } from '../utils/collections.js';
 import { load_route } from '../utils/routes.js';
 import { collection_entry } from '../model/collection.js';
+import { weak_register_i18n } from '../utils/global.js';
 
 export async function collections(routes) {
     if (!filled_array(routes)) {
         return;
     }
-    let collections = {};
+    // add base registering for i18n
+    weak_register_i18n();
+    const collections = {};
     for (const route of routes) {
         Logger.debug('route collection', route.rel_path);
         const code = await load_route(route.path);
@@ -24,9 +27,9 @@ export async function collections(routes) {
             const route_collections = await code.getCollection({ route });
             if (filled_array(route_collections)) {
                 Logger.debug('collection of route', route.rel_path, route_collections);
-                route_collections.forEach((entry) => {
+                for (const entry of route_collections) {
                     append_entry_to_collections(collections, collection_entry(entry));
-                });
+                }
             }
         } catch (e) {
             Logger.error(get_error_message(e, route.path, 'getCollection'));

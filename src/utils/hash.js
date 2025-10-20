@@ -1,9 +1,9 @@
-import { filled_array, is_number } from './validate.js';
+import { filled_array, filled_string, is_number } from './validate.js';
 import { createHash } from 'node:crypto';
 import { exists, read } from './file.js';
-import { to_relative_path } from './to.js';
 import { extname } from 'node:path';
 import { statSync } from 'node:fs';
+import { ReleasePath } from '../vars/release_path.js';
 
 /**
  * Creates a hash value for the given input value using the SHA256 algorithm.
@@ -33,19 +33,38 @@ export function get_files_hashes(files) {
         return result;
     }
     for (const file of files) {
-        if (!exists(file)) {
+        const entry = get_file_hash_entry(file);
+        if (!entry) {
             continue;
         }
-        const rel_path = to_relative_path(file);
-        const hash = get_file_hash(file);
-        const ext = extname(file);
-        result[rel_path] = {
-            hash,
-            rel_path,
-            path: rel_path.replace(ext, `_${hash}${ext}`)
-        };
+        result[entry.rel_path] = entry;
     }
     return result;
+}
+
+export function get_file_hash_entry(file) {
+    return get_content_hash_entry(read(file), file);
+}
+
+export function get_content_hash_entry(content, file) {
+    if (!filled_string(content) || !filled_string(file)) {
+        return undefined;
+    }
+    if (!exists(file)) {
+        return undefined;
+    }
+    const hash = create_hash(content);
+    let rel_path = file.replace(ReleasePath.get(), '');
+    // enforce that the path starts with a slash
+    if (!rel_path.startsWith('/')) {
+        rel_path = `/${rel_path}`;
+    }
+    const ext = extname(rel_path);
+    return {
+        hash,
+        rel_path,
+        path: rel_path.replace(ext, `_${hash}${ext}`)
+    };
 }
 
 /**

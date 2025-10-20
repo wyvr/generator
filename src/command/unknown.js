@@ -14,7 +14,7 @@ export async function unknown_command(config, commands) {
     const search_result = await show_help(
         {
             flags: false,
-            search: config?.cli?.command,
+            search: config?.cli?.command
         },
         commands
     );
@@ -28,9 +28,9 @@ export async function unknown_command(config, commands) {
                             type: 'confirm',
                             message: `should the command ${search_result.command} be executed instead of ${search_command}?`,
                             name: 'execute',
-                            default: false,
-                        },
-                    ],
+                            default: false
+                        }
+                    ]
                 ],
                 {}
             );
@@ -40,11 +40,7 @@ export async function unknown_command(config, commands) {
                 return;
             }
         }
-        const result = await execute_custom_command(
-            config,
-            search_result.command,
-            commands
-        );
+        const result = await execute_custom_command(config, search_result.command, commands);
         return result;
     }
     if (is_array(config?.cli?.command) && config.cli.command.length === 0) {

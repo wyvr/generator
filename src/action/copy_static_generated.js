@@ -1,25 +1,25 @@
-import { join } from 'node:path';
-import { FOLDER_ASSETS, FOLDER_CSS, FOLDER_GEN, FOLDER_I18N, FOLDER_JS, FOLDER_PROP } from '../constants/folder.js';
-import { exists, symlink } from '../utils/file.js';
+import { FOLDER_GEN } from '../constants/folder.js';
+import { PLUGIN_COPY_GENERATED_FOLDERS } from '../constants/plugins.js';
 import { Plugin } from '../utils/plugin.js';
+import { filled_array } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { copy_folder } from './copy.js';
 import { measure_action } from './helper.js';
 
-export async function copy_static_generated() {
+export async function copy_static_generated(folders) {
     const name = 'copy generated';
+
+    if (!filled_array(folders)) {
+        return;
+    }
 
     await measure_action(name, async () => {
         // wrap in plugin
-        const caller = await Plugin.process(name);
-        await caller(async () => {
-            copy_folder(Cwd.get(FOLDER_GEN), [FOLDER_ASSETS, FOLDER_CSS, FOLDER_JS, FOLDER_I18N, FOLDER_PROP], ReleasePath.get());
+        const caller = await Plugin.process(PLUGIN_COPY_GENERATED_FOLDERS, folders);
+        await caller(async (folders) => {
+            copy_folder(Cwd.get(FOLDER_GEN), folders, ReleasePath.get());
+            return folders;
         });
-        // symlink special files like favicon.ico
-        const favicon_ico = join(ReleasePath.get(), FOLDER_ASSETS, 'favicon.ico');
-        if (exists(favicon_ico)) {
-            symlink(favicon_ico, join(ReleasePath.get(), 'favicon.ico'));
-        }
     });
 }

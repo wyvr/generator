@@ -1,14 +1,18 @@
 import { extname, join } from 'node:path';
 import { Env } from '../vars/env.js';
 import { ReleasePath } from '../vars/release_path.js';
-import { read, to_extension, write_json } from './file.js';
+import { read, read_json, to_extension, write_json } from './file.js';
 import { to_dirname } from './to.js';
 import { filled_string } from './validate.js';
 import { get_config_cache } from './config_cache.js';
+import { STORAGE_PACKAGE_TREE } from '../constants/storage.js';
+import { KeyValue } from './database/key_value.js';
+import { Cwd } from '../vars/cwd.js';
+import { Logger } from './logger.js';
 
 const resource_dir = join(to_dirname(import.meta.url), '..', 'resource');
 
-export function add_devtools_code(path, data) {
+export function add_devtools_code(path, shortcode_identifier, data) {
     if (!filled_string(path) || Env.is_prod()) {
         return '';
     }
@@ -19,14 +23,15 @@ export function add_devtools_code(path, data) {
     // add debug data
     const data_path = to_extension(path, 'wyvr.json');
     write_json(data_path, data);
+
     const debug_code_content = read(join(resource_dir, 'devtools_code.js'))
-        .replace(/\{release_path\}/g, data_path.replace(ReleasePath.get(), ''))
-        .replace(/\{shortcode_path\}/g, path.replace(ReleasePath.get(), ''))
-        .replace(/\{identifier\}/g, data._wyvr?.identifier);
+        .replace(/\{identifier\}/g, data.$wyvr?.identifier || '')
+        .replace(/\{shortcode\}/g, shortcode_identifier || '');
 
-    const ws_content = read(join(resource_dir, 'client_socket.js'));
+    const socket_helpers = read(join(resource_dir, 'client_helpers.js'));
+    const socket_content = read(join(resource_dir, 'client_socket.js'));
 
-    return debug_code_content + ws_content;
+    return debug_code_content + socket_helpers + socket_content;
 }
 
 /**
@@ -39,7 +44,9 @@ export function add_dev_note(file, content) {
     if (!filled_string(file) || Env.is_prod()) {
         return content;
     }
-    const ptree = get_config_cache('package_tree');
+    const package_tree_db = new KeyValue(STORAGE_PACKAGE_TREE);
+
+    const ptree = package_tree_db.all();
     const file_info = ptree[file] ? [`package: ${ptree[file].name}`, `path: ${join(ptree[file].path, file)}`] : [`source: ${file}`];
     const note = `/*${['', 'wyvr generated file', 'changes made in this file will not processed by the dev command', ...file_info].join('\n   ')}\n*/\n`;
     const extension = extname(file);
@@ -55,4 +62,36 @@ export function add_dev_note(file, content) {
             return note + content;
     }
     return content;
+}
+
+/**
+ * Build jsconfig file for autocompletion
+ * @param {array} available_packages
+ */
+export function build_jsconfig(available_packages) {
+    const current = read_json(Cwd.get('jsconfig.json'));
+    const regex = new RegExp(`^${Cwd.get()}/`);
+    const aliases = [];
+    const includes = [];
+    for (const pkg of available_packages) {
+        if (!pkg.path) {
+            continue;
+        }
+        const short = pkg.path.replace(regex, '');
+        aliases.push(`./${short}/src/*`);
+        includes.push(short);
+    }
+    const new_config = {
+        ...current,
+        module: 'ESNext',
+        compilerOptions: {
+            baseUrl: '.',
+            paths: {
+                '$src/*': aliases
+            }
+        },
+        include: includes
+    };
+    write_json(Cwd.get('jsconfig.json'), new_config);
+    Logger.info('update jsconfig.json');
 }

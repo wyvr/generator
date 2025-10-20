@@ -3,7 +3,6 @@
 {{wyvr_imports}}
 {{wyvr_file_config}}
     export let value = 'default';
-
 {{wyvr_split_js}}
 {{wyvr_code}}
 </script>

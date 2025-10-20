@@ -1,3 +1,4 @@
+:host,
 :root {
     --wyvr-debug-primary: #6d8ddf;
     --wyvr-debug-disabled: #999;
@@ -9,21 +10,47 @@
 }
 
 .wyvr_debug_toolbar,
-.wyvr_floating_window {
+.wyvr_floating_window,
+#wyvr_debug_toolbar_button_info {
     background: rgba(0, 0, 0, 0.75);
     z-index: 100001;
 }
+
 .wyvr_debug_toolbar {
     position: fixed;
-    bottom: 0;
-    border-top-left-radius: 10px;
-    right: 0;
+    bottom: 10px;
+    border-radius: 8px;
+    left: 50%;
     font-size: var(--wyvr-debug-font-size);
     font-family: monospace;
-    display: block !important;
+    display: flex !important;
+    flex-direction: row;
+    transform: translateX(-50%) translateY(44px);
+    transition: transform 0.15s ease-out;
 }
+
+.wyvr_debug_toolbar:hover {
+    transform: translateX(-50%) translateY(0);
+}
+
+.wyvr_debug_toolbar:before {
+    content: "";
+    position: absolute;
+    top: -15px;
+    left: 0;
+    right: 0;
+    height: 69px;
+}
+
+@media (pointer:coarse) {
+    .wyvr_debug_toolbar {
+        transform: translateX(-50%) translateY(0);
+        transition: none;
+    }
+}
+
 .wyvr_debug_toolbar:after {
-    content: '';
+    content: "";
     position: absolute;
     width: 10px;
     height: 10px;
@@ -35,112 +62,177 @@
     pointer-events: none;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
+
 .wyvr_debug_toolbar.connected:after {
     background: var(--wyvr-debug-primary);
 }
+
+.wyvr_debug_toolbar.hidden:after {
+    background: color-mix(in srgb, var(--wyvr-debug-primary) 20%, transparent);
+}
+
 .wyvr_debug_toolbar.disconnected:after {
     border: 2px solid var(--wyvr-debug-disabled);
+    border-right-color: transparent;
+    border-bottom-width: 1px;
+    animation: wyvr-rotate 1s linear 0s infinite;
 }
 
-.wyvr_debug_toolbar nav:before {
-    content: 'disconnected';
+.wyvr_debug_toolbar.disconnected .icon::after {
+    content: "disconnected";
     color: var(--wyvr-debug-disabled);
     display: block;
-    font-size: 12px;
-    padding-bottom: 5px;
-    padding-left: 10px;
-    padding-right: 10px;
-}
-.wyvr_debug_toolbar.connected nav:before {
-    content: 'connected to dev server';
-    color: var(--wyvr-debug-primary);
+    font-size: 10px;
 }
 
-.wyvr_debug_toolbar > span {
+.wyvr_debug_toolbar .icon {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.wyvr_debug_toolbar>span {
     display: block;
     padding: 10px;
 }
-.wyvr_debug_toolbar > span > img {
+
+.wyvr_debug_toolbar>span>img {
     display: block;
 }
-.wyvr_debug_toolbar > nav {
-    display: none;
-    padding-bottom: 20px;
-    overflow-y: auto;
-    max-height: 80vh;
+
+.wyvr_debug_toolbar>nav {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    max-width: 80vw;
 }
-.wyvr_debug_toolbar:hover > nav {
-    display: block;
-}
+
 .wyvr_debug_toolbar_button {
+    font-family: none;
     background: transparent;
     border: none;
     color: var(--wyvr-debug-text);
     text-shadow: 0 0 10px var(--wyvr-debug-text-shadow);
-    padding: 5px 10px 5px 48px;
+    padding: 0 10px;
     width: auto;
-    line-height: 1.4em;
-    display: block;
+    display: inline-block;
     white-space: nowrap;
-    font-family: monospace;
-    border-radius: 2px;
+    /* font-family: monospace; */
+    border-radius: 8px;
     position: relative;
     text-align: left;
-    width: 100%;
     cursor: pointer;
-}
-.wyvr_debug_toolbar_icon {
-    font-family: none;
+    height: 44px;
+    line-height: 44px;
     font-size: 24px;
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
 }
-.wyvr_debug_toolbar_icon svg {
+
+.wyvr_debug_toolbar_button:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.wyvr_debug_toolbar_button:hover {
+    background: var(--wyvr-debug-primary);
+    color: var(--wyvr-debug-text);
+    outline: none;
+}
+
+@media (pointer:coarse) {
+    .wyvr_debug_toolbar_button:focus {
+        background: var(--wyvr-debug-primary);
+        color: var(--wyvr-debug-text);
+        outline: none;
+    }
+}
+
+.wyvr_debug_toolbar_details {
+    display: none;
+}
+
+.wyvr_debug_toolbar_button:hover .wyvr_debug_toolbar_details {
+    display: block;
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+}
+
+@media (pointer:coarse) {
+    .wyvr_debug_toolbar_button:focus .wyvr_debug_toolbar_details {
+        display: block;
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+    }
+}
+
+.wyvr_debug_toolbar_button svg {
     width: 24px;
     height: 24px;
     fill: var(--wyvr-debug-text);
     filter: drop-shadow(0 0 10px var(--wyvr-debug-text-shadow));
-}
-.wyvr_debug_toolbar_name {
     display: block;
-    font-size: 14px;
+    pointer-events: none;
+}
+
+#wyvr_debug_toolbar_button_info {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 15px;
+    border-radius: 10px;
+    font-family: monospace;
+    font-size: 12px;
+    color: var(--wyvr-debug-text);
+    margin-bottom: 10px;
+    pointer-events: none;
+}
+
+#wyvr_debug_toolbar_button_info:empty {
+    display: none;
+}
+
+.wyvr_debug_toolbar_button_info_title {
+    display: block;
+    font-size: 18px;
     font-weight: 400;
     font-style: normal;
 }
-.wyvr_debug_toolbar_description {
+
+.wyvr_debug_toolbar_button_info_description:empty {
+    display: none;
+}
+
+.wyvr_debug_toolbar_button_info_description {
     display: block;
-    font-size: 10px;
+    font-size: 16px;
     width: 250px;
     max-width: 80vw;
     white-space: normal;
     line-height: 1.2em;
     color: color-mix(in srgb, var(--wyvr-debug-text) 75%, transparent);
+    margin-top: 5px;
 }
-.wyvr_debug_toolbar_description a {
-    font-size: 10px;
+
+.wyvr_debug_toolbar_button_info_description a {
+    font-size: 16px;
     line-height: 1.2em;
     color: var(--wyvr-debug-text);
 }
-.wyvr_debug_toolbar button:disabled {
-    opacity: 0.5;
-    pointer-events: none;
-}
-.wyvr_debug_toolbar button:hover,
-.wyvr_debug_toolbar button:active {
-    background: var(--wyvr-debug-primary);
-    color: var(--wyvr-debug-text);
-}
 
-.wyvr_debug_toolbar nav > a,
-.wyvr_debug_toolbar nav > span {
+
+
+.wyvr_debug_toolbar nav>a,
+.wyvr_debug_toolbar nav>span {
     display: inline-block;
     font-size: 12px;
     margin-left: 3.2em;
     position: relative;
     top: -0.5em;
 }
+
 .wyvr_message {
     position: fixed;
     bottom: 5px;
@@ -156,4 +248,42 @@
     transition: opacity 2s linear;
     pointer-events: none;
     z-index: 100000;
+}
+
+#wyvr_debug_logs {
+    position: relative;
+    display: none;
+}
+
+#wyvr_debug_logs::before {
+    content: "a";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--wyvr-debug-primary);
+    z-index: 100000;
+}
+
+#wyvr_debug_logs div {
+    display: none;
+}
+
+#wyvr_debug_logs div.wyvr_debug_log_warning {
+    color: var(--wyvr-debug-warning);
+}
+
+#wyvr_debug_logs div.wyvr_debug_log_error {
+    color: var(--wyvr-debug-error);
+}
+
+@keyframes wyvr-rotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }

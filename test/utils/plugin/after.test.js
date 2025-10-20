@@ -1,14 +1,15 @@
-import { deepStrictEqual, strictEqual } from 'node:assert';
+import { deepStrictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import Sinon from 'sinon';
 import { Plugin } from '../../../src/utils/plugin.js';
+import { to_plain } from '../../../src/utils/to.js';
 
 describe('utils/plugin/after', () => {
     let logger_messages = [];
     before(() => {
-        Sinon.stub(console, 'error');
-        console.error.callsFake((...msg) => {
-            logger_messages.push(msg);
+        Sinon.stub(console, 'log');
+        console.log.callsFake((...msg) => {
+            logger_messages.push(msg.map(to_plain));
         });
     });
     afterEach(() => {
@@ -16,31 +17,29 @@ describe('utils/plugin/after', () => {
         Plugin.clear();
     });
     after(() => {
-        console.error.restore();
+        console.log.restore();
     });
     it('found', async () => {
         Plugin.cache = {
             a: {
                 after: [
                     {
-                        fn: ({ result }) => {
-                            return result.map((i) => 'a' + i);
+                        fn: (result) => {
+                            return `a${result}`;
                         },
                         source: 'first',
                     },
                     {
-                        fn: ({ args }) => {
-                            return args.map((i) => i + 1);
+                        fn: (result) => {
+                            return result + 1;
                         },
                         source: 'second',
                     },
                 ],
             },
         };
-        const { args, error, result } = await Plugin.after('a', [], 1, 2);
-        deepStrictEqual(error, undefined);
-        deepStrictEqual(result, ['a2', 'a3']);
-        deepStrictEqual(args, [1, 2]);
+        const result = await Plugin.after('a', 1);
+        deepStrictEqual(result, 'a2');
         deepStrictEqual(logger_messages, []);
     });
 });

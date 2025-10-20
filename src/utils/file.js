@@ -1,23 +1,11 @@
-import {
-    mkdirSync,
-    existsSync,
-    readFileSync,
-    readdirSync,
-    statSync,
-    writeFileSync,
-    copyFileSync,
-    rmSync,
-    symlinkSync,
-    lstatSync,
-    appendFileSync,
-    renameSync,
-} from 'node:fs';
+import { mkdirSync, existsSync, readFileSync, readdirSync, statSync, writeFileSync, copyFileSync, rmSync, symlinkSync, lstatSync, appendFileSync, renameSync } from 'node:fs';
 import { extname, dirname, join } from 'node:path';
 import { stringify } from './json.js';
 import { is_string, filled_string, filled_array } from './validate.js';
 import { WyvrFile } from '../model/wyvr_file.js';
 import { Env } from '../vars/env.js';
 import { Logger } from './logger.js';
+import { FILE_EXTENSIONS } from '../constants/file.js';
 
 /**
  * converts the given filename to the filename with the given extension
@@ -65,22 +53,26 @@ export function to_index(filename, extension) {
         extension = 'html';
     }
     const ext = extension.trim().replace(/^\./, '');
+    const index = `index.${ext}`;
 
     if (!filename || typeof filename !== 'string' || !filename.trim()) {
-        return `index.${ext}`;
+        return index;
     }
     const parts = filename.split('/');
     const last = parts[parts.length - 1];
+    // replace the last entry after / with index
     if (last === '') {
         parts[parts.length - 1] = `index.${ext}`;
         return parts.join('/');
     }
+    // replace the index after the last /
     if (last === 'index') {
-        parts[parts.length - 1] = `index.${ext}`;
+        parts[parts.length - 1] = index;
         return parts.join('/');
     }
+    // when no dot is in the last part add index
     if (last.indexOf('.') === -1) {
-        parts.push(`index.${ext}`);
+        parts.push(index);
         return parts.join('/');
     }
     // dotfiles
@@ -88,7 +80,13 @@ export function to_index(filename, extension) {
         parts[parts.length - 1] = had_empty_ext ? last : `${last}.${ext}`;
         return parts.join('/');
     }
-    return filename;
+    const current_ext = extname(last).replace('.', '');
+    if (FILE_EXTENSIONS.indexOf(current_ext) > -1) {
+        return filename;
+    }
+    parts.push(index);
+
+    return parts.join('/');
 }
 
 /**
@@ -175,10 +173,7 @@ export function read_json(filename) {
  * @returns void
  */
 export function write(filename, content) {
-    if (
-        !is_string(filename) ||
-        (!is_string(content) && !Buffer.isBuffer(content))
-    ) {
+    if (!is_string(filename) || (!is_string(content) && !Buffer.isBuffer(content))) {
         return false;
     }
     // create containing folder
@@ -206,10 +201,9 @@ export function write_json(filename, data = null) {
         writeFileSync(filename, Env.is_dev() ? '[\n' : '[', { flag: 'w+' });
         const seperator = Env.is_dev() ? ',\n' : ',';
         for (let i = 0; i < len; i++) {
-            const content =
-                stringify(data[i], spaces) + (i + 1 < len ? seperator : '');
+            const content = stringify(data[i], spaces) + (i + 1 < len ? seperator : '');
             writeFileSync(filename, content, {
-                flag: 'a',
+                flag: 'a'
             });
         }
         writeFileSync(filename, Env.is_dev() ? '\n]' : ']', { flag: 'a' });
@@ -239,11 +233,7 @@ export function append(filename, content) {
  * @returns path of the found file
  */
 export function find_file(in_dir, possible_files) {
-    if (
-        !possible_files ||
-        !Array.isArray(possible_files) ||
-        possible_files.length == 0
-    ) {
+    if (!possible_files || !Array.isArray(possible_files) || possible_files.length == 0) {
         return undefined;
     }
     const found = possible_files.find((file) => {
@@ -286,10 +276,7 @@ export function collect_files(dir, extension, forbidden_folder) {
         if (!stat) {
             continue;
         }
-        if (
-            Array.isArray(forbidden_folder) &&
-            forbidden_folder.indexOf(entry) > -1
-        ) {
+        if (Array.isArray(forbidden_folder) && forbidden_folder.indexOf(entry) > -1) {
             continue;
         }
         if (stat.isDirectory()) {
@@ -357,7 +344,7 @@ export function get_folder(folder) {
         .map((entry) => {
             return {
                 name: entry,
-                path: join(folder, entry),
+                path: join(folder, entry)
             };
         })
         .filter((entry) => {
@@ -381,12 +368,7 @@ export function symlink(from, to) {
             if (exists(to)) {
                 const is_symlink = lstatSync(to).isSymbolicLink();
                 if (!is_symlink) {
-                    Logger.error(
-                        'symlink',
-                        from,
-                        to,
-                        'to is a regular file no symlink'
-                    );
+                    Logger.error('symlink', from, to, 'to is a regular file no symlink');
                     return false;
                 }
             }

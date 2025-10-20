@@ -22,6 +22,9 @@ import { WorkerController } from './worker/controller.js';
 import { Event } from './utils/event.js';
 import { get_commands } from './command/available_commands.js';
 import { UniqId } from './vars/uniq_id.js';
+import { PROJECT_EVENT, PROJECT_EVENT_CONFIG } from './constants/project_events.js';
+import { update_project_events } from './utils/project_events.js';
+import { FOLDER_GEN_EVENTS } from './constants/folder.js';
 
 export function get_command(config) {
     const commands = config?.cli?.command;
@@ -39,64 +42,70 @@ export async function command(base_config) {
     if (!config?.cli?.flags?.silent) {
         const logo = get_logo(config?.version);
         /* eslint-disable no-console */
-        console.error(config?.cli?.flags?.plain ? to_plain(logo) : logo);
-        console.error('');
+        console.log(config?.cli?.flags?.plain ? to_plain(logo) : logo);
         /* eslint-enable */
     }
 
-    Event.emit('project', 'config', config);
+    await update_project_events(FOLDER_GEN_EVENTS);
+    Event.emit(PROJECT_EVENT, PROJECT_EVENT_CONFIG, config);
 
+    const command_help = !!config?.cli?.flags?.help;
     const command = get_command(config);
-    switch (command) {
-        case 'app':
-            result = await app_command(config);
-            break;
-        case 'dev':
-            result = await dev_command(config);
-            break;
-        case 'build':
-            result = await build_command(config);
-            break;
-        case 'health':
-            result = await health_command(config);
-            break;
-        case 'help': {
-            const commands = await get_commands();
-            result = await help_command(config, commands);
-            break;
-        }
-        case 'info':
-            result = await info_command(config);
-            break;
-        case 'clear':
-            result = await clear_command(config);
-            break;
-        case 'create':
-            result = await create_command(config);
-            break;
-        case 'cron':
-            result = await cron_command(config);
-            break;
-        case 'test':
-            result = await test_command(config);
-            break;
-        case 'version':
-            result = await version_command(config);
-            break;
-        default:
-            {
-                // try to execute the custom command
+    if (command_help) {
+        const command_details = await get_commands(command);
+        result = await help_command(config, command_details);
+    } else {
+        switch (command) {
+            case 'app':
+                result = await app_command(config);
+                break;
+            case 'dev':
+                result = await dev_command(config);
+                break;
+            case 'build':
+                result = await build_command(config);
+                break;
+            case 'health':
+                result = await health_command(config);
+                break;
+            case 'help': {
                 const commands = await get_commands();
-                const command_result = await execute_custom_command(config, command, commands);
-
-                if (command_result?.executed) {
-                    result = command_result.result;
-                    break;
-                }
-                // fallback to unknown command
-                result = await unknown_command(config, commands);
+                result = await help_command(config, commands);
+                break;
             }
-            break;
+            case 'info':
+                result = await info_command(config);
+                break;
+            case 'clear':
+                result = await clear_command(config);
+                break;
+            case 'create':
+                result = await create_command(config);
+                break;
+            case 'cron':
+                result = await cron_command(config);
+                break;
+            case 'test':
+                result = await test_command(config);
+                break;
+            case 'version':
+                result = await version_command(config);
+                break;
+            default:
+                {
+                    // try to execute the custom command
+                    const commands = await get_commands();
+                    const command_result = await execute_custom_command(config, command, commands);
+
+                    if (command_result?.executed) {
+                        result = command_result.result;
+                        break;
+                    }
+                    // fallback to unknown command
+                    result = await unknown_command(config, commands);
+                }
+                break;
+        }
     }
     WorkerController.exit();
     const duration = nano_to_milli(process.hrtime.bigint() - start);

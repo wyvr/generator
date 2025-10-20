@@ -9,6 +9,8 @@ import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerEmit } from '../struc/worker_emit.js';
 import { inject } from '../utils/build.js';
 import { get_error_message } from '../utils/error.js';
+import { optimize_content } from '../utils/optimize.js';
+import { CodeContext } from '../struc/code_context.js';
 
 export async function build(files) {
     if (!filled_array(files)) {
@@ -18,6 +20,7 @@ export async function build(files) {
     let has_media = false;
     const media_query_files = {};
     const identifier_files = {};
+    const errors = [];
 
     for (const file of files) {
         Logger.debug('build', file);
@@ -27,7 +30,7 @@ export async function build(files) {
                 Logger.warning('empty data in', file);
                 continue;
             }
-            const identifier = data?._wyvr?.identifier || 'default';
+            const identifier = data?.$wyvr?.identifier || 'default';
             // add the current url to the used identifier
             if (!identifier_files[identifier]) {
                 identifier_files[identifier] = [];
@@ -38,19 +41,43 @@ export async function build(files) {
 
             const exec_result = await compile_server_svelte(content, file);
 
-            const rendered_result = await render_server_compiled_svelte(exec_result, data, file);
+            const [render_error, rendered_result] = await render_server_compiled_svelte(exec_result, data, file, CodeContext.server);
+            if (render_error !== undefined) {
+                errors.push({
+                    file,
+                    error: render_error,
+                    message: 'render error'
+                });
+                continue;
+            }
             const injected_result = await inject(rendered_result, data, file, identifier, (shortcode_emit) => {
                 send_action(WorkerAction.emit, shortcode_emit);
             });
             if (injected_result.has_media) {
                 has_media = true;
             }
+            if (injected_result.media_query_files) {
+                for (const key of Object.keys(injected_result.media_query_files)) {
+                    media_query_files[key] = injected_result.media_query_files[key];
+                }
+            }
 
             // write the html code
-            write(injected_result.path, injected_result.content);
+            write(injected_result.path, await optimize_content(injected_result.content, identifier));
         } catch (e) {
             Logger.error(get_error_message(e, file, 'build'));
+            errors.push({
+                file,
+                message: e.message
+            });
         }
+    }
+    if (filled_array(errors)) {
+        const error_emit = {
+            type: WorkerEmit.errors,
+            errors
+        };
+        send_action(WorkerAction.emit, error_emit);
     }
     // emit media files
     if (has_media) {

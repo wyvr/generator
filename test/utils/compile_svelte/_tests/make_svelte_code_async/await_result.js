@@ -1,4 +1,4 @@
-import { create_ssr_component, escape, is_promise, noop } from '[root]/gen/server/svelte_internal.mjs';
+import { create_ssr_component, escape, is_promise, noop } from '[root]/gen/svelte/src/runtime/internal/index.js';
 
 async function getRandomNumber() {
 	const res = await fetch(`/tutorial/random-number`);
@@ -21,8 +21,8 @@ const App = await create_ssr_component(async ($$result, $$props, $$bindings, slo
 	return `<button>generate random number
 </button>
 
-${(function (__value) {
-		if (is_promise(__value)) {
+${await (async function (__value) {
+		try {__value = await __value;} catch(e) {__value = undefined}; if (is_promise(__value)) {
 			__value.then(null, noop);
 
 			return `
@@ -30,7 +30,7 @@ ${(function (__value) {
 `;
 		}
 
-		return (function (number) {
+		return await (async function (number) {
 			return `
 	<p>The number is ${escape(number)}</p>
 `;

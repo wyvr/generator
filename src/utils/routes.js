@@ -1,31 +1,19 @@
 import { statSync } from 'node:fs';
-import {
-    FOLDER_GEN_ROUTES,
-    FOLDER_GEN_SRC,
-    FOLDER_ROUTES,
-} from '../constants/folder.js';
+import { FOLDER_GEN_ROUTES, FOLDER_GEN_SRC, FOLDER_ROUTES } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { compile_server_svelte } from './compile.js';
 import { render_server_compiled_svelte } from './compile_svelte.js';
 import { get_config_cache, set_config_cache } from './config_cache.js';
-import { get_error_message } from './error.js';
+import { get_error_message, get_error_page } from './error.js';
 import { collect_files, exists, read, write } from './file.js';
 import { generate_page_code } from './generate.js';
 import { Logger } from './logger.js';
 import { to_relative_path_of_gen } from './to.js';
-import {
-    filled_array,
-    filled_string,
-    in_array,
-    is_func,
-    is_null,
-    is_string,
-    match_interface,
-} from './validate.js';
+import { filled_array, filled_string, in_array, is_func, is_null, is_string, match_interface } from './validate.js';
 import { process_page_data } from '../action_worker/process_page_data.js';
 import { inject } from './build.js';
-import { replace_imports } from './transform.js';
-import { register_i18n } from './global.js';
+import { extract_headings_from_content, replace_imports } from './transform.js';
+import { register_i18n, weak_register_i18n } from './global.js';
 import { get_language } from './i18n.js';
 import { dev_cache_breaker } from './cache_breaker.js';
 import { Plugin } from './plugin.js';
@@ -35,10 +23,13 @@ import { stringify } from './json.js';
 import { SerializableResponse } from '../model/serializable/response.js';
 import { get_cookies, set_cookie } from './cookies.js';
 import { uniq_values } from './uniq.js';
+import { PLUGIN_ROUTE_CONTEXT, PLUGIN_ROUTE_ON_EXEC } from '../constants/plugins.js';
 
 export async function build_cache() {
     const files = collect_files(Cwd.get(FOLDER_GEN_ROUTES));
     const cache = [];
+    // add base registering for i18n
+    weak_register_i18n();
     const executed_result = await Promise.all(
         files.map(async (file) => {
             Logger.debug(file);
@@ -50,23 +41,12 @@ export async function build_cache() {
             // replace the imports only once
             const content = read(file);
             if (content) {
-                write(
-                    file,
-                    replace_imports(
-                        content,
-                        file,
-                        FOLDER_GEN_SRC,
-                        FOLDER_ROUTES
-                    )
-                );
+                write(file, replace_imports(content, file, FOLDER_GEN_SRC, FOLDER_ROUTES));
             }
             const result = await load_route(file);
             /* c8 ignore start */
             if (contains_reserved_words(result?.url)) {
-                Logger.warning(
-                    result?.url,
-                    'contains reserved word, the route may be not executed'
-                );
+                Logger.warning(result?.url, 'contains reserved word, the route may be not executed');
             }
             /* c8 ignore end */
             const config = await extract_route_config(result, file);
@@ -84,7 +64,13 @@ export async function build_cache() {
     return executed_result.filter((x) => x);
 }
 
-export async function load_route(file) {
+/**
+ * Load the given route and return the route data, when the route exports a function it will execute it and an optional context can be added
+ * @param {string} file
+ * @param {any} context that can be given when it is a function
+ * @returns the route object
+ */
+export async function load_route(file, context) {
     if (!exists(file)) {
         return undefined;
     }
@@ -93,7 +79,11 @@ export async function load_route(file) {
     try {
         result = await import(uniq_path);
         if (result?.default) {
-            result = result.default;
+            if (is_func(result.default)) {
+                result = await result.default(context);
+            } else {
+                result = result.default;
+            }
         }
     } catch (e) {
         Logger.error(get_error_message(e, file, 'route'));
@@ -110,14 +100,9 @@ export function get_route(url, method, route_cache) {
     let [clean_url] = url.split('?');
     // remove index.html from the url to avoid mismatches
     clean_url = clean_url.replace(/\/index\.html?$/, '/');
-    const normalized_method = is_string(method)
-        ? method.trim().toLowerCase()
-        : '';
+    const normalized_method = is_string(method) ? method.trim().toLowerCase() : '';
     const found_cache_item = route_cache.find((item) => {
-        return (
-            clean_url.match(new RegExp(item.match)) &&
-            in_array(item.methods, normalized_method)
-        );
+        return clean_url.match(new RegExp(item.match)) && in_array(item.methods, normalized_method);
     });
     return found_cache_item;
 }
@@ -174,17 +159,10 @@ export async function run_route(request, response, uid, route) {
     // get parameters from url
     const params = {};
     route.params.forEach((param, idx) => {
-        params[param] = decodeURIComponent(
-            params_match[idx + 1].replace(/\/$/, '').trim()
-        );
+        const value = decodeURIComponent(params_match[idx + 1].replace(/\/$/, '').trim());
+        params[param] = value.replace(/\(\(/g, '').replace(/\)\)/g, '');
     });
     params.isExec = !request.isNotExec;
-    // get the route result
-    const code = await load_route(route.path);
-
-    if (is_null(code)) {
-        return [undefined, response];
-    }
 
     const error_message = (key) => `error in ${key} function`;
 
@@ -192,7 +170,7 @@ export async function run_route(request, response, uid, route) {
     let data = {
         $uid: uid,
         $route: route,
-        url: clean_url,
+        url: clean_url
     };
     let status = 200;
     let header = {};
@@ -243,76 +221,66 @@ export async function run_route(request, response, uid, route) {
             response_header['Content-Type'] = 'application/json';
             const returned_json = json === undefined ? 'null' : stringify(json);
             // biome-ignore lint: noParameterAssign
-            response = end_response(
-                response,
-                returned_json,
-                status,
-                response_header,
-                response_cookies
-            );
+            response = end_response(response, returned_json, status, response_header, response_cookies);
         },
         returnData: (data, status = 200, custom_headers = {}) => {
             // biome-ignore lint: noParameterAssign
-            response = end_response(
-                response,
-                data,
-                status,
-                Object.assign({}, header, custom_headers),
-                response_cookies
-            );
+            response = end_response(response, data, status, Object.assign({}, header, custom_headers), response_cookies);
         },
-        returnRedirect: (url, statusCode = 301, custom_headers = {}) => {
+        returnRedirect: (url, status = 301, custom_headers = {}) => {
             const response_header = Object.assign({}, header, custom_headers, {
-                Location: url,
+                Location: url
             });
-            if (Env.is_dev()) {
+            if (Env.is_debug()) {
                 Logger.info('Redirect to', url, response_header);
             }
             // biome-ignore lint: noParameterAssign
-            response = end_response(
-                response,
-                `Redirect to ${url}`,
-                statusCode,
-                response_header,
-                response_cookies
-            );
+            response = end_response(response, `Redirect to ${url}`, status, response_header, response_cookies);
         },
+        returnNothing: () => {
+            response.wyvrEnd = true;
+        }
     };
 
-    const construct_route_context = await Plugin.process(
-        'construct_route_context',
-        route_context
-    );
-    const construct_route_context_result = await construct_route_context(
-        (route_object) => {
-            return route_object;
-        }
-    );
-    route_context = construct_route_context_result.result;
+    const construct_route_context = await Plugin.process(PLUGIN_ROUTE_CONTEXT, route_context);
+    const construct_route_context_result = await construct_route_context((context) => context);
+    if (construct_route_context_result !== undefined) {
+        route_context = construct_route_context_result;
+    }
+
+    // register the language for all imports when the route is loaded
+    /* c8 ignore next */
+    let language = data?.$wyvr?.language || 'en';
+    register_i18n(get_language(language), route.path);
+
+    // get the route result
+    const code = await load_route(route.path, route_context);
+    // when the function itself returns early stop proceeding, for performance reasons
+    if (route_context?.response?.writableEnded) {
+        return [undefined, response];
+    }
+
+    if (is_null(code)) {
+        return [undefined, response];
+    }
 
     if (is_func(code.onExec)) {
-        /* c8 ignore next */
-        const language = data?._wyvr?.language || 'en';
-        register_i18n(get_language(language), route.path);
         try {
             data = await code.onExec(route_context);
             if (route_context?.response?.writableEnded) {
                 return [undefined, response];
             }
         } catch (e) {
-            Logger.error(
-                '[route]',
-                error_message('onExec'),
-                get_error_message(e, route.path, 'route')
-            );
+            Logger.error('[route]', error_message('onExec'), get_error_message(e, route.path, 'route'));
         }
+    }
+    // end request when is marked as complete
+    if (response?.wyvrEnd || response?.complete) {
+        return [undefined, response];
     }
     // when onExec does not return a correct object force one
     if (!data) {
-        Logger.warning(
-            '[route]',
-            `onExec in ${route.path} should return a object`
-        );
+        Logger.warning('[route]', `onExec in ${route.path} should return a object`);
         data = route_context.data;
     }
 
@@ -320,17 +288,16 @@ export async function run_route(request, response, uid, route) {
     data.url = clean_url;
     route_context.data = data;
 
+    if (data.content) {
+        data.$headings = extract_headings_from_content(data.content);
+    }
+
     // added after the onExec to allow stopping the not found routines later on and reseting the headers
-    const route_on_exec_context = await Plugin.process(
-        'route_on_exec_context',
-        route_context
-    );
-    const route_on_exec_context_result = await route_on_exec_context(
-        (route_object) => {
-            return route_object;
-        }
-    );
-    route_context = route_on_exec_context_result.result;
+    const route_on_exec_context = await Plugin.process(PLUGIN_ROUTE_ON_EXEC, route_context);
+    const route_on_exec_context_result = await route_on_exec_context((context) => context);
+    if (route_on_exec_context_result !== undefined) {
+        route_context = route_on_exec_context_result;
+    }
 
     // apply cookies to header
     header = apply_cookies(header, response_cookies);
@@ -366,26 +333,37 @@ export async function run_route(request, response, uid, route) {
     route_context.returnRedirect = () => {
         Logger.warning('[route]', 'returnRedirect can only be used in onExec');
     };
+    route_context.returnNothing = () => {
+        Logger.warning('[route]', 'returnNothing can only be used in onExec');
+    };
 
-    /* c8 ignore next */
-    const language = data?._wyvr?.language || 'en';
-    register_i18n(get_language(language), route.path);
+    // execute $wyvr to set the language and other properties
+    if (is_func(code.$wyvr)) {
+        try {
+            data.$wyvr = await code.$wyvr(route_context);
+        } catch (e) {
+            Logger.error('[route]', error_message('$wyvr'), get_error_message(e, route.path, 'route'));
+        }
+    }
+
+    // update the language if it has been changed
+    if (language !== (data?.$wyvr?.language || 'en')) {
+        language = data?.$wyvr?.language || 'en';
+        /* c8 ignore next */
+        register_i18n(get_language(language), route.path);
+    }
 
     // replace function properties
     await Promise.all(
         Object.keys(code).map(async (key) => {
-            if (in_array(['onExec', 'getCollection'], key)) {
+            if (in_array(['onExec', 'getCollection', '$wyvr'], key)) {
                 return undefined;
             }
             if (is_func(code[key])) {
                 try {
                     data[key] = await code[key](route_context);
                 } catch (e) {
-                    Logger.error(
-                        '[route]',
-                        error_message(key),
-                        get_error_message(e, route.path, 'route')
-                    );
+                    Logger.error('[route]', error_message(key), get_error_message(e, route.path, 'route'));
                 }
                 return null;
             }
@@ -400,65 +378,51 @@ export async function run_route(request, response, uid, route) {
 
     data.url = clean_url;
     const page_data = await process_page_data(data, route.mtime);
-    page_data._wyvr.is_exec = true;
-    page_data._wyvr.route_pattern = route.url;
-
-    // add data for routes to handle more complex cases in the svelte files
-    page_data._wyvr.cookies = request_cookies;
-    page_data._wyvr.headers = request_headers;
-    page_data._wyvr.query = query;
+    page_data.$wyvr = {
+        ...page_data.$wyvr,
+        is_exec: true,
+        route_pattern: route.url,
+        // add data for routes to handle more complex cases in the svelte files
+        cookies: request_cookies,
+        headers: request_headers,
+        query: query
+    };
 
     const page_content = generate_page_code(page_data);
 
     const route_result = await compile_server_svelte(page_content, route.path);
 
-    const rendered_result = await render_server_compiled_svelte(
-        route_result,
-        page_data,
-        route.path
-    );
+    const [render_error, rendered_result] = await render_server_compiled_svelte(route_result, page_data, route.path);
 
     /* c8 ignore start */
     // safeguard
-    if (!rendered_result) {
+    if (render_error) {
+        // add error page & show detailed error in dev mode with the last error messages
+        response = end_response(response, get_error_page(render_error, clean_url, 'Error in Route Rendering'), 500, header, response_cookies);
         return [undefined, response];
     }
     /* c8 ignore end */
 
-    if (rendered_result) {
-        rendered_result.data = page_data;
-    }
-    const identifier = rendered_result.data?._wyvr?.identifier || 'default';
-    const injected_result = await inject(
-        rendered_result,
-        page_data,
-        route.path,
-        identifier,
-        (shortcode_emit) => {
-            Logger.debug('shortcode', shortcode_emit);
-            if (shortcode_emit) {
-                if (!rendered_result.shortcode) {
-                    rendered_result.shortcode = {};
-                }
-                shortcode_emit.type = undefined;
-                rendered_result.shortcode[shortcode_emit.identifier] =
-                    shortcode_emit;
+    rendered_result.data = page_data;
+
+    const identifier = rendered_result.data?.$wyvr?.identifier || 'default';
+    const injected_result = await inject(rendered_result, page_data, route.path, identifier, (shortcode_emit) => {
+        Logger.debug('shortcode', shortcode_emit);
+        if (shortcode_emit) {
+            if (!rendered_result.shortcode) {
+                rendered_result.shortcode = {};
             }
+            shortcode_emit.type = undefined;
+            rendered_result.shortcode[shortcode_emit.identifier] = shortcode_emit;
         }
-    );
+    });
 
     rendered_result.result.html = injected_result.content;
 
     return [rendered_result, response];
 }
 
-function end_response(
-    response,
-    data,
-    status = 200,
-    headers = {},
-    cookies = {}
-) {
+function end_response(response, data, status = 200, headers = {}, cookies = {}) {
     response?.writeHead(status, undefined, apply_cookies(headers, cookies));
     response?.end(data);
     if (response) {
@@ -469,10 +433,7 @@ function end_response(
 
 function apply_cookies(header, cookies) {
     for (const [key, data] of Object.entries(cookies)) {
-        const cookie =
-            typeof data === 'string'
-                ? `${key}=${data}`
-                : set_cookie(key, data.value, data.options);
+        const cookie = typeof data === 'string' ? `${key}=${data}` : set_cookie(key, data.value, data.options);
         if (!cookie) {
             continue;
         }
@@ -505,25 +466,18 @@ export async function extract_route_config(result, path) {
             return item;
         })
         .join('\\/')}\\/?$`.replace('\\/\\/?$', '\\/?$');
-    let methods = [
-        'get',
-        'head',
-        'post',
-        'put',
-        'delete',
-        'connect',
-        'options',
-        'trace',
-        'patch',
-    ];
-    // execute _wyvr to get insights into the executable
-    if (typeof result?._wyvr === 'function') {
-        result._wyvr = await result._wyvr({});
+    let methods = ['get', 'head', 'post', 'put', 'delete', 'connect', 'options', 'trace', 'patch'];
+    if (!result?.$wyvr && result?._wyvr) {
+        result.$wyvr = result._wyvr;
+        Logger.warning('obsolete _wyvr property in', result.url);
+        delete result._wyvr;
     }
-    if (filled_array(result?._wyvr?.methods)) {
-        methods = result?._wyvr?.methods.filter((method) =>
-            in_array(methods, method)
-        );
+    // execute $wyvr to get insights into the executable
+    if (typeof result?.$wyvr === 'function') {
+        result.$wyvr = await result.$wyvr({});
+    }
+    if (filled_array(result?.$wyvr?.methods)) {
+        methods = result?.$wyvr?.methods.filter((method) => in_array(methods, method));
     }
 
     // get specificity of the url, to detect the order of match checking
@@ -547,7 +501,7 @@ export async function extract_route_config(result, path) {
         match,
         mtime: stats.mtimeMs,
         methods,
-        weight,
+        weight
     };
 }
 

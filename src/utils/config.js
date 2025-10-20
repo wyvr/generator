@@ -4,7 +4,7 @@ import { is_file, find_file, write_json, read_json, remove } from './file.js';
 import { register_inject } from './global.js';
 import { Logger } from './logger.js';
 import { search_segment } from './segment.js';
-import { filled_string, is_string } from './validate.js';
+import { filled_object, filled_string, is_array, is_object, is_string } from './validate.js';
 import { FOLDER_CACHE } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { append_cache_breaker } from './cache_breaker.js';
@@ -12,18 +12,41 @@ import { append_cache_breaker } from './cache_breaker.js';
 // location of the persisted config cache
 const config_cache_path = Cwd.get(FOLDER_CACHE, 'config.json');
 
-function merge_config(config1, config2) {
+export function merge_config(config1, config2) {
     if (config1 === undefined && config2 === undefined) {
         return undefined;
     }
-    if (config1 === undefined) {
-        config1 = {};
+    const config = merge(config1 ?? {}, config2 ?? {});
+    // avoid merging of the crons
+    if (filled_object(config2?.cron)) {
+        for (const [key, value] of Object.entries(config2.cron)) {
+            config.cron[key] = value;
+        }
     }
-    if (config2 === undefined) {
-        config2 = {};
-    }
+    // correct the packages and assets
+    return dedup(config);
+}
 
-    return merge(config1, config2);
+function dedup(obj) {
+    if (is_array(obj)) {
+        // Deduplicate array and handle nested objects
+        const seen = new Map();
+        return obj
+            .filter((item) => {
+                const serializedItem = JSON.stringify(item);
+                return seen.has(serializedItem) ? false : seen.set(serializedItem, true);
+            })
+            .map(dedup);
+    }
+    if (is_object(obj)) {
+        // Iterate over object properties
+        for (const key in obj) {
+            if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                obj[key] = dedup(obj[key]);
+            }
+        }
+    }
+    return obj;
 }
 
 function config() {
@@ -40,6 +63,7 @@ function config() {
             }
             // when nothing is specified as segment return whole config
             if (!is_string(segment)) {
+                // here should not be used structuredClone
                 return Object.assign({}, cache);
             }
             return search_segment(cache, segment, fallback_value);
@@ -87,9 +111,12 @@ function config() {
             }
             return {};
         },
-        persist: (config) => {
-            write_json(config_cache_path, config);
-        },
+        persist: () => {
+            if (!filled_object(cache)) {
+                return;
+            }
+            write_json(config_cache_path, cache);
+        }
     };
 }
 
@@ -100,9 +127,7 @@ export async function inject(content, file) {
         return '';
     }
     const search_string = '_inject(';
-    const found = content.match(
-        new RegExp(`\\W${search_string.replace('(', '\\(')}`)
-    );
+    const found = content.match(new RegExp(`\\W${search_string.replace('(', '\\(')}`));
     // when not found or part of another word
     if (!found) {
         return content;
@@ -131,13 +156,11 @@ export async function inject(content, file) {
         // extract the function content, to execute it
         register_inject(file);
         const func_content = content.substr(start_index, index - start_index);
+        // biome-ignore lint/security/noGlobalEval: inject has to be evaluated
         const result = await eval(func_content); // @NOTE throw error, must be catched outside
 
         // insert result of getGlobal
-        const replaced =
-            content.substr(0, start_index) +
-            JSON.stringify(result) +
-            content.substr(index);
+        const replaced = content.substr(0, start_index) + JSON.stringify(result) + content.substr(index);
         // check if more onServer handlers are used
         return await inject(replaced);
     }

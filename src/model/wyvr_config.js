@@ -5,7 +5,6 @@ export const WyvrConfig = Object.freeze({
     cron: {},
     default_values: {}, // object which gets injected into every page
     env: Env.name(),
-    https: true,
     i18n: {
         fallback: 'en'
     },
@@ -16,6 +15,14 @@ export const WyvrConfig = Object.freeze({
     url: 'localhost',
     worker: {
         ratio: 0.3,
-        force_initial_build: false
-    }
+        force_initial_build: false,
+        app_performance_limit_warning: 500 // in ms or false to disable it
+    },
+    critical: {
+        rebase: undefined,
+        ignore: {
+            atrule: ['@font-face']
+        }
+    },
+    optimize: {}
 });

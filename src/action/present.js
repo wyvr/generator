@@ -23,7 +23,7 @@ export function present(config_data) {
     process.title = `wyvr ${command}`;
     Logger.present('command', command, Logger.color.dim(flags));
     const events_count = get_active_events_count();
-    if(events_count > 0) {
+    if (events_count > 0) {
         Logger.present('events', events_count);
     }
 }

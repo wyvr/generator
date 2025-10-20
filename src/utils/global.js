@@ -1,21 +1,20 @@
 import { I18N } from '../model/i18n.js';
-import { Storage } from './storage.js';
 import { get_error_message } from './error.js';
 import { Logger } from './logger.js';
 import { filled_string, is_func, is_null } from './validate.js';
-import {
-    FOLDER_GEN,
-    FOLDER_PROP,
-    FOLDER_STORAGE,
-} from '../constants/folder.js';
+import { FOLDER_PROP } from '../constants/folder.js';
 import { create_hash } from './hash.js';
 import { exists, write } from './file.js';
 import { stringify } from './json.js';
-import { Cwd } from '../vars/cwd.js';
-import { join } from 'node:path';
 import { ReleasePath } from '../vars/release_path.js';
 import { getRequestId } from '../vars/request_id.js';
+import { KeyValue } from './database/key_value.js';
+import { get_language } from './i18n.js';
 
+/**
+ * Register the inject function to handle global config injections with _inject
+ * @param {string} file root file
+ */
 export function register_inject(file) {
     global._inject_file = file;
     // replace the injectConfig functions with the corresponding values
@@ -27,8 +26,12 @@ export function register_inject(file) {
                 const type = parts.shift();
                 const parent_key = parts.join('.');
 
-                Storage.set_location(FOLDER_STORAGE);
-                value = await Storage.get(type, parent_key);
+                try {
+                    const db = new KeyValue(type);
+                    value = db.get(parent_key);
+                } catch (e) {
+                    Logger.error(get_error_message(e, global._inject_file, 'inject'));
+                }
             }
             if (is_null(value)) {
                 value = fallback;
@@ -40,14 +43,17 @@ export function register_inject(file) {
             try {
                 value = await callback(value);
             } catch (e) {
-                Logger.warning(
-                    get_error_message(e, global._inject_file, 'inject')
-                );
+                Logger.warning(get_error_message(e, global._inject_file, 'inject'));
             }
             return value;
         };
     }
 }
+/**
+ * Register the i18n function to handle global translations with __
+ * @param {object} translations key value object with the translations
+ * @param {string} file root file
+ */
 export function register_i18n(translations, file) {
     global._i18n_file = file;
     // replace the injectConfig functions with the corresponding values
@@ -62,18 +68,25 @@ export function register_i18n(translations, file) {
         global.__ = (key, options) => {
             const error = global._i18n.get_error(key, options);
             if (error) {
-                Logger.warning(
-                    get_error_message(
-                        { name: 'i18n', message: error },
-                        global._i18n_file,
-                        'inject'
-                    )
-                );
+                Logger.warning(get_error_message({ name: 'i18n', message: error }, global._i18n_file, 'inject'));
             }
             return global._i18n.tr(key, options);
         };
     }
 }
+/**
+ * Register the i18n function to handle global translations with __, but only when no i18n is registered yet
+ */
+export function weak_register_i18n() {
+    if (!is_func(global._i18n)) {
+        // register the language for all imports when the route is loaded
+        register_i18n(get_language('en'));
+    }
+}
+/**
+ * Register the prop function to handle global properties with _prop
+ * @param {string} file root file
+ */
 export function register_prop(file) {
     global._prop_file = file;
     // replace the injectConfig functions with the corresponding values
@@ -84,21 +97,35 @@ export function register_prop(file) {
         if (value === undefined) {
             return `|${prop}|:null`;
         }
+        // encode functions as files
+        if (typeof value === 'function') {
+            const content = value.toString();
+            const hash = create_hash(content, 64);
+            const file_name = `/${FOLDER_PROP}/${prop}_${hash}.js`;
+            const release_path = ReleasePath.get(file_name);
+            if (!exists(release_path)) {
+                write(release_path, `export default ${content}`);
+            }
+            return `|${prop}|:|$(${file_name})|`;
+        }
+
         const converted = stringify(value);
+        if (converted === undefined) {
+            return `|${prop}|:null`;
+        }
         if (converted.length > 1000) {
             const hash = create_hash(converted, 64);
             const file_name = `/${FOLDER_PROP}/${prop}_${hash}.json`;
-            const release_path = join(ReleasePath.get(), file_name);
+            const release_path = ReleasePath.get(file_name);
             if (!exists(release_path)) {
                 write(release_path, converted);
             }
             return `|${prop}|:|@(${file_name})|`;
         }
-        return `|${prop}|:${converted
-            .replace(/\|/g, '§|§')
-            .replace(/"/g, '|')}`;
+        return `|${prop}|:${converted.replace(/\|/g, '§|§').replace(/"/g, '|').replace(/\{/g, '«').replace(/\}/g, '»')}`;
     };
 }
+
 const stackContext = new Map();
 /**
  * Create the global methods to handle the stack data which can be used to transform data between server and client per page
@@ -109,16 +136,20 @@ export function register_stack() {
         return;
     }
     global.setStack = (key, value) => {
-        if (typeof key === 'string' && key) {
+        if (filled_string(key)) {
             const data = stackContext.get(getRequestId()) ?? {};
             // @TODO validate to allow only syncronizable data inside here
-            data[key] = value;
+            if (value !== undefined) {
+                data[key] = value;
+            } else {
+                delete data[key];
+            }
             stackContext.set(getRequestId(), data);
         }
         return value;
     };
     global.getStack = (key, fallback) => {
-        if (typeof key !== 'string' || !key) {
+        if (!filled_string(key)) {
             return fallback;
         }
         const data = stackContext.get(getRequestId()) ?? {};

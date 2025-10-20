@@ -1,4 +1,5 @@
 import Component from './devtool.svelte';
+import { mount } from "svelte";
 
 let is_active = false;
 let target;
@@ -23,7 +24,7 @@ export default {
             target = document.createElement('div');
             target.setAttribute('id', 'my_devtool');
             document.body.appendChild(target);
-            component = new Component({ target, props: { name } });
+            component = mount(Component, { target, props: { name } });
         } else {
             close();
         }

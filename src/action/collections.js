@@ -1,11 +1,13 @@
+import { PLUGIN_COLLECTIONS } from '../constants/plugins.js';
+import { STORAGE_COLLECTION } from '../constants/storage.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerEmit, get_name } from '../struc/worker_emit.js';
 import { merge_collections, sort_collections } from '../utils/collections.js';
 import { get_config_cache } from '../utils/config_cache.js';
+import { KeyValue } from '../utils/database/key_value.js';
 import { Event } from '../utils/event.js';
 import { Logger } from '../utils/logger.js';
 import { Plugin } from '../utils/plugin.js';
-import { Storage } from '../utils/storage.js';
 import { filled_object } from '../utils/validate.js';
 import { WorkerController } from '../worker/controller.js';
 import { measure_action } from './helper.js';
@@ -31,21 +33,21 @@ export async function collections(page_collections) {
                 collections = merge_collections(collections, data.collections);
             });
 
-            const caller = await Plugin.process(name, routes_cache);
-            await caller(async (routes_cache) => {
-                await WorkerController.process_in_workers(WorkerAction.collections, routes_cache, 1);
-            });
+            await WorkerController.process_in_workers(WorkerAction.collections, routes_cache, 1);
 
             Event.off('emit', collections_name, collections_id);
         }
 
-        // sort the collection entries
-        collections = sort_collections(collections);
+        const caller = await Plugin.process(PLUGIN_COLLECTIONS, sort_collections(collections));
+        collections = await caller(async (collections) => {
+            // sort the collection entries
+            return collections;
+        });
 
         Logger.info('collected', Object.keys(collections).length, 'collections', Logger.color.dim(Object.keys(collections).join(',')));
         // delete the existing collections
-        // @TODO changed collections does not always gets removed
-        await Storage.clear('collection');
-        await Storage.set('collection', collections);
+        const collection_db = new KeyValue(STORAGE_COLLECTION);
+        collection_db.clear();
+        collection_db.setObject(collections);
     });
 }

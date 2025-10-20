@@ -1,6 +1,6 @@
 import { read, write } from './file.js';
 import { Logger } from './logger.js';
-import { is_func, is_object } from './validate.js';
+import { filled_string, is_func, is_object } from './validate.js';
 
 export const tab = '    ';
 
@@ -37,8 +37,19 @@ export function replace_placeholder(content, replaces) {
     if (!is_object(replaces)) {
         return content;
     }
-    Object.entries(replaces).forEach(([key, value]) => {
-        content = content.replace(new RegExp(`\\{\\{\\s*?${key}\\s*?\\}\\}`, 'g'), value || '');
-    });
-    return content;
+    let replaced_content = content;
+    for (const [key, value] of Object.entries(replaces)) {
+        replaced_content = replaced_content.replace(new RegExp(`\\{\\{\\s*?${key}\\s*?\\}\\}`, 'g'), value || '');
+    }
+    return replaced_content;
+}
+
+export function inset(content) {
+    if (!filled_string(content)) {
+        return '';
+    }
+    return content
+        .split('\n')
+        .map((line) => `\t${line}`)
+        .join('\n');
 }

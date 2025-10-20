@@ -7,7 +7,7 @@ export default {
     order: 100,
     onClick: () => {
         if (!is_active) {
-            trigger('wyvr_devtools_rebuild');
+            trigger('wyvr_devtools_action', { type: 'rebuild' });
             wyvr_message('triggered rebuild');
             is_active = true;
         }

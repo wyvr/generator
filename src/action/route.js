@@ -4,10 +4,11 @@ import { match_interface } from '../utils/validate.js';
 import { Plugin } from '../utils/plugin.js';
 import { SerializableRequest } from '../model/serializable/request.js';
 import { route, send_process_route_request } from '../action_worker/route.js';
-import { STATUS_CODES } from 'http';
+import { STATUS_CODES } from 'node:http';
 import { stringify } from '../utils/json.js';
 import { get_error_message } from '../utils/error.js';
 import { Env } from '../vars/env.js';
+import { PLUGIN_ROUTES } from '../constants/plugins.js';
 
 /**
  * Process route from an request
@@ -29,7 +30,7 @@ export async function route_request(req, res, uid, force_generating_of_resources
     });
 
     // wrap in plugin
-    const caller = await Plugin.process(name, [ser_req]);
+    const caller = await Plugin.process(PLUGIN_ROUTES, [ser_req]);
     await caller(async (requests) => {
         const responses = await route(requests);
         response = responses.find(Boolean);
@@ -93,14 +94,14 @@ export function apply_response(response, ser_response) {
             for (const [key, value] of Object.entries(ser_response.headers)) {
                 const clean_key = clean_header_text(key, false);
                 const clean_value = clean_header_text(value);
-                if (Env.is_dev() && (clean_key !== key || JSON.stringify(clean_value) !== JSON.stringify(value))) {
+                if (Env.is_debug() && (clean_key !== key || JSON.stringify(clean_value) !== JSON.stringify(value))) {
                     if (clean_key !== key) {
                         Logger.warning(`cleaned response header entry key ${JSON.stringify(key)} => ${JSON.stringify(clean_key)}`);
                     }
                     if (JSON.stringify(clean_value) !== JSON.stringify(value)) {
-                        Logger.warning(`cleaned response header entry value ${JSON.stringify(clean_key)}`);
-                        Logger.debug(`- orig ${JSON.stringify(value)}`);
-                        Logger.debug(`- cleaned ${JSON.stringify(clean_value)}`);
+                        Logger.warning(
+                            `cleaned response header entry value ${JSON.stringify(clean_key)}\n- original ${JSON.stringify(value)}\n- cleaned ${JSON.stringify(clean_value)}`
+                        );
                     }
                 }
 

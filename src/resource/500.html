@@ -1,65 +1,127 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <title>{message}</title>
-        <style>
-            .message {
-                display: flex;
-                align-items: center;
-                font: 1rem/1.4em sans-serif;
-                width: 100vw;
-                height: 100vh;
-                justify-content: center;
-                position: absolute;
-                left: 0;
-                top: 0;
-                color: var(--wyvr-debug-primary);
+
+<head>
+    <meta charset="UTF-8" />
+    <meta
+        content="width=device-width,initial-scale=1,minimum-scale=1"
+        name="viewport"
+    />
+    <title>ERROR: {message}</title>
+    <style>
+        :root {
+            --wyvr-debug-primary: #6d8ddf;
+            --wyvr-debug-primary-text: #fff;
+            --wyvr-debug-disabled: #999;
+            --wyvr-debug-bg: #eee;
+            --wyvr-debug-text: #222;
+            --wyvr-debug-text-shadow: #000;
+            --wyvr-debug-error: #800;
+            --wyvr-debug-font-size: 16px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --wyvr-debug-bg: #222;
+                --wyvr-debug-text: #eee;
             }
-            .card {
-                text-align: center;
-            }
-            .card small {
-                opacity: 0.7;
-            }
-            .card button {
-                background: var(--wyvr-debug-primary);
-                border: 0;
-                padding: 10px;
-                color: var(--wyvr-debug-text);
-                margin-top: 10px;
-            }
-            .error {
-                font-family: monospace;
-                text-align: left;
-                margin-bottom: 1rem;
-                width: 90vw;
-            }
-            .detail {
-                opacity: 0.7;
-            }
-            @media (prefers-color-scheme: dark) {
-                html {
-                    background-color: #222;
-                }
-            }
-        </style>
-    </head>
-    <body>
-        <div class="message">
-            <div class="card">
-                <small>file:</small> <code>{file}</code>
-                <h1>{name}</h1>
-                <div class="error"><b>{message}</b></div>
-                <div class="error detail">{debug}</div>
-                <br />
-                <button onclick="window.location.reload()">Reload</button>
-            </div>
-        </div>
-        <script>
-            const script = document.createElement('script');
-            script.src = '/js/wyvr_development.js';
-            document.body.appendChild(script);
-        </script>
-    </body>
+        }
+
+        html {
+            font: 1rem/1.4em sans-serif;
+            color: var(--wyvr-debug-text);
+            background: var(--wyvr-debug-bg);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 2048px;
+            max-width: 80vw;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: var(--wyvr-debug-primary);
+        }
+
+        header,
+        footer {
+            text-align: center;
+        }
+        footer {
+            position: sticky;
+            bottom: 0;
+            padding: 0.5rem;
+        }
+
+        small {
+            opacity: 0.7;
+        }
+
+        button {
+            background: var(--wyvr-debug-primary);
+            border: 0;
+            padding: 10px;
+            color: var(--wyvr-debug-primary-text);
+            margin-top: 10px;
+            border-radius: 0.25rem;
+            cursor: pointer;
+        }
+
+        .error {
+            font-family: monospace;
+        }
+
+        pre {
+            background-color: color-mix(in srgb, var(--wyvr-debug-primary) 10%, transparent);
+            padding: 1rem;
+            color: var(--wyvr-debug-text);
+            border-radius: 0.25rem;
+            margin: 0.25rem 0 1rem;
+            overflow-x: auto;
+        }
+
+        pre.error>.line1 {
+            opacity: 1;
+        }
+
+        pre.error>.line2 {
+            opacity: 0.9;
+        }
+
+        pre.error>.line3 {
+            opacity: 0.8;
+        }
+
+        pre.error>div {
+            opacity: 0.7;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <small>file:</small> <code>{file}</code>
+            <h1>{context}</h1>
+            <h2 class="error">{name}</h2>
+        </header>
+
+        <h3 class="error">{message}</h3>
+
+        Stack
+        <pre class="error">{stack}</pre>
+
+        <footer>
+            <button onclick="window.location.reload()">Reload</button>
+        </footer>
+    </div>
+    <script>
+        const script = document.createElement('script');
+        script.src = '/js/wyvr_development.js';
+        document.body.appendChild(script);
+    </script>
+</body>
+
 </html>

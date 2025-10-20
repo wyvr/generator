@@ -7,7 +7,7 @@ SHELL := /bin/bash
 .PHONY: test coverage
 # @see https://spin.atomicobject.com/2021/03/22/makefiles-vs-package-json-scripts/
 # base commands
-WYVR_LINT=npx eslint src --ext .js
+WYVR_LINT=npx eslint src
 WYVR_TEST=npx mocha -R dot './test/**/*.test.js'
 WYVR_COVERAGE=npx c8 -x src/command -x src/resource -x src/templates -x src/boilerplate -x src/utils/create -x src/model/create --skip-full --clean $(WYVR_TEST)
 READONLY_FILES=if [ ! -f test/utils/file/_tests/not_writeable.txt ]; then echo -n "readonly" > test/utils/file/_tests/not_writeable.txt; chmod -rw test/utils/file/_tests/not_writeable.txt; fi;
@@ -46,3 +46,21 @@ lint: ## Use ESLint on the codebase
 coverage-watch: ## Watches changes in the tests
 	@$(READONLY_FILES)
 	@npx nodemon --watch src --watch test --ignore test/**/_tests/**/*.js -e js --exec "$(WYVR_LINT); $(WYVR_COVERAGE)"
+
+format: ## Format the codebase
+	@npx @biomejs/biome format --write ./src/action
+	@npx @biomejs/biome format --write ./src/action_worker
+	@npx @biomejs/biome format --write ./src/cli
+	@npx @biomejs/biome format --write ./src/command
+	@npx @biomejs/biome format --write ./src/constants
+	@npx @biomejs/biome format --write ./src/model
+	@npx @biomejs/biome format --write ./src/presentation
+	@npx @biomejs/biome format --write ./src/resource
+	@npx @biomejs/biome format --write ./src/struc
+	@npx @biomejs/biome format --write ./src/utils
+	@npx @biomejs/biome format --write ./src/vars
+	@npx @biomejs/biome format --write ./src/worker
+	@npx @biomejs/biome format --write ./src/*.js
+
+update: ## Update the dependencies
+	@npx npm-check-updates

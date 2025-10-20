@@ -1,48 +1,23 @@
-/* eslint-disable no-console */
-/* eslint-disable no-undef */
-/* eslint-disable no-unused-vars */
+import { wyvr_portal_targets } from 'wyvr/src/resource/portal.js';
+import { wyvr_lazy_observer } from 'wyvr/src/resource/lazy.js';
+import { wyvr_trigger } from 'wyvr/src/resource/trigger.js';
+import { wyvr_load } from 'wyvr/src/resource/load.js';
+import { wyvr_mark } from 'wyvr/src/resource/mark.js';
 
-import { wyvr_portal } from '@wyvr/generator/src/resource/portal.js';
-import { wyvr_props } from '@wyvr/generator/src/resource/props.js';
-
-const wyvr_lazy_classes = {};
-
-export function wyvr_hydrate_lazy(path, elements, name, cls, trigger) {
-    wyvr_lazy_classes[name] = { cls, path, loaded: false };
-
-    for (const el of elements) {
-        wyvr_props(el).then((props) => {
-            const target = wyvr_portal(el, props);
-            wyvr_lazy_observer.observe(target);
-        });
+export function wyvr_hydrate_lazy(path, elements, name, trigger) {
+    const targets = wyvr_mark(wyvr_portal_targets(elements));
+    if (!targets) {
+        return;
     }
-    if (trigger) {
-        if (!window.wyvr) {
-            window.wyvr = {};
-        }
-        window.wyvr[trigger] = () => {
-            for (const el of elements) {
-                wyvr_lazy_init(el);
-            }
-        };
-    }
-}
 
-const wyvr_lazy_observer = new IntersectionObserver((entries) => {
-    for (const entry of entries) {
-        if (entry.isIntersecting) {
-            wyvr_lazy_init(entry.target);
-            wyvr_lazy_observer.unobserve(entry.target);
-        }
+    if (window.wyvr_classes[name] === undefined) {
+        window.wyvr_classes[name] = { path, loaded: false };
     }
-});
 
-function wyvr_lazy_init(element) {
-    const name = element.getAttribute('data-hydrate');
-    if (name && !wyvr_lazy_classes[name].loaded) {
-        wyvr_lazy_classes[name].loaded = true;
-        const script = document.createElement('script');
-        script.setAttribute('src', `${wyvr_lazy_classes[name].path}?bid=${window.build_id}`);
-        document.body.appendChild(script);
-    }
+    wyvr_lazy_observer(targets, (el) => {
+        wyvr_load(el);
+    });
+    wyvr_trigger(trigger, targets, (el) => {
+        wyvr_load(el);
+    });
 }

@@ -1,8 +1,8 @@
 import { deepStrictEqual } from 'node:assert';
 import { join } from 'node:path';
 import Sinon from 'sinon';
-import { modify_svelte_internal } from '../../../src/action/modify_svelte.mjs';
-import { FOLDER_GEN_SERVER } from '../../../src/constants/folder.js';
+import { copy_svelte, modify_svelte_internal } from '../../../src/action/modify_svelte.mjs';
+import { FOLDER_GEN, FOLDER_GEN_SERVER } from '../../../src/constants/folder.js';
 import { collect_files, exists, find_file, read, remove, write } from '../../../src/utils/file.js';
 import { replace_shortcode } from '../../../src/utils/shortcode.js';
 import { to_plain } from '../../../src/utils/to.js';
@@ -20,10 +20,27 @@ describe('utils/shortcode/replace_shortcode', () => {
             log.push(msg.map(to_plain));
         });
 
-        const internal_file = find_file('.', ['node_modules/svelte/internal/index.mjs']);
-        const internal_path = join(root, FOLDER_GEN_SERVER, 'svelte_internal.mjs');
-        if (!exists(internal_path)) {
-            write(internal_path, await modify_svelte_internal(read(internal_file)));
+        // const internal_file = find_file('.', ['node_modules/svelte/internal/index.mjs']);
+        // const internal_path = join(root, FOLDER_GEN_SERVER, 'svelte_internal.mjs');
+        // if (!exists(internal_path)) {
+        //     write(internal_path, await modify_svelte_internal(read(internal_file)));
+        // }
+
+        const internal_root_path = join(
+            root,
+            FOLDER_GEN,
+            'svelte'
+        );
+        if (!exists(internal_root_path)) {
+            const internal_path = join(
+                internal_root_path,
+                'src/runtime/internal/ssr.js'
+            );
+            copy_svelte('./node_modules/svelte', internal_root_path)
+            write(
+                internal_path,
+                await modify_svelte_internal(read(internal_path))
+            );
         }
     });
     afterEach(() => {
@@ -33,7 +50,7 @@ describe('utils/shortcode/replace_shortcode', () => {
         Cwd.set(undefined);
         ReleasePath.set(undefined);
         console.log.restore();
-        for (const f of collect_files(join(root, 'gen/src'))) {
+        for (const f of collect_files(join(root, 'gen/css'))) {
             remove(f);
         }
     });
@@ -78,17 +95,17 @@ describe('utils/shortcode/replace_shortcode', () => {
     });
     it('unknown shortcode', async () => {
         deepStrictEqual(await replace_shortcode('here is the ((huhu)) content', {}, 'file'), {
-            html: 'here is the <Huhu /> content',
+            html: 'here is the ((huhu)) content',
             identifier: undefined,
             media_query_files: undefined,
             shortcode_imports: undefined,
         });
         deepStrictEqual(
-            log.map((l) => l.map((i) => i.replace(/\/tmp\/[^.]+\.js/g, '/tmp/TMP.js'))),
+            log,
             [
                 [
-                    '✖',
-                    `@svelte server execute\n[Error] Cannot find module '${root}/gen/server/huhu.js' imported from ${root}/gen/tmp/TMP.js\nsource file`,
+                    '⚠',
+                    'shortcode ((huhu)) can not be replaced in file because the file does not exist',
                 ],
             ]
         );

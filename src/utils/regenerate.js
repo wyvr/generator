@@ -13,8 +13,7 @@ import { Plugin } from './plugin.js';
 import { replace_imports, replace_wyvr_magic } from './transform.js';
 import { WorkerAction } from '../struc/worker_action.js';
 import { WorkerController } from '../worker/controller.js';
-import { filled_array, filled_object, in_array } from './validate.js';
-import { cache_dependencies, dependencies_from_content, get_identifiers_of_file } from './dependency.js';
+import { filled_array, in_array, is_null } from './validate.js';
 import { get_config_cache } from './config_cache.js';
 import { uniq_values } from './uniq.js';
 import { to_relative_path, to_single_identifier_name } from './to.js';
@@ -22,16 +21,41 @@ import { transform } from '../action/transform.js';
 import { process_pages } from '../action/page.js';
 import { update_project_events } from './project_events.js';
 import { add_dev_note } from './devtools.js';
+import { get_identifiers_of_list, get_parents_of_file, parse_content } from './dependency.js';
+import { Dependency } from '../model/dependency.js';
+import { CodeContext } from '../struc/code_context.js';
+import { PageIdentifier } from '../model/page_identifier.js';
+
+let dep_db;
 
 function regenerate_server_files({ change, add, unlink }, gen_folder, scope) {
     const modified = [].concat(change, add);
+    let done = false;
     if (modified.length > 0) {
+        if (!dep_db) {
+            dep_db = new Dependency();
+        }
         for (const file of modified) {
-            const content = replace_imports(replace_wyvr_magic(read(file.path), false), file.path, FOLDER_GEN_SERVER, scope);
-            write(join(gen_folder, file.rel_path), add_dev_note(file.rel_path, content));
+            const content = read(file.path);
+            if (is_null(content)) {
+                continue;
+            }
+
+            const parsed = parse_content(content, file.rel_path);
+            if (parsed) {
+                dep_db.update_file(parsed.rel_path, parsed.dependencies, parsed?.config);
+            }
+            const replaced_content = add_dev_note(file.rel_path, replace_imports(replace_wyvr_magic(content, CodeContext.server), file.path, FOLDER_GEN_SERVER, scope));
+
+            write(join(gen_folder, file.rel_path), replaced_content);
+            done = true;
         }
     }
+    if (unlink?.length > 0) {
+        done = true;
+    }
     unlink_from(unlink, gen_folder);
+    return done;
 }
 
 /**
@@ -41,8 +65,9 @@ function regenerate_server_files({ change, add, unlink }, gen_folder, scope) {
  * @param {string} cache_breaker
  */
 export async function regenerate_plugins({ change, add, unlink }, gen_folder) {
-    regenerate_server_files({ change, add, unlink }, gen_folder, 'plugins');
+    const done = regenerate_server_files({ change, add, unlink }, gen_folder, 'plugins');
     await Plugin.initialize();
+    return done;
 }
 
 /**
@@ -51,8 +76,9 @@ export async function regenerate_plugins({ change, add, unlink }, gen_folder) {
  * @param {string} gen_folder
  */
 export async function regenerate_events({ change, add, unlink }, gen_folder) {
-    regenerate_server_files({ change, add, unlink }, gen_folder, 'events');
+    const done = regenerate_server_files({ change, add, unlink }, gen_folder, 'events');
     await update_project_events(FOLDER_GEN_EVENTS);
+    return done;
 }
 
 /**
@@ -61,7 +87,7 @@ export async function regenerate_events({ change, add, unlink }, gen_folder) {
  * @param {string} gen_folder
  */
 export async function regenerate_commands({ change, add, unlink }, gen_folder) {
-    regenerate_server_files({ change, add, unlink }, gen_folder, 'commands');
+    return regenerate_server_files({ change, add, unlink }, gen_folder, 'commands');
 }
 
 /**
@@ -71,11 +97,20 @@ export async function regenerate_commands({ change, add, unlink }, gen_folder) {
  * @returns whether the page has to be reloaded or not
  */
 export async function regenerate_routes({ change, add, unlink }, gen_folder) {
+    if (!dep_db) {
+        dep_db = new Dependency();
+    }
     let reload_page = false;
     const modified_route = [].concat(change, add);
     if (modified_route.length > 0) {
         modified_route.map((file) => {
             copy_executable_file(file.path, join(gen_folder, file.rel_path));
+            const content = read(file.path);
+
+            const parsed = parse_content(content, file.rel_path);
+            if (parsed) {
+                dep_db.update_file(parsed.rel_path, parsed.dependencies, parsed?.config);
+            }
         });
         reload_page = true;
     }
@@ -85,91 +120,80 @@ export async function regenerate_routes({ change, add, unlink }, gen_folder) {
     return reload_page;
 }
 
-export async function regenerate_src({ change, add, unlink }, dependencies_bottom, all_identifiers, gen_folder) {
+export async function regenerate_src({ change, add, unlink }, all_identifiers) {
     const shortcode_identifiers = Object.values(all_identifiers).filter((identifier) => {
         return identifier.imports;
     });
-    let dependencies;
     const identifiers = {};
     const pages = [];
     const test_files = [];
+    if (!dep_db) {
+        dep_db = new Dependency();
+    }
+    const inverted_index = dep_db.get_inverted_index();
 
     const mod_files = [].concat(change, add);
     if (mod_files.length > 0) {
         const identifier_files = get_config_cache('identifiers.files', {});
-        const identifier_list = [];
-        const dependent_files = [];
         const main_files = [];
+        const dependent_files = [];
         // get dependencies of the file and copy them to the gen folder
-        const files = mod_files.map((file) => {
+        const files = [];
+        for (const file of mod_files) {
             const rel_path = file.rel_path.replace(/^\/?(src\/)/, '$1');
-            const dep_result = dependencies_from_content(read(file.path), rel_path);
-            if (dep_result?.dependencies) {
-                if (!dependencies) {
-                    dependencies = {};
-                }
-                for (const key of Object.keys(dep_result.dependencies)) {
-                    if (!dependencies[key]) {
-                        dependencies[key] = [];
-                    }
-                    dependencies[key].push(...dep_result.dependencies[key]);
-                }
+            const content = read(file.path);
+            if (is_null(content)) {
+                continue;
             }
-            if (rel_path.match(/^src\/(?:doc|layout|page)\//)) {
+            const parsed = parse_content(content, file.rel_path);
+            let file_dep;
+            if (parsed) {
+                file_dep = dep_db.update_file(parsed.rel_path, parsed.dependencies, parsed?.config);
+            }
+
+            if (in_array(['doc', 'layout', 'page'], file_dep?.root)) {
                 main_files.push(rel_path);
             }
-            const { identifiers_of_file, files } = get_identifiers_of_file(dependencies_bottom, rel_path);
-            dependent_files.push(...files);
-            if (filled_array(identifiers_of_file)) {
-                identifier_list.push(...identifiers_of_file);
-            }
-            const target = join(gen_folder, file.rel_path);
+
+            // @WARNING when file is created the first time the inverted_index doesn't know anything about the parents or when the children gets modified to much, they are not updated in this run
+            dependent_files.push(...get_parents_of_file(rel_path, inverted_index));
+
+            const target = Cwd.get(FOLDER_GEN, file.rel_path);
             copy(file.path, target);
-            return target;
-        });
-
-        // update dependencies
-        if (dependencies) {
-            const new_dep = get_config_cache('dependencies.top');
-            for (const key of Object.keys(dependencies)) {
-                if (!new_dep[key]) {
-                    new_dep[key] = [];
-                }
-                new_dep[key].push(...dependencies[key]);
-            }
-            // cache the given dependencies
-            cache_dependencies(new_dep);
+            files.push(target);
         }
+        if (!filled_array(files)) {
+            return { identifiers, pages, test_files };
+        }
+        const identifiers_list = get_identifiers_of_list(dependent_files);
 
-        // when a split file gets edited, also add the original file
+        // combine the changed files with the dependent files, to get newly added parents of a file
         const combined_files = uniq_values(
             [].concat(
                 files,
-                dependent_files
-                    .flat(1)
-                    .filter((x) => x)
-                    .map((path) => {
-                        return Cwd.get(FOLDER_GEN, path);
-                    })
+                dependent_files.map((entry) => Cwd.get(FOLDER_GEN, entry.file))
             )
-        ).flatMap((file) => {
+        );
+        for (const file of combined_files) {
             const ext = extname(file);
             if (ext === '.svelte') {
-                return file;
+                continue;
             }
-            const svelte_file = to_extension(file, '.svelte');
-            if (exists(svelte_file)) {
-                return [file, svelte_file];
-            }
+            // search for test files, they must be evaluated later
             if (ext === '.mjs' || ext === '.cjs' || ext === '.js') {
                 const test_file = to_extension(file, `.spec${ext}`);
                 if (exists(test_file)) {
-                    return [file, test_file];
+                    test_files.push(test_file);
+                    combined_files.push(test_file);
                 }
-                return file;
             }
-            return file;
-        });
+            // include the root of a split file, will be deprecated in the future
+            // @deprecated
+            const svelte_file = to_extension(file, '.svelte');
+            if (exists(svelte_file)) {
+                combined_files.push(svelte_file);
+            }
+        }
 
         // detect shortcode dependencies
         const used_shortcode_identifiers = shortcode_identifiers.filter((identifier) => {
@@ -193,8 +217,7 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
         }
 
         // transform and prefill with the existing configs
-        const file_configs = get_config_cache('dependencies.config', {});
-        await transform(combined_files, file_configs, true);
+        await transform(combined_files, true);
 
         await WorkerController.process_in_workers(WorkerAction.compile, combined_files, 10, true);
 
@@ -213,18 +236,16 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
 
                     for (const identifier of identifier_keys) {
                         if (identifier.match(regexp)) {
-                            identifier_list.push({ identifier });
+                            identifiers_list.push(
+                                all_identifiers[identifier] ?? {
+                                    identifier
+                                }
+                            );
                         }
                     }
                 }
             }
         }
-        // get 2 dimensional array of affected urls
-        const identifier_files_list = uniq_values(identifier_list).map((identifier) => {
-            identifiers[identifier.identifier] = identifier;
-            return identifiers[identifier.identifier];
-        });
-        // @TODO this makes no sense, identifiers look like this
         /*
         {
             identifier: 'default-default-shop_account',
@@ -233,28 +254,23 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
             page: 'shop/Account.svelte'
         }
         */
-        /*
-        // convert the urls to data json paths
-        const data_files = [].concat(...identifier_files_list).map((url)=>{
-            console.log(url)
-            return url;
-        }).map((url) => get_data_page_path(url));
-        // add the json paths to be executed as pages
-        pages.push(...data_files);
-        */
 
-        // check if files have test files in place and execute them later
-        const current_test_files = combined_files.filter((file) => file.match(/\.spec\.[mc]?js$/));
-        test_files.push(...current_test_files);
-
-        // rebuild the identifiers
-        if (filled_object(identifiers)) {
-            const scripts_data = Object.keys(identifiers).map((key) => identifiers[key]);
-            await WorkerController.process_in_workers(WorkerAction.scripts, scripts_data, 1, true);
+        const db = new PageIdentifier();
+        const cleaned_identifier_list = uniq_values(identifiers_list);
+        if (filled_array(cleaned_identifier_list)) {
+            // convert to object
+            for (const identifier of identifiers_list) {
+                identifiers[identifier.identifier] = identifier;
+                // get pages that have the given identifier
+                const page_identifiers = db.get_by_identifier(identifier.identifier);
+                if (filled_array(page_identifiers)) {
+                    pages.push(...page_identifiers.map((entry) => entry.file));
+                }
+            }
         }
     }
 
-    unlink_from(unlink, gen_folder, Cwd.get(FOLDER_GEN_CLIENT), Cwd.get(FOLDER_GEN_SERVER));
+    unlink_from(unlink, Cwd.get(FOLDER_GEN), Cwd.get(FOLDER_GEN_CLIENT), Cwd.get(FOLDER_GEN_SERVER));
     return { identifiers, pages, test_files };
 }
 
@@ -267,21 +283,33 @@ export async function regenerate_src({ change, add, unlink }, dependencies_botto
  * @returns an object with reload, identifiers, collections and pages
  */
 export async function regenerate_pages({ change, add, unlink }, identifiers, pages, gen_folder) {
+    if (!dep_db) {
+        dep_db = new Dependency();
+    }
     let reload_page = false;
     let collections = {};
     let page_objects = [];
     const mod_pages = [].concat(change, add).filter(Boolean);
     if (mod_pages.length > 0) {
-        const mod_pages_copy = mod_pages.map((file) => ({ src: file.path, target: `./${file.rel_path}` }));
+        const mod_pages_copy = mod_pages.map((file) => ({
+            src: file.path,
+            target: `./${file.rel_path}`
+        }));
         copy_files(mod_pages_copy, gen_folder);
         const pages_data = mod_pages.map((file) => {
+            const content = read(file.path);
+
+            const parsed = parse_content(content, file.rel_path);
+            if (parsed) {
+                dep_db.update_file(parsed.rel_path, parsed.dependencies, parsed?.config);
+            }
             return new Page({
                 path: join(gen_folder, file.rel_path),
                 rel_path: file.rel_path,
                 pkg: file.pkg
             });
         });
-        const result = await process_pages('page', pages_data, undefined, true);
+        const result = await process_pages('page', pages_data, true);
         if (result) {
             collections = result.collections;
             page_objects = result.page_objects;
@@ -315,7 +343,10 @@ export function regenerate_assets({ change, add, unlink }, gen_folder) {
     // copy modified and added files into the release and gen folder
     const modified_assets = [].concat(change, add);
     if (modified_assets.length > 0) {
-        const copy_assets = modified_assets.map((file) => ({ src: file.path, target: `./${file.rel_path}` }));
+        const copy_assets = modified_assets.map((file) => ({
+            src: file.path,
+            target: `./${file.rel_path}`
+        }));
         copy_files(copy_assets, ReleasePath.get());
         copy_files(copy_assets, gen_folder);
     }
@@ -358,11 +389,21 @@ function unlink_from(unlink, ...folders) {
  * @param {string} gen_folder
  */
 export function regeneration_static_file({ change, add, unlink }, gen_folder) {
+    if (!dep_db) {
+        dep_db = new Dependency();
+    }
     const files = [].concat(change, add);
     for (const file of files) {
         const target = join(gen_folder, file.rel_path);
         if (!copy_executable_file(file.path, target)) {
             copy(file.path, target);
+        }
+
+        const content = read(file.path);
+
+        const parsed = parse_content(content, file.rel_path);
+        if (parsed) {
+            dep_db.update_file(parsed.rel_path, parsed.dependencies, parsed?.config);
         }
     }
     unlink_from(unlink, gen_folder, ReleasePath.get());

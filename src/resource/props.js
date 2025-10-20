@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-/* eslint-disable no-unused-vars */
+
 // @WARN potential memory leak
 const wyvr_props_cache = {};
 
@@ -9,28 +9,38 @@ function WyvrDeferred() {
         this.resolve = resolve;
     });
 }
+export function wyvr_parse_props(el) {
+    if (!el) {
+        return {};
+    }
+    try {
+        const json = `{${transform_props(el.getAttribute('data-props'))}}`;
+        return JSON.parse(json);
+    } catch (e) {
+        console.warn(e, el);
+        return {};
+    }
+}
 export function wyvr_props(el) {
     /* eslint-ensable no-unused-vars */
     return new Promise((resolve) => {
-        let props = {};
-        const json = `{${el.getAttribute('data-props').replace(/\|/g, '"').replace(/§"§/g, '|')}}`;
-        try {
-            props = JSON.parse(json);
-        } catch (e) {
-            console.warn(json, e);
-            resolve(props);
-            return;
+        const props = wyvr_parse_props(el);
+        if (!props) {
+            return resolve({});
         }
-
-        const load_props = Object.keys(props)
+        const keys = Object.keys(props);
+        if (!props || keys.length === 0) {
+            return resolve({});
+        }
+        const load_props = keys
             .map((prop) => {
                 const value = props[prop];
                 if (typeof value !== 'string') {
                     return undefined;
                 }
-                const match = value.match(/^@\(([^)]+)\)$/);
-                if (Array.isArray(match) && match.length === 2) {
-                    return { prop, url: match[1] };
+                const url = transform_prop_source(value);
+                if (url) {
+                    return { prop, url };
                 }
 
                 return undefined;
@@ -53,6 +63,18 @@ export function wyvr_props(el) {
         };
         // load the "hugh" props
         for (const item of load_props) {
+            if (item.url.match(/\.js$/)) {
+                import(item.url)
+                    .then((module) => {
+                        props[item.prop] = module.default;
+                        final(true);
+                    })
+                    .catch((e) => {
+                        console.warn('prop error', item, e);
+                        final(false);
+                    });
+                continue;
+            }
             // const cache_prop = window.wyvr_props_cache[item.url];
             // // when cache object a promise is, then the property is loading
             // if (cache_prop instanceof WyvrDeferred) {
@@ -91,4 +113,25 @@ export function wyvr_props(el) {
                 });
         }
     });
+}
+
+export function transform_prop_source(value) {
+    if (typeof value !== 'string') {
+        return undefined;
+    }
+    const match = value.match(/^@\(([^)]+)\)$/);
+    if (Array.isArray(match) && match.length === 2) {
+        return match[1];
+    }
+    const fn_match = value.match(/^\$\(([^)]+)\)$/);
+    if (Array.isArray(fn_match) && fn_match.length === 2) {
+        return fn_match[1];
+    }
+}
+
+export function transform_props(value) {
+    if (typeof value !== 'string') {
+        return '';
+    }
+    return value.replace(/\|/g, '"').replace(/§"§/g, '|').replace(/«/g, '{').replace(/»/g, '}');
 }

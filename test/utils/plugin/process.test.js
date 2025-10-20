@@ -2,7 +2,7 @@ import { deepStrictEqual, strictEqual } from 'node:assert';
 import { describe, it } from 'mocha';
 import Sinon from 'sinon';
 import { Plugin } from '../../../src/utils/plugin.js';
-import { to_dirname } from '../../../src/utils/to.js';
+import { to_dirname, to_plain } from '../../../src/utils/to.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 
 describe('utils/plugin/process', () => {
@@ -10,9 +10,9 @@ describe('utils/plugin/process', () => {
     let logger_messages = [];
     before(() => {
         Cwd.set(process.cwd());
-        Sinon.stub(console, 'error');
-        console.error.callsFake((...msg) => {
-            logger_messages.push(msg);
+        Sinon.stub(console, 'log');
+        console.log.callsFake((...msg) => {
+            logger_messages.push(msg.map(to_plain));
         });
     });
     afterEach(() => {
@@ -20,23 +20,23 @@ describe('utils/plugin/process', () => {
         Plugin.clear();
     });
     after(() => {
-        console.error.restore();
+        console.log.restore();
         Cwd.set(undefined);
     });
     it('undefined', async () => {
-        const plugin = await Plugin.process('a', 1, 2);
+        const plugin = await Plugin.process('a', 1);
         strictEqual(typeof plugin, 'function');
-        const { args, error } = await plugin();
-        deepStrictEqual(error, ['missing plugin function']);
-        deepStrictEqual(args, [1, 2]);
-        deepStrictEqual(logger_messages, []);
+        const result = await plugin();
+        deepStrictEqual(result, 1);
+        deepStrictEqual(logger_messages, [
+            ['⚠', 'no main function for plugin "a"'],
+        ]);
     });
-    it('no plugins found messages', async () => {
-        const plugin = await Plugin.process('a', 1, 2);
+    it('no plugins defined', async () => {
+        const plugin = await Plugin.process('a', 1);
         strictEqual(typeof plugin, 'function');
-        const { args, error } = await plugin((...args) => args);
-        deepStrictEqual(error, ['no before plugin for "a" found', 'no after plugin for "a" found']);
-        deepStrictEqual(args, [1, 2]);
+        const result = await plugin((result) => result);
+        deepStrictEqual(result, 1);
         deepStrictEqual(logger_messages, []);
     });
     it('no errors', async () => {
@@ -44,7 +44,7 @@ describe('utils/plugin/process', () => {
             a: {
                 before: [
                     {
-                        fn: ({ result }) => {
+                        fn: (result) => {
                             return result;
                         },
                         source: 'before',
@@ -52,7 +52,7 @@ describe('utils/plugin/process', () => {
                 ],
                 after: [
                     {
-                        fn: ({ result }) => {
+                        fn: (result) => {
                             return result;
                         },
                         source: 'after',
@@ -60,12 +60,10 @@ describe('utils/plugin/process', () => {
                 ],
             },
         };
-        const plugin = await Plugin.process('a', 1, 2);
+        const plugin = await Plugin.process('a', 1);
         strictEqual(typeof plugin, 'function');
-        const { args, error, result } = await plugin((...args) => args);
-        deepStrictEqual(error, undefined);
-        deepStrictEqual(args, [1, 2]);
-        deepStrictEqual(result, [1, 2]);
+        const result = await plugin((result) => result);
+        deepStrictEqual(result, 1);
         deepStrictEqual(logger_messages, []);
     });
     it('check correct result', async () => {
@@ -73,15 +71,15 @@ describe('utils/plugin/process', () => {
             a: {
                 before: [
                     {
-                        fn: ({ args }) => {
-                            return args;
+                        fn: (result) => {
+                            return result;
                         },
                         source: 'before',
                     },
                 ],
                 after: [
                     {
-                        fn: ({ result }) => {
+                        fn: (result) => {
                             return result;
                         },
                         source: 'after',
@@ -89,12 +87,12 @@ describe('utils/plugin/process', () => {
                 ],
             },
         };
-        const plugin = await Plugin.process('a', 1, 2);
+        const plugin = await Plugin.process('a', 1);
         strictEqual(typeof plugin, 'function');
-        const { args, error, result } = await plugin((...args) => args.reduce((acc, i) => acc + i, 1));
-        deepStrictEqual(error, undefined);
-        deepStrictEqual(args, [1, 2]);
-        deepStrictEqual(result, 4);
+        const result = await plugin((result) =>
+            result + 10
+        );
+        deepStrictEqual(result, 11);
         deepStrictEqual(logger_messages, []);
     });
     it('undefined return in plugins', async () => {
@@ -114,12 +112,10 @@ describe('utils/plugin/process', () => {
                 ],
             },
         };
-        const plugin = await Plugin.process('a', 1, 2);
+        const plugin = await Plugin.process('a', 1);
         strictEqual(typeof plugin, 'function');
-        const { args, error, result } = await plugin((...args) => args);
-        deepStrictEqual(error, undefined);
-        deepStrictEqual(args, [1, 2]);
-        deepStrictEqual(result, [1, 2]);
+        const result = await plugin((result) => result);
+        deepStrictEqual(result, 1);
         deepStrictEqual(logger_messages, []);
     });
 });

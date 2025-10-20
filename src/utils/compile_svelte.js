@@ -1,5 +1,5 @@
 import { compile } from 'svelte/compiler';
-import { extract_error, get_error_message } from './error.js';
+import { extract_error, get_error_message, get_error_page } from './error.js';
 import { Logger } from './logger.js';
 import { in_array, filled_string, is_func, is_null, match_interface } from './validate.js';
 import { read, remove, to_extension, write } from './file.js';
@@ -15,6 +15,7 @@ import { inject } from './config.js';
 import { get_language } from './i18n.js';
 import { Plugin } from './plugin.js';
 import { to_dirname } from './to.js';
+import { CodeContext } from '../struc/code_context.js';
 
 export async function prepare_code_to_compile(content, file, type) {
     if (!in_array(['client', 'server'], type) || !filled_string(content) || !filled_string(file)) {
@@ -51,7 +52,6 @@ export async function compile_svelte_from_code(content, file, type, include_css 
     const options = {
         dev: Env.is_dev(),
         generate: type_value(type, 'dom', 'ssr'),
-        format: 'esm',
         immutable: true,
         hydratable: true,
         css: 'external'
@@ -103,9 +103,16 @@ export async function execute_server_compiled_svelte(compiled, file) {
         Logger.warning("can't execute code without file");
         return undefined;
     }
+    return await execute_server_code_from_file(compiled.js.code, file);
+}
+
+export async function execute_server_code_from_file(code, file, context = 'server') {
+    if (!filled_string(code)) {
+        return undefined;
+    }
     let component;
     const tmp_file = Cwd.get(FOLDER_GEN_TEMP, `${uniq_id()}.js`);
-    write(tmp_file, compiled.js.code);
+    write(tmp_file, code);
     try {
         component = await import(tmp_file);
         // return default when available
@@ -114,20 +121,15 @@ export async function execute_server_compiled_svelte(compiled, file) {
         }
     } catch (e) {
         component = undefined;
-        Logger.error(get_error_message(e, file, 'svelte server execute'));
+        Logger.error(get_error_message(e, file, `svelte ${context} execute`));
         if (Env.is_dev()) {
             // construct an error page
             component = {
                 render: ((error, file) => {
-                    const content = read(join(to_dirname(import.meta.url), '..', 'resource', '500.html'))
-                        ?.replace(/\{message\}/g, error.message)
-                        .replace(/\{debug\}/g, error.debug.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>'))
-                        .replace(/\{name\}/g, error.name)
-                        .replace(/\{file\}/g, file);
                     return (data) => {
-                        return { html: content };
+                        return { html: get_error_page(error, file, 'Error in Svelte Component') };
                     };
-                })(extract_error(e), file)
+                })(e, file)
             };
         }
     }
@@ -135,19 +137,37 @@ export async function execute_server_compiled_svelte(compiled, file) {
     return component;
 }
 
-export async function render_server_compiled_svelte(exec_result, data, file) {
-    if (!match_interface(exec_result, { compiled: true, component: true, result: true }) || !filled_string(file) || is_null(data)) {
-        return undefined;
+export async function render_server_compiled_svelte(exec_result, data, file, context = 'server') {
+    if (context !== CodeContext.server && context !== CodeContext.request) {
+        return [new Error(`Unknown context ${context}`), undefined];
+    }
+    if (!filled_string(file)) {
+        return [new Error('Missing file'), undefined];
+    }
+    if (is_null(data)) {
+        return [new Error('Missing data'), undefined];
+    }
+    if (
+        !match_interface(exec_result, {
+            compiled: true,
+            component: true,
+            result: true
+        })
+    ) {
+        return [new Error('Invalid result'), undefined];
     }
     register_inject(file);
     // transform props to allow loading them from external file
     register_prop(file);
     // set the correct translations for the page
-    register_i18n(get_language(data?._wyvr?.language), file);
+    register_i18n(get_language(data?.$wyvr?.language), file);
     register_stack();
 
     // add registering onServer
     global.onServer = async (callback) => {
+        if (context !== CodeContext.server) {
+            return undefined;
+        }
         if (!is_func(callback)) {
             return undefined;
         }
@@ -158,12 +178,37 @@ export async function render_server_compiled_svelte(exec_result, data, file) {
             return undefined;
         }
     };
+    // add registering onRequest, but never execute it on server
+    global.onRequest = async (callback) => {
+        if (context !== CodeContext.request) {
+            return undefined;
+        }
+        if (!is_func(callback)) {
+            return undefined;
+        }
+        try {
+            return await callback();
+        } catch (e) {
+            Logger.error(get_error_message(e, file, 'svelte server onRequest'));
+            return undefined;
+        }
+    };
+    global.isRequest = context === CodeContext.request;
 
     try {
         // svelte creates console log output themself inside
         exec_result.result = await exec_result.component.render(data);
         // remove svelte comments
-        const raw_html = exec_result.result.html.replace(/<!-- HTML_TAG_(?:START|END) -->/g, '');
+        let raw_html = exec_result.result.html.replace(/<!-- HTML_TAG_(?:START|END) -->/g, '');
+        // insert head from the svelte components
+        if (exec_result.result.head) {
+            exec_result.result.head = exec_result.result.head.replace(/<!--.*?-->/g, '');
+        }
+        if (context === CodeContext.server) {
+            if (exec_result.result.head && raw_html.indexOf('</head>') > -1 && raw_html.indexOf(exec_result.result.head) > -1) {
+                raw_html = raw_html.replace('</head>', `${exec_result.result.head}</head>`);
+            }
+        }
         // allow plugin to modify the html
         const render_html = await Plugin.process('render', raw_html);
         const render_html_result = await render_html((html) => {
@@ -172,10 +217,10 @@ export async function render_server_compiled_svelte(exec_result, data, file) {
         exec_result.result.html = render_html_result?.result || raw_html;
     } catch (e) {
         Logger.error(get_error_message(e, file, 'svelte server render'));
-        return undefined;
+        return [e, undefined];
     }
 
-    return exec_result;
+    return [undefined, exec_result];
 }
 export function make_svelte_code_async(code) {
     if (!filled_string(code)) {
@@ -187,10 +232,10 @@ export function make_svelte_code_async(code) {
         // wrap main function in try catch
         .replace(/(create_ssr_component.*=> {)/, '$1 try {')
         .replace(/(\}\);[\n\s]+export default )/, "} catch(e) {console.log(import.meta.url, e); return '';}\n$1")
-        // make onServer async
-        .replace(/(onServer\()/g, 'await $1')
+        // make onServer and onRequest async
+        .replace(/(on(?:Server|Request)\()/g, 'await $1')
         // use own svelte internal, which is async
-        .replace(/['"]svelte\/internal['"]/, `'${Cwd.get(FOLDER_GEN_SERVER, 'svelte_internal.mjs')}'`)
+        .replace(/['"]svelte\/internal['"]/, `'${Cwd.get(FOLDER_GEN, 'svelte/src/runtime/internal/index.js')}'`)
         // throw errors from server code instead of logging them to the console
         .replace(/catch\(e\) \{console.log\(import.meta.url, e\); return '';\}/g, 'catch(e) {throw e;}');
     const template_index = code.indexOf('await create_ssr_component');
@@ -213,7 +258,12 @@ export function make_svelte_code_async(code) {
         .replace(/\$\{each\(([^,]+), ([^=]+)=> \{/g, '${await each($1, async $2=> {')
         // make arrow functions async
         //.replace(/((?:\(\)|[^()]+?) => \{)/g, 'async $1')
-        .replace(/: (\([^)]*?\) => \{)/g, ': async $1');
+        .replace(/: (\([^)]*?\) => \{)/g, ': async $1')
+        // make await block async
+        .replace(/\$\{\(function \(/g, '${await (async function (')
+        .replace(/return \(function \(/g, 'return await (async function (')
+        // when is_promise is called it is used inside the await tag
+        .replace(/if \(is_promise\(([^)]+)\)\) \{/g, 'try {$1 = await $1;} catch(e) {$1 = undefined}; if (is_promise($1)) {');
 
     return code.substring(0, template_index) + template;
 }

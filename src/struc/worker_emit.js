@@ -19,5 +19,5 @@ export const WorkerEmit = {
 };
 
 export function get_name(emit) {
-    return Object.keys(WorkerEmit).find((key) => WorkerEmit[key] == emit);
+    return Object.keys(WorkerEmit).find((key) => WorkerEmit[key] === emit);
 }

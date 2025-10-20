@@ -354,7 +354,7 @@ describe('utils/error/extract_error', () => {
                     location: null,
                     notes: [],
                     pluginName: '',
-                    text: 'Cannot read directory "@wyvr/generator/src/resource/hydrate_instant.js": not a directory',
+                    text: 'Cannot read directory "wyvr/src/resource/hydrate_instant.js": not a directory',
                 },
             ],
         });
@@ -365,7 +365,7 @@ describe('utils/error/extract_error', () => {
             hint: undefined,
             message:
                 '\n' +
-                '- Cannot read directory "@wyvr/generator/src/resource/hydrate_instant.js": not a directory\n' +
+                '- Cannot read directory "wyvr/src/resource/hydrate_instant.js": not a directory\n' +
                 '\n',
             name: 'Error',
             source: undefined,

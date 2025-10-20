@@ -37,8 +37,7 @@ describe('utils/watcher/package_watcher', () => {
             unwatch();
             deepStrictEqual(log, [
                 ['✔', 'watching 1 packages'],
-                ['...', ''],
-                ['⬢', 'waiting for changes'],
+                ['waiting for changes'],
             ]);
             done();
         }, 500);

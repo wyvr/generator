@@ -27,7 +27,7 @@ export function append_entry_to_collections(collections, entry) {
 }
 
 /**
- * Build CollectionEntry Array from page data _wyvr.collection which can be an array or an object
+ * Build CollectionEntry Array from page data $wyvr.collection which can be an array or an object
  * @param {import('../model/collection.js').CollectionEntry|import('../model/collection.js').CollectionEntry[]} data
  * @param {string} url
  * @param {string} name
@@ -37,7 +37,7 @@ export function append_entry_to_collections(collections, entry) {
 export function build_collection(data, url, name, mtime) {
     const collections = [];
     if (filled_object(data)) {
-        if (data?.scope != 'all') {
+        if (data?.scope !== 'all') {
             const all_entry = clone(data);
             all_entry.scope = 'all';
             collections.push(collection_entry(all_entry, { url, name, mtime }));
@@ -46,30 +46,29 @@ export function build_collection(data, url, name, mtime) {
     }
     if (is_array(data)) {
         // search if all scope is already there and avoid adding multiple entries
-        if (!data.find((entry) => entry?.scope == 'all')) {
+        if (!data.find((entry) => entry?.scope === 'all')) {
             collections.push(collection_entry({ url, name, scope: 'all', mtime }));
         }
         const keys = [];
-        data.filter((x) => filled_object(x)).forEach((raw_entry) => {
+        for (const raw_entry of data.filter((x) => filled_object(x))) {
             const entry = collection_entry(raw_entry, { url, name, mtime });
             // void multiple entries of the same scope
             if (in_array(keys, entry.scope)) {
-                collections.find((item) => {
-                    if (item.scope == entry.scope) {
-                        Object.keys(entry).forEach((key) => {
+                for (const item of collections) {
+                    if (item.scope === entry.scope) {
+                        for (const key of Object.keys(entry)) {
                             if (!is_null(raw_entry[key])) {
                                 item[key] = raw_entry[key];
                             }
-                        });
-                        return true;
+                        }
+                        break;
                     }
-                    return false;
-                });
-                return;
+                }
+                continue;
             }
             keys.push(entry.scope);
             collections.push(entry);
-        });
+        }
     }
     if (!filled_array(collections) && filled_string(url)) {
         collections.push(collection_entry({ url, name, scope: 'all', mtime }));
@@ -84,8 +83,11 @@ export function build_collection(data, url, name, mtime) {
  */
 export function merge_collections(...collections_list) {
     const result = {};
-    collections_list.forEach((collections) => {
-        Object.entries(collections).forEach(([scope, list]) => {
+    for (const collections of collections_list) {
+        if (!is_object(collections)) {
+            continue;
+        }
+        for (const [scope, list] of Object.entries(collections)) {
             if (!result[scope]) {
                 result[scope] = [];
             }
@@ -96,8 +98,8 @@ export function merge_collections(...collections_list) {
                     return entry;
                 })
             );
-        });
-    });
+        }
+    }
     return result;
 }
 
@@ -107,9 +109,9 @@ export function merge_collections(...collections_list) {
  * @returns {import('../model/collection.js').Collections}
  */
 export function sort_collections(collections) {
-    Object.keys(collections).forEach((key) => {
+    for (const key of Object.keys(collections)) {
         if (!is_array(collections[key])) {
-            return;
+            continue;
         }
         collections[key] = collections[key]
             .sort((a, b) => a.url.localeCompare(b.url))
@@ -122,6 +124,6 @@ export function sort_collections(collections) {
                 }
                 return 0;
             });
-    });
+    }
     return collections;
 }

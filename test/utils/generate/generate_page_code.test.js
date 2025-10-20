@@ -20,7 +20,7 @@ describe('utils/generate/generate_page_code', () => {
     it('get prod page content', () => {
         deepStrictEqual(
             generate_page_code({
-                _wyvr: {
+                $wyvr: {
                     url: '/url',
                     template_files: {
                         doc: join(_root, 'doc', 'Default'),
@@ -34,7 +34,7 @@ describe('utils/generate/generate_page_code', () => {
     import Doc from '${process.cwd()}/test/utils/generate/_tests/generate_page_code/doc/Default';
     import Layout from '${process.cwd()}/test/utils/generate/_tests/generate_page_code/doc/Default';
     import Page from '${process.cwd()}/test/utils/generate/_tests/generate_page_code/doc/Default';
-    const data = {"_wyvr":{"url":"/url","template_files":{"doc":"${process.cwd()}/test/utils/generate/_tests/generate_page_code/doc/Default","layout":"${process.cwd()}/test/utils/generate/_tests/generate_page_code/doc/Default","page":"${process.cwd()}/test/utils/generate/_tests/generate_page_code/doc/Default"}}};
+    const data = {"$wyvr":{"url":"/url","template_files":{"doc":"${process.cwd()}/test/utils/generate/_tests/generate_page_code/doc/Default","layout":"${process.cwd()}/test/utils/generate/_tests/generate_page_code/doc/Default","page":"${process.cwd()}/test/utils/generate/_tests/generate_page_code/doc/Default"}}};
     global.getWyvrData = (segment, fallback) => {
         if(!segment || typeof segment != 'string' || !data) {
             return fallback;
@@ -48,9 +48,9 @@ describe('utils/generate/generate_page_code', () => {
     }
 </script>
 
-<Doc data={data}>
-    <Layout data={data}>
-        <Page data={data}>
+<Doc {data}>
+    <Layout {data}>
+        <Page {data}>
         {@html data.content || ''}
         </Page>
     </Layout>
@@ -60,7 +60,7 @@ describe('utils/generate/generate_page_code', () => {
     it('get dev page content', () => {
         Env.set(EnvType.dev);
         const result = generate_page_code({
-            _wyvr: {
+            $wyvr: {
                 url: '/url',
                 template_files: {
                     doc: join(_root, 'doc', 'Default'),
@@ -78,7 +78,7 @@ describe('utils/generate/generate_page_code', () => {
     import Layout from '${process.cwd()}/test/utils/generate/_tests/generate_page_code/doc/Default?[cb]';
     import Page from '${process.cwd()}/test/utils/generate/_tests/generate_page_code/doc/Default?[cb]';
     const data = {
-    "_wyvr": {
+    "$wyvr": {
         "url": "/url",
         "template_files": {
             "doc": "${process.cwd()}/test/utils/generate/_tests/generate_page_code/doc/Default",
@@ -100,9 +100,9 @@ describe('utils/generate/generate_page_code', () => {
     }
 </script>
 
-<Doc data={data}>
-    <Layout data={data}>
-        <Page data={data}>
+<Doc {data}>
+    <Layout {data}>
+        <Page {data}>
         {@html data.content || ''}
         </Page>
     </Layout>

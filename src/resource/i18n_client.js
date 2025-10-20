@@ -1,5 +1,4 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable no-undef */
+// biome-ignore lint/style/useConst: will be replaced with values from the server
 let wyvr_i18n_res = {};
 const wyvr_i18n = __I18N__;
 if (wyvr_i18n_tr) {

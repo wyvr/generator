@@ -7,7 +7,7 @@ import { dev_cache_breaker } from './cache_breaker.js';
 import { compile_server_svelte } from './compile.js';
 import { render_server_compiled_svelte } from './compile_svelte.js';
 import { write_css_file } from './css.js';
-import { to_extension } from './file.js';
+import { exists, to_extension } from './file.js';
 import { create_hash } from './hash.js';
 import { Logger } from './logger.js';
 import { filled_object, filled_string, is_null, match_interface } from './validate.js';
@@ -20,14 +20,15 @@ export async function replace_shortcode(html, data, file) {
     let media_query_files = {};
     const replaced_content = html.replace(/\(\(([\s\S]*?)\)\)/g, (_, inner) => {
         const shortcode_parts = inner.match(/([^ ]*)([\s\S]*)/);
+        const error_messages = ['shortcode', _, 'can not be replaced in', file];
 
         /* c8 ignore start */
         if (!shortcode_parts) {
             // ignore found shortcode when something went wrong or it doesn't match
             if (Env.is_dev()) {
-                Logger.warning('shortcode can not be replaced in', file, shortcode_parts);
+                Logger.warning(...error_messages);
             }
-            return shortcode_parts;
+            return _;
         }
         /* c8 ignore end */
 
@@ -37,11 +38,18 @@ export async function replace_shortcode(html, data, file) {
         if (!match_interface(shortcode, { tag: true, path: true })) {
             // ignore shortcode when something went wrong
             if (Env.is_dev()) {
-                Logger.warning('shortcode can not be replaced in', file, shortcode_parts, 'because there was an error');
+                Logger.warning(...error_messages, 'because there was an error');
             }
-            return shortcode_parts;
+            return _;
         }
         /* c8 ignore end */
+
+        // check if the file exists
+        const exists_path = [shortcode.path, to_extension(shortcode.path, 'js')].find((path) => exists(path));
+        if (!exists_path) {
+            Logger.warning(...error_messages, 'because the file does not exist');
+            return _;
+        }
 
         if (!shortcode_imports) {
             shortcode_imports = {};
@@ -68,21 +76,27 @@ export async function replace_shortcode(html, data, file) {
             .join('\n')}</script>${replaced_content}`;
         const exec_result = await compile_server_svelte(shortcode_content, file);
 
-        const rendered_result = await render_server_compiled_svelte(exec_result, data, file);
+        const [render_error, rendered_result] = await render_server_compiled_svelte(exec_result, data, file);
 
+        if (render_error) {
+            Logger.error('shortcode', 'error while rendering shortcode', file, render_error);
+            return undefined;
+        }
         // write css
         if (rendered_result?.result?.css?.code) {
-            const css_file_path = join(ReleasePath.get(), FOLDER_CSS, `${identifier}.css`);
+            const css_file_path = ReleasePath.get(FOLDER_CSS, `${identifier}.css`);
             media_query_files = write_css_file(css_file_path, rendered_result.result.css.code, media_query_files);
         }
 
         if (rendered_result?.result?.html) {
+            const cache_breaker = Env.is_dev() ? `?ts=${Date.now()}` : '';
+
             // inject shortcode files
             const html = rendered_result.result.html
-                .replace(/<\/body>/, `<script defer src="/js/${identifier}.js"></script></body>`)
+                .replace(/<\/body>/, `<script defer src="/js/${identifier}.js${cache_breaker}"></script></body>`)
                 .replace(
                     /<\/head>/,
-                    `<link rel="preload" href="/css/${identifier}.css" as="style" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="/css/${identifier}.css"></noscript></head>`
+                    `<link rel="preload" href="/css/${identifier}.css${cache_breaker}" as="style" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="/css/${identifier}.css${cache_breaker}"></noscript></head>`
                 );
             return { html, shortcode_imports, identifier, media_query_files };
         }
@@ -101,7 +115,8 @@ export function get_shortcode_data(name, props_value, file) {
     }
     const src_path = Cwd.get(FOLDER_GEN_SRC);
 
-    let tag, path;
+    let tag;
+    let path;
 
     // check wheter the path was given or the name
     if (name.indexOf('/') > -1) {
@@ -137,6 +152,7 @@ export function parse_props(prop_content, file) {
         prop_name = prop_name.trim();
         try {
             const prop_exec = `JSON.stringify(${prop_value})`;
+            // biome-ignore lint/security/noGlobalEval: <explanation>
             prop_value = eval(prop_exec);
             props[prop_name] = prop_value.replace(/\n\s*/gm, ''); //.replace(/"/g, '&quot;');
         } catch (e) {
@@ -149,33 +165,33 @@ export function parse_props(prop_content, file) {
     };
     for (let i = 0; i < data_length; i++) {
         const char = prop_content[i];
-        if (char == '{') {
+        if (char === '{') {
             parentese++;
-            if (parentese == 1) {
+            if (parentese === 1) {
                 continue;
             }
         }
-        if (char == '}') {
+        if (char === '}') {
             parentese--;
-            if (parentese == 0) {
+            if (parentese === 0) {
                 set_prop();
                 continue;
             }
         }
-        if (char != '=' && parentese == 0 && !name_is_done) {
+        if (char !== '=' && parentese === 0 && !name_is_done) {
             prop_name += char;
             continue;
         }
-        if (char == '=' && parentese == 0) {
+        if (char === '=' && parentese === 0) {
             name_is_done = true;
             continue;
         }
-        if (name_is_done && parentese == 0 && (char == '"' || char == "'")) {
+        if (name_is_done && parentese === 0 && (char === '"' || char === "'")) {
             parentese++;
             is_string = true;
             continue;
         }
-        if (name_is_done && parentese == 1 && is_string && (char == '"' || char == "'")) {
+        if (name_is_done && parentese === 1 && is_string && (char === '"' || char === "'")) {
             prop_value = `"${prop_value}"`;
             set_prop();
             continue;

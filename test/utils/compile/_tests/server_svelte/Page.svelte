@@ -4,7 +4,7 @@
     import Page from '[root]/test/utils/compile/_tests/server_svelte/doc/Default.js';
     import { huhu } from '[root]/test/utils/compile/_tests/server_svelte/helper/test';
     const data = {
-        _wyvr: {
+        $wyvr: {
             url: '/url',
             template_files: {
                 doc: '[root]/test/utils/compile/_tests/server_svelte/doc/Default.js',

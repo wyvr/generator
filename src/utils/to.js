@@ -1,28 +1,10 @@
 import { dirname, extname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'url';
-import {
-    FOLDER_GEN,
-    FOLDER_GEN_CLIENT,
-    FOLDER_GEN_SERVER,
-    FOLDER_GEN_SRC,
-    FOLDER_SERVER,
-    FOLDER_SRC,
-} from '../constants/folder.js';
+import { fileURLToPath } from 'node:url';
+import { FOLDER_GEN, FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC, FOLDER_JS, FOLDER_SERVER, FOLDER_SRC } from '../constants/folder.js';
 import { Cwd } from '../vars/cwd.js';
 import { ReleasePath } from '../vars/release_path.js';
 import { to_extension } from './file.js';
-import {
-    is_object,
-    is_array,
-    is_null,
-    filled_string,
-    is_regex,
-    is_symbol,
-    is_big_int,
-    is_string,
-    filled_array,
-    filled_object,
-} from './validate.js';
+import { is_object, is_array, is_null, filled_string, is_regex, is_symbol, is_big_int, is_string, filled_array, filled_object } from './validate.js';
 
 export function to_string(value) {
     if (is_null(value)) {
@@ -41,8 +23,8 @@ export function to_snake_case(value) {
     return value
         .replace(/([A-Z])/g, '_$1')
         .toLowerCase()
+        .replace(/[^a-z0-9_]/g, '_')
         .replace(/^_/, '')
-        .replace(/[^a-z_]/g, '_')
         .replace(/_+/g, '_');
 }
 export function to_escaped(value) {
@@ -57,18 +39,21 @@ export function to_escaped(value) {
     }
     return JSON.stringify(value).replace(/'/g, "''");
 }
+export function to_html_entities(value) {
+    if (!filled_string(value)) {
+        return '';
+    }
+    return value.replace(/[\u00A0-\u9999<>\&]/gim, (i) => {
+        return `&#${i.charCodeAt(0)};`;
+    });
+}
 export function to_plain(text) {
     if (!is_string(text)) {
         return '';
     }
-    /* eslint-disable no-control-regex */
     // @see https://github.com/doowb/ansi-colors/blob/master/index.js ANSI_REGEX
     // biome-ignore lint/suspicious/noControlCharactersInRegex: <explanation>
-    return text.replace(
-        /[\u001b\u009b][[\]#;?()]*(?:(?:(?:[^\W_]*;?[^\W_]*)\u0007)|(?:(?:[0-9]{1,4}(;[0-9]{0,4})*)?[~0-9=<>cf-nqrtyA-PRZ]))/g,
-        ''
-    );
-    /* eslint-enable no-control-regex */
+    return text.replace(/[\u001b\u009b][[\]#;?()]*(?:(?:(?:[^\W_]*;?[^\W_]*)\u0007)|(?:(?:[0-9]{1,4}(;[0-9]{0,4})*)?[~0-9=<>cf-nqrtyA-PRZ]))/g, '');
 }
 
 export function to_dirname(import_meta_url) {
@@ -101,10 +86,15 @@ export function to_relative_path(path) {
     let splitted = path.split('/');
     const gen_index = splitted.indexOf(FOLDER_GEN);
     const src_index = splitted.indexOf(FOLDER_SRC);
+    const js_index = splitted.indexOf(FOLDER_JS);
+
     if (gen_index > -1 || src_index > -1) {
         // gen and the next child or when only src is inside the path
-        const index = Math.max(gen_index + 1, src_index);
-        splitted = splitted.slice(index + 1);
+        let index = Math.max(gen_index + 1, src_index) + 1;
+        if (js_index > -1 && src_index - 1 === js_index) {
+            index = js_index;
+        }
+        splitted = splitted.slice(index);
     }
 
     return splitted.join('/').replace(ReleasePath.get(), '');
@@ -118,10 +108,7 @@ export function to_relative_path_of_gen(path) {
     if (!filled_string(path)) {
         return '';
     }
-    return to_relative_from_markers(path, FOLDER_GEN).replace(
-        ReleasePath.get(),
-        ''
-    );
+    return to_relative_from_markers(path, FOLDER_GEN).replace(ReleasePath.get(), '');
 }
 /**
  * Converts the given path to a relative path of the given marker folders
@@ -179,10 +166,7 @@ export function to_identifier_name(...parts) {
     }
     const identifiers = parts.map(to_single_identifier_name);
     // empty or all default identifiers gets combined into one
-    if (
-        !filled_array(identifiers) ||
-        identifiers.filter((part) => part !== default_sign).length === 0
-    ) {
+    if (!filled_array(identifiers) || identifiers.filter((part) => part !== default_sign).length === 0) {
         return default_sign;
     }
     const combined = identifiers.join('-');
@@ -190,15 +174,9 @@ export function to_identifier_name(...parts) {
 }
 export function to_single_identifier_name(part) {
     const internal_part = !filled_string(part) ? 'default' : part;
-    let normalized_part = to_relative_from_markers(
-        internal_part.replace(/\.[^.]+$/, '').toLowerCase(),
-        FOLDER_GEN_SERVER,
-        FOLDER_SERVER
-    );
+    let normalized_part = to_relative_from_markers(internal_part.replace(/\.[^.]+$/, '').toLowerCase(), FOLDER_GEN_SERVER, FOLDER_SERVER);
 
-    return normalized_part
-        .replace(/^\/?(doc|layout|page)\//, '')
-        .replace(/\/|-/g, '_');
+    return normalized_part.replace(/^\/?(doc|layout|page)\//, '').replace(/\/|-/g, '_');
 }
 /**
  * Combine identifiers into one object

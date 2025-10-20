@@ -52,4 +52,10 @@ describe('utils/file/to_index', () => {
         strictEqual(to_index('index'), 'index.html');
         strictEqual(to_index('page/index'), 'page/index.html');
     });
+    it('version folder', () => {
+        strictEqual(to_index('1.2.3'), '1.2.3/index.html');
+    });
+    it('version folder with index', () => {
+        strictEqual(to_index('1.2.3/index'), '1.2.3/index.html');
+    });
 });

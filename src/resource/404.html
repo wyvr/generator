@@ -2,50 +2,96 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
+        <meta
+            content="width=device-width,initial-scale=1,minimum-scale=1"
+            name="viewport"
+        />
         <title>{message}</title>
         <style>
-            .message {
-                display: flex;
-                align-items: center;
-                font: 1rem/1.4em sans-serif;
-                width: 100vw;
-                height: 100vh;
-                justify-content: center;
-                position: absolute;
-                left: 0;
-                top: 0;
-                color: var(--wyvr-debug-primary);
+            :root {
+            --wyvr-debug-primary: #6d8ddf;
+            --wyvr-debug-primary-text: #fff;
+            --wyvr-debug-disabled: #999;
+            --wyvr-debug-bg: #eee;
+            --wyvr-debug-text: #222;
+            --wyvr-debug-text-shadow: #000;
+            --wyvr-debug-error: #800;
+            --wyvr-debug-font-size: 16px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --wyvr-debug-bg: #222;
+                --wyvr-debug-text: #eee;
             }
-            .card {
-                text-align: center;
-            }
-            .card small {
-                opacity: 0.7;
-            }
-            .card button {
-                background: var(--wyvr-debug-primary);
-                border: 0;
-                padding: 10px;
-                color: var(--wyvr-debug-text);
-                margin-top: 10px;
-            }
-            @media (prefers-color-scheme: dark) {
-                html {
-                    background-color: #222;
-                }
-            }
+        }
+
+        html {
+            font: 1rem/1.4em sans-serif;
+            color: var(--wyvr-debug-text);
+            background: var(--wyvr-debug-bg);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 2048px;
+            max-width: 80vw;
+        }
+
+        h1 {
+            color: var(--wyvr-debug-primary);
+        }
+
+        header,
+        footer {
+            text-align: center;
+        }
+        footer {
+            position: sticky;
+            bottom: 0;
+            padding: 0.5rem;
+        }
+
+        small {
+            opacity: 0.7;
+        }
+
+        button {
+            background: var(--wyvr-debug-primary);
+            border: 0;
+            padding: 10px;
+            color: var(--wyvr-debug-primary-text);
+            margin-top: 10px;
+            border-radius: 0.25rem;
+            cursor: pointer;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            padding: 0;
+        }
+
         </style>
     </head>
     <body>
-        <div class="message">
-            <div class="card">
-                <small>Status:</small> <code>{status}</code>
+        <div class="container">
+            <header>
                 <h1>{message}</h1>
-                <small>URL:</small> <code>{url}</code><br />
-                <small>UID: <code>{uid}</code></small
-                ><br />
+            </header>
+            
+            <small>Status:</small> <code>{status}</code><br />
+            <small>URL:</small> <code>{url}</code><br />
+            <small>UID: <code>{uid}</code></small><br />
+    
+            <footer>
                 <button onclick="window.location.reload()">Reload</button>
-            </div>
+            </footer>
         </div>
         <script>
             const script = document.createElement('script');

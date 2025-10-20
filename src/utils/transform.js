@@ -5,7 +5,7 @@ import { compile_sass, compile_typescript, insert_import } from './compile.js';
 import { Cwd } from '../vars/cwd.js';
 import { to_dirname } from './to.js';
 import { clone } from './json.js';
-import { WyvrFileLoading } from '../struc/wyvr_file.js';
+import { WyvrFileLoading, WyvrFileRender, WyvrFileRenderHydrequestAlias } from '../struc/wyvr_file.js';
 import { uniq_values } from './uniq.js';
 import { Env } from '../vars/env.js';
 import { Logger } from './logger.js';
@@ -13,6 +13,8 @@ import { FOLDER_GEN_CLIENT, FOLDER_GEN_SERVER, FOLDER_GEN_SRC } from '../constan
 import { get_error_message } from './error.js';
 import { append_cache_breaker } from './cache_breaker.js';
 import { Config } from './config.js';
+import { WyvrFileClassification } from '../vars/wyvr_file_classification.js';
+import { CodeContext } from '../struc/code_context.js';
 
 const __dirname = join(to_dirname(import.meta.url), '..');
 
@@ -157,6 +159,23 @@ export function extract_tags_from_content(content, raw_tag, max) {
     return result;
 }
 
+export function extract_headings_from_content(content) {
+    if (!filled_string(content)) {
+        return [];
+    }
+    const headings = [];
+    content.replace(/<h(\d)[^>]*>(.*?)<\/h\1>/g, (_, level, inner) => {
+        const text = inner.replace(/<[^>]*>/g, '');
+        headings.push({
+            level: Number.parseInt(level),
+            text: text,
+            id: text.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+        });
+        return '';
+    });
+    return headings;
+}
+
 export async function extract_and_load_split(path, content, tag, extensions) {
     const result = {
         content: '',
@@ -179,9 +198,9 @@ export async function extract_and_load_split(path, content, tag, extensions) {
     result.tags = (
         await Promise.all(
             extracted.tags.map(async (code) => {
-                const is_style = tag == 'style';
+                const is_style = tag === 'style';
                 const contains_sass = (code.indexOf('type="text/scss"') > -1 || code.indexOf('lang="scss"') > -1 || code.indexOf('lang="sass"') > -1) && is_style;
-                const contains_typescript = code.indexOf('lang="ts"') > -1 && tag == 'script';
+                const contains_typescript = code.indexOf('lang="ts"') > -1 && tag === 'script';
                 code = code.replace(new RegExp(`^<${tag}[^>]*>`), '').replace(new RegExp(`<\\/${tag}>$`), '');
                 if (contains_sass) {
                     return await compile_sass(code, path);
@@ -224,27 +243,29 @@ export async function extract_and_load_split(path, content, tag, extensions) {
     return result;
 }
 
-export function replace_wyvr_magic(content, as_client) {
+export function replace_wyvr_magic(content, code_context = CodeContext.server) {
     if (!filled_string(content)) {
         return '';
     }
+    const as_client = code_context === CodeContext.client;
     // modify __ => translation
+    // disable isRequest
     if (as_client) {
-        content = content.replace(/(\W)__\(/g, '$1window.__(');
+        content = content.replace(/(\W)__\(/g, '$1window.__(').replace(/([^\w])isRequest([^\w])/g, '$1false$2');
     }
-    const is_server = as_client ? 'false' : 'true';
-    const is_client = as_client ? 'true' : 'false';
+    const is_server = (code_context === CodeContext.server).toString();
+    const is_client = as_client.toString();
     const target_dir = as_client ? FOLDER_GEN_CLIENT : FOLDER_GEN_SERVER;
-    // use server implementation on the server
+    // use server implementation on the server and request
     if (!as_client) {
-        content = content.replace(/(['"])@wyvr\/generator\/universal\.js(['"])/g, '$1@wyvr/generator/universal_server.js$2');
+        content = content.replace(/(['"])wyvr\/universal\.js(['"])/g, '$1wyvr/universal_server.js$2');
     }
-    // replace isServer and isClient and the imports
+    // replace isServer, isClient and the imports
     return content
         .replace(/([^\w])isServer([^\w])/g, `$1${is_server}$2`)
         .replace(/([^\w])isClient([^\w])/g, `$1${is_client}$2`)
-        .replace(/import \{[^}]*?\} from ["']@wyvr\/generator["'];?/g, '')
-        .replace(/(?:const|let)[^=]*?= require\(["']@wyvr\/generator["']\);?/g, '')
+        .replace(/import \{[^}]*?\} from ["']wyvr["'];?/g, '')
+        .replace(/(?:const|let)[^=]*?= require\(["']wyvr["']\);?/g, '')
         .replace(/from (['"])([^'"]+)['"]/g, (_, quote, path) => {
             if (path.indexOf(FOLDER_GEN_SRC) === -1) {
                 return _;
@@ -307,7 +328,20 @@ export function insert_hydrate_tag(content, wyvr_file) {
     // debug info
     const debug_info = Env.is_dev() ? `data-hydrate-path="${wyvr_file.rel_path}"` : undefined;
     const attributes = [debug_info, props_include, loading, portal, media].filter((x) => x).join(' ');
-    content = `<${hydrate_tag} data-hydrate="${wyvr_file.name}" ${attributes}>${content}</${hydrate_tag}>`;
+    const render = WyvrFileClassification.normalize(wyvr_file?.config?.render) ?? '';
+
+    // extract some special svelte tags, they have to be outside the hydrate tag
+    const outer_tags = [];
+    const svelte_tags = ['svelte:head', 'svelte:body', 'svelte:document', 'svelte:window'];
+    for (const tag of svelte_tags) {
+        if (content.indexOf(`<${tag}`) > -1) {
+            const tags = extract_tags_from_content(content, tag);
+            content = tags.content;
+            outer_tags.push(...tags.tags);
+        }
+    }
+
+    content = `${outer_tags.join('')}<${hydrate_tag} data-render="${render}" data-hydrate="${wyvr_file.name}" ${attributes}>${content}</${hydrate_tag}>`;
     content = replace_slots_static(content);
     return scripts.tags.join('\n') + content + styles.tags.join('\n');
 }
@@ -337,6 +371,9 @@ export function replace_slots(content, fn) {
     if (!filled_string(content)) {
         return '';
     }
+    if (content.indexOf('<slot') === -1) {
+        return content;
+    }
     const content_replaced = content.replace(/(<slot[^>/]*>.*?<\/slot>|<slot[^>]*\/>)/g, (_, slot) => {
         const match = slot.match(/name="(.*)"/);
         let name = null;
@@ -350,11 +387,18 @@ export function replace_slots(content, fn) {
 export function replace_slots_static(content) {
     return replace_slots(content, (name, slot) => `<span data-slot="${name}">${slot}</span>`);
 }
-export function remove_on_server(content) {
+export function remove_server_events(content) {
+    return ['onServer', 'onRequest'].reduce((content, event_name) => remove_event(content, event_name), content);
+}
+
+function remove_event(content, event_name) {
     if (!filled_string(content)) {
         return '';
     }
-    const search_string = 'onServer(';
+    if (!filled_string(event_name)) {
+        return content;
+    }
+    const search_string = `${event_name}(`;
     const start_index = content.indexOf(search_string);
     if (start_index === -1) {
         return content;
@@ -381,7 +425,7 @@ export function remove_on_server(content) {
     if (found_closing) {
         const replaced = content.substr(0, start_index) + content.substr(index);
         // check if more onServer handlers are used
-        return remove_on_server(replaced);
+        return remove_server_events(replaced);
     }
     return content;
 }
@@ -403,34 +447,46 @@ export function replace_imports(content, file, src_folder, scope, hooks) {
         return '';
     }
 
-    const replacer = (_, imported, path) => {
-        if (is_path(path)) {
-            // correct the path
-            path = replace_src_in_path(path, src_folder).replace(new RegExp(FOLDER_GEN_SRC, 'g'), src_folder);
-            // transform to js from svelte
-            const ext = extname(path);
-            if (is_func(hooks?.modify_path)) {
-                path = hooks.modify_path(path, ext);
-            }
-            // transform to js from ts
-            if (ext === '.ts') {
-                path = to_extension(path, 'js');
-            }
+    // avoid replacing, because its slow
+    if (content.indexOf('import') === -1) {
+        return content;
+    }
 
-            // force file ending when nothing is specified
-            if (!ext) {
-                const check_ext = ['.js', '.mjs', '.ts'];
-                const dir = dirname(file);
-                const new_ext = check_ext.find((search_ext) => exists(resolve(dir, `${path}${search_ext}`)));
-                if (!new_ext) {
-                    Logger.warning(get_error_message(new Error(`can't find import ${path} with the extensions ${check_ext.join(',')} in ${file}`), file, scope));
-                }
-                path = `${path}${new_ext || ''}`;
-            }
-            path = append_cache_breaker(path);
+    const result = content
+        .replace(/import ([\w\W]+?) from ['"]([^'"]+)['"]/g, (_, imported, path) => {
+            return `import ${imported} from '${transform_import_path(path, file, src_folder, scope, hooks)}'`;
+        })
+        .replace(/ import\([\s\n]*["']([^"']+)["']/g, (_, path) => {
+            return ` import('${transform_import_path(path, file, src_folder, scope, hooks)}'`;
+        });
+    return result;
+}
+
+export function transform_import_path(path, file, src_folder, scope, hooks) {
+    if (!is_path(path)) {
+        return path;
+    }
+    // correct the path
+    let internal_path = replace_src_in_path(path, src_folder).replace(new RegExp(FOLDER_GEN_SRC, 'g'), src_folder);
+    // transform to js from svelte
+    const ext = extname(internal_path);
+    if (is_func(hooks?.modify_path)) {
+        internal_path = hooks.modify_path(internal_path, ext);
+    }
+    // transform to js from ts
+    if (ext === '.ts') {
+        internal_path = to_extension(internal_path, 'js');
+    }
+
+    // force file ending when nothing is specified
+    if (!ext) {
+        const check_ext = ['.js', '.mjs', '.ts'];
+        const dir = dirname(file);
+        const new_ext = check_ext.find((search_ext) => exists(resolve(dir, `${internal_path}${search_ext}`)));
+        if (!new_ext) {
+            Logger.warning(get_error_message(new Error(`can't find import ${internal_path} with the extensions ${check_ext.join(',')} in ${file}`), file, scope));
         }
-
-        return `import ${imported} from '${path}'`;
-    };
-    return content.replace(/import ([\w\W]+?) from ['"]([^'"]+)['"]/g, replacer);
+        internal_path = `${internal_path}${new_ext || ''}`;
+    }
+    return append_cache_breaker(internal_path);
 }

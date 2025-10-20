@@ -1,7 +1,6 @@
 import { get_critical_css } from '../utils/critical.js';
 import { filled_array, filled_object } from '../utils/validate.js';
 import { exists, read } from '../utils/file.js';
-import { join } from 'node:path';
 import { ReleasePath } from '../vars/release_path.js';
 import { WorkerEmit } from '../struc/worker_emit.js';
 import { WorkerAction } from '../struc/worker_action.js';
@@ -18,7 +17,7 @@ export async function critical(entries) {
 
     for (const entry of entries) {
         try {
-            const path = join(ReleasePath.get(), entry.file);
+            const path = ReleasePath.get(entry.file);
             if (!exists(path)) {
                 continue;
             }

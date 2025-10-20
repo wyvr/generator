@@ -4,6 +4,12 @@ import { Cwd } from '../vars/cwd.js';
 import { Logger } from './logger.js';
 import { filled_array, filled_string, is_null, is_object } from './validate.js';
 import { Event } from './event.js';
+import { PROJECT_EVENT, PROJECT_EVENT_ERROR } from '../constants/project_events.js';
+import { read } from './file.js';
+import { to_dirname, to_html_entities } from './to.js';
+import { inject_csp } from '../model/csp.js';
+import { inject_events, inject_script } from './build.js';
+import { Env } from '../vars/env.js';
 
 export function extract_error(e, source) {
     const root_dir = Cwd.get();
@@ -130,7 +136,8 @@ export function get_error_message(e, filename, scope) {
     if (scope) {
         result.push(Logger.color.bold(`@${scope}`));
     }
-    result.push(`[${data.name ? Logger.color.bold(data.name) : ''}] ${data.message ?? '-'}`);
+    const message = `${data.name ? `[${Logger.color.bold(data.name)}] ` : ''}${data.message ?? '-'}`;
+    result.push(message);
     if (filled_array(data.stack)) {
         result.push(Logger.color.dim('stack'));
         result.push(...data.stack.map((entry) => `${Logger.color.dim('-')} ${entry}`));
@@ -181,10 +188,56 @@ export function inject_worker_message_errors(messages) {
 export function bind_error_events() {
     // @see https://nodejs.org/api/process.html#event-uncaughtexception
     process.on('uncaughtException', (error, origin) => {
-        Event.emit('project', 'error', { error, origin });
+        Event.emit(PROJECT_EVENT, PROJECT_EVENT_ERROR, { error, origin });
     });
     // when available it prevents the exit of the application
     process.on('unhandledRejection', (reason, promise) => {
-        Event.emit('project', 'error', { promise, reason });
+        Event.emit(PROJECT_EVENT, PROJECT_EVENT_ERROR, { promise, reason });
     });
+}
+
+/**
+ * Generate a error page
+ */
+export function get_error_page(error, file, context = 'error') {
+    if (Env.is_prod()) {
+        return '<h1>Internal Server Error</h1>';
+    }
+    const error_data = extract_error(error, file);
+    if (!error_data) {
+        Logger.error('error in generating the error page, when extracting the error', file);
+        return '<h1>Internal Server Error</h1>';
+    }
+    try {
+        const resource_dir = join(to_dirname(import.meta.url), '..', 'resource');
+        const debug_code_content = read(join(resource_dir, 'devtools_code.js'))
+            .replace(/\{identifier\}/g, '')
+            .replace(/\{shortcode\}/g, '');
+
+        const socket_helpers = read(join(resource_dir, 'client_helpers.js'));
+        const socket_content = read(join(resource_dir, 'client_socket.js'));
+
+        let stack = error_data.debug;
+        if (filled_array(error_data.stack)) {
+            stack = error_data.stack.join('\n');
+        }
+
+        const content = read(join(resource_dir, '500.html'))
+            ?.replace(/\{message\}/g, error_data.message)
+            ?.replace(/\{context\}/g, context)
+            .replace(
+                /\{stack\}/g,
+                to_html_entities(stack)
+                    .split('\n')
+                    .map((line, index) => `<div class="line${index + 1}">${line}</div>`)
+                    .join('')
+            )
+            .replace(/\{name\}/g, error_data.name)
+            .replace(/\{file\}/g, file)
+            .replace(/\{hint\}/g, error_data.hint ?? '');
+        return inject_csp(inject_events(inject_script(content, [debug_code_content, socket_helpers, socket_content])));
+    } catch (e) {
+        Logger.error('error in generating the error page', extract_error(e, file));
+        return '<h1>Internal Server Error</h1>';
+    }
 }

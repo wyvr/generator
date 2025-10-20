@@ -5,8 +5,7 @@
         "indentStyle": "space",
         "indentWidth": 4,
         "lineWidth": 180,
-        "lineEnding": "lf",
-        "ignore": []
+        "lineEnding": "lf"
     },
     "javascript": {
         "formatter": {
@@ -16,8 +15,8 @@
             "lineWidth": 180,
             "lineEnding": "lf",
             "quoteStyle": "single",
-            "trailingComma": "none"
+            "trailingCommas": "none"
         },
-        "globals": ["isServer", "isClient"]
+        "globals": ["isServer", "isClient", "isRequest"]
     }
 }

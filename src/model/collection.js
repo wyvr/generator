@@ -27,21 +27,21 @@ export function collection_entry(data = {}, default_values = {}) {
         url: '',
         mtime: undefined
     };
-    Object.keys(result).forEach((key) => {
+    for (const key of Object.keys(result)) {
         if (is_object(data) && !is_null(data[key])) {
             if (in_array(['name', 'url', 'scope'], key) && !filled_string(data[key])) {
-                return;
+                continue;
             }
             result[key] = data[key];
-            return;
+            continue;
         }
         if (is_object(data) && !is_null(default_values[key])) {
             if (in_array(['name', 'url', 'scope'], key) && !filled_string(default_values[key])) {
-                return;
+                continue;
             }
             result[key] = default_values[key];
         }
-    });
+    }
     return result;
 }
 

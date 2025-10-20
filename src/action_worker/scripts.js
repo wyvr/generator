@@ -1,8 +1,6 @@
 import { join } from 'node:path';
 import { FOLDER_GEN_JS, FOLDER_JS } from '../constants/folder.js';
 import { build } from '../utils/build.js';
-import { get_config_cache } from '../utils/config_cache.js';
-import { get_hydrate_dependencies } from '../utils/dependency.js';
 import { get_error_message } from '../utils/error.js';
 import { read, to_extension, write } from '../utils/file.js';
 import { stringify } from '../utils/json.js';
@@ -13,70 +11,91 @@ import { filled_array, filled_string, is_null } from '../utils/validate.js';
 import { Cwd } from '../vars/cwd.js';
 import { Env } from '../vars/env.js';
 import { ReleasePath } from '../vars/release_path.js';
-import { build_hydrate_file, insert_script_import, write_hydrate_file } from '../utils/script.js';
+import { build_file, insert_script_import, write_file } from '../utils/script.js';
 import { UniqId } from '../vars/uniq_id.js';
+import { optimize_js } from '../utils/optimize/js.js';
+import { Dependency } from '../model/dependency.js';
+import { get_render_dependency_wyvr_files } from '../utils/dependency.js';
+import { KeyValue } from '../../storage.js';
+import { STORAGE_PACKAGE_TREE } from '../constants/storage.js';
 
 const __dirname = to_dirname(import.meta.url);
 const lib_dir = join(__dirname, '..');
 const resouce_dir = join(lib_dir, 'resource');
+const package_tree_db = new KeyValue(STORAGE_PACKAGE_TREE);
 
 export async function scripts(identifiers) {
+    const dep_db = new Dependency();
+    const index = dep_db.get_index();
     if (!filled_array(identifiers)) {
         return;
     }
-    const file_config = get_config_cache('dependencies.config');
-    const tree = get_config_cache('dependencies.top');
-    const package_tree = Env.is_dev() ? get_config_cache('package_tree') : undefined;
+    const package_tree = Env.is_dev() ? package_tree_db.all() : undefined;
     const build_id = UniqId.get();
     const build_id_var = `window.build_id = '${build_id ? build_id.substr(0, 8) : '_'}';`;
+    const base_scripts = [
+        build_id_var,
+        insert_script_import(join(resouce_dir, 'events.js')),
+        insert_script_import(join(resouce_dir, 'stack.js')),
+        insert_script_import(join(resouce_dir, 'i18n.js')),
+        insert_script_import(join(resouce_dir, 'store_init.js'))
+    ];
     for (const identifier of identifiers) {
         if (is_null(identifier)) {
             Logger.warning('empty identifier found');
             continue;
         }
         let result = { code: '', sourcemap: '' };
-        let identifier_file;
-        let dependencies = [];
+        let gen_identifier_file;
+        // let dependencies = [];
         let content;
-        const scripts = [
-            build_id_var,
-            insert_script_import(join(resouce_dir, 'events.js')),
-            insert_script_import(join(resouce_dir, 'stack.js')),
-            insert_script_import(join(resouce_dir, 'i18n.js'))
-        ];
+        const scripts = [...base_scripts];
 
+        const dependency_list = [];
+        const roots = {
+            shortcode: undefined,
+            doc: undefined,
+            layout: undefined,
+            page: undefined
+        };
         try {
             const is_shortcode = !!identifier.imports;
             // shortcode dependencies
             if (is_shortcode) {
-                dependencies = [].concat(
-                    ...Object.keys(identifier.imports).map((key) => {
-                        return get_hydrate_dependencies(tree, file_config, to_relative_path_of_gen(identifier.imports[key]));
-                    })
-                );
+                for (const file of Object.values(identifier.imports)) {
+                    const rel_path = to_relative_path_of_gen(file);
+                    dependency_list.push(...get_render_dependency_wyvr_files(rel_path, index));
+                    if (!roots.shortcode) {
+                        roots.shortcode = [];
+                    }
+                    roots.shortcode.push(rel_path);
+                }
             } else {
-                dependencies = [].concat(
-                    ...['doc', 'layout', 'page'].map((type) => {
-                        return get_hydrate_dependencies(tree, file_config, `src/${type}/${to_extension(identifier[type], 'svelte')}`);
-                    })
-                );
+                for (const type of ['doc', 'layout', 'page']) {
+                    if (!identifier[type]) {
+                        continue;
+                    }
+                    const file = `src/${type}/${to_extension(identifier[type], 'svelte')}`;
+                    dependency_list.push(...get_render_dependency_wyvr_files(file, index));
+                    if (!roots[type]) {
+                        roots[type] = [];
+                    }
+                    roots[type].push(file);
+                }
             }
-
-            // write dev structure
-            // @TODO memory leak ahead inside get_structure
-            // write_identifier_structure(identifier, tree, file_config, package_tree);
-
-            const has = { instant: false };
+            const has = {
+                class: true
+            };
             // build file content
             content = (
                 await Promise.all(
-                    dependencies.map(async (file) => {
-                        const file_result = await build_hydrate_file(file, resouce_dir);
+                    dependency_list.map(async (file) => {
+                        const file_result = await build_file(file, resouce_dir);
                         if (!file_result) {
                             return undefined;
                         }
                         // write files
-                        write_hydrate_file(file_result);
+                        write_file(file_result);
                         // apply additive has values
                         if (file_result.has) {
                             for (const key of Object.keys(file_result.has)) {
@@ -89,22 +108,18 @@ export async function scripts(identifiers) {
                     })
                 )
             ).filter(Boolean);
-            // add the wyvr hydrate scripts
+            // add the wyvr scripts
             for (const key of Object.keys(has)) {
-                scripts.push(insert_script_import(join(resouce_dir, `hydrate_${key}.js`), `wyvr_hydrate_${key}`));
+                scripts.push(insert_script_import(join(resouce_dir, `${key}.js`), `wyvr_${key}`));
             }
             scripts.push(`
                 const wyvr_identifier = ${stringify(identifier)};
-                const wyvr_dependencies = ${stringify(dependencies)};
             `);
 
             if (Env.is_dev()) {
                 scripts.push(read(join(resouce_dir, 'devtools.js')));
                 scripts.push(`
-                console.group('wyvr');
-                console.log('identifier', wyvr_identifier);
-                console.log('dependencies', wyvr_dependencies);
-                console.groupEnd('wyvr');
+                console.log('wyvr: identifier', wyvr_identifier?.identifier, wyvr_identifier);
                 `);
             }
             // trigger ready event
@@ -115,7 +130,13 @@ export async function scripts(identifiers) {
                 }, 500);
             }`);
 
-            identifier_file = Cwd.get(FOLDER_GEN_JS, `${identifier.identifier}.js`);
+            gen_identifier_file = Cwd.get(FOLDER_GEN_JS, `${identifier.identifier}.js`);
+
+            // write dev structure
+            // @TODO memory leak ahead inside write_identifier_structure
+            if (Env.is_dev()) {
+                write_identifier_structure(identifier.identifier, roots, index, package_tree);
+            }
         } catch (e) {
             Logger.error(get_error_message(e, identifier.identifier, 'script create'));
             Logger.debug(e);
@@ -132,17 +153,12 @@ export async function scripts(identifiers) {
                     build_content = scripts.join('\n');
                 } else {
                     // minimal set of js
-                    build_content = [
-                        build_id_var,
-                        insert_script_import(join(resouce_dir, 'events.js')),
-                        insert_script_import(join(resouce_dir, 'stack.js')),
-                        insert_script_import(join(resouce_dir, 'i18n.js'))
-                    ].join('\n');
+                    build_content = base_scripts.join('\n');
                 }
             }
 
             if (filled_string(build_content)) {
-                result = await build(build_content, identifier_file);
+                result = await build(build_content, gen_identifier_file);
             }
         } catch (e) {
             Logger.error(get_error_message(e, identifier.identifier, 'script build'));
@@ -155,15 +171,18 @@ export async function scripts(identifiers) {
         try {
             const code = result.code.replace('%sourcemap%', `# sourceMappingURL=/js/${identifier.identifier}.js.map`);
 
-            write(identifier_file, code);
-            write(join(ReleasePath.get(), FOLDER_JS, `${identifier.identifier}.js`), code);
+            write(gen_identifier_file, code);
 
-            write(`${identifier_file}.map`, result.sourcemap);
+            const rel_path = `/${join(FOLDER_JS, `${identifier.identifier}.js`)}`;
+            write(ReleasePath.get(rel_path), code);
+            optimize_js(code, rel_path);
+
+            // source map
+            write(`${gen_identifier_file}.map`, result.sourcemap);
             write(join(ReleasePath.get(), FOLDER_JS, `${identifier.identifier}.js.map`), result.sourcemap);
-            Logger.debug('identifier', identifier, dependencies);
+            Logger.debug('identifier', identifier, dependency_list);
         } catch (e) {
             Logger.error(get_error_message(e, identifier.identifier, 'script write'));
         }
     }
 }
-

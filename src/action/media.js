@@ -2,6 +2,7 @@ import { WorkerAction } from '../struc/worker_action.js';
 import { Plugin } from '../utils/plugin.js';
 import { WorkerController } from '../worker/controller.js';
 import { measure_action } from './helper.js';
+import { PLUGIN_MEDIA } from '../constants/plugins.js';
 
 export async function media(files, minimize_output) {
     const name = 'media';
@@ -11,9 +12,10 @@ export async function media(files, minimize_output) {
         name,
         async () => {
             // wrap in plugin
-            const caller = await Plugin.process(name, media_files);
+            const caller = await Plugin.process(PLUGIN_MEDIA, media_files);
             await caller(async (files) => {
                 await WorkerController.process_in_workers(WorkerAction.media, files, 10, true);
+                return files;
             });
         },
         minimize_output

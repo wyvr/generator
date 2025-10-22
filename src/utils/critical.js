@@ -7,6 +7,8 @@ import { Config } from './config.js';
 import { KeyValue } from './database/key_value.js';
 import { STORAGE_OPTIMIZE_CRITICAL } from '../constants/storage.js';
 
+const enabled = Config.get('critical.active', true);
+
 const critical_options = {
     // default options
     ...{
@@ -25,11 +27,13 @@ const critical_options = {
 };
 
 export async function get_critical_css(content, file) {
+    if(!enabled) {
+        return '';
+    }
     const result = await generate_critical_css(content, file);
     if (is_null(result)) {
         return '';
     }
-
     if (result.css) {
         return result.css;
     }
@@ -37,6 +41,9 @@ export async function get_critical_css(content, file) {
 }
 
 export async function generate_critical_css(content, file) {
+    if(!enabled) {
+        return undefined;
+    }
     if (!filled_string(content)) {
         return undefined;
     }
@@ -61,7 +68,7 @@ export async function generate_critical_css(content, file) {
 const critical_db = new KeyValue(STORAGE_OPTIMIZE_CRITICAL);
 
 export function insert_critical_css(content, identifier) {
-    if (!filled_string(content) || !filled_string(identifier)) {
+    if(!enabled || !filled_string(content) || !filled_string(identifier)) {
         return content;
     }
 
@@ -73,6 +80,9 @@ export function insert_critical_css(content, identifier) {
 }
 
 export function critical_css_exists(identifier) {
+    if(!enabled) {
+        return false;
+    }
     return critical_db.exists(identifier);
 }
 

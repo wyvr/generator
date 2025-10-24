@@ -27,7 +27,7 @@ const critical_options = {
 };
 
 export async function get_critical_css(content, file) {
-    if(!enabled) {
+    if (!enabled) {
         return '';
     }
     const result = await generate_critical_css(content, file);
@@ -41,7 +41,7 @@ export async function get_critical_css(content, file) {
 }
 
 export async function generate_critical_css(content, file) {
-    if(!enabled) {
+    if (!enabled) {
         return undefined;
     }
     if (!filled_string(content)) {
@@ -68,7 +68,7 @@ export async function generate_critical_css(content, file) {
 const critical_db = new KeyValue(STORAGE_OPTIMIZE_CRITICAL);
 
 export function insert_critical_css(content, identifier) {
-    if(!enabled || !filled_string(content) || !filled_string(identifier)) {
+    if (!enabled || !filled_string(content) || !filled_string(identifier)) {
         return content;
     }
 
@@ -80,7 +80,7 @@ export function insert_critical_css(content, identifier) {
 }
 
 export function critical_css_exists(identifier) {
-    if(!enabled) {
+    if (!enabled) {
         return false;
     }
     return critical_db.exists(identifier);

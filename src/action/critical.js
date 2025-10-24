@@ -9,6 +9,7 @@ import { Env } from '../vars/env.js';
 import { WorkerController } from '../worker/controller.js';
 import { measure_action } from './helper.js';
 import { PLUGIN_CRITICAL } from '../constants/plugins.js';
+import { critical_css_enabled } from '../utils/critical.js';
 
 export async function critical() {
     // generate critical is only available in production mode

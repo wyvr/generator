@@ -54,10 +54,10 @@ export async function clear(flags) {
         }
     }
 
-    if (flags.find((flag) => ['destroy', 'hard', 'cache'].indexOf(flag) > -1)) {
+    if (flags.find((flag) => ['destroy', 'hard', 'soft', 'cache'].indexOf(flag) > -1)) {
         clear_folders.push(FOLDER_CACHE);
     }
-    if (flags.find((flag) => ['destroy', 'hard', 'gen'].indexOf(flag) > -1)) {
+    if (flags.find((flag) => ['destroy', 'hard', 'soft', 'gen'].indexOf(flag) > -1)) {
         clear_folders.push(FOLDER_GEN);
     }
     if (flags.find((flag) => ['destroy', 'media'].indexOf(flag) > -1)) {

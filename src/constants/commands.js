@@ -34,6 +34,10 @@ export const COMMANDS = {
                 desc: 'deletes all generated media files, not included in hard'
             },
             {
+                key: 'soft',
+                desc: 'delete cache and gen files'
+            },
+            {
                 key: 'storage',
                 desc: 'delete storage databases'
             },

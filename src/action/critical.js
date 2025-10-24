@@ -18,6 +18,9 @@ export async function critical() {
     const name = 'critical';
     const critical_name = get_name(WorkerEmit.critical);
     const critical = {};
+    if (!critical_css_enabled()) {
+        return;
+    }
 
     await measure_action(name, async () => {
         const collection_db = new KeyValue(STORAGE_COLLECTION);

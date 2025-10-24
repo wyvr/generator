@@ -9,6 +9,7 @@
     export let src = null;
     export let href = null;
     export let critical = false;
+    export let inline = false;
     export let media;
 
     const is_dev = injectConfig('env') === 'dev';
@@ -29,10 +30,28 @@
     $: {
         addCspNonce(nonce);
     }
+    let styleContent = '';
+
+    onServer(async () => {
+        if(!inline) {
+            return;
+        }
+        const {readFileSync, existsSync, readdirSync} = await import('node:fs');
+        const {FOLDER_PUBLISH} = await import('wyvr/src/constants/folder.js');
+        const {join} = await import('node:path');
+        const path = join(process.cwd(), FOLDER_PUBLISH, src);
+        if(!existsSync(path)) {
+            return;
+        }
+        styleContent = `<style>${readFileSync(path, 'utf-8')}<\/style>`;
+    });
+
 </script>
 
 {#if source}
-    {#if critical}
+    {#if inline && isServer}
+        {@html styleContent}
+    {:else if critical}
         <link rel="stylesheet" href={source} {media} />
     {:else}
         <link rel="preload" href={source} as="style" {media} id={nonce} />

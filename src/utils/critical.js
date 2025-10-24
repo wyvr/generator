@@ -79,6 +79,10 @@ export function insert_critical_css(content, identifier) {
     return content.replace('</head>', `<style id="critical">${css}</style></head>`);
 }
 
+export function critical_css_enabled() {
+    return enabled;
+}
+
 export function critical_css_exists(identifier) {
     if (!enabled) {
         return false;

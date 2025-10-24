@@ -1,7 +1,7 @@
 import { minify } from 'html-minifier';
 import { STORAGE_OPTIMIZE_HASHES, STORAGE_OPTIMIZE_MEDIA_QUERY_FILES } from '../constants/storage.js';
 import { Env } from '../vars/env.js';
-import { critical_css_exists, critical_css_set, get_critical_css, insert_critical_css } from './critical.js';
+import { critical_css_enabled, critical_css_exists, critical_css_set, get_critical_css, insert_critical_css } from './critical.js';
 import { KeyValue } from './database/key_value.js';
 import { get_error_message } from './error.js';
 import { Logger } from './logger.js';
@@ -42,7 +42,7 @@ export async function optimize_content(content, identifier) {
     // when identifier is given try to generate the critical css
     if (filled_string(identifier)) {
         steps.push((content) => insert_critical_css(content, identifier));
-        if (!critical_css_exists(identifier)) {
+        if (!critical_css_exists(identifier) && critical_css_enabled()) {
             // @NOTE generate as late as possible otherwise some resources are not available
             Logger.warning('generate critical css for', identifier);
             const css = await get_critical_css(content, identifier);

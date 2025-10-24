@@ -49,7 +49,7 @@
 </script>
 
 {#if source}
-    {#if inline && isServer}
+    {#if styleContent}
         {@html styleContent}
     {:else if critical}
         <link rel="stylesheet" href={source} {media} />

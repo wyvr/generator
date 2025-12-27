@@ -86,6 +86,13 @@ export class Database {
     getAll(sql, data) {
         return this.#execute('all', sql, data);
     }
+    transaction(fn) {
+        if (!this.db || !is_func(fn)) {
+            return undefined;
+        }
+        const trans = this.db.transaction(fn);
+        return trans();
+    } 
     #execute(type, sql, data) {
         if (!this.db) {
             return undefined;

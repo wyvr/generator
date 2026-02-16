@@ -258,7 +258,14 @@ export function replace_wyvr_magic(content, code_context = CodeContext.server) {
     const target_dir = as_client ? FOLDER_GEN_CLIENT : FOLDER_GEN_SERVER;
     // use server implementation on the server and request
     if (!as_client) {
-        content = content.replace(/(['"])wyvr\/universal\.js(['"])/g, '$1wyvr/universal_server.js$2');
+        content = content
+            .replace(/(['"])wyvr\/universal(?:\.js)?(['"])/g, '$1wyvr/universal/server.js$2')
+            .replace(/(['"])wyvr\/universal\/client\.js?(['"])/g, '$1wyvr/universal/server.js$2');
+    } else {
+        content = content
+            .replace(/(['"])wyvr\/universal\/server\.js?(['"])/g, '$1wyvr/universal/client.js$2')
+            .replace(/(['"])wyvr\/universal(?:\.js)?(['"])/g, '$1wyvr/universal/client.js$2');
+    }
     }
     // replace isServer, isClient and the imports
     return content

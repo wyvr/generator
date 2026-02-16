@@ -1,5 +1,5 @@
-import { get_config } from 'wyvr/cron.js';
-import { KeyValue } from 'wyvr/storage.js';
+import { KeyValue } from 'wyvr/src/utils/database/key_value.js';
+import { Config } from 'wyvr/src/utils/config.js';
 import { STORAGE_COLLECTION } from 'wyvr/src/constants/storage.js';
 import { write } from "wyvr/src/utils/file.js";
 import { ReleasePath } from 'wyvr/src/vars/release_path.js';
@@ -10,7 +10,7 @@ export default async function ({ isProd }) {
     if (!isProd) {
         return;
     }
-    const domain = `https://${get_config('url')}`;
+    const domain = `https://${Config.get('url')}`;
 
     // load all entries from the collection
     const collection_db = new KeyValue(STORAGE_COLLECTION);

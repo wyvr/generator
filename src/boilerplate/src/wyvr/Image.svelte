@@ -15,8 +15,8 @@
             css={'css-classes'}
         />
     */
-import { logger } from 'wyvr/universal.js';
-import { get_image_src_data, get_image_src, correct_image_format } from '$src/wyvr/image_utils.js';
+import { logger } from 'wyvr/universal';
+import { get_image_src_data, get_image_src, correct_image_format } from '$src/wyvr/image_utils';
 import { onMount } from 'svelte';
 export let src = null;
 export let width = 0;
@@ -38,7 +38,7 @@ let media_cache;
 let show_image = true;
 
 onServer(async () => {
-    const { get_cache_keys } = await import('wyvr/src/utils/media.js');
+    const { get_cache_keys } = await import('wyvr/src/utils/media');
     media_cache = get_cache_keys();
     set_media();
 });

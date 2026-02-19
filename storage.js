@@ -1,7 +1,5 @@
 /**
- * @deprecated use wyvr/universal instead
+ * @deprecated use wyvr/storage instead
  */
-export { Database } from './src/utils/database/database.js';
-export { Migrations } from './src/utils/database/migrations.js';
-export { KeyValue } from './src/utils/database/key_value.js';
+export * from './lib/storage.js';
 

@@ -58,5 +58,12 @@
     },
     "scripts": {
         "postinstall": "patch-package"
+    },
+    "exports": {
+        "./server": "./lib/server.js",
+        "./storage": "./lib/storage.js",
+        "./universal": "./lib/universal_server.js",
+        "./universal_client": "./lib/universal_client.js",
+        "./src/*": "./src/*"
     }
 }

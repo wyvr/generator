@@ -1,4 +1,4 @@
 /**
  * @deprecated use wyvr/server instead
  */
-export * from 'wyvr/server';
+export * from './lib/server.js';

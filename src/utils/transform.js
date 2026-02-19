@@ -247,6 +247,21 @@ export function replace_wyvr_magic(content, code_context = CodeContext.server, f
     if (!filled_string(content)) {
         return '';
     }
+    // add deprecation warnings
+    for (const deprecated of ['wyvr/cron.js', 'wyvr/commands.js', 'wyvr/collections.js', 'wyvr/shared.js']) {
+        if (content.indexOf(deprecated) > -1) {
+            Logger.warning(`${deprecated} is deprecated, use wyvr/server instead in`, file ?? 'source not provided');
+        }
+    }
+    let deprecated = 'wyvr/universal.js';
+    if (content.indexOf(deprecated) > -1) {
+        Logger.warning(`${deprecated} is deprecated, use wyvr/universal instead in`, file ?? 'source not provided');
+    }
+    deprecated = 'wyvr/storage.js';
+    if (content.indexOf(deprecated) > -1) {
+        Logger.warning(`${deprecated} is deprecated, use wyvr/storage instead in`, file ?? 'source not provided');
+    }
+    
     const as_client = code_context === CodeContext.client;
     // modify __ => translation
     // disable isRequest
@@ -259,12 +274,10 @@ export function replace_wyvr_magic(content, code_context = CodeContext.server, f
     // use server implementation on the server and request
     if (!as_client) {
         content = content
-            .replace(/(['"])wyvr\/universal(?:\.js)?(['"])/g, '$1wyvr/universal/server.js$2')
-            .replace(/(['"])wyvr\/universal\/client\.js?(['"])/g, '$1wyvr/universal/server.js$2');
+            .replace(/(['"])wyvr\/universal_client?(['"])/g, '$1wyvr/universal$2');
     } else {
         content = content
-            .replace(/(['"])wyvr\/universal\/server\.js?(['"])/g, '$1wyvr/universal/client.js$2')
-            .replace(/(['"])wyvr\/universal(?:\.js)?(['"])/g, '$1wyvr/universal/client.js$2');
+            .replace(/(['"])wyvr\/universal(['"])/g, '$1wyvr/universal_client$2');
     }
     // replace isServer, isClient and the imports
     return content

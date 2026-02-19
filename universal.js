@@ -1,4 +1,4 @@
 /**
  * @deprecated use wyvr/universal instead
  */
-export * from './universal/index.js';
+export * from './lib/universal.js';

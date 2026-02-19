@@ -45,7 +45,7 @@ function regenerate_server_files({ change, add, unlink }, gen_folder, scope) {
             if (parsed) {
                 dep_db.update_file(parsed.rel_path, parsed.dependencies, parsed?.config);
             }
-            const replaced_content = add_dev_note(file.rel_path, replace_imports(replace_wyvr_magic(content, CodeContext.server), file.path, FOLDER_GEN_SERVER, scope));
+            const replaced_content = add_dev_note(file.rel_path, replace_imports(replace_wyvr_magic(content, CodeContext.server, file.path), file.path, FOLDER_GEN_SERVER, scope));
 
             write(join(gen_folder, file.rel_path), replaced_content);
             done = true;

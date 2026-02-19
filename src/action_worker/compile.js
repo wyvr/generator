@@ -25,7 +25,7 @@ export async function compile(files) {
             const content = read(file);
             // generate server file
             const server_file = to_server_path(file);
-            let server_code = replace_wyvr_magic(content, CodeContext.server);
+            let server_code = replace_wyvr_magic(content, CodeContext.server, file);
             if (server_code) {
                 const rel_path = to_relative_path_of_gen(file);
                 const entry = WyvrFile(rel_path);
@@ -45,7 +45,7 @@ export async function compile(files) {
             }
             // generate client file
             const client_file = to_client_path(file);
-            const client_code = remove_server_events(replace_wyvr_magic(content, CodeContext.client));
+            const client_code = remove_server_events(replace_wyvr_magic(content, CodeContext.client, file));
             const prepared_client_content = await compile_client_svelte_from_code(client_code, file);
             write(client_file, prepared_client_content);
         } catch (e) {

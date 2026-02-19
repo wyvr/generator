@@ -243,7 +243,7 @@ export async function extract_and_load_split(path, content, tag, extensions) {
     return result;
 }
 
-export function replace_wyvr_magic(content, code_context = CodeContext.server) {
+export function replace_wyvr_magic(content, code_context = CodeContext.server, file = null) {
     if (!filled_string(content)) {
         return '';
     }
@@ -265,7 +265,6 @@ export function replace_wyvr_magic(content, code_context = CodeContext.server) {
         content = content
             .replace(/(['"])wyvr\/universal\/server\.js?(['"])/g, '$1wyvr/universal/client.js$2')
             .replace(/(['"])wyvr\/universal(?:\.js)?(['"])/g, '$1wyvr/universal/client.js$2');
-    }
     }
     // replace isServer, isClient and the imports
     return content

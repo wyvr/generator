@@ -68,8 +68,8 @@ export async function transform(files) {
 
                 // write client and server versions of scripts
                 if (in_array(['.mjs', '.cjs', '.js', '.ts'], extension)) {
-                    write(to_server_path(file), replace_wyvr_magic(expanded_content, CodeContext.server));
-                    write(to_client_path(file), replace_wyvr_magic(expanded_content, CodeContext.client));
+                    write(to_server_path(file), replace_wyvr_magic(expanded_content, CodeContext.server, file));
+                    write(to_client_path(file), replace_wyvr_magic(expanded_content, CodeContext.client, file));
                     continue;
                 }
             }

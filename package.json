@@ -62,8 +62,10 @@
     "exports": {
         "./server": "./lib/server.js",
         "./storage": "./lib/storage.js",
+        "./cli": "./lib/cli.js",
         "./universal": "./lib/universal_server.js",
         "./universal_client": "./lib/universal_client.js",
-        "./src/*": "./src/*"
+        "./src/*": "./src/*",
+        "./*": "./*"
     }
 }

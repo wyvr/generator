@@ -16,9 +16,11 @@
     $: source = src ? append_query_string(src, 'ts', timestamp) : undefined;
     $: nonce = csp ? btoa(source) : undefined;
 
+/*
     $: {
         addCspNonce(nonce);
     }
+    */
 </script>
 
 {#if source}

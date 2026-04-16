@@ -261,7 +261,7 @@ export function replace_wyvr_magic(content, code_context = CodeContext.server, f
     if (content.indexOf(deprecated) > -1) {
         Logger.warning(`${deprecated} is deprecated, use wyvr/storage instead in`, file ?? 'source not provided');
     }
-    
+
     const as_client = code_context === CodeContext.client;
     // modify __ => translation
     // disable isRequest
@@ -274,9 +274,11 @@ export function replace_wyvr_magic(content, code_context = CodeContext.server, f
     // use server implementation on the server and request
     if (!as_client) {
         content = content
+            .replace(/(['"])wyvr\/universal\.js?(['"])/g, '$1wyvr/universal$2') //deprecation
             .replace(/(['"])wyvr\/universal_client?(['"])/g, '$1wyvr/universal$2');
     } else {
         content = content
+            .replace(/(['"])wyvr\/universal\.js?(['"])/g, '$1wyvr/universal_client$2') //deprecation
             .replace(/(['"])wyvr\/universal(['"])/g, '$1wyvr/universal_client$2');
     }
     // replace isServer, isClient and the imports

@@ -71,16 +71,28 @@ describe('utils/transform/replace_wyvr_magic', () => {
         );
     });
 
-    it('avoid replace universal on client', () => {
+    it('replace deprecated universal on client', () => {
         strictEqual(
             replace_wyvr_magic(`import * as universal from "wyvr/universal.js";`, CodeContext.client),
-            `import * as universal from "wyvr/universal.js";`
+            `import * as universal from "wyvr/universal_client";`
         );
     });
-    it('replace universal on server', () => {
+    it('replace deprecated universal on server', () => {
         strictEqual(
             replace_wyvr_magic(`import * as universal from "wyvr/universal.js";`, CodeContext.server),
-            `import * as universal from "wyvr/universal_server.js";`
+            `import * as universal from "wyvr/universal";`
+        );
+    });
+    it('replace universal on client', () => {
+       strictEqual(
+           replace_wyvr_magic(`import * as universal from "wyvr/universal";`, CodeContext.server),
+           `import * as universal from "wyvr/universal";`
+       );
+   });
+    it('avoid replace universal on server', () => {
+        strictEqual(
+            replace_wyvr_magic(`import * as universal from "wyvr/universal";`, CodeContext.server),
+            `import * as universal from "wyvr/universal";`
         );
     });
 });

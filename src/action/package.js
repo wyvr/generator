@@ -98,7 +98,8 @@ async function process_package(pkg, index, package_json) {
                     if (package_name !== pkg.name) {
                         return null;
                     }
-                    return package_json.dependencies[package_name].match(/file:(.*)/)[1];
+                    const file_matches = package_json.dependencies[package_name].match(/file:(.*)/);
+                    return Array.isArray(file_matches) ? file_matches[1] : null;
                 })
                 .find((x) => x);
             if (path) {

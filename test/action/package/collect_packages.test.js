@@ -98,7 +98,7 @@ describe('action/package/collect_packages', () => {
         deepStrictEqual(result, {
             available_packages: packages,
             config: { ...WyvrConfig, packages },
-            disabled_packages: [],
+            disabled_packages: []
         });
     });
     it('symlinked without package.json', async () => {

@@ -11,6 +11,7 @@ WYVR_LINT=npx eslint src
 WYVR_TEST=npx mocha -R dot './test/**/*.test.js'
 WYVR_COVERAGE=npx c8 -x src/command -x src/resource -x src/templates -x src/boilerplate -x src/utils/create -x src/model/create --skip-full --clean $(WYVR_TEST)
 READONLY_FILES=if [ ! -f test/utils/file/_tests/not_writeable.txt ]; then echo -n "readonly" > test/utils/file/_tests/not_writeable.txt; chmod -rw test/utils/file/_tests/not_writeable.txt; fi;
+SYMLINK_TESTS=(cd test/action/package/_tests/symlinked; rm -rf local; ln -s ../simple/local local; rm -rf node_modules; mkdir node_modules; cp -R ../simple/local node_modules/local; cp -R ../simple/file node_modules/file)
 
 compile-watch: ## Start watcher and make dev builds
 	@env npx nodemon \
@@ -27,10 +28,12 @@ compile-watch: ## Start watcher and make dev builds
 
 test: ## Executes the tests
 	@$(READONLY_FILES)
+	@$(SYMLINK_TESTS)
 	@$(WYVR_TEST)
 
 test-watch: ## Watches changes in the tests
 	@$(READONLY_FILES)
+	@$(SYMLINK_TESTS)
 	@npx nodemon --watch src --watch test --ignore test/**/_tests/**/*.js -e js --exec "$(WYVR_LINT); $(WYVR_TEST)"
 
 init: ## Install and prepare setup

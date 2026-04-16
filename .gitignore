@@ -11,6 +11,8 @@
 /test/utils/file/_tests/not_writeable.txt
 /test/**/svelte_internal.mjs
 /test/**/gen/svelte
+/test/action/package/_tests/symlinked/node_modules/*
+/test/action/package/_tests/symlinked/local
 /storage
 tmp
 pub

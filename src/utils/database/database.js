@@ -92,7 +92,7 @@ export class Database {
         }
         const trans = this.db.transaction(fn);
         return trans();
-    } 
+    }
     #execute(type, sql, data) {
         if (!this.db) {
             return undefined;

@@ -190,13 +190,12 @@ paragraphs, but here again, Markdown will allow you to be
 lazy:</p>
 <ul>
 <li><p>This is a list item with two paragraphs.</p>
-<p>This is the second paragraph in the list item. You&#39;re</p>
-</li>
-</ul>
-<p>only required to indent the first line. Lorem ipsum dolor
+<p>This is the second paragraph in the list item. You&#39;re
+only required to indent the first line. Lorem ipsum dolor
 sit amet, consectetuer adipiscing elit.</p>
-<ul>
-<li>Another item in the same list.</li>
+</li>
+<li><p>Another item in the same list.</p>
+</li>
 </ul>
 <p>To put a blockquote within a list item, the blockquote&#39;s <code>&gt;</code>
 delimiters need to be indented:</p>

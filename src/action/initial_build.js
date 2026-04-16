@@ -97,6 +97,9 @@ export async function intial_build(build_id, config) {
     // Build Tree of files and packages
     const { package_tree } = await copy(available_packages);
 
+    // Initialize Plugins
+    await Plugin.initialize();
+
     // Create Translations/I18N
     await i18n(available_packages);
 
@@ -107,9 +110,6 @@ export async function intial_build(build_id, config) {
 
     // Transform Svelte files to client and server components
     await transform();
-
-    // Initialize Plugins
-    await Plugin.initialize();
 
     // Extract dependencies
     await dependencies();

@@ -52,7 +52,7 @@ export async function build(content, file, format = 'iife') {
                             return false;
                         }
                         // ignore some warnings
-                        if (warning.code === 'css-unused-selector' && warning.message.indexOf('[data-slot=') > -1) {
+                        if (warning.code === 'css-unused-selector' || warning.code === 'unused-export-let') {
                             return false;
                         }
                         Logger.warning(get_error_message(warning, file, 'svelte'));

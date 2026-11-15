@@ -1,6 +1,7 @@
 {
     "name": "wyvr",
     "version": "0.2.2",
+    "repository": "https://github.com/wyvr/generator.git",
     "description": "",
     "main": "index.js",
     "author": "wyvr",

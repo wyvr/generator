@@ -49,6 +49,12 @@
     }
 }
 
+@media print {
+    .wyvr_debug_toolbar, .wyvr_floating_window, .wyvr_debug_toolbar * {
+        display: none !important;
+    }
+}
+
 .wyvr_debug_toolbar:after {
     content: "";
     position: absolute;

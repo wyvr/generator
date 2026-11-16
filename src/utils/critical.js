@@ -1,4 +1,4 @@
-import { generate } from 'critical';
+import { critical } from 'critical';
 import { ReleasePath } from '../vars/release_path.js';
 import { get_error_message } from './error.js';
 import { Logger } from './logger.js';
@@ -57,7 +57,7 @@ export async function generate_critical_css(content, file) {
             }
         };
         // create above the fold inline css
-        const result = await generate(options);
+        const result = await critical(options);
         return result;
     } catch (e) {
         Logger.error(get_error_message(e, file, 'critical'));

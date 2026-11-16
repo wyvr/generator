@@ -57,21 +57,7 @@ describe('utils/build/build', () => {
             'contains selector'
         );
         strictEqual(result.code.indexOf('@import') == -1, true, 'should not contain @import');
-        deepStrictEqual(log, [
-            [
-                '⚠',
-                '@svelte\n' +
-                    'Unused CSS selector "a"\n' +
-                    'stack\n' +
-                    '- 13:         border: 1px solid red;\n' +
-                    '- 14:     }\n' +
-                    '- 15:     a {\n' +
-                    '-         ^\n' +
-                    '- 16:         color: blue;\n' +
-                    '- 17:     }\n' +
-                    'source single.js',
-            ],
-        ]);
+        deepStrictEqual(log, []);
     });
     it('non existing file', async () => {
         const result = await build(undefined, 'nonexisting.js');

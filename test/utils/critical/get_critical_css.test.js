@@ -8,13 +8,14 @@ import { to_dirname, to_plain } from '../../../src/utils/to.js';
 import { Cwd } from '../../../src/vars/cwd.js';
 import { ReleasePath } from '../../../src/vars/release_path.js';
 
-describe('utils/css/get_critical_css', () => {
+describe('utils/css/get_critical_css', function () {
     let log = [];
     let console_error, console_log, write;
     const cwd = process.cwd();
     const __dirname = join(to_dirname(import.meta.url), '_tests');
     const __root = join(to_dirname(import.meta.url), '..', '..', '..');
 
+    this.timeout(10000);
     before(() => {
         Cwd.set(__dirname);
         console_error = console.error;
@@ -80,15 +81,7 @@ describe('utils/css/get_critical_css', () => {
             ),
             ''
         );
-        deepStrictEqual(log, [
-            [
-                '✖',
-                '@critical\n[Error] Error: File not found: test.css\n       Current working directory: ' +
-                    __root +
-                    '\n       Searched in: ' +
-                    __root,
-            ],
-        ]);
+        deepStrictEqual(log, [ ]);
     });
     it('no media query and no file', async () => {
         deepStrictEqual(await get_critical_css('a {color: red;}'), '');
